@@ -110,9 +110,9 @@ SmtSolver Yices2InterpolatingSolver::new_solver() const
   return solver;
 }
 
-Result Yices2InterpolatingSolver::get_interpolant(const Term & A,
-                                                  const Term & B,
-                                                  Term & out_I) const
+Result Yices2InterpolatingSolver::compute_interpolant(const Term & A,
+                                                      const Term & B,
+                                                      Term & out_I) const
 {
   // Each model of B restricted to the shared symbols that A refutes gives a
   // formula A implies and the model falsifies, which B then has to satisfy
@@ -246,7 +246,7 @@ Result Yices2InterpolatingSolver::refute_model(const Term & A,
   return Result(UNSAT);
 }
 
-Result Yices2InterpolatingSolver::get_sequence_interpolants(
+Result Yices2InterpolatingSolver::compute_seq_interpolants(
     const TermVec & formulae, TermVec & out_I) const
 {
   return sequence_from_interpolants(formulae, out_I);

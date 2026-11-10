@@ -52,8 +52,8 @@ using TermsPairVec = std::vector<std::pair<Term, Term>>;
      dump_smt2 throws it and is final as well, since an interpolator holds
      no assertions to dump. get_context_level is final too, and returns 0,
      since no context can be pushed.
-   - Required: get_interpolant, get_sequence_interpolants and the hook
-     do_set_opt. A backend usually computes only one of the first two
+   - Required: the hooks compute_interpolant, compute_seq_interpolants
+     and do_set_opt. A backend usually computes only one of the first two
      natively, and implements the other with interpolant_from_sequence or
      sequence_from_interpolants; implementing both with them would recurse
      forever.
@@ -92,7 +92,7 @@ class AbsSmtInterpolator : public AbsSmtSolver
   void dump_smt2(std::string filename) const final;
   std::uint64_t get_context_level() const final;
 
-  // ------------------------- Required -------------------------------------
+  // ------------------------- Interpolation --------------------------------
   /* Compute a Craig interpolant given A and B such that A ^ B is unsat
    *   i.e. an I such that: A -> I  and  I ^ B is unsat
    *        and I only contains constants that are in both A and B
@@ -102,11 +102,9 @@ class AbsSmtInterpolator : public AbsSmtSolver
    * @return unsat    iff an interpolant was computed,
    *         sat      iff the query was satisfiable,
    *         unknown  iff interpolation failed
-   *
+   * @throws IncorrectUsageException if A or B is not boolean
    */
-  virtual Result get_interpolant(const Term & A,
-                                 const Term & B,
-                                 Term & out_I) const = 0;
+  Result get_interpolant(const Term & A, const Term & B, Term & out_I) const;
 
   /** Compute a sequence interpolant given formulae F_0, ..., F_n whose
    *  conjunction is unsat, i.e. I_0, ..., I_{n-1} such that:
@@ -125,10 +123,11 @@ class AbsSmtInterpolator : public AbsSmtSolver
    *                  in this case, out_I is still populated but any
    *                  failed steps, and possibly the steps after them,
    *                  have null terms
-   *
+   * @throws IncorrectUsageException if there are fewer than two formulae,
+   *         one is not boolean, or out_I is not empty
    */
-  virtual Result get_sequence_interpolants(const TermVec & formulae,
-                                           TermVec & out_I) const = 0;
+  Result get_sequence_interpolants(const TermVec & formulae,
+                                   TermVec & out_I) const;
 
   /** Takes incremental, and hands every other option to do_set_opt
    *  @throws IncorrectUsageException if incremental is neither true nor false
@@ -199,6 +198,17 @@ class AbsSmtInterpolator : public AbsSmtSolver
   void do_pop(std::uint64_t num) final;
 
   // ------------------------- Required -------------------------------------
+  /** Computes an interpolant of boolean A and B; see get_interpolant */
+  virtual Result compute_interpolant(const Term & A,
+                                     const Term & B,
+                                     Term & out_I) const = 0;
+
+  /** Computes a sequence interpolant of at least two boolean formulae into
+   *  an empty out_I; see get_sequence_interpolants
+   */
+  virtual Result compute_seq_interpolants(const TermVec & formulae,
+                                          TermVec & out_I) const = 0;
+
   /** Takes an option other than incremental, which set_opt takes itself */
   virtual void do_set_opt(const std::string & option,
                           const std::string & value) = 0;

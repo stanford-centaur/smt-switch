@@ -147,13 +147,12 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
   cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
   cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
 
-  Result get_interpolant(const Term & A,
-                         const Term & B,
-                         Term & out_I) const override;
-  Result get_sequence_interpolants(const TermVec & formulae,
-                                   TermVec & out_I) const override;
-
  protected:
+  Result compute_interpolant(const Term & A,
+                             const Term & B,
+                             Term & out_I) const override;
+  Result compute_seq_interpolants(const TermVec & formulae,
+                                  TermVec & out_I) const override;
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
   // sets the options interpolation needs, on construction and after reset()

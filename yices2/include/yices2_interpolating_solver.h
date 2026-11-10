@@ -39,16 +39,15 @@ class Yices2InterpolatingSolver : public AbsSmtInterpolator
   Yices2InterpolatingSolver & operator=(const Yices2InterpolatingSolver &) =
       delete;
 
-  Result get_interpolant(const Term & A,
-                         const Term & B,
-                         Term & out_I) const override;
-  Result get_sequence_interpolants(const TermVec & formulae,
-                                   TermVec & out_I) const override;
-
   /** Sets the logic of the terms and of the queries */
   void set_logic(const std::string logic) override;
 
  protected:
+  Result compute_interpolant(const Term & A,
+                             const Term & B,
+                             Term & out_I) const override;
+  Result compute_seq_interpolants(const TermVec & formulae,
+                                  TermVec & out_I) const override;
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
 

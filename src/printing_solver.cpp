@@ -423,9 +423,9 @@ static std::string no_query_syntax(SolverEnum se)
   return "A printing interpolator cannot write the queries of " + to_string(se);
 }
 
-Result PrintingInterpolator::get_interpolant(const Term & A,
-                                             const Term & B,
-                                             Term & out_I) const
+Result PrintingInterpolator::compute_interpolant(const Term & A,
+                                                 const Term & B,
+                                                 Term & out_I) const
 {
   switch (get_solver_enum())
   {
@@ -450,21 +450,9 @@ Result PrintingInterpolator::get_interpolant(const Term & A,
   throw NotImplementedException(no_query_syntax(get_solver_enum()));
 }
 
-Result PrintingInterpolator::get_sequence_interpolants(const TermVec & formulae,
-                                                       TermVec & out_I) const
+Result PrintingInterpolator::compute_seq_interpolants(const TermVec & formulae,
+                                                      TermVec & out_I) const
 {
-  // check before printing, so a query that is refused is not printed
-  if (formulae.size() < 2)
-  {
-    throw IncorrectUsageException(
-        "Sequence interpolation requires at least 2 formulae.");
-  }
-  if (!out_I.empty())
-  {
-    throw IncorrectUsageException(
-        "Argument out_I should be empty before calling "
-        "get_sequence_interpolants.");
-  }
   switch (get_solver_enum())
   {
     // Both split a sequence query into one get_interpolant query per split,
