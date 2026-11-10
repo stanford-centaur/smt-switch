@@ -14,6 +14,7 @@
 **
 **/
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -42,6 +43,8 @@
 using namespace smt;
 using namespace smt_tests;
 using namespace std;
+using testing::ElementsAre;
+using testing::IsEmpty;
 
 namespace {
 
@@ -241,9 +244,8 @@ TEST_P(Datatypes, DatatypeDecl)
   EXPECT_EQ(listdt->get_num_constructors(), 2);
   EXPECT_EQ(listdt->get_num_selectors("cons"), 2);
   EXPECT_EQ(listdt->get_num_selectors("nil"), 0);
-  EXPECT_EQ(listdt->get_constructor_names(), (vector<string>{ "nil", "cons" }));
-  EXPECT_EQ(listdt->get_selector_names("cons"),
-            (vector<string>{ "head", "tail" }));
+  EXPECT_THAT(listdt->get_constructor_names(), ElementsAre("nil", "cons"));
+  EXPECT_THAT(listdt->get_selector_names("cons"), ElementsAre("head", "tail"));
   EXPECT_TRUE(listdt->get_selector_names("nil").empty());
   EXPECT_EQ(listdt->get_selector_sort("cons", "head"), intsort);
   EXPECT_EQ(listdt->get_selector_sort("cons", "tail"), listsort);
@@ -282,9 +284,9 @@ TEST_P(Datatypes, NamesReachEveryComponent)
                               { "value", intsort },
                               { "child", treesort } };
   Datatype dt = treesort->get_datatype();
-  EXPECT_EQ(dt->get_constructor_names(), (vector<string>{ "leaf", "node" }));
-  EXPECT_EQ(dt->get_selector_names("node"),
-            (vector<string>{ "flag", "value", "child" }));
+  EXPECT_THAT(dt->get_constructor_names(), ElementsAre("leaf", "node"));
+  EXPECT_THAT(dt->get_selector_names("node"),
+              ElementsAre("flag", "value", "child"));
   for (const string & con : dt->get_constructor_names())
   {
     EXPECT_NO_THROW(s->get_tester(treesort, con)) << con;
@@ -397,15 +399,14 @@ TEST_P(Datatypes, ConstructorDeclChangedAfterMakeSort)
   Sort bsort = s->make_sort(bdecl);
 
   Datatype adt = asort->get_datatype();
-  EXPECT_EQ(adt->get_selector_names("cons"), (vector<string>{ "head" }));
+  EXPECT_THAT(adt->get_selector_names("cons"), ElementsAre("head"));
   EXPECT_EQ(
       s->get_constructor(asort, "cons")->get_sort()->get_domain_sorts().size(),
       1u);
   EXPECT_THROW(s->get_selector(asort, "cons", "tail"), IncorrectUsageException);
 
   Datatype bdt = bsort->get_datatype();
-  EXPECT_EQ(bdt->get_selector_names("cons"),
-            (vector<string>{ "head", "tail" }));
+  EXPECT_THAT(bdt->get_selector_names("cons"), ElementsAre("head", "tail"));
   EXPECT_EQ(bdt->get_selector_sort("cons", "tail"), bsort);
   EXPECT_EQ(
       s->get_constructor(bsort, "cons")->get_sort()->get_domain_sorts().size(),
@@ -428,23 +429,22 @@ TEST_P(Datatypes, MakeDatatypeSortsMakesEach)
     GTEST_SKIP() << "the generic solver refuses every make_datatype_sorts";
   }
   std::vector<DatatypeDecl> decls;
-  for (const string & name : vector<string>{ "a", "b", "c" })
+  for (const string name : { "a", "b", "c" })
   {
-    DatatypeDecl decl = s->make_datatype_decl(name);
-    DatatypeConstructorDecl con =
-        s->make_datatype_constructor_decl("mk" + name);
+    auto decl = s->make_datatype_decl(name);
+    auto con = s->make_datatype_constructor_decl("mk" + name);
     s->add_selector(con, "get" + name, intsort);
     s->add_constructor(decl, con);
     decls.push_back(decl);
   }
-  SortVec sorts = s->make_datatype_sorts(decls);
+  auto sorts = s->make_datatype_sorts(decls);
   ASSERT_EQ(sorts.size(), 3u);
   for (size_t i = 0; i < sorts.size(); ++i)
   {
-    string name = decls[i]->get_name();
-    Datatype dt = sorts[i]->get_datatype();
+    auto name = decls[i]->get_name();
+    auto dt = sorts[i]->get_datatype();
     EXPECT_EQ(dt->get_name(), name);
-    EXPECT_EQ(dt->get_constructor_names(), (vector<string>{ "mk" + name }));
+    EXPECT_THAT(dt->get_constructor_names(), ElementsAre("mk" + name));
     EXPECT_EQ(dt->get_selector_sort("mk" + name, "get" + name), intsort);
   }
 }
@@ -539,18 +539,17 @@ TEST_P(Datatypes, ComponentsAndApplications)
 
   // a constructor, selector or tester is a leaf of its own sort kind, and
   // its datatype declares it, not a symbol
-  for (const auto & [leaf, kind] :
-       vector<pair<Term, SortKind>>{ { nilc, CONSTRUCTOR },
-                                     { cons, CONSTRUCTOR },
-                                     { head, SELECTOR },
-                                     { isnil, TESTER } })
+  for (const auto & [leaf, kind] : { pair{ nilc, CONSTRUCTOR },
+                                     pair{ cons, CONSTRUCTOR },
+                                     pair{ head, SELECTOR },
+                                     pair{ isnil, TESTER } })
   {
     EXPECT_EQ(leaf->get_sort()->get_sort_kind(), kind) << leaf;
     EXPECT_FALSE(leaf->is_symbol()) << leaf;
     EXPECT_FALSE(leaf->is_symbolic_const()) << leaf;
     EXPECT_FALSE(leaf->is_value()) << leaf;
     EXPECT_TRUE(leaf->get_op().is_null()) << leaf;
-    EXPECT_EQ(TermVec(leaf->begin(), leaf->end()), TermVec{}) << leaf;
+    EXPECT_THAT(TermVec(leaf->begin(), leaf->end()), IsEmpty()) << leaf;
   }
 
   // an application has the component it applies as its first child, even
@@ -560,17 +559,17 @@ TEST_P(Datatypes, ComponentsAndApplications)
   Term nil = s->make_term(Apply_Constructor, nilc);
   EXPECT_FALSE(nil->is_symbol());
   EXPECT_EQ(nil->get_op(), Op(Apply_Constructor));
-  EXPECT_EQ(TermVec(nil->begin(), nil->end()), TermVec{ nilc });
+  EXPECT_THAT(TermVec(nil->begin(), nil->end()), ElementsAre(nilc));
   Term list5 = s->make_term(Apply_Constructor, cons, five, nil);
   EXPECT_EQ(list5->get_op(), Op(Apply_Constructor));
-  EXPECT_EQ(TermVec(list5->begin(), list5->end()),
-            (TermVec{ cons, five, nil }));
+  EXPECT_THAT(TermVec(list5->begin(), list5->end()),
+              ElementsAre(cons, five, nil));
   Term head_l = s->make_term(Apply_Selector, head, l);
   EXPECT_EQ(head_l->get_op(), Op(Apply_Selector));
-  EXPECT_EQ(TermVec(head_l->begin(), head_l->end()), (TermVec{ head, l }));
+  EXPECT_THAT(TermVec(head_l->begin(), head_l->end()), ElementsAre(head, l));
   Term isnil_l = s->make_term(Apply_Tester, isnil, l);
   EXPECT_EQ(isnil_l->get_op(), Op(Apply_Tester));
-  EXPECT_EQ(TermVec(isnil_l->begin(), isnil_l->end()), (TermVec{ isnil, l }));
+  EXPECT_THAT(TermVec(isnil_l->begin(), isnil_l->end()), ElementsAre(isnil, l));
 
   // only the declared constant is free, not the constructor it is compared to
   UnorderedTermSet free_consts;
@@ -699,8 +698,8 @@ TEST_P(Datatypes, SameNamedDeclsKeepTheirOwnConstructors)
   s->add_constructor(first, s->make_datatype_constructor_decl("left"));
   s->add_constructor(second, s->make_datatype_constructor_decl("right"));
   Sort second_sort = s->make_sort(second);
-  EXPECT_EQ(second_sort->get_datatype()->get_constructor_names(),
-            (vector<string>{ "right" }));
+  EXPECT_THAT(second_sort->get_datatype()->get_constructor_names(),
+              ElementsAre("right"));
 }
 
 TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)
