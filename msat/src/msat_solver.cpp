@@ -724,6 +724,11 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
 
 Term MsatSolver::make_symbol(const string name, const Sort & sort)
 {
+  if (name.empty())
+  {
+    throw NotImplementedException(
+        "MathSAT does not support empty symbol names");
+  }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   msat_decl decl = msat_find_decl(*env, name.c_str());
   if (!MSAT_ERROR_DECL(decl))
@@ -743,11 +748,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
 
   decl = msat_declare_function(*env, name.c_str(), msort->get_msat_type());
 
-  if (MSAT_ERROR_DECL(decl) && name.empty())
-  {
-    decl = msat_declare_function(*env, "||", msort->get_msat_type());
-  }
-  else if (MSAT_ERROR_DECL(decl))
+  if (MSAT_ERROR_DECL(decl))
   {
     throw SmtException("Got msat error decl when creating " + name + " of sort "
                        + sort->to_string());
