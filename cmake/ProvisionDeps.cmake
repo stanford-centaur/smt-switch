@@ -55,6 +55,18 @@ here as a nested project, to completion, before the lookup that needs it.
   to another copy, or building one, would quietly ignore the request.  The
   same holds for the default root when ``SMT_SWITCH_SYSTEM_<NAME>`` is off.
 
+.. command:: smt_switch_record_root
+
+  .. code-block:: cmake
+
+    smt_switch_record_root(<Package>)
+
+  Called after looking for ``<Package>``.  Sets
+  ``SMT_SWITCH_RECORDED_ROOT_<Package>`` to its root if the package was
+  found under it, for the installed package configuration to search first.
+  A package found anywhere else is not recorded: its root then holds
+  nothing, or a copy other than the one linked.
+
 Cache Variables
 ^^^^^^^^^^^^^^^
 
@@ -131,6 +143,7 @@ function(smt_switch_dependency_root package name found_var)
   if(ARGC GREATER 3)
     set(_given "${_given} (${ARGV3})")
   endif()
+  set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR "${found_var}")
   string(TOUPPER "${name}" _upper)
   set(_no_system FALSE)
   if(DEFINED SMT_SWITCH_SYSTEM_${_upper} AND NOT SMT_SWITCH_SYSTEM_${_upper})
@@ -150,7 +163,6 @@ function(smt_switch_dependency_root package name found_var)
       )
       set_property(GLOBAL APPEND PROPERTY SMT_SWITCH_REQUIRED_ROOTS "${package}")
       set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_REASON "${_reason}")
-      set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR "${found_var}")
     endif()
     set(${package}_ROOT "${${package}_ROOT}" PARENT_SCOPE)
     return()
@@ -168,8 +180,22 @@ function(smt_switch_dependency_root package name found_var)
   endif()
   set_property(GLOBAL APPEND PROPERTY SMT_SWITCH_REQUIRED_ROOTS "${package}")
   set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_ROOT_REASON "${_given} is ${${package}_ROOT}")
-  set_property(GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR "${found_var}")
   set(${package}_ROOT "${${package}_ROOT}" PARENT_SCOPE)
+endfunction()
+
+# Sets <out_var> to whether the copy of <package> that was found lies under
+# its root. find_package searches the root first, so a package found anywhere
+# else is not in it.
+function(_smt_switch_found_in_root package out_var)
+  get_property(_found_var GLOBAL PROPERTY SMT_SWITCH_${package}_FOUND_VAR)
+  get_filename_component(_root "${${package}_ROOT}" REALPATH)
+  get_filename_component(_found "${${_found_var}}" REALPATH)
+  string(FIND "${_found}/" "${_root}/" _position)
+  if(_position EQUAL 0)
+    set(${out_var} TRUE PARENT_SCOPE)
+  else()
+    set(${out_var} FALSE PARENT_SCOPE)
+  endif()
 endfunction()
 
 function(smt_switch_check_root package)
@@ -182,17 +208,21 @@ function(smt_switch_check_root package)
   if(NOT ${package}_FOUND)
     message(FATAL_ERROR "${_given}, but no suitable ${package} is installed there.")
   endif()
-  # find_package searches the root first, so a package found anywhere else
-  # is not in it.
-  get_filename_component(_root "${${package}_ROOT}" REALPATH)
-  get_filename_component(_found "${${_found_var}}" REALPATH)
-  string(FIND "${_found}/" "${_root}/" _position)
-  if(NOT _position EQUAL 0)
+  _smt_switch_found_in_root("${package}" _in_root)
+  if(NOT _in_root)
+    get_filename_component(_found "${${_found_var}}" REALPATH)
     message(
       FATAL_ERROR
       "${_given}, but the ${package} found is at ${_found}. If that is a "
       "stale cache entry, delete ${_found_var} from the cache."
     )
+  endif()
+endfunction()
+
+function(smt_switch_record_root package)
+  _smt_switch_found_in_root("${package}" _in_root)
+  if(_in_root)
+    set(SMT_SWITCH_RECORDED_ROOT_${package} "${${package}_ROOT}" PARENT_SCOPE)
   endif()
 endfunction()
 

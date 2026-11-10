@@ -130,7 +130,11 @@ with `--no-auto-deps`, and Yices2 still needs `--allow-gpl`.
 Each enabled solver produces a `libsmt-switch-<solver>.so`.
 `cmake --install build` installs those and the public headers under the
 configured prefix (`/usr/local` by default), with the headers in a subdirectory
-of their own, e.g. `/usr/local/include/smt-switch`.
+of their own, e.g. `/usr/local/include/smt-switch`. The installed CMake package
+remembers the prefix of each solver found under `deps/` or a `--<solver>-dir`,
+so `find_package(SmtSwitch COMPONENTS <solver>)` finds that solver without its
+location being given again; setting `<Package>_ROOT`, e.g. `cvc5_ROOT`,
+overrides it.
 
 Each solver is listed below with the libraries it needs beyond the core
 dependencies. These must be installed on the system already if the solvers are
