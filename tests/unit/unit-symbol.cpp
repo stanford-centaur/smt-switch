@@ -28,6 +28,7 @@
 #include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -164,6 +165,19 @@ TEST_P(UnitSymbolTests, AtSignSymbolName)
   EXPECT_TRUE(x->is_symbolic_const());
   EXPECT_FALSE(x->is_value());
   EXPECT_EQ(x->get_symbol_name(), "@x");
+}
+
+TEST_P(UnitSymbolTests, InternalSymbolName)
+{
+  std::string name = internal_name("assump", 1);
+  SolverEnum se = GetParam().solver_enum;
+  if (se == BTOR || se == GENERIC_SOLVER || se == MSAT)
+  {
+    EXPECT_THROW(s->make_symbol(name, boolsort), IncorrectUsageException);
+    return;
+  }
+  Term x = s->make_symbol(name, boolsort);
+  EXPECT_EQ(x->get_symbol_name(), name);
 }
 
 TEST_P(UnitSymbolTests, NonSymbolHasNoSymbolName)
