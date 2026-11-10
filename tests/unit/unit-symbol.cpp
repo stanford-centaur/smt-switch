@@ -150,6 +150,24 @@ TEST_P(UnitSymbolTests, EmptySymbolName)
   EXPECT_EQ(empty->get_symbol_name(), "");
 }
 
+TEST_P(UnitSymbolTests, AtSignSymbolName)
+{
+  if (GetParam().solver_enum == MSAT)
+  {
+    EXPECT_THROW(s->make_symbol("@x", bvsort), NotImplementedException);
+    return;
+  }
+  if (GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "The generic solver's binary may refuse names that "
+                    "SMT-LIB reserves for the solver";
+  }
+  Term x = s->make_symbol("@x", bvsort);
+  EXPECT_TRUE(x->is_symbolic_const());
+  EXPECT_FALSE(x->is_value());
+  EXPECT_EQ(x->get_symbol_name(), "@x");
+}
+
 TEST_P(UnitSymbolTests, NonSymbolHasNoSymbolName)
 {
   Term x = s->make_symbol("x", bvsort);
