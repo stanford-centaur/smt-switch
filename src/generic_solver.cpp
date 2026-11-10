@@ -1598,7 +1598,7 @@ Term GenericSolver::store_term(Term term) const
 }
 
 Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
-                                               unsigned int width) const
+                                               std::uint64_t width) const
 {
   Sort bvsort = make_sort(BV, width);
   std::string repr = "#b" + bv_value_to_bits(abs_decimal, 10, bvsort);
@@ -1607,13 +1607,13 @@ Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
 }
 
 Term GenericSolver::make_non_negative_bv_const(std::int64_t i,
-                                               unsigned int width) const
+                                               std::uint64_t width) const
 {
   return make_non_negative_bv_const(std::to_string(i), width);
 }
 
 Term GenericSolver::make_negative_bv_const(std::string abs_decimal,
-                                           unsigned int width) const
+                                           std::uint64_t width) const
 {
   return make_non_negative_bv_const("-" + abs_decimal, width);
 }

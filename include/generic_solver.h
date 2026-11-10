@@ -280,7 +280,7 @@ class GenericSolver : public AbsSmtSolver
    * throws IncorrectUsageException if the value does not fit.
    * */
   Term make_non_negative_bv_const(std::string abs_decimal,
-                                  unsigned int width) const;
+                                  std::uint64_t width) const;
 
   /** helper function for bv constant
    * abs_value is the desired bv value, which must not be negative.
@@ -288,7 +288,7 @@ class GenericSolver : public AbsSmtSolver
    * abs_value, written as a binary literal of that width.
    * */
   Term make_non_negative_bv_const(std::int64_t abs_value,
-                                  unsigned int width) const;
+                                  std::uint64_t width) const;
 
   /** helper function for bv constant
    * abs_decimal is the decimal string of the absolute value of the
@@ -298,7 +298,7 @@ class GenericSolver : public AbsSmtSolver
    * width. throws IncorrectUsageException if the value does not fit.
    * */
   Term make_negative_bv_const(std::string abs_decimal,
-                              unsigned int width) const;
+                              std::uint64_t width) const;
 
   // start the binary and set the options every command relies on
   void start_solver();
