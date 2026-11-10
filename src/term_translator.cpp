@@ -894,21 +894,11 @@ Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
 
   if (sk == BOOL && cur_sk == BV)
   {
-    std::string term_repr = term->to_string();
-    if (term_repr == "(_ bv1 1)" || term_repr == "#b1" || term_repr == "#x1")
+    if (term->is_value() && cur_sort->get_width() == 1)
     {
-      return solver->make_term(true);
+      return solver->make_term(term->to_int() == 1);
     }
-    else if (term_repr == "(_ bv0 1)" || term_repr == "#b0"
-             || term_repr == "#x0")
-    {
-      return solver->make_term(false);
-    }
-    else
-    {
-      throw SmtException("Cannot interpret " + term->to_string()
-                         + " as a bool.");
-    }
+    throw SmtException("Cannot interpret " + term->to_string() + " as a bool.");
   }
   else if (sk == BV && cur_sk == BOOL)
   {
@@ -918,20 +908,16 @@ Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
                          + sort->to_string());
     }
 
-    std::string term_repr = term->to_string();
-    if (term_repr == "true")
+    if (term == solver->make_term(true))
     {
       return solver->make_term(1, sort);
     }
-    else if (term_repr == "false")
+    if (term == solver->make_term(false))
     {
       return solver->make_term(0, sort);
     }
-    else
-    {
-      throw SmtException("Cannot interpret " + term->to_string() + " as "
-                         + sort->to_string());
-    }
+    throw SmtException("Cannot interpret " + term->to_string() + " as "
+                       + sort->to_string());
   }
   else if (sk == REAL && cur_sk == INT)
   {
