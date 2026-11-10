@@ -97,4 +97,14 @@ std::vector<z3::sort> Z3Context::get_instance_params(
   return it->second.params;
 }
 
+void Z3Context::add_datatype_name(const std::string & name)
+{
+  datatype_names.insert(name);
+}
+
+bool Z3Context::has_datatype_name(const std::string & name) const
+{
+  return datatype_names.count(name) != 0;
+}
+
 }  // namespace smt

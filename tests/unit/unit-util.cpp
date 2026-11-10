@@ -1185,21 +1185,20 @@ TEST_P(SmtLibBenchmarkDatatypes, DeclaresTheDatatypeWithItsConstructors)
 
 TEST_P(SmtLibBenchmarkDatatypes, RefusesTwoDatatypesWithTheSameName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
-                    "the same name";
-  }
   DatatypeDecl firstdecl = s->make_datatype_decl("list");
   s->add_constructor(firstdecl, s->make_datatype_constructor_decl("one"));
   Sort first = s->make_sort(firstdecl);
-  DatatypeDecl seconddecl = s->make_datatype_decl("list");
-  s->add_constructor(seconddecl, s->make_datatype_constructor_decl("two"));
-  Sort second = s->make_sort(seconddecl);
-  if (first == second)
+  Sort second;
+  try
   {
-    GTEST_SKIP() << "this solver returns the existing datatype when one with "
-                    "the same name is declared again";
+    DatatypeDecl seconddecl = s->make_datatype_decl("list");
+    s->add_constructor(seconddecl, s->make_datatype_constructor_decl("two"));
+    second = s->make_sort(seconddecl);
+  }
+  catch (IncorrectUsageException &)
+  {
+    // the solver refuses the second datatype, so there is nothing to print
+    return;
   }
   Term ab = s->make_term(
       Equal, s->make_symbol("a", first), s->make_symbol("b", first));

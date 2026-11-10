@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -52,6 +53,10 @@ class Z3Context : public z3::context
    *  add_instance did not make it
    */
   std::vector<z3::sort> get_instance_params(const z3::sort & sort) const;
+  /** Records that a datatype named `name` was declared */
+  void add_datatype_name(const std::string & name);
+  /** Whether add_datatype_name recorded `name` */
+  bool has_datatype_name(const std::string & name) const;
 
  private:
   /** A param and the name it was made with, which Z3 does not keep */
@@ -85,6 +90,9 @@ class Z3Context : public z3::context
       uninterp_sort_cache = {};
   std::unordered_map<unsigned, SortInstance> uninterp_sort_info = {};
   std::uint64_t count = 0;
+  // Z3 keys a datatype by its name, so declaring a second datatype of one
+  // name replaces the first's constructors
+  std::unordered_set<std::string> datatype_names = {};
 };
 
 }  // namespace smt

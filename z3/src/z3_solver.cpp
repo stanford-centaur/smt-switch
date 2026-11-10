@@ -439,6 +439,11 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
       throw IncorrectUsageException("Datatype declaration " + cd->name
                                     + " was used for a sort already");
     }
+    if (ctx->has_datatype_name(cd->name))
+    {
+      throw IncorrectUsageException("Datatype " + cd->name
+                                    + " was declared already");
+    }
     auto dtsort = ctx->datatype_sort(ctx->str_symbol(cd->name.c_str()));
     z3::constructors cs{ *ctx };
     for (auto cons : cd->consvec)
@@ -447,6 +452,7 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
     }
     auto sort = ctx->datatype(ctx->str_symbol(cd->name.data()), cs);
     cd->used = true;
+    ctx->add_datatype_name(cd->name);
     return std::make_shared<Z3Sort>(ctx, sort);
   }
   catch (z3::exception & e)
@@ -465,6 +471,7 @@ SortVec Z3Solver::make_datatype_sorts(
   // clpvec points into clvec, so clvec must not reallocate
   clvec.reserve(decls.size());
   std::vector<std::shared_ptr<Z3DatatypeDecl>> z3_decls;
+  std::unordered_set<std::string> names;
   for (auto & absdecl : decls)
   {
     std::shared_ptr<Z3DatatypeDecl> decl =
@@ -474,6 +481,11 @@ SortVec Z3Solver::make_datatype_sorts(
     {
       throw IncorrectUsageException("Datatype declaration " + decl->name
                                     + " was used for a sort already");
+    }
+    if (ctx->has_datatype_name(decl->name) || !names.insert(decl->name).second)
+    {
+      throw IncorrectUsageException("Datatype " + decl->name
+                                    + " was declared already");
     }
     z3_decls.push_back(decl);
     auto dt_symbol = ctx->str_symbol(decl->name.c_str());
@@ -492,6 +504,7 @@ SortVec Z3Solver::make_datatype_sorts(
   for (const auto & decl : z3_decls)
   {
     decl->used = true;
+    ctx->add_datatype_name(decl->name);
   }
   SortVec sorts{};
   for (auto s : raw_sorts) sorts.push_back(std::make_shared<Z3Sort>(ctx, s));
