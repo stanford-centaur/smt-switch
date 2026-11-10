@@ -84,14 +84,13 @@ TEST_P(SortingNetworkTests, TestSortingNetwork)
 
     solver->check_sat();
 
-    Term true_ = solver->make_term(true);
     size_t counted_true = 0;
     string model = "\n";
     Term val;
     for (const auto & bb : boolvec)
     {
       val = solver->get_value(bb);
-      if (val == true_)
+      if (val->to_bool())
       {
         counted_true++;
       }

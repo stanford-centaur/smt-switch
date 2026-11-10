@@ -175,9 +175,9 @@ TEST_P(UnitSolveTests, ModelFollowsUnconstrainedAssumptions)
   // b1 and b3 occur in no assertion
   ASSERT_TRUE(
       s->check_sat_assuming(TermVec{ b1, b2, s->make_term(Not, b3) }).is_sat());
-  EXPECT_EQ(s->get_value(b1), s->make_term(true));
-  EXPECT_EQ(s->get_value(b2), s->make_term(true));
-  EXPECT_EQ(s->get_value(b3), s->make_term(false));
+  EXPECT_TRUE(s->get_value(b1)->to_bool());
+  EXPECT_TRUE(s->get_value(b2)->to_bool());
+  EXPECT_FALSE(s->get_value(b3)->to_bool());
 }
 
 TEST_P(UnitSolveTests, NonBooleanAssumptionAssumesNothing)
