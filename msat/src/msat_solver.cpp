@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -760,6 +759,13 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
         "MathSAT names its abstract values with @, so a symbol name cannot "
         "start with it");
   }
+  // assumption labels are named this way, in the table symbols share
+  if (is_internal_name(name))
+  {
+    throw IncorrectUsageException("symbol name " + name + " starts with "
+                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + ", which is reserved for internal use");
+  }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   msat_decl decl = msat_find_decl(*env, name.c_str());
   if (!MSAT_ERROR_DECL(decl))
@@ -1014,9 +1020,7 @@ msat_term MsatSolver::label(msat_term p) const
   // contradict an assumed constant that occurs in no remaining clause (e.g.,
   // a = false after (assert c) and assuming a). The label clause keeps the
   // constant in the formula.
-  std::ostringstream buf;
-  buf << ".assump_lbl{" << msat_term_id(p) << "}";
-  std::string name = buf.str();
+  std::string name = internal_name("assump", msat_term_id(p));
   msat_decl d =
       msat_declare_function(*env, name.c_str(), msat_get_bool_type(*env));
   // if it already existed, mathsat gives the same symbol
