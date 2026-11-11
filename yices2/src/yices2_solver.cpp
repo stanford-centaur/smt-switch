@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <yices.h>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstddef>
@@ -1322,10 +1323,18 @@ void Yices2Solver::timelimit_start()
     sigemptyset(&timelimit_action.sa_mask);
     timelimit_action.sa_flags = SA_RESTART;
     sigaction(SIGALRM, &timelimit_action, &program_alarm_action);
+    // macOS's setitimer refuses more than 100000000 seconds, which a longer
+    // limit is cut to, and a timer of zero is disarmed rather than fired, so
+    // a positive limit under a microsecond waits one.
+    const double seconds = std::min(time_limit, 100000000.0);
     itimerval timer{};
-    timer.it_value.tv_sec = static_cast<time_t>(time_limit);
+    timer.it_value.tv_sec = static_cast<time_t>(seconds);
     timer.it_value.tv_usec = static_cast<suseconds_t>(
-        (time_limit - static_cast<double>(timer.it_value.tv_sec)) * 1e6);
+        (seconds - static_cast<double>(timer.it_value.tv_sec)) * 1e6);
+    if (timer.it_value.tv_sec == 0 && timer.it_value.tv_usec == 0)
+    {
+      timer.it_value.tv_usec = 1;
+    }
     setitimer(ITIMER_REAL, &timer, nullptr);
   }
 }

@@ -166,6 +166,15 @@ TEST_P(TimeLimitTests, ResetDropsTimeLimit)
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
+TEST_P(TimeLimitTests, HugeLimitStillSolves)
+{
+  // A limit past anything a clock or timer can count is as good as none.
+  s->set_opt("time-limit", "1e300");
+  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  s->assert_formula(b);
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
 TEST_P(TimeLimitTests, RefusesValueOtherThanNonnegativeNumber)
 {
   for (const char * value : { "-1", "abc", "1s", "", "inf", "nan" })

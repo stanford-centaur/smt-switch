@@ -109,7 +109,7 @@ double time_limit_seconds(const std::string & value);
 /** The value of the time-limit option, for a solver that takes it in whole
  *  milliseconds
  *  @param value the value given for it
- *  @return the limit in milliseconds, at most the largest 64-bit value
+ *  @return the limit in milliseconds
  *  @throws IncorrectUsageException for a value that is not a nonnegative
  *  number
  */
