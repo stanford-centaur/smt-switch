@@ -60,6 +60,18 @@ TEST(Z3Exceptions, MisappliedOperatorsAreIncorrectUsage)
   EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
 }
 
+TEST(Z3Exceptions, IllSortedBVCompAndAbsThrow)
+{
+  SmtSolver s = Z3SolverFactory::create(false);
+  Term x4 = s->make_symbol("x4", s->make_sort(BV, 4));
+  Term x8 = s->make_symbol("x8", s->make_sort(BV, 8));
+  Term b = s->make_symbol("b", s->make_sort(BOOL));
+
+  EXPECT_ANY_THROW(s->make_term(BVComp, x4, x8));
+  EXPECT_ANY_THROW(s->make_term(Abs, b));
+  EXPECT_ANY_THROW(s->make_term(Abs, x4));
+}
+
 TEST(Z3Exceptions, FunctionHasNoChildToDereference)
 {
   SmtSolver s = Z3SolverFactory::create(false);
