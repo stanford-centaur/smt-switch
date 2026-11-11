@@ -675,13 +675,6 @@ TEST_P(BoolArrayTranslationTests, Arrays)
 
 TEST_P(BoolArrayTranslationTests, StoreChainValue)
 {
-  if (get<0>(GetParam()).solver_enum == YICES2)
-  {
-    GTEST_SKIP() << "Yices2's backend makes a new term for every constant "
-                    "array, so translating one back does not give the "
-                    "original";
-  }
-
   Term t = s1->make_term(true);
   Term stores = s1->make_term(Store,
                               s1->make_term(s1->make_term(false), arrsort),

@@ -351,8 +351,10 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
   shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   shared_ptr<Yices2Term> yval = backend_pointer_cast<Yices2Term>(val);
 
-  // a variable, not an uninterpreted term: yices_lambda takes only the first
-  term_t index = yices_new_variable(yices_type_child(ysort->get_ytype(), 0));
+  // a variable, not an uninterpreted term, as yices_lambda takes only the
+  // first; the same one each time, so Yices finds an equal lambda it made
+  term_t index = Yices2InstanceRef::get_index_variable(
+      yices_type_child(ysort->get_ytype(), 0));
   term_t y_term = yices_lambda(1, &index, yval->term);
   if (y_term == NULL_TERM)
   {

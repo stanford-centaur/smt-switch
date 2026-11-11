@@ -14,7 +14,8 @@
  * It also records which symbols are functions. Yices has no array type, so
  * an array is a function to it, and a term cannot say which one it is. And
  * it records the sort constructors and their instances, as Yices reports
- * neither a constructor's name and arity nor what an instance applies.
+ * neither a constructor's name and arity nor what an instance applies, and
+ * the variable a constant array binds for each index type.
  */
 
 #pragma once
@@ -65,6 +66,12 @@ class Yices2InstanceRef
   static std::int32_t get_instance_constructor(type_t t);
   /** What add_instance recorded `t` to apply its constructor to */
   static std::vector<type_t> get_instance_params(type_t t);
+
+  /** The variable every constant array with index type `index_type` binds,
+   * the same one on every call, so that equal constant arrays are the same
+   * term
+   */
+  static term_t get_index_variable(type_t index_type);
 };
 
 }  // namespace smt

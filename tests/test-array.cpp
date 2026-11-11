@@ -211,6 +211,11 @@ TEST_P(ConstArrayTests, IsValueWithBaseChild)
   }
 }
 
+TEST_P(ConstArrayTests, SameBaseIsSameTerm)
+{
+  EXPECT_EQ(s->make_term(zero, arrsort), const_arr);
+}
+
 TEST_P(ConstArrayTests, StoreOverConstArray)
 {
   if (GetParam().solver_enum == YICES2)
