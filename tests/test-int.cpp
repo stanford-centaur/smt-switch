@@ -453,6 +453,11 @@ TEST_P(IntRealArithmeticTests, ValueInOtherBase)
   s->assert_formula(s->make_term(
       Equal, s->make_term("17", intsort, 8), s->make_term(15, intsort)));
   s->assert_formula(s->make_term(
+      Equal, s->make_term("+17", intsort, 8), s->make_term(15, intsort)));
+  s->assert_formula(s->make_term(Equal,
+                                 s->make_term("+1.8", realsort, 16),
+                                 s->make_term("3/2", realsort)));
+  s->assert_formula(s->make_term(
       Equal, s->make_term("0.2", realsort, 3), s->make_term("2/3", realsort)));
   s->assert_formula(s->make_term(
       Equal, s->make_term("Zz", intsort, 36), s->make_term(1295, intsort)));

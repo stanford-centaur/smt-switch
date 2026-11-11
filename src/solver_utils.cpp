@@ -373,9 +373,12 @@ std::string arith_value_to_decimal(SortKind sk,
                                    const std::string & val,
                                    std::uint64_t base)
 {
+  bool negative = val.find('-') == 0;
+  std::string magnitude = negative || val.find('+') == 0 ? val.substr(1) : val;
   if (base == 10)
   {
-    return val;
+    // a second sign is left in, for the caller's check to refuse
+    return negative || magnitude.find_first_of("+-") == 0 ? val : magnitude;
   }
   if (base < 2 || base > 36)
   {
@@ -383,8 +386,6 @@ std::string arith_value_to_decimal(SortKind sk,
                                   + std::to_string(base));
   }
   unsigned b = static_cast<unsigned>(base);
-  bool negative = val.find('-') == 0;
-  std::string magnitude = negative ? val.substr(1) : val;
   std::string::size_type separator =
       sk == REAL ? magnitude.find_first_of("./") : std::string::npos;
   std::string whole = magnitude.substr(0, separator);

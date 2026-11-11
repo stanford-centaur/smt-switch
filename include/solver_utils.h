@@ -207,10 +207,11 @@ std::uint64_t bv_value_to_uint64(const std::string & val,
 bool is_arith_number(SortKind sk, const std::string & val);
 
 /** The number val names in base `base`, written for is_arith_number: val
- *  itself in base 10, and otherwise the same number in decimal, a REAL
- *  with a point as a fraction. In another base, val is a numeral, or for a
- *  REAL a decimal or fraction of numerals, of digits in that base (0 to 9,
- *  then a to z in either case), with an optional leading minus.
+ *  itself in base 10, less a leading plus, and otherwise the same number
+ *  in decimal, a REAL with a point as a fraction. In another base, val is
+ *  a numeral, or for a REAL a decimal or fraction of numerals, of digits
+ *  in that base (0 to 9, then a to z in either case), with an optional
+ *  leading sign.
  *  @param sk the sort kind of the value, INT or REAL
  *  @param val the number in base `base`
  *  @param base from 2 to 36
