@@ -270,7 +270,8 @@ SortKind Cvc5Sort::get_sort_kind() const
   }
   else
   {
-    throw NotImplementedException("Unknown kind in cvc5 translation.");
+    throw NotImplementedException(
+        "smt-switch has no SortKind for the cvc5 sort " + sort.toString());
   }
 }
 

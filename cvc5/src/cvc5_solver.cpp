@@ -146,9 +146,8 @@ Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
     }
     else
     {
-      std::string msg = "Can't create constant with integer for sort ";
-      msg += sort->to_string();
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a numeric constant of sort "
+                                    + sort->to_string());
     }
 
     return std::make_shared<Cvc5Term>(c);
@@ -175,9 +174,8 @@ Term Cvc5Solver::make_term(const std::string & s,
     }
     else
     {
-      std::string msg = "Can't create a string constant for sort ";
-      msg += sort->to_string();
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a string constant of sort "
+                                    + sort->to_string());
     }
 
     return std::make_shared<Cvc5Term>(c);
@@ -201,9 +199,8 @@ Term Cvc5Solver::make_term(const std::wstring & s, const Sort & sort) const
     }
     else
     {
-      std::string msg = "Can't create string constant for sort ";
-      msg += sort->to_string();
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a string constant of sort "
+                                    + sort->to_string());
     }
 
     return std::make_shared<Cvc5Term>(c);
@@ -245,9 +242,8 @@ Term Cvc5Solver::make_term(std::string val,
     }
     else
     {
-      std::string msg = "Can't create constant with integer for sort ";
-      msg += sort->to_string();
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a numeric constant of sort "
+                                    + sort->to_string());
     }
 
     return std::make_shared<Cvc5Term>(c);
@@ -301,7 +297,8 @@ Result Cvc5Solver::check_sat()
     }
     else
     {
-      throw NotImplementedException("Unimplemented result type from cvc5");
+      throw NotImplementedException(
+          "cvc5 gave a result that is not sat, unsat or unknown");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -338,7 +335,8 @@ Result Cvc5Solver::do_check_sat_assuming(const TermVec & assumptions)
     }
     else
     {
-      throw NotImplementedException("Unimplemented result type from cvc5");
+      throw NotImplementedException(
+          "cvc5 gave a result that is not sat, unsat or unknown");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -468,10 +466,8 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
     }
     else
     {
-      std::string msg("Can't create sort with sort constructor ");
-      msg += to_string(sk);
-      msg += " and no arguments";
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                    + " without arguments");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -491,10 +487,8 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
     }
     else
     {
-      std::string msg("Can't create sort with sort constructor ");
-      msg += to_string(sk);
-      msg += " and an integer argument";
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                    + " from an integer");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -512,7 +506,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
       if (sorts.size() < 2)
       {
         throw IncorrectUsageException(
-            "Function sort must have >=2 sort arguments.");
+            "A function sort needs at least two sorts");
       }
 
       // arity is one less, because last sort is return sort
@@ -538,10 +532,9 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
     }
     else
     {
-      std::string msg("Can't create sort from sort constructor ");
-      msg += to_string(sk);
-      msg += " with a vector of sorts of size " + std::to_string(sorts.size());
-      throw IncorrectUsageException(msg.c_str());
+      throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                    + " from " + std::to_string(sorts.size())
+                                    + " sorts");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
@@ -593,8 +586,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   // to make cvc5 behave the same as other solvers
   if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol name " + name
-                                  + " has already been used.");
+    throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
 
   try
@@ -615,7 +607,7 @@ Term Cvc5Solver::get_symbol(const std::string & name) const
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+    throw IncorrectUsageException("Symbol named " + name + " does not exist");
   }
   return it->second;
 }
@@ -863,7 +855,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   if (terms.empty())
   {
     throw IncorrectUsageException("Can't apply " + op.to_string()
-                                  + " to zero terms.");
+                                  + " to zero terms");
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
@@ -871,7 +863,8 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Divisible && op.indices[0] < 1)
   {
-    throw IncorrectUsageException("Can't create divisible with index < 1");
+    throw IncorrectUsageException(
+        "Can't apply divisible with an index less than 1");
   }
   // Operators that SMT-LIB applies to more than two arguments, but that cvc5
   // only applies to two
@@ -1024,8 +1017,8 @@ void cvc5InterpolatingSolver::do_set_opt(const std::string & option,
 {
   if (option == "produce-interpolants")
   {
-    throw IncorrectUsageException("cvc5 interpolator does not allow option: "
-                                  + option);
+    throw IncorrectUsageException(
+        "The cvc5 interpolator does not allow the option " + option);
   }
   cvc5_solver->set_opt(option, value);
 }
