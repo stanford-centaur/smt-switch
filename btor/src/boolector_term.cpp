@@ -29,6 +29,7 @@ extern "C" {
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <string_view>
 
@@ -265,6 +266,40 @@ bool BoolectorTerm::is_value() const
   return res;
 }
 
+/** Returns the bits of a constant, most significant first */
+static std::string const_to_bits(Btor * btor, BoolectorNode * node)
+{
+  if (!boolector_is_const(btor, node))
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a constant");
+  }
+  // the bits of the constant itself, which need no model, unlike its
+  // assignment
+  const char * bits = boolector_get_bits(btor, node);
+  std::string s;
+  try
+  {
+    s = bits;
+  }
+  catch (...)
+  {
+    boolector_free_bits(btor, bits);
+    throw;
+  }
+  boolector_free_bits(btor, bits);
+  return s;
+}
+
+namespace {
+
+struct MallocDeleter
+{
+  void operator()(char * p) const { std::free(p); }
+};
+
+}  // namespace
+
 std::string BoolectorTerm::to_string() const
 {
   std::string sres;
@@ -288,51 +323,41 @@ std::string BoolectorTerm::to_string() const
   }
   else if (boolector_is_const(btor.get(), node))
   {
-    const char * btor_cstr = boolector_get_bits(btor.get(), node);
-    sres = "#b" + std::string(btor_cstr);
-    boolector_free_bits(btor.get(), btor_cstr);
-    return sres;
+    return "#b" + const_to_bits(btor.get(), node);
   }
   else
   {
     // just print smt-lib
     // won't necessarily use symbol names (might use auxiliary variables)
-    char * cres;
-    size_t size;
+    char * cres = nullptr;
+    size_t size = 0;
     FILE * stream = open_memstream(&cres, &size);
-    boolector_dump_smt2_node(btor.get(), stream, node);
-    int64_t status = fflush(stream);
-    if (status != 0)
+    if (!stream)
     {
       throw InternalSolverException(
-          "Failed to flush the stream for Boolector's to_string");
+          "Failed to open a stream for Boolector's to_string");
     }
-    status = fclose(stream);
+    try
+    {
+      boolector_dump_smt2_node(btor.get(), stream, node);
+    }
+    catch (...)
+    {
+      fclose(stream);
+      std::free(cres);
+      throw;
+    }
+    // closing flushes the stream, and leaves the buffer to free even if it
+    // fails
+    int status = fclose(stream);
+    std::unique_ptr<char, MallocDeleter> buffer(cres);
     if (status != 0)
     {
       throw InternalSolverException(
           "Failed to close the stream for Boolector's to_string");
     }
-    sres = cres;
-    free(cres);
-    return sres;
+    return buffer.get();
   }
-}
-
-/** Returns the bits of a constant, most significant first */
-static std::string const_to_bits(Btor * btor, BoolectorNode * node)
-{
-  if (!boolector_is_const(btor, node))
-  {
-    throw IncorrectUsageException(
-        "Can't get a bitstring from a term that is not a constant");
-  }
-  // the bits of the constant itself, which need no model, unlike its
-  // assignment
-  const char * bits = boolector_get_bits(btor, node);
-  std::string s(bits);
-  boolector_free_bits(btor, bits);
-  return s;
 }
 
 std::string BoolectorTerm::get_constructor_name() const
@@ -440,10 +465,7 @@ std::string BoolectorTerm::print_value_as(SortKind sk) const
     uint64_t width = boolector_get_width(btor.get(), node);
     if (width == 1 && sk == BOOL)
     {
-      const char * charval = boolector_get_bits(btor.get(), node);
-      std::string bits = charval;
-      boolector_free_bv_assignment(btor.get(), charval);
-      if (bits == "1")
+      if (const_to_bits(btor.get(), node) == "1")
       {
         return "true";
       }
