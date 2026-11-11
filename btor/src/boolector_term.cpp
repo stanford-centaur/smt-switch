@@ -129,7 +129,6 @@ BoolectorTerm::BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n)
   {
     bn = btor_node_real_addr(btor_node_get_simplified(btor.get(), bn));
   }
-  negated = btor_node_is_inverted(exp) && bn->kind != BTOR_BV_CONST_NODE;
 }
 
 BoolectorTerm::~BoolectorTerm()
@@ -157,11 +156,27 @@ bool BoolectorTerm::compare(const Term & absterm) const
   return other && this->node == other->node;
 }
 
+bool BoolectorTerm::is_negated() const
+{
+  BtorNode * exp = BTOR_IMPORT_BOOLECTOR_NODE(node);
+  bool inverted = btor_node_is_inverted(exp);
+  BtorNode * real = btor_node_real_addr(exp);
+  // The node a proxy stands for can itself be inverted, as when x := #b1111
+  // leaves the xor of x and y as the negation of y.
+  if (!symbol && btor_node_is_proxy(real))
+  {
+    BtorNode * simplified = btor_node_get_simplified(btor.get(), real);
+    inverted = inverted != btor_node_is_inverted(simplified);
+    real = btor_node_real_addr(simplified);
+  }
+  return inverted && real->kind != BTOR_BV_CONST_NODE;
+}
+
 Op BoolectorTerm::get_op() const
 {
   Op op;
 
-  if (negated)
+  if (is_negated())
   {
     op = Op(BVNot);
   }
@@ -236,7 +251,7 @@ bool BoolectorTerm::is_symbol() const { return symbol; }
 
 bool BoolectorTerm::is_param() const
 {
-  return !negated && (bn->kind == BTOR_PARAM_NODE);
+  return !is_negated() && (bn->kind == BTOR_PARAM_NODE);
 }
 
 bool BoolectorTerm::is_symbolic_const() const
@@ -317,7 +332,7 @@ std::string BoolectorTerm::to_string() const
   if (sym)
   {
     // has a symbol
-    if (negated)
+    if (is_negated())
     {
       sres = std::string("(bvnot ") + sym + ")";
     }
@@ -518,7 +533,7 @@ void BoolectorTerm::collect_children() const
   }
 
   release_children();
-  if (negated)
+  if (is_negated())
   {
     // the negated value is the real address stored in bn
     children.push_back(btor_node_copy(btor.get(), bn));

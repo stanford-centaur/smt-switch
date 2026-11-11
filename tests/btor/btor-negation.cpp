@@ -55,6 +55,27 @@ TEST(BtorNegation, LiteSolver)
   EXPECT_EQ(s->make_term(Not, nult5)->get_op(), BVUlt);
 }
 
+TEST(BtorNegation, InversionFromSubstitution)
+{
+  // Substituting all ones for x leaves the xor of x and y as the negation
+  // of y, and the xnor as y itself, which Boolector shows only by inverting
+  // the node they simplify to.
+  SmtSolver s = BoolectorSolverFactory::create(false);
+  Sort bvsort4 = s->make_sort(BV, 4);
+  Term x = s->make_symbol("x", bvsort4);
+  Term y = s->make_symbol("y", bvsort4);
+  Term bvxor = s->make_term(BVXor, x, y);
+  Term bvxnor = s->make_term(BVXnor, x, y);
+  s->assert_formula(s->make_term(Equal, x, s->make_term(0b1111, bvsort4)));
+  ASSERT_TRUE(s->check_sat().is_sat());
+
+  EXPECT_EQ(bvxor->get_op(), BVNot);
+  TermVec children(bvxor->begin(), bvxor->end());
+  ASSERT_EQ(children.size(), 1);
+  EXPECT_EQ(children[0], y);
+  EXPECT_NE(bvxnor->get_op(), BVNot);
+}
+
 TEST(BtorNegation, LoggingSolver)
 {
   // creating a solver WITH smt-switch level logging of terms
