@@ -32,7 +32,6 @@
 #include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
-#include "utils.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -87,8 +86,8 @@ vector<string> inputs_in(const string & directory)
 {
   vector<string> inputs;
   for (const filesystem::directory_entry & entry :
-       filesystem::directory_iterator(string(STRFY(SMTLIB_TEST_RESOURCE_DIR))
-                                      + "/" + directory))
+       filesystem::directory_iterator(string(SMTLIB_TEST_RESOURCE_DIR) + "/"
+                                      + directory))
   {
     if (entry.path().extension() == ".smt2")
     {
@@ -529,7 +528,7 @@ class Input : public ::testing::Test,
 
   static string error_input(const string & name)
   {
-    return string(STRFY(SMTLIB_TEST_RESOURCE_DIR)) + "/errors/" + name;
+    return string(SMTLIB_TEST_RESOURCE_DIR) + "/errors/" + name;
   }
 
   /** Parses an input from errors/ and returns the message of the
@@ -560,8 +559,7 @@ TEST_P(Input, MissingFile)
 
 TEST_P(Input, UnreadableFile)
 {
-  EXPECT_THROW(reader->parse(STRFY(SMTLIB_TEST_RESOURCE_DIR)),
-               std::runtime_error);
+  EXPECT_THROW(reader->parse(SMTLIB_TEST_RESOURCE_DIR), std::runtime_error);
 }
 
 TEST_P(Input, SyntaxError)
@@ -711,8 +709,7 @@ class AttributeValues
   unordered_map<string, string> values_in(const string & name)
   {
     InfoRecorder reader(s);
-    reader.parse(string(STRFY(SMTLIB_TEST_RESOURCE_DIR)) + "/attributes/"
-                 + name);
+    reader.parse(string(SMTLIB_TEST_RESOURCE_DIR) + "/attributes/" + name);
     return reader.info;
   }
 
@@ -846,8 +843,7 @@ TEST_P(Commands, OverridesReceiveEachCommand)
 {
   SmtSolver s = create_solver(GetParam());
   CommandRecorder reader(s);
-  reader.parse(string(STRFY(SMTLIB_TEST_RESOURCE_DIR))
-               + "/commands/overridable.smt2");
+  reader.parse(string(SMTLIB_TEST_RESOURCE_DIR) + "/commands/overridable.smt2");
   EXPECT_EQ(reader.calls,
             (vector<vector<string>>{
                 { "declare-fun", "f", "BitVec", "BitVec", "BitVec" },
