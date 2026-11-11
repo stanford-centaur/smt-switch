@@ -156,7 +156,7 @@ std::vector<std::uint32_t> detail::bv_value_to_words(const std::string & val,
                                   + std::to_string(base));
   }
   bool negative = val.find('-') == 0;
-  std::string::size_type first = negative ? 1 : 0;
+  std::string::size_type first = negative || val.find('+') == 0 ? 1 : 0;
   if (first == val.size())
   {
     throw not_a_numeral(val, base);
