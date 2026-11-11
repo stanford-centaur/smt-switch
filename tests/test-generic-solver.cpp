@@ -592,6 +592,16 @@ TEST_P(GenericSolverTests, ReservedWordSymbolIsDeclaredQuoted)
   EXPECT_TRUE(gs->get_value(let)->to_bool());
 }
 
+TEST_P(GenericSolverTests, LongestResponseTimeout)
+{
+  // A timeout past what the clock can count waits as long as it takes.
+  start_binary(std::chrono::milliseconds::max());
+  init_solver(gs);
+  Term b = gs->make_symbol("b", gs->make_sort(BOOL));
+  gs->assert_formula(b);
+  EXPECT_TRUE(gs->check_sat().is_sat());
+}
+
 TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
 {
   // plenty for every command but the factoring below, which no binary

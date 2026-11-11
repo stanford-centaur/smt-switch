@@ -627,7 +627,15 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
       std::chrono::steady_clock::time_point::max();
   if (response_timeout >= std::chrono::milliseconds::zero())
   {
-    deadline = std::chrono::steady_clock::now() + response_timeout;
+    // A timeout past what the clock can count stays at its last moment, as
+    // adding it would overflow.
+    std::chrono::steady_clock::time_point now =
+        std::chrono::steady_clock::now();
+    if (response_timeout
+        < std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now))
+    {
+      deadline = now + response_timeout;
+    }
   }
   std::string result;
   while (!take_response(result))
