@@ -221,6 +221,14 @@ std::uint64_t bv_value_to_uint64(const std::string & val,
                                  std::uint64_t base,
                                  std::uint64_t width);
 
+/** Opens a pipe whose ends any later exec closes, so that no program
+ *  another child runs holds them
+ *  @param fds receives the read end, then the write end, or -1 for both
+ *  if it fails
+ *  @return 0, or the errno of the call that failed
+ */
+int make_cloexec_pipe(int (&fds)[2]);
+
 }  // namespace detail
 
 /** Whether val is a number a value of sort kind sk, INT or REAL, can be

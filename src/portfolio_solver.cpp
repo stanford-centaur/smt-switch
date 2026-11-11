@@ -203,10 +203,10 @@ Result PortfolioSolver::portfolio_solve()
   for (const SmtSolver & solver : solvers)
   {
     int fds[2];
-    if (pipe(fds) != 0)
+    if (int pipe_errno = detail::make_cloexec_pipe(fds); pipe_errno != 0)
     {
       throw SmtException(std::string("Could not create a pipe for a solver: ")
-                         + std::strerror(errno));
+                         + std::strerror(pipe_errno));
     }
     pid_t pid = fork();
     if (pid < 0)

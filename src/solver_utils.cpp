@@ -16,7 +16,11 @@
 
 #include "solver_utils.h"
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <algorithm>
+#include <cerrno>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -483,6 +487,30 @@ UnorderedTermMap store_chain_values(
     assignments.insert(store);
   }
   return assignments;
+}
+
+int detail::make_cloexec_pipe(int (&fds)[2])
+{
+  // pipe2 would set the flag in the same call, but macOS lacks it.
+  if (pipe(fds) != 0)
+  {
+    fds[0] = -1;
+    fds[1] = -1;
+    return errno;
+  }
+  for (int fd : fds)
+  {
+    if (fcntl(fd, F_SETFD, FD_CLOEXEC) != 0)
+    {
+      int fcntl_errno = errno;
+      close(fds[0]);
+      close(fds[1]);
+      fds[0] = -1;
+      fds[1] = -1;
+      return fcntl_errno;
+    }
+  }
+  return 0;
 }
 
 }  // namespace smt
