@@ -466,8 +466,8 @@ void GenericSolver::launch_binary() const
     _exit(EXIT_FAILURE);
   }
   // close unused pipe ends
-  close(outpipefd[0]);
-  close(inpipefd[1]);
+  close_fd(outpipefd[0]);
+  close_fd(inpipefd[1]);
   // the read below only sees end-of-file once no one holds the write end
   close_fd(execpipefd[1]);
   // no deadline needed: the child gets to execv() within a few syscalls
