@@ -975,10 +975,6 @@ TEST_P(QuantifierTranslationTests, Forall)
   {
     GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
   }
-  if (get<1>(GetParam()).solver_enum == MSAT)
-  {
-    GTEST_SKIP() << "MathSAT answers unknown for any quantified formula";
-  }
   // x is the largest value only if every i is at most x
   Term i = s1->make_param("i", bvsort8);
   Term forall = s1->make_term(Forall, i, s1->make_term(BVUle, i, x));

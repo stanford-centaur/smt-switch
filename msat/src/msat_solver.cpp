@@ -893,7 +893,11 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    check_quantifier_binders(op, terms);
+    // MathSAT builds quantified terms but cannot solve them: it refuses one
+    // left at the top level, and treats one left nested as a free Boolean,
+    // answering sat to unsat formulas
+    throw NotImplementedException("MathSAT does not support "
+                                  + to_string(op.prim_op));
   }
 
   vector<msat_term> mterms;
@@ -921,16 +925,6 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     // the first term is the function, applied to the rest
     vector<msat_term> margs(mterms.begin() + 1, mterms.end());
     res = ext_msat_make_uf(*env, mterm->decl, margs);
-  }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
-  {
-    // the last term is the body, bound by the rest from the innermost out
-    res = mterms.back();
-    for (size_t i = size - 1; i-- > 0;)
-    {
-      res = op.prim_op == Forall ? msat_make_forall(*env, mterms[i], res)
-                                 : msat_make_exists(*env, mterms[i], res);
-    }
   }
   else if (size == 2)
   {

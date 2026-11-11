@@ -340,6 +340,7 @@ current limitations along with recommended usage.
 - The Z3 backend does not support term iteration over quantified expressions,
   though it does for every other kind of term.
 - Datatypes are supported only by cvc5 and Z3
+- The MathSAT and Yices2 backends do not support quantifiers
 
 ### Recommended usage
 
