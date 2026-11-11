@@ -50,7 +50,9 @@ std::uint64_t BzlaTermManager::get_constructor_arity(std::uint64_t id) const
 }
 
 bitwuzla::Sort BzlaTermManager::add_instance(
-    std::uint64_t constructor, const std::vector<bitwuzla::Sort> & params)
+    std::uint64_t constructor,
+    const std::vector<bitwuzla::Sort> & params,
+    const std::string & symbol)
 {
   InstanceKey key{ constructor, {} };
   key.second.reserve(params.size());
@@ -63,8 +65,7 @@ bitwuzla::Sort BzlaTermManager::add_instance(
   {
     return it->second;
   }
-  bitwuzla::Sort sort =
-      mk_uninterpreted_sort(internal_name("sort", instance_count++));
+  bitwuzla::Sort sort = mk_uninterpreted_sort(symbol);
   uninterp_sort_cache.emplace(std::move(key), sort);
   uninterp_sort_info.emplace(sort.id(), SortInstance{ constructor, params });
   return sort;
