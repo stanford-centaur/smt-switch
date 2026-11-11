@@ -56,12 +56,12 @@ bool Yices2Term::compare(const Term & absterm) const
 /** Returns a term as Yices prints it, in its own language and on one line,
  *  e.g. -5 or 1/2 for a constant
  */
-static string yices_to_string(term_t term)
+static string yices2_to_string(term_t term)
 {
   char * printed = yices_term_to_string(term, UINT32_MAX, 1, 0);
   if (!printed)
   {
-    throw InternalSolverException(take_yices_error());
+    throw InternalSolverException(detail::get_yices2_error());
   }
   string res = printed;
   yices_free_string(printed);
@@ -196,7 +196,7 @@ Op Yices2Term::get_op() const
        * (* -1 b) is still of type YICES_ARITH_SUM. To transfer this
        * term, you need to construct the multiply.
        */
-      sres = yices_to_string(term);
+      sres = yices2_to_string(term);
       sres = sres.substr(sres.find("(") + 1, sres.length());
       sres = sres.substr(0, sres.find(" "));
       if (yices_term_num_children(term) == 1 && sres == "*")
@@ -252,7 +252,7 @@ Op Yices2Term::get_op() const
     case YICES_UNINTERPRETED_TERM: return Op();
     // reported for a term that is not valid, which this one is
     case YICES_CONSTRUCTOR_ERROR:
-      throw InternalSolverException(take_yices_error());
+      throw InternalSolverException(detail::get_yices2_error());
   }
   // unreachable, and here so that a constructor Yices adds is a -Wswitch
   // warning rather than a term silently without an op
@@ -370,7 +370,7 @@ uint64_t Yices2Term::to_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_uint64(yices_to_string(term));
+    return smtlib_int_to_uint64(yices2_to_string(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -386,7 +386,7 @@ int64_t Yices2Term::to_signed_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_int64(yices_to_string(term));
+    return smtlib_int_to_int64(yices2_to_string(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -483,7 +483,7 @@ Term Yices2Term::get_child(std::size_t i) const
             term, one_component ? 0 : pos, coeff.data(), &component)
         < 0)
     {
-      throw InternalSolverException(take_yices_error());
+      throw InternalSolverException(detail::get_yices2_error());
     }
     term_t y_coeff = yices_bvconst_from_array(width, coeff.data());
     if (one_component)
@@ -507,7 +507,7 @@ Term Yices2Term::get_child(std::size_t i) const
       if (yices_sum_component(term, 0, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        throw InternalSolverException(take_yices_error());
+        throw InternalSolverException(detail::get_yices2_error());
       }
       ret_term = pos == 0 ? yices_mpq(coeff) : component;
     }
@@ -516,7 +516,7 @@ Term Yices2Term::get_child(std::size_t i) const
       if (yices_sum_component(term, pos, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        throw InternalSolverException(take_yices_error());
+        throw InternalSolverException(detail::get_yices2_error());
       }
       ret_term = component == NULL_TERM
                      ? yices_mpq(coeff)
@@ -533,7 +533,7 @@ Term Yices2Term::get_child(std::size_t i) const
             term, one_component ? 0 : pos, &component, &exponent)
         < 0)
     {
-      throw InternalSolverException(take_yices_error());
+      throw InternalSolverException(detail::get_yices2_error());
     }
     bool is_bv = yices_term_is_bitvector(term);
     if (one_component && is_bv)
@@ -620,7 +620,7 @@ Term Yices2Term::get_child(std::size_t i) const
 
   if (ret_term == NULL_TERM)
   {
-    throw InternalSolverException(take_yices_error());
+    throw InternalSolverException(detail::get_yices2_error());
   }
   return std::make_shared<Yices2Term>(ret_term);
 }
@@ -642,7 +642,7 @@ string Yices2Term::to_string() const
   {
     // Yices prints a number as -5 or -1/2
     return smtlib_arith_value(get_sort()->get_sort_kind(),
-                              yices_to_string(term));
+                              yices2_to_string(term));
   }
   if (tc == YICES_BV_CONSTANT)
   {
@@ -674,11 +674,11 @@ string Yices2Term::to_string() const
   }
   catch (const NotImplementedException &)
   {
-    return yices_to_string(term);
+    return yices2_to_string(term);
   }
   if (op.is_null())
   {
-    return yices_to_string(term);
+    return yices2_to_string(term);
   }
   TermVec children;
   for (TermIter it = begin(); it != end(); ++it)

@@ -22,10 +22,14 @@
 
 namespace smt {
 
+namespace detail {
+
 /** Yices' description of its last error, freeing the string it returns and
  *  clearing the error, which later calls would otherwise report again
  */
-std::string take_yices_error();
+std::string get_yices2_error();
+
+}  // namespace detail
 
 term_t ext_yices_select(term_t arr, term_t idx);
 term_t ext_yices_store(term_t arr, term_t idx, term_t nu);
