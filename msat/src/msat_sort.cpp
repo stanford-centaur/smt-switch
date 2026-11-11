@@ -253,12 +253,12 @@ SortKind MsatSort::get_sort_kind() const
   else if (msat_is_fp_type(*env, type, nullptr, nullptr))
   {
     throw NotImplementedException(
-        "Floating point not implemented for MathSAT yet.");
+        "Floating-point sorts are not implemented for MathSAT");
   }
   else if (msat_is_fp_roundingmode_type(*env, type))
   {
     throw NotImplementedException(
-        "Floating point not implemented for MathSAT yet.");
+        "Floating-point sorts are not implemented for MathSAT");
   }
   else
   {
