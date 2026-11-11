@@ -31,16 +31,6 @@
 
 namespace smt {
 
-namespace {
-
-struct ModelDeleter
-{
-  void operator()(model_t * model) const { yices_free_model(model); }
-};
-using ModelPtr = std::unique_ptr<model_t, ModelDeleter>;
-
-}  // namespace
-
 Yices2InterpolatingSolver::Yices2InterpolatingSolver()
     : AbsSmtInterpolator(YICES2_INTERPOLATOR, std::make_shared<Yices2Solver>())
 {
@@ -195,7 +185,7 @@ Result Yices2InterpolatingSolver::refute_model(const Term & A,
   {
     return r_b;
   }
-  ModelPtr model_b(yices_get_model(ctx_b, 1));
+  detail::Yices2ModelPtr model_b(yices_get_model(ctx_b, 1));
   if (!model_b)
   {
     throw InternalSolverException(detail::get_yices2_error());
