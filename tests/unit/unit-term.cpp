@@ -341,16 +341,23 @@ TEST_P(UnitTermArithTests, NegatedValueIsDifferent)
 
 TEST_P(UnitTermArithTests, MalformedIntStringThrows)
 {
-  for (const char * val : { "abc", "", "-", "+-5", "1/2", "1.5" })
+  for (const char * val : { "abc", "", "-", "+", "+-5", "++5", "1/2", "1.5" })
   {
     SCOPED_TRACE(val);
     EXPECT_THROW(s->make_term(val, intsort), IncorrectUsageException);
   }
 }
 
+TEST_P(UnitTermArithTests, IntStringValues)
+{
+  EXPECT_EQ(s->make_term("5", intsort), s->make_term(5, intsort));
+  EXPECT_EQ(s->make_term("-5", intsort), s->make_term(-5, intsort));
+  EXPECT_EQ(s->make_term("+5", intsort), s->make_term(5, intsort));
+}
+
 TEST_P(UnitTermArithTests, MalformedRealStringThrows)
 {
-  for (const char * val : { "abc", "", "-", "1/", "1.2.3" })
+  for (const char * val : { "abc", "", "-", "+", "+-5", "++5", "1/", "1.2.3" })
   {
     SCOPED_TRACE(val);
     EXPECT_THROW(s->make_term(val, realsort), IncorrectUsageException);
@@ -362,8 +369,9 @@ TEST_P(UnitTermArithTests, RealStringValues)
   s->set_opt("incremental", "true");
   // each string, and the numerator and denominator of its value
   const std::vector<std::tuple<const char *, int64_t, int64_t>> cases = {
-    { "5", 5, 1 },     { "-5", -5, 1 }, { "1.5", 3, 2 },
-    { "-1.5", -3, 2 }, { "1/2", 1, 2 }, { "-1/2", -1, 2 },
+    { "5", 5, 1 },   { "-5", -5, 1 },   { "+5", 5, 1 },
+    { "1.5", 3, 2 }, { "-1.5", -3, 2 }, { "+1.5", 3, 2 },
+    { "1/2", 1, 2 }, { "-1/2", -1, 2 }, { "+1/2", 1, 2 },
   };
   for (const auto & [val, num, den] : cases)
   {

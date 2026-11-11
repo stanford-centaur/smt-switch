@@ -1199,7 +1199,7 @@ TEST_P(GenericSolverRealTests, RealStringNotANumber)
 {
   Sort real_sort = gs->make_sort(REAL);
   gs->make_symbol("x", real_sort);
-  for (const char * val : { "x", "-x", ".5", "1.", "1/", "", "1/0" })
+  for (const char * val : { "x", "-x", "+x", ".5", "1.", "1/", "", "1/0" })
   {
     EXPECT_THROW(gs->make_term(val, real_sort), IncorrectUsageException)
         << "for \"" << val << "\"";
@@ -1318,7 +1318,7 @@ TEST_P(GenericSolverIntTests, IntStringNotANumber)
   Sort int_sort = gs->make_sort(INT);
   gs->make_symbol("x", int_sort);
   // each would reach the binary as the symbol x, or as a decimal
-  for (const char * val : { "x", "-x", "1.5", "" })
+  for (const char * val : { "x", "-x", "+x", "1.5", "" })
   {
     EXPECT_THROW(gs->make_term(val, int_sort), IncorrectUsageException)
         << "for \"" << val << "\"";
