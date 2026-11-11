@@ -351,6 +351,18 @@ void GenericSolver::start_solver()
 
 void GenericSolver::launch_binary() const
 {
+  // execv's arguments, the program first and a null last, made before the
+  // fork: the child must not allocate, as another thread may hold the
+  // allocator's lock at the fork, which the child would never see released
+  std::vector<char *> argv;
+  argv.reserve(cmd_line_args.size() + 2);
+  argv.push_back(const_cast<char *>(path.c_str()));
+  for (const std::string & arg : cmd_line_args)
+  {
+    argv.push_back(const_cast<char *>(arg.c_str()));
+  }
+  argv.push_back(nullptr);
+
   if (pipe(inpipefd) != 0)
   {
     throw InternalSolverException(
@@ -439,20 +451,7 @@ void GenericSolver::launch_binary() const
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
     //    fcntl(inpipefd[1], F_SETFL, O_NONBLOCK);
-    // The following part is based on:
-    // https://stackoverflow.com/a/5797901/1364765 The execv command expects an
-    // array, and so we create one. First element is the program name, last
-    // element is NULL, and in between are the elements of cmd_line_args, casted
-    // to (char*) from std::string. Here we identify the program name with its
-    // path.
-    const char ** argv = new const char *[cmd_line_args.size() + 2];
-    argv[0] = path.c_str();
-    for (size_t i = 1; i <= cmd_line_args.size(); i++)
-    {
-      argv[i] = cmd_line_args[i - 1].c_str();
-    }
-    argv[cmd_line_args.size() + 1] = NULL;
-    execv(path.c_str(), (char **)argv);
+    execv(path.c_str(), argv.data());
     // this is a forked copy of the parent, so it must not throw: report
     // the errno and _exit(), exit() flushing its stdio into the pipe
     int exec_errno = errno;
