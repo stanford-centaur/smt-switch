@@ -94,13 +94,6 @@ vector<string> binary_args(SolverEnum se)
  */
 bool has_attribute(SolverEnum b, SolverAttribute a)
 {
-  // The mathsat binary answers every check-sat over a quantified assertion
-  // with (error "The CNF conversion does not support quantifiers"), though
-  // the backend built on its API claims quantifiers.
-  if (b == MSAT && a == QUANTIFIERS)
-  {
-    return false;
-  }
   // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
   // frontend has no such term: the binary answers
   // (error "undefined term: const") to ((as const (Array ...)) ...).

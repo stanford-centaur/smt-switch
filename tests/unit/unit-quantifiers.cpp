@@ -191,8 +191,7 @@ TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
 // A bound variable named like a declared symbol is still another term, as
 // SMT-LIB lets a binder shadow a declared name. Each formula says every
 // value equals the symbol, so it is unsat; had the binder captured the
-// symbol, it would read forall x . x = x and be sat. MathSAT answers
-// unknown to it, however the variables are named.
+// symbol, it would read forall x . x = x and be sat.
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Binders);
 class Binders : public UnitQuantifierTests
 {

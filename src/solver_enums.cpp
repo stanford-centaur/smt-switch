@@ -64,9 +64,11 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
                UNINTERP_SORT, PARAM_UNINTERP_SORT };
     case MSAT:
     case MSAT_INTERPOLATOR:
-      return { TERMITER,     THEORY_INT,    THEORY_BV,           THEORY_REAL,
-               ARRAY_MODELS, CONSTARR,      FULL_TRANSFER,       UNSAT_CORE,
-               QUANTIFIERS,  UNINTERP_SORT, PARAM_UNINTERP_SORT, TIMELIMIT };
+      return {
+        TERMITER, THEORY_INT,    THEORY_BV,  THEORY_REAL,   ARRAY_MODELS,
+        CONSTARR, FULL_TRANSFER, UNSAT_CORE, UNINTERP_SORT, PARAM_UNINTERP_SORT,
+        TIMELIMIT
+      };
     // TODO: Yices2 should support UNSAT_CORE
     //       but something funky happens with testing
     //       has something to do with the context and yices_init
