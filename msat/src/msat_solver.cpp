@@ -19,6 +19,7 @@
 #include <gmp.h>
 #include <mathsat.h>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -84,6 +85,26 @@ static string last_error_message(msat_env e)
 {
   const char * msg = msat_last_error_message(e);
   return msg ? msg : "";
+}
+
+/** The end of a query's time limit, and whether MathSAT was stopped at it */
+struct Deadline
+{
+  std::chrono::steady_clock::time_point time;
+  bool reached;
+};
+
+/** Termination test: tells MathSAT to stop once the deadline passes
+ *  @param deadline the running query's Deadline
+ */
+static int reached_deadline(void * deadline)
+{
+  Deadline * d = static_cast<Deadline *>(deadline);
+  if (std::chrono::steady_clock::now() >= d->time)
+  {
+    d->reached = true;
+  }
+  return d->reached;
 }
 
 /** text, followed by error if there is one */
@@ -262,6 +283,16 @@ void MsatSolver::set_opt(const string option, const string value)
     }
     return;
   }
+  if (option == "time-limit")
+  {
+    double seconds = std::stod(value);
+    if (seconds < 0)
+    {
+      throw IncorrectUsageException("time-limit cannot be negative");
+    }
+    time_limit = std::chrono::duration<double>(seconds);
+    return;
+  }
 
   env_wrapper_.set_option(msat_option_name(option), value);
 }
@@ -294,7 +325,8 @@ Result MsatSolver::check_sat()
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   last_query_assuming = false;
   clear_assumption_clauses();
-  msat_result mres = msat_solve(*env);
+  bool timed_out = false;
+  msat_result mres = solve(nullptr, timed_out);
 
   if (mres == MSAT_SAT)
   {
@@ -303,6 +335,10 @@ Result MsatSolver::check_sat()
   else if (mres == MSAT_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else if (timed_out)
+  {
+    return Result(UNKNOWN, "Time limit reached.");
   }
   else
   {
@@ -339,8 +375,8 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
     lbls.push_back(lbl);
   }
 
-  msat_result mres =
-      msat_solve_with_assumptions(*env, lbls.data(), lbls.size());
+  bool timed_out = false;
+  msat_result mres = solve(&lbls, timed_out);
 
   if (mres == MSAT_SAT)
   {
@@ -349,6 +385,10 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
   else if (mres == MSAT_UNSAT)
   {
     return Result(UNSAT);
+  }
+  else if (timed_out)
+  {
+    return Result(UNKNOWN, "Time limit reached.");
   }
   else
   {
@@ -929,6 +969,7 @@ void MsatSolver::do_reset()
   // again until then, as after construction
   env_wrapper_.reset();
   base_assertions_.clear();
+  time_limit = std::chrono::duration<double>::zero();
 }
 
 void MsatSolver::do_reset_assertions()
@@ -1026,6 +1067,33 @@ msat_term MsatSolver::label(msat_term p) const
   // if it already existed, mathsat gives the same symbol
   // in this case, those semantics are perfect -- we don't need a cache
   return msat_make_constant(*env, d);
+}
+
+msat_result MsatSolver::solve(std::vector<msat_term> * labels, bool & timed_out)
+{
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
+  const bool limited = time_limit > std::chrono::duration<double>::zero();
+  Deadline deadline{
+    std::chrono::steady_clock::now()
+        + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+            time_limit),
+    false
+  };
+  // installed for this query only, as the environment can outlive this
+  // solver, which owns the time limit
+  if (limited && msat_set_termination_test(*env, reached_deadline, &deadline))
+  {
+    throw InternalSolverException("MathSAT refused the time limit");
+  }
+  msat_result res =
+      labels ? msat_solve_with_assumptions(*env, labels->data(), labels->size())
+             : msat_solve(*env);
+  if (limited)
+  {
+    msat_set_termination_test(*env, nullptr, nullptr);
+  }
+  timed_out = deadline.reached;
+  return res;
 }
 
 void MsatSolver::clear_assumption_clauses()
@@ -1312,7 +1380,8 @@ Result MsatInterpolatingSolver::compute_seq_interpolants(
   }
 
   // solve query and get interpolants
-  msat_result msat_res = msat_solve(*env);
+  bool timed_out = false;
+  msat_result msat_res = msat_solver_->solve(nullptr, timed_out);
 
   if (msat_res == MSAT_SAT)
   {
@@ -1320,6 +1389,10 @@ Result MsatInterpolatingSolver::compute_seq_interpolants(
   }
   else if (msat_res == MSAT_UNKNOWN)
   {
+    if (timed_out)
+    {
+      return Result(UNKNOWN, "Time limit reached.");
+    }
     return Result(
         UNKNOWN, with_error("Interpolation failure", last_error_message(*env)));
   }

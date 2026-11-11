@@ -18,6 +18,7 @@
 
 #include <mathsat.h>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -47,7 +48,9 @@ class MsatSolver : public AbsSmtSolver
   MsatSolver & operator=(const MsatSolver &) = delete;
   /** Sets an option. Refused once the environment exists: MathSAT makes
    *  every sort and term in it, so the first sort, term, assertion, check
-   *  or push creates it, which fixes the configuration.
+   *  or push creates it, which fixes the configuration. time-limit, in
+   *  seconds with zero for none, is not part of the configuration and is
+   *  accepted at any time.
    */
   void set_opt(const std::string option, const std::string value) override;
   /** Sets the logic. Once the environment exists, as for set_opt, or once
@@ -98,7 +101,8 @@ class MsatSolver : public AbsSmtSolver
 
   /** @return the environment, created on first use; the handle keeps it
    *  alive, so it stays usable after reset() or this solver's destruction,
-   *  though this solver then stops using it
+   *  though this solver then stops using it. Queries run on it directly
+   *  have no time limit.
    */
   std::shared_ptr<msat_env> get_msat_env();
 
@@ -147,6 +151,17 @@ class MsatSolver : public AbsSmtSolver
 
   // helper function for creating labels for assumptions
   msat_term label(msat_term p) const;
+
+  std::chrono::duration<double> time_limit =
+      std::chrono::duration<double>::zero();  ///< zero means no limit
+
+  /** Runs a query under the time limit, if one is set
+   *  @param labels the assumption labels for msat_solve_with_assumptions,
+   *         or null for msat_solve
+   *  @param timed_out set to whether the limit stopped the query
+   *  @return MathSAT's result
+   */
+  msat_result solve(std::vector<msat_term> * labels, bool & timed_out);
 
   friend class MsatInterpolatingSolver;
 
