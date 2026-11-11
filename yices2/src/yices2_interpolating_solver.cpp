@@ -25,26 +25,13 @@
 #include "solver_utils.h"
 #include "sort.h"
 #include "utils.h"
+#include "yices2_extensions.h"
 #include "yices2_solver.h"
 #include "yices2_term.h"
 
 namespace smt {
 
 namespace {
-
-// Yices2's last error, which it hands over as a string to free
-std::string yices2_error()
-{
-  char * reason = yices_error_string();
-  std::string message(reason);
-  yices_free_string(reason);
-  // Yices2 ends a few of its error messages with a newline.
-  if (!message.empty() && message.back() == '\n')
-  {
-    message.pop_back();
-  }
-  return message;
-}
 
 struct ModelDeleter
 {
@@ -100,7 +87,7 @@ SmtSolver Yices2InterpolatingSolver::new_solver() const
   // smt-switch has no option for the solver type
   if (yices_set_config(solver->get_config(), "solver-type", "mcsat") < 0)
   {
-    throw InternalSolverException(yices2_error());
+    throw InternalSolverException(detail::get_yices2_error());
   }
   solver->set_opt("incremental", "true");
   solver->set_opt("produce-unsat-model-interpolants", "true");
@@ -140,7 +127,7 @@ Result Yices2InterpolatingSolver::compute_interpolant(const Term & A,
                            model_interpolants.data());
       if (I == NULL_TERM)
       {
-        throw InternalSolverException(yices2_error());
+        throw InternalSolverException(detail::get_yices2_error());
       }
       out_I = std::make_shared<Yices2Term>(I);
       return r;
@@ -211,7 +198,7 @@ Result Yices2InterpolatingSolver::refute_model(const Term & A,
   ModelPtr model_b(yices_get_model(ctx_b, 1));
   if (!model_b)
   {
-    throw InternalSolverException(yices2_error());
+    throw InternalSolverException(detail::get_yices2_error());
   }
   for (std::size_t i = 0; i < shared.size(); ++i)
   {
@@ -234,7 +221,7 @@ Result Yices2InterpolatingSolver::refute_model(const Term & A,
   }
   if (status_a == YICES_STATUS_ERROR)
   {
-    throw InternalSolverException(yices2_error());
+    throw InternalSolverException(detail::get_yices2_error());
   }
   if (status_a != YICES_STATUS_UNSAT)
   {
@@ -244,7 +231,7 @@ Result Yices2InterpolatingSolver::refute_model(const Term & A,
   term_t refutation = yices_get_model_interpolant(ctx_a);
   if (refutation == NULL_TERM)
   {
-    throw InternalSolverException(yices2_error());
+    throw InternalSolverException(detail::get_yices2_error());
   }
   model_interpolant = std::make_shared<Yices2Term>(refutation);
   solver_b->assert_formula(model_interpolant);

@@ -28,7 +28,7 @@ using namespace std;
 
 namespace smt {
 
-string take_yices_error()
+string detail::get_yices2_error()
 {
   char * reason = yices_error_string();
   string msg(reason);
