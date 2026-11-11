@@ -122,6 +122,12 @@ bool answers_unsupported_options(SolverEnum b)
  */
 bool accepts_second_logic(SolverEnum b) { return b == BTOR || b == BZLA; }
 
+/** Whether the binary answers unsupported to a set-logic it does not know,
+ *  as SMT-LIB requires. cvc5 and Yices2 answer an error instead, Bitwuzla
+ *  and Boolector exit, and MathSAT answers success.
+ */
+bool answers_unsupported_logics(SolverEnum b) { return b == Z3; }
+
 /** Whether the binary takes a set-logic after a declaration made without
  *  one, which SMT-LIB forbids. cvc5 settles on ALL at the declaration, and
  *  Yices2 refuses the declaration until it has a logic, so it gets ALL.
@@ -217,6 +223,12 @@ class GenericSolverOptionTests : public GenericSolverTests
 {
 };
 
+// binaries answering unsupported to an unknown logic
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverSetLogic);
+class GenericSolverSetLogic : public GenericSolverTests
+{
+};
+
 // binaries accepting declare-sort
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverUfTests);
 class GenericSolverUfTests : public GenericSolverTests
@@ -275,6 +287,13 @@ class GenericSolverTimeoutTests : public GenericSolverTests
 TEST_P(GenericSolverOptionTests, BadCmd)
 {
   EXPECT_THROW(gs->set_opt("iiiaaaaiiiiaaaa", "aaa"), NotImplementedException);
+}
+
+TEST_P(GenericSolverSetLogic, UnsupportedNotALogic)
+{
+  // the fixture has set the logic
+  start_binary();
+  EXPECT_THROW(gs->set_logic("NOT_A_LOGIC"), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverUfTests, Uf1)
@@ -1474,6 +1493,12 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedGenericSolverOptionTests,
     GenericSolverOptionTests,
     testing::ValuesIn(params_where(answers_unsupported_options)),
+    param_name);
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    GenericSolverSetLogic,
+    testing::ValuesIn(params_where(answers_unsupported_logics)),
     param_name);
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverUfTests,

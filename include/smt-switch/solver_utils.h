@@ -112,6 +112,15 @@ std::uint64_t time_limit_milliseconds(const std::string & value);
 /** Whether s is a non-empty string of decimal digits */
 bool is_decimal_numeral(const std::string & s);
 
+/** Whether name is a logic as SMT-LIB names them: ALL, or optional QF_ and
+ *  HO_ prefixes followed by arrays (A or AX), UF, BV, FP, DT, S and an
+ *  arithmetic part (IDL, RDL, LIA, LRA, LIRA, NIA, NRA or NIRA), each
+ *  optional and in that order, but at least one
+ *  @param name the name to check
+ *  @return true iff name is such a logic
+ */
+bool is_smtlib_logic(const std::string & name);
+
 // The general forms of the checks above, for the kinds no wrapper covers
 namespace detail {
 

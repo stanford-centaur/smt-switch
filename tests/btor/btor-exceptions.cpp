@@ -46,10 +46,15 @@ TEST(BtorExceptions, OnlyBitVectorLogics)
     SmtSolver s = BoolectorSolverFactory::create(false);
     EXPECT_NO_THROW(s->set_logic(logic)) << logic;
   }
-  for (const string logic :
-       { "ABV", "UFBV", "AUFBV", "QF_UF", "QF_A", "QF_UFABV", "QF_BVA" })
+  for (const string logic : { "ABV", "UFBV", "AUFBV", "QF_UF", "QF_A" })
   {
     SmtSolver s = BoolectorSolverFactory::create(false);
     EXPECT_THROW(s->set_logic(logic), NotImplementedException) << logic;
+  }
+  // theories out of SMT-LIB's order
+  for (const string logic : { "QF_UFABV", "QF_BVA" })
+  {
+    SmtSolver s = BoolectorSolverFactory::create(false);
+    EXPECT_THROW(s->set_logic(logic), IncorrectUsageException) << logic;
   }
 }

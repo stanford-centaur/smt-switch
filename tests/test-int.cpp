@@ -224,6 +224,10 @@ TEST_P(IntArithmeticTests, NonlinearConstraints)
   {
     GTEST_SKIP() << e.what();
   }
+  catch (const NotImplementedException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
@@ -256,6 +260,10 @@ TEST_P(IntArithmeticTests, PowerOfSymbol)
     s->set_logic("QF_NIA");
   }
   catch (const IncorrectUsageException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
+  catch (const NotImplementedException & e)
   {
     GTEST_SKIP() << e.what();
   }
@@ -298,6 +306,10 @@ TEST_P(IntArithmeticTests, DivAndModBySymbol)
     fresh->set_logic("QF_NIA");
   }
   catch (const IncorrectUsageException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
+  catch (const NotImplementedException & e)
   {
     GTEST_SKIP() << e.what();
   }

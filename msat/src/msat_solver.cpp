@@ -1124,6 +1124,24 @@ void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
         + "; a logic can only be set once, before the first term, sort or "
           "query");
   }
+  // MathSAT takes any name, so the name is checked here.
+  if (!is_smtlib_logic(logic_name))
+  {
+    throw IncorrectUsageException(logic_name + " is not an SMT-LIB logic");
+  }
+  // This backend has no quantifiers, higher order, floating point,
+  // datatypes or strings. In an SMT-LIB name, HO_, FP, DT and S appear only
+  // for those.
+  if (logic_name != "ALL"
+      && (logic_name.compare(0, 3, "QF_") != 0
+          || logic_name.find("HO_") != std::string::npos
+          || logic_name.find("FP") != std::string::npos
+          || logic_name.find("DT") != std::string::npos
+          || logic_name.find('S') != std::string::npos))
+  {
+    throw NotImplementedException("MathSAT does not support the logic "
+                                  + logic_name);
+  }
   cfg.reset(msat_create_default_config(logic_name.c_str()).repr);
   if (!cfg)
   {

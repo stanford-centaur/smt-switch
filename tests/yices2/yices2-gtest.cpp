@@ -143,7 +143,7 @@ TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)
   {
     s->set_logic("QF_NIA");
   }
-  catch (const IncorrectUsageException &)
+  catch (const NotImplementedException &)
   {
   }
   Sort intsort = s->make_sort(INT);

@@ -95,14 +95,36 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
 
 void Cvc5Solver::set_logic(const std::string logic)
 {
+  // cvc5 reads an empty name, or a prefix such as QF_ with no theory after
+  // it, as propositional logic, which no logic name means. Its other names
+  // beyond SMT-LIB's, such as HORN, are its own extensions.
+  if (logic.empty() || logic.back() == '_')
+  {
+    throw IncorrectUsageException(logic + " is not a logic");
+  }
   // cvc5 refuses an unknown logic, a second one and one after the first
   // assertion, check or push
   try
   {
     instance->solver.setLogic(logic);
   }
-  catch (::cvc5::CVC5ApiException & e)
+  catch (cvc5::CVC5ApiException & e)
   {
+    // All three are the same exception, but a fresh solver can refuse only
+    // the logic itself.
+    cvc5::Solver fresh(instance->tm);
+    try
+    {
+      fresh.setLogic(logic);
+    }
+    catch (cvc5::CVC5ApiException &)
+    {
+      if (!is_smtlib_logic(logic))
+      {
+        throw IncorrectUsageException(logic + " is not a logic");
+      }
+      throw NotImplementedException("cvc5 does not support the logic " + logic);
+    }
     throw IncorrectUsageException(e.what());
   }
 }

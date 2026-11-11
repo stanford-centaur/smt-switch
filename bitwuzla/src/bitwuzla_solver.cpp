@@ -178,6 +178,10 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 
 void BzlaSolver::set_logic(const std::string logic)
 {
+  if (!is_smtlib_logic(logic))
+  {
+    throw IncorrectUsageException(logic + " is not an SMT-LIB logic");
+  }
   // AX is refused by the bitwuzla binary, but this backend handles it
   // through uninterpreted sorts
   if (logic == "ALL" || logic == "AX" || logic == "QF_AX")

@@ -17,8 +17,10 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -351,6 +353,50 @@ std::uint64_t detail::bv_value_to_uint64(const std::string & val,
 bool is_decimal_numeral(const std::string & s)
 {
   return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
+}
+
+bool is_smtlib_logic(const std::string & name)
+{
+  if (name == "ALL")
+  {
+    return true;
+  }
+  std::string_view rest = name;
+  for (std::string_view prefix : { "QF_", "HO_" })
+  {
+    if (rest.substr(0, prefix.size()) == prefix)
+    {
+      rest.remove_prefix(prefix.size());
+    }
+  }
+  if (rest.empty())
+  {
+    return false;
+  }
+  if (rest.substr(0, 2) == "AX")
+  {
+    rest.remove_prefix(2);
+  }
+  else if (rest.substr(0, 1) == "A")
+  {
+    rest.remove_prefix(1);
+  }
+  for (std::string_view theory : { "UF", "BV", "FP", "DT", "S" })
+  {
+    if (rest.substr(0, theory.size()) == theory)
+    {
+      rest.remove_prefix(theory.size());
+    }
+  }
+  for (std::string_view arithmetic :
+       { "IDL", "RDL", "LIA", "LRA", "LIRA", "NIA", "NRA", "NIRA" })
+  {
+    if (rest == arithmetic)
+    {
+      return true;
+    }
+  }
+  return rest.empty();
 }
 
 bool is_arith_number(SortKind sk, const std::string & val)

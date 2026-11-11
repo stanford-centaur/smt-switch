@@ -62,6 +62,9 @@ class AbsSmtSolver
    * push or check, and again after reset. Solvers differ on what they
    * accept beyond that: some even after declarations, or more than once.
    * @param logic name of logic
+   * @throws NotImplementedException for a logic the solver does not support
+   * @throws IncorrectUsageException where the solver no longer accepts a
+   *         logic
    */
   virtual void set_logic(const std::string logic) = 0;
 
