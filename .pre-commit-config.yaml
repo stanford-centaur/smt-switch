@@ -57,7 +57,7 @@ repos:
         types_or: [text]
         files: '\.i?py(i|nb|\.in)?$|\.md$'
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.22.0
+    rev: v0.22.1
     hooks:
       # ruff cannot parse Cython, so .pyx and .pxd reach no other linter.
       - id: cython-lint
