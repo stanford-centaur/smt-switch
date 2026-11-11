@@ -133,8 +133,8 @@ class Children
 
   void kill_and_reap()
   {
-    // Each child leads its own process group, so this also ends whatever it
-    // started itself, such as the generic solver's binary.
+    // Each child leads its own process group, so this also ends any process
+    // it started itself.
     for (const Child & child : children_)
     {
       if (!child.reaped)
