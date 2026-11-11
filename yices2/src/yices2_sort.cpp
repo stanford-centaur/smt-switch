@@ -22,9 +22,11 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "exceptions.h"
+#include "yices2_extensions.h"
 
 namespace smt {
 
@@ -242,7 +244,7 @@ SortKind Yices2Sort::get_sort_kind() const
   else
   {
     std::string msg("smt-switch has no SortKind for the Yices2 sort ");
-    msg += yices_type_to_string(type, 120, 1, 0);
+    msg += detail::get_yices2_string(yices_type_to_string(type, 120, 1, 0));
     throw NotImplementedException(msg.c_str());
   }
 }

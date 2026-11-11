@@ -22,17 +22,28 @@
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
+#include <memory>
 #include <string>
+
+#include "exceptions.h"
 
 using namespace std;
 
 namespace smt {
 
+namespace {
+
+struct YicesStringDeleter
+{
+  void operator()(char * s) const { yices_free_string(s); }
+};
+
+}  // namespace
+
 string detail::get_yices2_error()
 {
-  char * reason = yices_error_string();
-  string msg(reason);
-  yices_free_string(reason);
+  unique_ptr<char, YicesStringDeleter> reason(yices_error_string());
+  string msg(reason.get());
   yices_clear_error();
   // Yices2 ends a few of its error messages with a newline.
   if (!msg.empty() && msg.back() == '\n')
@@ -40,6 +51,16 @@ string detail::get_yices2_error()
     msg.pop_back();
   }
   return msg;
+}
+
+string detail::get_yices2_string(char * s)
+{
+  unique_ptr<char, YicesStringDeleter> owned(s);
+  if (!owned)
+  {
+    throw InternalSolverException(get_yices2_error());
+  }
+  return owned.get();
 }
 
 term_t ext_yices_select(term_t arr, term_t idx)

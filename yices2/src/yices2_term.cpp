@@ -58,14 +58,8 @@ bool Yices2Term::compare(const Term & absterm) const
  */
 static string yices2_to_string(term_t term)
 {
-  char * printed = yices_term_to_string(term, UINT32_MAX, 1, 0);
-  if (!printed)
-  {
-    throw InternalSolverException(detail::get_yices2_error());
-  }
-  string res = printed;
-  yices_free_string(printed);
-  return res;
+  return detail::get_yices2_string(
+      yices_term_to_string(term, UINT32_MAX, 1, 0));
 }
 
 /* Yices has no extract constructor. It stores (_ extract high low) as an
@@ -118,11 +112,9 @@ static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
  */
 [[noreturn]] static void no_smt_switch_op(term_t term)
 {
-  char * printed = yices_term_to_string(term, 120, 1, 0);
-  std::string message("smt-switch has no op for the Yices2 term ");
-  message += printed;
-  yices_free_string(printed);
-  throw NotImplementedException(message);
+  throw NotImplementedException(
+      "smt-switch has no op for the Yices2 term "
+      + detail::get_yices2_string(yices_term_to_string(term, 120, 1, 0)));
 }
 
 /* (divides n t) is (_ divisible n) applied to t, where n is a positive integer
