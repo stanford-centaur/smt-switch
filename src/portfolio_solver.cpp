@@ -23,11 +23,11 @@
 
 #include <cerrno>
 #include <csignal>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <exception>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -122,7 +122,8 @@ struct Child
 class Children
 {
  public:
-  Children() = default;
+  // Room for count children, so that adding one cannot throw
+  explicit Children(std::size_t count) { children_.reserve(count); }
   Children(const Children &) = delete;
   Children & operator=(const Children &) = delete;
   ~Children() { kill_and_reap(); }
@@ -199,9 +200,12 @@ Result PortfolioSolver::portfolio_solve()
   std::cerr.flush();
   std::fflush(nullptr);
 
-  Children children;
+  Children children(solvers.size());
   for (const SmtSolver & solver : solvers)
   {
+    // Everything that can throw comes before the fork, so that no child is
+    // left untracked, neither killed nor reaped.
+    std::string label = smt::to_string(solver->get_solver_enum());
     int fds[2];
     if (int pipe_errno = detail::make_cloexec_pipe(fds); pipe_errno != 0)
     {
@@ -226,9 +230,7 @@ Result PortfolioSolver::portfolio_solve()
     // Also here, so that the group exists even if the child has not run yet.
     setpgid(pid, pid);
     close(fds[1]);
-    std::ostringstream label;
-    label << solver->get_solver_enum();
-    children.add(Child(pid, fds[0], label.str()));
+    children.add(Child(pid, fds[0], std::move(label)));
   }
 
   // Read the reports as they come; a child's pipe closes when it exits.
