@@ -116,11 +116,15 @@ bool has_attribute(SolverEnum b, SolverAttribute a)
  */
 bool has_array_returning_functions(SolverEnum b) { return b != BTOR; }
 
-/** Whether the binary refuses a set-option it does not know, as SMT-LIB
- *  requires, which is what reaches the caller as an error. No
- *  SolverAttribute covers it. Bitwuzla answers success instead.
+/** Whether the binary answers unsupported to a set-option it does not know,
+ *  as SMT-LIB requires, which reaches the caller as NotImplementedException.
+ *  No SolverAttribute covers it. Bitwuzla answers success instead, Z3 an
+ *  error, and Boolector exits.
  */
-bool rejects_unknown_options(SolverEnum b) { return b != BZLA; }
+bool answers_unsupported_options(SolverEnum b)
+{
+  return b == CVC5 || b == MSAT || b == YICES2;
+}
 
 /** Whether the binary takes a second set-logic, which SMT-LIB forbids.
  *  Boolector and Bitwuzla do.
@@ -216,7 +220,7 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
   SmtSolver gs;
 };
 
-// binaries refusing an unknown option
+// binaries answering unsupported to an unknown option
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverOptionTests);
 class GenericSolverOptionTests : public GenericSolverTests
 {
@@ -279,7 +283,7 @@ class GenericSolverTimeoutTests : public GenericSolverTests
 
 TEST_P(GenericSolverOptionTests, BadCmd)
 {
-  EXPECT_THROW(gs->set_opt("iiiaaaaiiiiaaaa", "aaa"), IncorrectUsageException);
+  EXPECT_THROW(gs->set_opt("iiiaaaaiiiiaaaa", "aaa"), NotImplementedException);
 }
 
 TEST_P(GenericSolverUfTests, Uf1)
@@ -1468,7 +1472,7 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverTests,
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedGenericSolverOptionTests,
     GenericSolverOptionTests,
-    testing::ValuesIn(params_where(rejects_unknown_options)),
+    testing::ValuesIn(params_where(answers_unsupported_options)),
     param_name);
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverUfTests,

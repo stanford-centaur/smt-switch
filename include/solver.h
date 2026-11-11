@@ -57,6 +57,9 @@ class AbsSmtSolver
    * SMTLIB: (set-option :<option> <value>)
    * @param option name of the option
    * @param value string value
+   * @throws NotImplementedException for an option the solver does not know
+   * @throws IncorrectUsageException for a value the solver does not allow,
+   *         or an option it no longer accepts at this point
    */
   virtual void set_opt(const std::string option, const std::string value) = 0;
 

@@ -26,6 +26,7 @@
 #include "exceptions.h"
 #include "ops.h"
 #include "solver_enums.h"
+#include "solver_utils.h"
 
 namespace smt {
 
@@ -103,19 +104,7 @@ void AbsSmtInterpolator::set_opt(const std::string option,
     return;
   }
   // no interpolator passes it on to its regular solver
-  if (value == "true")
-  {
-    incremental_mode = true;
-  }
-  else if (value == "false")
-  {
-    incremental_mode = false;
-  }
-  else
-  {
-    throw IncorrectUsageException(
-        "Invalid value for boolean option 'incremental'");
-  }
+  incremental_mode = bool_option_value(option, value);
 }
 
 void AbsSmtInterpolator::do_reset_assertions()

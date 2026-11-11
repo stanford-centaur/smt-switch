@@ -28,6 +28,7 @@ extern "C" {
 #include <cstdint>
 #include <cstdio>
 #include <initializer_list>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -62,6 +63,24 @@ namespace smt {
   }
   throw NotImplementedException("Boolector does not support the operator "
                                 + to_string(po));
+}
+
+/** Sets a Boolector option
+ *  @throws IncorrectUsageException where Boolector refuses the value, or
+ *          the option at this point
+ */
+static void set_btor_opt(Btor * btor, BtorOption opt, std::uint32_t value)
+{
+  try
+  {
+    boolector_set_opt(btor, opt, value);
+  }
+  catch (InternalSolverException & e)
+  {
+    // Boolector aborts only on what the caller asked for: a value out of
+    // range, or an option that can no longer change.
+    throw IncorrectUsageException(e.what());
+  }
 }
 
 /** The node of op applied to one argument in a single Boolector call
@@ -211,59 +230,41 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {
-    if (value == "true")
+    if (bool_option_value(option, value))
     {
-      boolector_set_opt(btor.get(), BTOR_OPT_MODEL_GEN, 1);
+      set_btor_opt(btor.get(), BTOR_OPT_MODEL_GEN, 1);
     }
   }
   else if (option == "incremental")
   {
-    if (value == "true")
+    if (bool_option_value(option, value))
     {
-      boolector_set_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
+      set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
     }
   }
   else if (option == "produce-unsat-assumptions")
   {
-    if (value == "true")
+    if (bool_option_value(option, value))
     {
       // needs to be incremental for getting unsat assumptions
-      boolector_set_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
+      set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
     }
   }
-  else if (option == "base-context-1" && value == "true")
+  else if (option == "base-context-1")
   {
-    base_context_1 = true;
-    // pushed directly, so that the context level counts only the caller's
-    boolector_push(btor.get(), 1);
+    if (bool_option_value(option, value))
+    {
+      base_context_1 = true;
+      // pushed directly, so that the context level counts only the caller's
+      boolector_push(btor.get(), 1);
+    }
   }
   else if (option == "time-limit")
   {
-    double seconds = std::stod(value);
-    if (seconds < 0)
-    {
-      throw IncorrectUsageException("time-limit cannot be negative");
-    }
-    time_limit = std::chrono::duration<double>(seconds);
+    time_limit = std::chrono::duration<double>(time_limit_seconds(value));
   }
   else
   {
-    // decode the value -- boolector takes a uint32_t val
-    uint32_t uint_val;
-    if (value == "true")
-    {
-      uint_val = 1;
-    }
-    else if (value == "false")
-    {
-      uint_val = 0;
-    }
-    else
-    {
-      uint_val = std::stoi(value);
-    }
-
-    bool option_set = false;
     BtorOption opt;
     for (opt = boolector_first_opt(btor.get());
          boolector_has_opt(btor.get(), opt);
@@ -271,17 +272,36 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     {
       if (option == boolector_get_opt_lng(btor.get(), opt))
       {
-        boolector_set_opt(btor.get(), opt, uint_val);
-        option_set = true;
         break;
       }
     }
-
-    if (!option_set)
+    if (!boolector_has_opt(btor.get(), opt))
     {
       throw NotImplementedException("Boolector does not support the option "
                                     + option);
     }
+
+    // Boolector takes every option value as a 32-bit unsigned integer.
+    std::uint64_t number = 0;
+    if (value == "true")
+    {
+      number = 1;
+    }
+    else if (value != "false")
+    {
+      // more digits than the largest 32-bit value has are too many
+      number = is_decimal_numeral(value) && value.size() <= 10
+                   ? std::stoull(value)
+                   : std::numeric_limits<std::uint64_t>::max();
+    }
+    if (!detail::fits_in<std::uint32_t>(number))
+    {
+      throw IncorrectUsageException(
+          "Boolector takes true, false or a number from 0 to 4294967295 for "
+          "the option "
+          + option + ", not " + value);
+    }
+    set_btor_opt(btor.get(), opt, static_cast<std::uint32_t>(number));
   }
 }
 

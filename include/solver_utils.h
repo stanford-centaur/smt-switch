@@ -89,6 +89,35 @@ std::uint32_t narrow_levels(std::uint64_t levels);
  */
 std::uint32_t narrow_num_args(std::size_t num_args);
 
+/** The value of a Boolean option that smt-switch interprets itself, such as
+ *  produce-models or incremental
+ *  @param option the option, used in the error message
+ *  @param value the value given for it
+ *  @return whether value is true
+ *  @throws IncorrectUsageException for a value other than true or false
+ */
+bool bool_option_value(const std::string & option, const std::string & value);
+
+/** The value of the time-limit option
+ *  @param value the value given for it
+ *  @return the limit in seconds
+ *  @throws IncorrectUsageException for a value that is not a nonnegative
+ *  number
+ */
+double time_limit_seconds(const std::string & value);
+
+/** The value of the time-limit option, for a solver that takes it in whole
+ *  milliseconds
+ *  @param value the value given for it
+ *  @return the limit in milliseconds, at most the largest 64-bit value
+ *  @throws IncorrectUsageException for a value that is not a nonnegative
+ *  number
+ */
+std::uint64_t time_limit_milliseconds(const std::string & value);
+
+/** Whether s is a non-empty string of decimal digits */
+bool is_decimal_numeral(const std::string & s);
+
 // The general forms of the checks above, for the kinds no wrapper covers
 namespace detail {
 

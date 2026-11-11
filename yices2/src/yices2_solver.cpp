@@ -100,7 +100,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {
-    if (value == "false")
+    if (!bool_option_value(option, value))
     {
       std::cout << "Warning: Yices2 backend always produces models -- it "
                    "can't be disabled."
@@ -115,22 +115,19 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "Yices2 can only set incremental before the first assertion, "
           "check or push");
     }
-    if (value == "false")
-    {
-      yices_set_config(config, "mode", "one-shot");
-    }
-    else if (value == "true")
-    {
-      yices_set_config(config, "mode", "push-pop");
-    }
+    yices_set_config(
+        config,
+        "mode",
+        bool_option_value(option, value) ? "push-pop" : "one-shot");
   }
   else if (option == "time-limit")
   {
-    time_limit = stod(value);
+    time_limit = time_limit_seconds(value);
   }
   else if (option == "produce-unsat-assumptions")
   {
-    // nothing to be done
+    // Yices2 can always give unsat assumptions, so only the value is checked.
+    bool_option_value(option, value);
   }
   else if (option == "produce-unsat-model-interpolants")
   {
@@ -140,12 +137,9 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "Yices2 can only set produce-unsat-model-interpolants before the "
           "first assertion, check or push");
     }
-    if (value != "true" && value != "false")
-    {
-      throw IncorrectUsageException("Invalid value for boolean option "
-                                    + option);
-    }
-    if (yices_set_config(config, "model-interpolation", value.c_str()) < 0)
+    const char * yices_value =
+        bool_option_value(option, value) ? "true" : "false";
+    if (yices_set_config(config, "model-interpolation", yices_value) < 0)
     {
       throw InternalSolverException(take_yices_error());
     }

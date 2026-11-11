@@ -31,6 +31,15 @@ TEST(BzlaOptions, RefusedOnceSolving)
   EXPECT_THROW(s->set_opt("produce-models", "true"), IncorrectUsageException);
 }
 
+TEST(BzlaOptions, NumericValueOutOfRange)
+{
+  SmtSolver s = BitwuzlaSolverFactory::create(false);
+  // rewrite levels go from 0 to 2
+  EXPECT_THROW(s->set_opt("rewrite-level", "99"), IncorrectUsageException);
+  EXPECT_THROW(s->set_opt("rewrite-level", "abc"), IncorrectUsageException);
+  EXPECT_NO_THROW(s->set_opt("rewrite-level", "1"));
+}
+
 TEST(BzlaOptions, AcceptedAfterDump)
 {
   SmtSolver s = BitwuzlaSolverFactory::create(false);

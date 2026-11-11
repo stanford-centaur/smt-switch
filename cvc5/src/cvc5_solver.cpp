@@ -82,17 +82,21 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
   if (option == "time-limit")
   {
     cvc5option = "tlimit-per";
-    // convert to milliseconds
-    cvc5value = std::to_string(static_cast<uint64_t>(std::stod(value) * 1000));
+    cvc5value = std::to_string(time_limit_milliseconds(value));
   }
 
   try
   {
     instance->solver.setOption(cvc5option, cvc5value);
   }
+  catch (::cvc5::CVC5ApiUnsupportedException &)
+  {
+    throw NotImplementedException("cvc5 does not support the option " + option);
+  }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    // a value cvc5 does not allow, or an option it no longer takes
+    throw IncorrectUsageException(e.what());
   }
 }
 

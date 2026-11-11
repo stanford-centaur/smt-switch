@@ -17,8 +17,11 @@
 #include "solver_utils.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -128,6 +131,51 @@ std::uint32_t narrow_levels(std::uint64_t levels)
 std::uint32_t narrow_num_args(std::size_t num_args)
 {
   return detail::narrow<std::uint32_t>(num_args, "a number of arguments");
+}
+
+bool bool_option_value(const std::string & option, const std::string & value)
+{
+  if (value != "true" && value != "false")
+  {
+    throw IncorrectUsageException("The option " + option
+                                  + " takes true or false, not " + value);
+  }
+  return value == "true";
+}
+
+double time_limit_seconds(const std::string & value)
+{
+  double seconds = 0;
+  std::size_t end = 0;
+  try
+  {
+    seconds = std::stod(value, &end);
+  }
+  catch (const std::logic_error &)
+  {
+    // std::stod failed, so end is still zero
+  }
+  if (end == 0 || end != value.size() || !std::isfinite(seconds) || seconds < 0)
+  {
+    throw IncorrectUsageException(
+        "The option time-limit takes a nonnegative number of seconds, not "
+        + value);
+  }
+  return seconds;
+}
+
+std::uint64_t time_limit_milliseconds(const std::string & value)
+{
+  double milliseconds = time_limit_seconds(value) * 1000;
+  // The largest 64-bit value rounds up to 2^64 as a double, which is the
+  // first that does not fit.
+  constexpr double too_large =
+      static_cast<double>(std::numeric_limits<std::uint64_t>::max());
+  if (milliseconds >= too_large)
+  {
+    return std::numeric_limits<std::uint64_t>::max();
+  }
+  return static_cast<std::uint64_t>(milliseconds);
 }
 
 unsigned detail::numeral_digit(char c)
@@ -306,8 +354,7 @@ std::uint64_t detail::bv_value_to_uint64(const std::string & val,
                           : words[0];
 }
 
-/** Whether s is a non-empty string of decimal digits */
-static bool is_decimal_numeral(const std::string & s)
+bool is_decimal_numeral(const std::string & s)
 {
   return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
 }

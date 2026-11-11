@@ -121,8 +121,8 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    // Bitwuzla does not distinguish between incremental and non-incremental
-    // solving.
+    // Bitwuzla is always incremental, so only the value is checked.
+    bool_option_value(option, value);
     return;
   }
   if (is_initialized())
@@ -134,27 +134,51 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   if (option == "time-limit")
   {
     // Bitwuzla expects this in milliseconds, but smt-switch uses seconds.
-    options.set(bitwuzla::Option::TIME_LIMIT_PER, std::stod(value) * 1000);
+    options.set(bitwuzla::Option::TIME_LIMIT_PER,
+                time_limit_milliseconds(value));
   }
   else if (!options.is_valid(option))
   {
-    throw SmtException("Bitwuzla does not support the option " + option);
+    throw NotImplementedException("Bitwuzla does not support the option "
+                                  + option);
   }
   else
   {
+    // Bitwuzla also takes 1 and 0 for these, which SMT-LIB does not.
+    std::string bzla_value = value;
+    if (option == "produce-models" || option == "produce-unsat-assumptions")
+    {
+      bzla_value = bool_option_value(option, value) ? "true" : "false";
+    }
     try
     {
-      options.set(option, value);
+      // Bitwuzla checks a number against the option's range only when given
+      // it as a number. Up to 19 digits always fit in 64 bits.
+      bitwuzla::Option opt = options.option(option.c_str());
+      if (options.is_numeric(opt) && is_decimal_numeral(value)
+          && value.size() <= 19)
+      {
+        options.set(opt, std::stoull(value));
+      }
+      else
+      {
+        options.set(option, bzla_value);
+      }
     }
     catch (const bitwuzla::Exception & exception)
     {
       std::string detail = exception.what();
-      // Remove "invalid call to 'bitwuzla::Options::set(...)'" from exception
-      // message.
-      detail.erase(0, detail.find(")"));
-      detail.erase(0, detail.find(","));
+      // Bitwuzla's argument checks start with "invalid call to '<the
+      // function>', ", which says nothing to the caller.
+      const std::string call_prefix = "invalid call to '";
+      std::string::size_type call_end = detail.find("', ");
+      if (detail.compare(0, call_prefix.size(), call_prefix) == 0
+          && call_end != std::string::npos)
+      {
+        detail.erase(0, call_end + 3);
+      }
       throw IncorrectUsageException("Bitwuzla got a bad value for the option "
-                                    + option + detail);
+                                    + option + ": " + detail);
     }
   }
 }

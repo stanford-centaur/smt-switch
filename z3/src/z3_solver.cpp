@@ -2,10 +2,12 @@
 
 #include <z3++.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -272,22 +274,9 @@ Z3Solver::Z3Solver()
 
 void Z3Solver::set_opt(const std::string option, const std::string value)
 {
-  const char * o = option.c_str();
-  const char * v = value.c_str();
-
-  // READ PLEASE
-  // The easiest handling of Z3's set function's param requirements is to have
-  // vectors with the names of different options in the list corresponding with
-  // which param the z3 api expects, it's worth discussing what options we think
-  // should go in these lists to start and obviously it is very easy to add more
-  // down the line
-  unordered_set<string> bool_opts = { "produce-proofs" };
-  unordered_set<string> string_opts = {};
-  unordered_set<string> int_opts = {};
-
   if (option == "incremental")
   {
-    if (value == "false")
+    if (!bool_option_value(option, value))
     {
       throw IncorrectUsageException(
           "Z3 does not support turning off incremental solving");
@@ -295,71 +284,24 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "produce-models")
   {
-    if (value == "true")
-    {
-      solver_params.set("model", true);
-    }
-    else if (value == "false")
-    {
-      solver_params.set("model", false);
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "produce-models takes values true or false");
-    }
+    solver_params.set("model", bool_option_value(option, value));
   }
   else if (option == "time-limit")
   {
-    unsigned milliseconds = std::stod(value) * 1000;
-    solver_params.set("timeout", milliseconds);
+    // Z3 takes the limit in milliseconds as an unsigned, and its largest
+    // value means none.
+    solver_params.set("timeout",
+                      static_cast<unsigned>(std::min<std::uint64_t>(
+                          time_limit_milliseconds(value),
+                          std::numeric_limits<unsigned>::max())));
   }
   else if (option == "produce-unsat-assumptions")
   {
-    if (value == "true")
-    {
-      solver_params.set("unsat_core", true);
-    }
-    else if (value == "false")
-    {
-      solver_params.set("unsat_core", false);
-    }
-    else
-    {
-      throw IncorrectUsageException(
-          "produce-unsat-assumptions takes values true or false");
-    }
+    solver_params.set("unsat_core", bool_option_value(option, value));
   }
-  else if (bool_opts.find(option) != bool_opts.end())
+  else if (option == "produce-proofs")
   {
-    if (value == "true")
-    {
-      solver_params.set(o, true);
-    }
-    else if (value == "false")
-    {
-      solver_params.set(o, false);
-    }
-    else
-    {
-      throw IncorrectUsageException("Expected a Boolean value");
-    }
-  }
-  else if (string_opts.find(option) != string_opts.end())
-  {
-    solver_params.set(o, v);
-  }
-  else if (int_opts.find(option) != int_opts.end())
-  {
-    try
-    {
-      double num = stoi(value, nullptr, 10);
-      solver_params.set(o, num);
-    }
-    catch (z3::exception & err)
-    {
-      throw IncorrectUsageException("Expected an integer value");
-    }
+    solver_params.set(option.c_str(), bool_option_value(option, value));
   }
   else
   {
