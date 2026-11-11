@@ -702,6 +702,77 @@ TEST_P(Datatypes, SameNamedDeclsKeepTheirOwnConstructors)
               ElementsAre("right"));
 }
 
+TEST_P(Datatypes, SecondDatatypeOfANameIsRefusedOrSeparate)
+{
+  auto firstdecl = s->make_datatype_decl("list");
+  s->add_constructor(firstdecl, s->make_datatype_constructor_decl("one"));
+  auto first = s->make_sort(firstdecl);
+  Sort second;
+  try
+  {
+    auto seconddecl = s->make_datatype_decl("list");
+    s->add_constructor(seconddecl, s->make_datatype_constructor_decl("two"));
+    second = s->make_sort(seconddecl);
+  }
+  catch (IncorrectUsageException &)
+  {
+  }
+
+  EXPECT_THAT(first->get_datatype()->get_constructor_names(),
+              ElementsAre("one"));
+  EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(first, "one"))
+                ->get_sort(),
+            first);
+  if (second)
+  {
+    EXPECT_NE(first, second);
+    EXPECT_THAT(second->get_datatype()->get_constructor_names(),
+                ElementsAre("two"));
+    EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(second, "two"))
+                  ->get_sort(),
+              second);
+  }
+}
+
+TEST_P(Datatypes, SecondDatatypeOfANameInOneCallIsRefusedOrSeparate)
+{
+  if (s->get_solver_enum() == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver refuses every make_datatype_sorts";
+  }
+  if (s->get_solver_enum() == CVC5)
+  {
+    GTEST_SKIP() << "cvc5 reports two datatypes of one name in one call as "
+                    "an internal solver error";
+  }
+  auto firstdecl = s->make_datatype_decl("list");
+  s->add_constructor(firstdecl, s->make_datatype_constructor_decl("one"));
+  SortVec sorts;
+  try
+  {
+    auto seconddecl = s->make_datatype_decl("list");
+    s->add_constructor(seconddecl, s->make_datatype_constructor_decl("two"));
+    sorts = s->make_datatype_sorts({ firstdecl, seconddecl });
+  }
+  catch (IncorrectUsageException &)
+  {
+    return;
+  }
+
+  ASSERT_EQ(sorts.size(), 2u);
+  EXPECT_NE(sorts[0], sorts[1]);
+  EXPECT_THAT(sorts[0]->get_datatype()->get_constructor_names(),
+              ElementsAre("one"));
+  EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(sorts[0], "one"))
+                ->get_sort(),
+            sorts[0]);
+  EXPECT_THAT(sorts[1]->get_datatype()->get_constructor_names(),
+              ElementsAre("two"));
+  EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(sorts[1], "two"))
+                ->get_sort(),
+            sorts[1]);
+}
+
 TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)
 {
   DatatypeConstructorDecl just_int = s->make_datatype_constructor_decl("just");
