@@ -9,7 +9,8 @@
  * emulation needs with the context, which every solver, sort and term of
  * the context shares. For example, Z3's API has no sort constructors, so
  * each application is an uninterpreted Z3 sort of an internal name, and
- * the context records what it applies, which Z3 cannot report.
+ * the context records what it applies and how it prints, which Z3 cannot
+ * report.
  */
 
 #pragma once
@@ -39,10 +40,12 @@ class Z3Context : public z3::context
   std::string get_param_name(const z3::expr & term) const;
   /** The sort the sort constructor `name` applied to `params` stands for:
    *  an uninterpreted sort made the first time and given back after, so
-   *  that its sorts can report what it applies
+   *  that its sorts can report what it applies and print_term can print
+   *  it as `text`
    */
   z3::sort add_instance(const std::string & name,
-                        const std::vector<z3::sort> & params);
+                        const std::vector<z3::sort> & params,
+                        const std::string & text);
   /** Whether add_instance made `sort` */
   bool is_instance(const z3::sort & sort) const;
   /** The name of the sort constructor `sort` applies, or the name of `sort`
@@ -57,6 +60,8 @@ class Z3Context : public z3::context
   void add_datatype_name(const std::string & name);
   /** Whether add_datatype_name recorded `name` */
   bool has_datatype_name(const std::string & name) const;
+  /** `term` in Z3's SMT-LIB */
+  std::string print_term(const z3::expr & term) const;
 
  private:
   /** A param and the name it was made with, which Z3 does not keep */
@@ -89,6 +94,8 @@ class Z3Context : public z3::context
   std::unordered_map<InstanceKey, z3::sort, InstanceKeyHash>
       uninterp_sort_cache = {};
   std::unordered_map<unsigned, SortInstance> uninterp_sort_info = {};
+  // the text of each instance, by the internal name Z3 prints it as
+  std::unordered_map<std::string, std::string> instance_text = {};
   std::uint64_t count = 0;
   // Z3 keys a datatype by its name, so declaring a second datatype of one
   // name replaces the first's constructors
