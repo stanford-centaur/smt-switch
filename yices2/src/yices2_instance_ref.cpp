@@ -47,10 +47,12 @@ struct SortInstance
 
 std::size_t count = 0;
 // the symbols declared with a function sort, the sort constructors and their
-// instances, also under count_mutex, made and freed with the instance
+// instances, and the constant arrays' bound variables, also under
+// count_mutex, made and freed with the instance
 std::unordered_set<term_t> * functions = nullptr;
 std::unordered_map<std::int32_t, SortConstructor> * constructors = nullptr;
 std::unordered_map<type_t, SortInstance> * instances = nullptr;
+std::unordered_map<type_t, term_t> * index_variables = nullptr;
 
 void acquire()
 {
@@ -61,6 +63,7 @@ void acquire()
     functions = new std::unordered_set<term_t>;
     constructors = new std::unordered_map<std::int32_t, SortConstructor>;
     instances = new std::unordered_map<type_t, SortInstance>;
+    index_variables = new std::unordered_map<type_t, term_t>;
   }
 }
 
@@ -82,6 +85,8 @@ Yices2InstanceRef::~Yices2InstanceRef()
     constructors = nullptr;
     delete instances;
     instances = nullptr;
+    delete index_variables;
+    index_variables = nullptr;
   }
 }
 
@@ -136,6 +141,19 @@ std::vector<type_t> Yices2InstanceRef::get_instance_params(type_t t)
 {
   std::lock_guard lock(count_mutex());
   return instances->at(t).params;
+}
+
+term_t Yices2InstanceRef::get_index_variable(type_t index_type)
+{
+  std::lock_guard lock(count_mutex());
+  auto it = index_variables->find(index_type);
+  if (it != index_variables->end())
+  {
+    return it->second;
+  }
+  term_t variable = yices_new_variable(index_type);
+  index_variables->emplace(index_type, variable);
+  return variable;
 }
 
 }  // namespace smt
