@@ -275,7 +275,7 @@ void MsatSolver::set_opt(const string option, const string value)
 
   if (option == "incremental" || option == "produce-unsat-assumptions")
   {
-    if (value == "false")
+    if (!bool_option_value(option, value))
     {
       cout << "Warning: Option " << option
            << " is always enabled in MathSAT backend -- cannot be disabled"
@@ -285,12 +285,15 @@ void MsatSolver::set_opt(const string option, const string value)
   }
   if (option == "time-limit")
   {
-    double seconds = std::stod(value);
-    if (seconds < 0)
-    {
-      throw IncorrectUsageException("time-limit cannot be negative");
-    }
-    time_limit = std::chrono::duration<double>(seconds);
+    time_limit = std::chrono::duration<double>(time_limit_seconds(value));
+    return;
+  }
+  if (option == "produce-models")
+  {
+    // MathSAT also takes 1 and 0 for it, which SMT-LIB does not.
+    env_wrapper_.set_option(
+        msat_option_name(option),
+        bool_option_value(option, value) ? "true" : "false");
     return;
   }
 
@@ -1170,24 +1173,30 @@ void MsatSolver::EnvWrapper::set_option(const std::string & name,
     throw IncorrectUsageException(
         "Can't set an option after the first term, sort or query");
   }
-  // msat_set_option returns zero on success
+  // With no configuration yet, the option is checked on a plain one and kept
+  // for the configuration made later. msat_set_option returns zero on
+  // success.
+  const ConfigPtr plain{ cfg ? nullptr : msat_create_config().repr };
+  if (msat_set_option(
+          as_msat_config(cfg ? cfg : plain), name.c_str(), value.c_str()))
+  {
+    // MathSAT refuses an unknown name and a bad value alike, but every
+    // option it knows takes one of these.
+    const ConfigPtr probe{ msat_create_config().repr };
+    for (const char * known_value : { "true", "0", "0.5" })
+    {
+      if (!msat_set_option(as_msat_config(probe), name.c_str(), known_value))
+      {
+        throw IncorrectUsageException("MathSAT does not allow the value "
+                                      + value + " for the option " + name);
+      }
+    }
+    throw NotImplementedException("MathSAT does not support the option "
+                                  + name);
+  }
   if (!cfg)
   {
-    // with no configuration yet, the option is checked on a plain one and
-    // kept for the configuration made later
-    if (msat_set_option(as_msat_config(ConfigPtr{ msat_create_config().repr }),
-                        name.c_str(),
-                        value.c_str()))
-    {
-      throw InternalSolverException("MathSAT does not support the option "
-                                    + name);
-    }
     pending.emplace_back(name, value);
-  }
-  else if (msat_set_option(as_msat_config(cfg), name.c_str(), value.c_str()))
-  {
-    throw InternalSolverException("MathSAT does not support the option "
-                                  + name);
   }
 }
 
@@ -1211,7 +1220,7 @@ const std::shared_ptr<MsatEnv> & MsatSolver::EnvWrapper::get_env()
     msat_env e = msat_create_env(as_msat_config(cfg));
     if (MSAT_ERROR_ENV(e))
     {
-      throw InternalSolverException(
+      throw IncorrectUsageException(
           "MathSAT refused its configuration; an option may be out of range");
     }
     env = std::make_shared<MsatEnv>(e, msat_config{ cfg.release() });

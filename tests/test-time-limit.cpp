@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "exceptions.h"
 #include "ops.h"
 #include "result.h"
 #include "smt_defs.h"
@@ -164,6 +165,15 @@ TEST_P(TimeLimitTests, ResetDropsTimeLimit)
     }
   }
   EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(TimeLimitTests, RefusesValueOtherThanNonnegativeNumber)
+{
+  for (const char * value : { "-1", "abc", "1s", "", "inf", "nan" })
+  {
+    EXPECT_THROW(s->set_opt("time-limit", value), IncorrectUsageException)
+        << value;
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(

@@ -72,16 +72,23 @@ TEST(MsatConfig, DumpNamesTheLogic)
 TEST(MsatConfig, UnknownOptionRefusedBeforeConfig)
 {
   SmtSolver s = std::make_shared<MsatSolver>();
-  EXPECT_THROW(s->set_opt("no-such-option", "true"), InternalSolverException);
+  EXPECT_THROW(s->set_opt("no-such-option", "true"), NotImplementedException);
+}
+
+TEST(MsatConfig, BadOptionValueRefused)
+{
+  SmtSolver s = std::make_shared<MsatSolver>();
+  EXPECT_THROW(s->set_opt("theory.bv.bit_blast_mode", "abc"),
+               IncorrectUsageException);
 }
 
 TEST(MsatConfig, RefusedConfigThrows)
 {
   SmtSolver s = std::make_shared<MsatSolver>();
   s->set_opt("theory.bv.bit_blast_mode", "99");
-  EXPECT_THROW(s->make_sort(BV, 4), InternalSolverException);
+  EXPECT_THROW(s->make_sort(BV, 4), IncorrectUsageException);
   // no environment is kept, so the next call is refused too
-  EXPECT_THROW(s->make_sort(BV, 4), InternalSolverException);
+  EXPECT_THROW(s->make_sort(BV, 4), IncorrectUsageException);
 }
 
 TEST(MsatConfig, OptionAcceptedAfterContextLevel)

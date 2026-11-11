@@ -835,6 +835,14 @@ std::string GenericSolver::run_command(const std::string & cmd,
     case CommandKind::RESET:
     case CommandKind::RESET_ASSERTIONS:
     case CommandKind::ASSERTION:
+      // SMT-LIB has a binary answer this to an option it does not know.
+      if (kind == CommandKind::OPTION && reply == "unsupported")
+      {
+        throw NotImplementedException(
+            "The solver does not support the "
+            "command "
+            + cmd);
+      }
       if (reply != "success")
       {
         throw IncorrectUsageException(
@@ -2157,6 +2165,16 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
                    "set_opt(\"" + option + "\")",
                    "only options may precede it");
     }
+  }
+  // Some binaries also take 1 and 0 for these, which SMT-LIB does not.
+  if (option == "produce-models" || option == "produce-unsat-assumptions"
+      || option == "incremental")
+  {
+    run_command(CommandKind::OPTION,
+                SET_OPTION_STR,
+                ":" + option,
+                bool_option_value(option, value) ? "true" : "false");
+    return;
   }
   run_command(CommandKind::OPTION, SET_OPTION_STR, ":" + option, value);
 }
