@@ -167,7 +167,7 @@ if(BUILD_SMTLIB_READER)
   target_link_libraries(test-smtlib-reader PRIVATE smt-switch-smtlib)
   target_compile_definitions(
     test-smtlib-reader
-    PRIVATE SMTLIB_TEST_RESOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/smt2
+    PRIVATE "SMTLIB_TEST_RESOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/smt2\""
   )
 endif()
 
