@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -501,28 +502,32 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
     throw IncorrectUsageException(
         "MathSAT has no unsat assumptions before a check_sat_assuming");
   }
-  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  size_t core_size;
-  msat_term * mcore = msat_get_unsat_assumptions(*env, &core_size);
   if (!last_query_assuming)
   {
     throw SmtException(
         "MathSAT has no unsat assumptions unless the last query was a "
         "check_sat_assuming with assumptions");
   }
-  msat_term * mcore_iter = mcore;
+  const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
+  size_t core_size;
+  std::unique_ptr<msat_term, detail::MsatFreeDeleter> mcore(
+      msat_get_unsat_assumptions(*env, &core_size));
+  if (!mcore)
+  {
+    throw InternalSolverException("MathSAT gave no unsat assumptions: "
+                                  + last_error_message(*env));
+  }
   for (size_t i = 0; i < core_size; ++i)
   {
-    if (MSAT_ERROR_TERM(*mcore_iter))
+    msat_term assumption = mcore.get()[i];
+    if (MSAT_ERROR_TERM(assumption))
     {
       throw InternalSolverException(
           "MathSAT gave an error term in the unsat core");
     }
     out.insert(std::make_shared<MsatTerm>(
-        env, assumption_map_.at(msat_term_id(*mcore_iter))));
-    ++mcore_iter;
+        env, assumption_map_.at(msat_term_id(assumption))));
   }
-  msat_free(mcore);
 }
 
 Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
@@ -1010,13 +1015,17 @@ void MsatSolver::dump_smt2(std::string filename) const
                                      ? env_wrapper_.get_env()
                                      : EnvWrapper().get_env();
   size_t num_asserted;
-  msat_term * assertions = msat_get_asserted_formulas(*env, &num_asserted);
+  std::unique_ptr<msat_term, detail::MsatFreeDeleter> assertions(
+      msat_get_asserted_formulas(*env, &num_asserted));
+  if (!assertions)
+  {
+    throw InternalSolverException("Failed to gather all assertions");
+  }
   msat_term all_asserts = msat_make_true(*env);
   for (size_t i = 0; i < num_asserted; ++i)
   {
-    all_asserts = msat_make_and(*env, all_asserts, assertions[i]);
+    all_asserts = msat_make_and(*env, all_asserts, assertions.get()[i]);
   }
-  msat_free(assertions);
   if (MSAT_ERROR_TERM(all_asserts))
   {
     throw InternalSolverException("Failed to gather all assertions");
