@@ -341,7 +341,7 @@ TEST_P(UnitTermArithTests, NegatedValueIsDifferent)
 
 TEST_P(UnitTermArithTests, MalformedIntStringThrows)
 {
-  for (const char * val : { "abc", "", "-", "1/2", "1.5" })
+  for (const char * val : { "abc", "", "-", "+-5", "1/2", "1.5" })
   {
     SCOPED_TRACE(val);
     EXPECT_THROW(s->make_term(val, intsort), IncorrectUsageException);

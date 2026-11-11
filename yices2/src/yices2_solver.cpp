@@ -309,14 +309,20 @@ Term Yices2Solver::make_term(const std::string val,
   }
   else if (sk == INT)
   {
-    // reads an integer of any size, but also a fraction, which is no Int
-    y_term =
-        yices_parse_rational(arith_value_to_decimal(sk, val, base).c_str());
-    if (y_term == NULL_TERM || !yices_term_is_int(y_term))
+    std::string decimal = arith_value_to_decimal(sk, val, base);
+    std::string msg =
+        "Can't create value " + val + " with sort " + sort->to_string();
+    // yices_parse_rational reads "+-5"
+    if (!is_arith_number(INT, decimal))
+    {
+      throw IncorrectUsageException(msg);
+    }
+    // reads an integer of any size
+    y_term = yices_parse_rational(decimal.c_str());
+    if (y_term == NULL_TERM)
     {
       yices_clear_error();
-      throw IncorrectUsageException("Can't create value " + val + " with sort "
-                                    + sort->to_string());
+      throw IncorrectUsageException(msg);
     }
   }
   else
