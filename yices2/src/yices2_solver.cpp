@@ -667,20 +667,28 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   // yices2 documentation: returns -1 if ctx status was not UNSAT
   if (err_code == -1)
   {
+    yices_delete_term_vector(&ycore);
     throw IncorrectUsageException(
         "Last call to check_sat was not unsat, cannot get unsat core");
   }
 
-  for (size_t i = 0; i < ycore.size; ++i)
+  try
   {
-    if (!ycore.data[i])
+    for (size_t i = 0; i < ycore.size; ++i)
     {
-      throw InternalSolverException(
-          "Yices2 gave an empty term in the unsat core");
+      if (!ycore.data[i])
+      {
+        throw InternalSolverException(
+            "Yices2 gave an empty term in the unsat core");
+      }
+      out.insert(std::make_shared<Yices2Term>(ycore.data[i]));
     }
-    out.insert(std::make_shared<Yices2Term>(ycore.data[i]));
   }
-
+  catch (...)
+  {
+    yices_delete_term_vector(&ycore);
+    throw;
+  }
   yices_delete_term_vector(&ycore);
 }
 
