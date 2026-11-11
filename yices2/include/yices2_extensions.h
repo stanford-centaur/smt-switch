@@ -18,11 +18,20 @@
 
 #include <yices_types.h>
 
+#include <memory>
 #include <string>
 
 namespace smt {
 
 namespace detail {
+
+struct Yices2ModelDeleter
+{
+  void operator()(model_t * model) const;
+};
+
+/** A model from yices_get_model, freed with yices_free_model */
+using Yices2ModelPtr = std::unique_ptr<model_t, Yices2ModelDeleter>;
 
 /** Yices' description of its last error, freeing the string it returns and
  *  clearing the error, which later calls would otherwise report again

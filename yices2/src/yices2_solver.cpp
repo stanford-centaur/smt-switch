@@ -469,7 +469,8 @@ void Yices2Solver::do_pop(uint64_t num)
 Term Yices2Solver::get_value(const Term & t) const
 {
   shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
-  model_t * model = ctx ? yices_get_model(ctx.get(), true) : nullptr;
+  detail::Yices2ModelPtr model(ctx ? yices_get_model(ctx.get(), true)
+                                   : nullptr);
   if (!model)
   {
     yices_clear_error();
@@ -479,7 +480,7 @@ Term Yices2Solver::get_value(const Term & t) const
 
   if (!yices_term_is_function(yterm->term))
   {
-    term_t value = yices_get_value_as_term(model, yterm->term);
+    term_t value = yices_get_value_as_term(model.get(), yterm->term);
     if (value == NULL_TERM)
     {
       // the model declines some terms, one containing a lambda among them,
@@ -586,7 +587,8 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
-  model_t * model = ctx ? yices_get_model(ctx.get(), true) : nullptr;
+  detail::Yices2ModelPtr model(ctx ? yices_get_model(ctx.get(), true)
+                                   : nullptr);
   if (!model)
   {
     yices_clear_error();
@@ -609,11 +611,11 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   // Yices models an array as a function: one default value, plus a mapping
   // for each index that differs from it. The default is the constant base.
   yval_t node;
-  if (yices_get_value(model, yarr->term, &node) < 0)
+  if (yices_get_value(model.get(), yarr->term, &node) < 0)
   {
     throw InternalSolverException(detail::get_yices2_error());
   }
-  if (yices_val_function_arity(model, &node) != 1)
+  if (yices_val_function_arity(model.get(), &node) != 1)
   {
     throw NotImplementedException(
         "Yices2 gave an array model of arity other than one");
@@ -622,7 +624,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   yval_t def;
   yval_vector_t mappings;
   yices_init_yval_vector(&mappings);
-  if (yices_val_expand_function(model, &node, &def, &mappings) < 0)
+  if (yices_val_expand_function(model.get(), &node, &def, &mappings) < 0)
   {
     yices_delete_yval_vector(&mappings);
     throw InternalSolverException(detail::get_yices2_error());
@@ -631,18 +633,19 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   UnorderedTermMap assignments;
   try
   {
-    out_const_base = term_from_yval(*this, model, def, elemsort);
+    out_const_base = term_from_yval(*this, model.get(), def, elemsort);
     for (uint32_t m = 0; m < mappings.size; m++)
     {
       yval_t index;
       yval_t value;
-      if (yices_val_expand_mapping(model, &mappings.data[m], &index, &value)
+      if (yices_val_expand_mapping(
+              model.get(), &mappings.data[m], &index, &value)
           < 0)
       {
         throw InternalSolverException(detail::get_yices2_error());
       }
-      assignments[term_from_yval(*this, model, index, idxsort)] =
-          term_from_yval(*this, model, value, elemsort);
+      assignments[term_from_yval(*this, model.get(), index, idxsort)] =
+          term_from_yval(*this, model.get(), value, elemsort);
     }
   }
   catch (...)

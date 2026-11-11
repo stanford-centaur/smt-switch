@@ -40,6 +40,11 @@ struct YicesStringDeleter
 
 }  // namespace
 
+void detail::Yices2ModelDeleter::operator()(model_t * model) const
+{
+  yices_free_model(model);
+}
+
 string detail::get_yices2_error()
 {
   unique_ptr<char, YicesStringDeleter> reason(yices_error_string());
