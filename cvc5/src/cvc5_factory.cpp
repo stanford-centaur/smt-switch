@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "smt-switch/cvc5_interpolator.h"
 #include "smt-switch/cvc5_solver.h"
 #include "smt-switch/logging_solver.h"
 
@@ -25,9 +26,14 @@ SmtSolver Cvc5SolverFactory::create(bool logging)
   return solver;
 }
 
+SmtInterpolator Cvc5SolverFactory::create_interpolator()
+{
+  return std::make_shared<Cvc5Interpolator>();
+}
+
 SmtInterpolator Cvc5SolverFactory::create_interpolating_solver()
 {
-  return std::make_shared<cvc5InterpolatingSolver>();
+  return create_interpolator();
 }
 /* end Cvc5SolverFactory implementation */
 

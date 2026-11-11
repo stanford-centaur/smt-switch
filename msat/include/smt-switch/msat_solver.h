@@ -19,7 +19,6 @@
 #include <utility>
 #include <vector>
 
-#include "smt-switch/interpolating_solver.h"
 #include "smt-switch/msat_env.h"
 #include "smt-switch/msat_sort.h"
 #include "smt-switch/msat_term.h"
@@ -155,7 +154,7 @@ class MsatSolver : public AbsSmtSolver
    */
   msat_result solve(std::vector<msat_term> * labels, bool & timed_out);
 
-  friend class MsatInterpolatingSolver;
+  friend class MsatInterpolator;
 
  private:
   /** Destroys the configuration whose handle is repr. */
@@ -232,38 +231,6 @@ class MsatSolver : public AbsSmtSolver
 
   // mutable, as const methods such as make_sort create the environment
   mutable EnvWrapper env_wrapper_ = {};
-};
-
-// Interpolating Solver
-class MsatInterpolatingSolver : public AbsSmtInterpolator
-{
- public:
-  MsatInterpolatingSolver();
-  MsatInterpolatingSolver(const MsatInterpolatingSolver &) = delete;
-  MsatInterpolatingSolver & operator=(const MsatInterpolatingSolver &) = delete;
-
- protected:
-  Result compute_interpolant(const Term & A,
-                             const Term & B,
-                             Term & out_I) const override;
-  Result compute_seq_interpolants(const TermVec & formulae,
-                                  TermVec & out_I) const override;
-  void do_set_opt(const std::string & option,
-                  const std::string & value) override;
-  void forget_queries() override;
-  // sets the options MathSAT cannot interpolate without and the solver's
-  // preferences, on construction and after reset()
-  void initialize() override;
-
-  // the regular solver that builds this solver's terms
-  std::shared_ptr<MsatSolver> msat_solver_;
-
-  // assertions from the last interpolation query, indexed by the context level
-  // (although one can get assertions using `msat_get_asserted_formulas`,
-  // the method does not guarantee that the assertions are in the correct order)
-  mutable TermVec last_itp_query_assertions_ = {};
-  // interpolation group for each assertion level
-  mutable std::vector<int> itp_grps_ = {};
 };
 
 }  // namespace smt

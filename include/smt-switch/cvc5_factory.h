@@ -28,7 +28,11 @@ class Cvc5SolverFactory
   /** Create an interpolating cvc5 solver
    *  @return an interpolating cvc5 SmtInterpolator
    */
-  static SmtInterpolator create_interpolating_solver();
+  static SmtInterpolator create_interpolator();
+
+  /** As create_interpolator */
+  [[deprecated("use create_interpolator")]] static SmtInterpolator
+  create_interpolating_solver();
 };
 }  // namespace smt
 

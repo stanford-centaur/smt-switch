@@ -11,7 +11,8 @@
 #include <memory>
 #include <string>
 
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
+#include "smt-switch/msat_interpolator.h"
 #include "smt-switch/msat_solver.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
@@ -38,7 +39,7 @@ TEST(MsatConstructors, InterpolatingKeepsBitBlastPreference)
   // x + y = 3 and y = 1 against x = 5, over bit-vectors: MathSAT's default
   // eager BV solver cannot produce the proofs interpolation needs, whatever
   // bit-blasting mode the caller prefers
-  SmtInterpolator s = std::make_shared<MsatInterpolatingSolver>();
+  SmtInterpolator s = std::make_shared<MsatInterpolator>();
   s->set_opt("theory.bv.bit_blast_mode", "1");
   Sort bvsort = s->make_sort(BV, 8);
   Term x = s->make_symbol("x", bvsort);

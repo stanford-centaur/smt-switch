@@ -14,7 +14,7 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/logging_solver.h"
-#include "smt-switch/yices2_interpolating_solver.h"
+#include "smt-switch/yices2_interpolator.h"
 #include "smt-switch/yices2_solver.h"
 
 namespace smt {
@@ -36,14 +36,19 @@ SmtSolver Yices2SolverFactory::create(bool logging)
 }
 /* end Yices2SolverFactory logging implementation */
 
-SmtInterpolator Yices2SolverFactory::create_interpolating_solver()
+SmtInterpolator Yices2SolverFactory::create_interpolator()
 {
   if (!yices_has_mcsat())
   {
     throw NotImplementedException(
         "This Yices2 was built without MCSAT, which interpolation needs");
   }
-  return std::make_shared<Yices2InterpolatingSolver>();
+  return std::make_shared<Yices2Interpolator>();
+}
+
+SmtInterpolator Yices2SolverFactory::create_interpolating_solver()
+{
+  return create_interpolator();
 }
 
 }  // namespace smt

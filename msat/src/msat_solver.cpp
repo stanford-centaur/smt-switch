@@ -54,31 +54,6 @@ static msat_term make_bv_value(msat_env e,
   return res;
 }
 
-static string msat_option_name(const string & option)
-{
-  if (option == "produce-interpolants")
-  {
-    return "interpolation";
-  }
-  if (option == "produce-models")
-  {
-    return "model_generation";
-  }
-  return option;
-}
-
-/** The last error message MathSAT reported in e, empty if there is none
- *  MathSAT keeps a message until the next error replaces it, also across
- *  successful calls, and does not say whether a call set it. It set one for
- *  every unknown result seen so far, terminations included, so an unknown
- *  result is explained by this message.
- */
-static string last_error_message(msat_env e)
-{
-  const char * msg = msat_last_error_message(e);
-  return msg ? msg : "";
-}
-
 /** The end of a query's time limit, and whether MathSAT was stopped at it */
 struct Deadline
 {
@@ -97,12 +72,6 @@ static int reached_deadline(void * deadline)
     d->reached = true;
   }
   return d->reached;
-}
-
-/** text, followed by error if there is one */
-static string with_error(const string & text, const string & error)
-{
-  return error.empty() ? text : text + ": " + error;
 }
 
 /** Refuses po applied to num_args arguments, which MathSAT has no operator
@@ -284,12 +253,12 @@ void MsatSolver::set_opt(const string option, const string value)
   {
     // MathSAT also takes 1 and 0 for it, which SMT-LIB does not.
     env_wrapper_.set_option(
-        msat_option_name(option),
+        detail::msat_option_name(option),
         bool_option_value(option, value) ? "true" : "false");
     return;
   }
 
-  env_wrapper_.set_option(msat_option_name(option), value);
+  env_wrapper_.set_option(detail::msat_option_name(option), value);
 }
 
 void MsatSolver::set_logic(const std::string logic_name)
@@ -337,7 +306,7 @@ Result MsatSolver::check_sat()
   }
   else
   {
-    const string error = last_error_message(*env);
+    const string error = detail::last_error_message(*env);
     return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
@@ -387,7 +356,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
   }
   else
   {
-    const string error = last_error_message(*env);
+    const string error = detail::last_error_message(*env);
     return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
@@ -506,7 +475,7 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   if (!mcore)
   {
     throw InternalSolverException("MathSAT gave no unsat assumptions: "
-                                  + last_error_message(*env));
+                                  + detail::last_error_message(*env));
   }
   for (size_t i = 0; i < core_size; ++i)
   {
@@ -1252,173 +1221,5 @@ void MsatSolver::EnvWrapper::reset()
 const std::string & MsatSolver::EnvWrapper::get_logic() const { return logic; }
 
 // end MsatSolver implementation
-
-// begin MsatInterpolatingSolver implementation
-
-MsatInterpolatingSolver::MsatInterpolatingSolver()
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>()),
-      msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
-{
-  initialize();
-}
-
-void MsatInterpolatingSolver::initialize()
-{
-  // without interpolation there are no interpolants, and the eager BV
-  // solver produces no proofs
-  msat_solver_->set_opt("interpolation", "true");
-  msat_solver_->set_opt("theory.bv.eager", "false");
-  // only a preference, which a caller's own set_opt replaces
-  msat_solver_->set_opt("theory.bv.bit_blast_mode", "0");
-  // TODO: decide if we should add this
-  // msat_solver_->set_opt("theory.eq_propagation", "false");
-}
-
-void MsatInterpolatingSolver::do_set_opt(const string & option,
-                                         const string & value)
-{
-  // The constructor sets these, and the interpolator cannot do without them.
-  const string name = msat_option_name(option);
-  if (name == "interpolation" || name == "theory.bv.eager")
-  {
-    throw IncorrectUsageException(
-        "The MathSAT interpolator does not allow the option " + option);
-  }
-  msat_solver_->set_opt(option, value);
-}
-
-// delegate the interpolation procedure to `compute_seq_interpolants`
-Result MsatInterpolatingSolver::compute_interpolant(const Term & A,
-                                                    const Term & B,
-                                                    Term & out_I) const
-{
-  return interpolant_from_sequence(A, B, out_I);
-}
-
-// Compute interpolation sequence with incremental solving.
-// The function tries to reuse as many previously-asserted formulas as possible.
-// To achieve this, an assertion stack is maintained, where each assertion
-// is associated with a context level (backtrack point in MathSAT) and an
-// interpolation group.
-//
-// Before SMT solving, the function scans the assertion stack and the current
-// input formulae in order, checking if they match at each position.
-// Specifically, the i-th element on the assertion stack must match the i-th
-// element in the input formulae. If they match, the assertion can be reused;
-// otherwise, the function backtracks the solver to the point where the match
-// ends and asserts the remaining formulas from that point onward.
-//
-// The following invariant should hold before and after the call:
-// `#backtrack-points == last_itp_query_assertions_.size() == itp_grps_.size()`
-Result MsatInterpolatingSolver::compute_seq_interpolants(
-    const TermVec & formulae, TermVec & out_I) const
-{
-  const std::shared_ptr<MsatEnv> & env = msat_solver_->env_wrapper_.get_env();
-
-  // unwrapped before anything changes, so a refused formula leaves the
-  // assertion stack as it was
-  vector<msat_term> mformulae;
-  mformulae.reserve(formulae.size());
-  for (const Term & f : formulae)
-  {
-    mformulae.push_back(msat_solver_->get_msat_term(f)->term);
-  }
-
-  // count how many assertions can be reused, unless reuse is off
-  size_t num_reused = 0;
-  while (incremental_mode && num_reused < last_itp_query_assertions_.size()
-         && num_reused < formulae.size()
-         && last_itp_query_assertions_.at(num_reused)
-                == formulae.at(num_reused))
-  {
-    ++num_reused;
-  }
-
-  // pop formulas that cannot be reused
-  if (num_reused == 0)
-  {
-    // no reusable formulas, simply reset
-    msat_reset_env(*env);
-  }
-  else
-  {
-    for (size_t i = num_reused; i < last_itp_query_assertions_.size(); ++i)
-    {
-      msat_pop_backtrack_point(*env);
-    }
-  }
-
-  // update the interpolation groups and assertions
-  itp_grps_.resize(num_reused);
-  itp_grps_.reserve(formulae.size());
-  last_itp_query_assertions_.resize(num_reused);
-  last_itp_query_assertions_.reserve(formulae.size());
-
-  // add new assertions from formulas
-  for (size_t k = num_reused; k < formulae.size(); ++k)
-  {
-    // Add a new interpolation group and a new backtrack point
-    // then push the formula.
-    int grp = msat_create_itp_group(*env);
-    msat_set_itp_group(*env, grp);
-    msat_push_backtrack_point(*env);
-    msat_assert_formula(*env, mformulae.at(k));
-    itp_grps_.push_back(grp);
-    last_itp_query_assertions_.push_back(formulae.at(k));
-  }
-
-  // solve query and get interpolants
-  bool timed_out = false;
-  msat_result msat_res = msat_solver_->solve(nullptr, timed_out);
-
-  if (msat_res == MSAT_SAT)
-  {
-    return Result(SAT);
-  }
-  else if (msat_res == MSAT_UNKNOWN)
-  {
-    if (timed_out)
-    {
-      return Result(UNKNOWN, "Time limit reached.");
-    }
-    return Result(
-        UNKNOWN, with_error("Interpolation failure", last_error_message(*env)));
-  }
-
-  Result r = Result(UNSAT);
-  for (size_t i = 1; i < itp_grps_.size(); ++i)
-  {
-    msat_term mI = msat_get_interpolant(*env, itp_grps_.data(), i);
-    if (MSAT_ERROR_TERM(mI))
-    {
-      // add a null term -- see solver.h documentation for this function
-      Term nullterm;
-      out_I.push_back(nullterm);
-      // MathSAT reports the error behind an error term, and the first
-      // failure's report explains the result
-      if (r.is_unsat())
-      {
-        r = Result(UNKNOWN,
-                   with_error("Had at least one interpolation failure in "
-                              "get_sequence_interpolants",
-                              last_error_message(*env)));
-      }
-    }
-    else
-    {
-      out_I.push_back(make_shared<MsatTerm>(env, mI));
-    }
-  }
-
-  return r;
-}
-
-void MsatInterpolatingSolver::forget_queries()
-{
-  last_itp_query_assertions_.clear();
-  itp_grps_.clear();
-}
-
-// end MsatInterpolatingSolver implementation
 
 }  // namespace smt

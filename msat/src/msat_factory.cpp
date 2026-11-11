@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "smt-switch/logging_solver.h"
+#include "smt-switch/msat_interpolator.h"
 #include "smt-switch/msat_solver.h"
 
 namespace smt {
@@ -27,11 +28,16 @@ SmtSolver MsatSolverFactory::create(bool logging)
   return solver;
 }
 
+SmtInterpolator MsatSolverFactory::create_interpolator()
+{
+  MsatInterpolator * ps = new MsatInterpolator();
+  std::shared_ptr<MsatInterpolator> s(ps);
+  return s;
+}
+
 SmtInterpolator MsatSolverFactory::create_interpolating_solver()
 {
-  MsatInterpolatingSolver * ps = new MsatInterpolatingSolver();
-  std::shared_ptr<MsatInterpolatingSolver> s(ps);
-  return s;
+  return create_interpolator();
 }
 
 /* end MsatSolverFactory implementation */

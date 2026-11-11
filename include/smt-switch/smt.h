@@ -20,7 +20,7 @@
 #include "smt-switch/exceptions.h"  // IWYU pragma: export
 
 // Interpolating solver interface.
-#include "smt-switch/interpolating_solver.h"  // IWYU pragma: export
+#include "smt-switch/interpolator.h"  // IWYU pragma: export
 
 // SMT-LIB Sort and Function operators.
 #include "smt-switch/ops.h"  // IWYU pragma: export

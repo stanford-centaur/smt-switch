@@ -11,7 +11,7 @@
 #include <string>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
@@ -22,7 +22,7 @@ using namespace smt;
 
 TEST(MsatInterpolatorOptions, RefusesOnlyTheOptionsInterpolationNeeds)
 {
-  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = MsatSolverFactory::create_interpolator();
   EXPECT_THROW(s->set_opt("interpolation", "false"), IncorrectUsageException);
   EXPECT_THROW(s->set_opt("theory.bv.eager", "true"), IncorrectUsageException);
   // any other option reaches MathSAT while it can still take options

@@ -35,7 +35,7 @@ struct SolverConfiguration
 smt::SmtSolver create_solver(SolverConfiguration sc);
 
 /** Creates an interpolating SmtSolver of the provided type */
-smt::SmtInterpolator create_interpolating_solver(SolverConfiguration sc);
+smt::SmtInterpolator create_interpolator(SolverConfiguration sc);
 
 /** The regular solver an interpolator is built on, whose theories it shares */
 smt::SolverEnum interpolator_base_solver(smt::SolverEnum se);

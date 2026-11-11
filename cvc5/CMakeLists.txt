@@ -3,6 +3,7 @@ add_library(
   "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_datatype.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_factory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_interpolator.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/cvc5_term.cpp"

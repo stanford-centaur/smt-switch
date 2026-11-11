@@ -16,7 +16,7 @@
 
 #include "smt-switch/bitwuzla_factory.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
@@ -75,8 +75,8 @@ TEST(BzlaTermManager, AnotherInterpolatorsTermsRefused)
 #ifndef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
   GTEST_SKIP() << "this Bitwuzla cannot interpolate";
 #endif
-  SmtInterpolator itp = BitwuzlaSolverFactory::create_interpolating_solver();
-  SmtInterpolator other = BitwuzlaSolverFactory::create_interpolating_solver();
+  SmtInterpolator itp = BitwuzlaSolverFactory::create_interpolator();
+  SmtInterpolator other = BitwuzlaSolverFactory::create_interpolator();
   Sort bv8 = other->make_sort(BV, 8);
   Term y = other->make_symbol("y", bv8);
   Term a = other->make_term(Equal, y, other->make_term(0, bv8));

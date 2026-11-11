@@ -19,3 +19,4 @@ BreakConstructorInitializers: BeforeColon
 Cpp11BracedListStyle: false
 DerivePointerAlignment: false
 PointerAlignment: Middle
+Standard: c++17

@@ -15,9 +15,9 @@
 
 #include "exec_utils.h"
 #include "smt-switch/bitwuzla_factory.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/ops.h"
-#include "smt-switch/printing_solver.h"
+#include "smt-switch/printing_interpolator.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
@@ -58,7 +58,7 @@ class BitwuzlaPrintingTest : public testing::Test
 TEST_F(BitwuzlaPrintingTest, Interpolation)
 {
   SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolating_solver(), os);
+      BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -98,7 +98,7 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
 TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
 {
   SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolating_solver(), os);
+      BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -130,7 +130,7 @@ TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
 TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
 {
   SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolating_solver(), os);
+      BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -197,7 +197,7 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
 TEST_F(BitwuzlaPrintingTest, CopiesShareWhatIsAsserted)
 {
   SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolating_solver(), os);
+      BitwuzlaSolverFactory::create_interpolator(), os);
   auto copy = std::make_shared<PrintingInterpolator>(
       *std::static_pointer_cast<PrintingInterpolator>(solver));
   solver->set_logic("QF_BV");

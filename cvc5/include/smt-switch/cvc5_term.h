@@ -55,7 +55,7 @@ class Cvc5Term : public AbsTerm
   cvc5::Term term;
 
   friend class Cvc5Solver;
-  friend class cvc5InterpolatingSolver;
+  friend class Cvc5Interpolator;
 };
 
 /** The cvc5 kind of the applications of po

@@ -1,5 +1,5 @@
 /*!
- * \file yices2_interpolating_solver.cpp
+ * \file yices2_interpolator.cpp
  * \brief An interpolating solver on Yices2's MCSAT
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
@@ -9,7 +9,7 @@
  * symbol of B's models, and MCSAT cannot take the value of an array or a
  * function, so the same loop is run here over the shared symbols only.
  */
-#include "smt-switch/yices2_interpolating_solver.h"
+#include "smt-switch/yices2_interpolator.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
@@ -30,19 +30,19 @@
 
 namespace smt {
 
-Yices2InterpolatingSolver::Yices2InterpolatingSolver()
+Yices2Interpolator::Yices2Interpolator()
     : AbsSmtInterpolator(YICES2_INTERPOLATOR, std::make_shared<Yices2Solver>())
 {
 }
 
-void Yices2InterpolatingSolver::set_logic(const std::string l)
+void Yices2Interpolator::set_logic(const std::string l)
 {
   AbsSmtInterpolator::set_logic(l);
   logic = l;
 }
 
-void Yices2InterpolatingSolver::do_set_opt(const std::string & option,
-                                           const std::string & value)
+void Yices2Interpolator::do_set_opt(const std::string & option,
+                                    const std::string & value)
 {
   if (option == "produce-unsat-model-interpolants")
   {
@@ -64,13 +64,13 @@ void Yices2InterpolatingSolver::do_set_opt(const std::string & option,
   options.emplace_back(option, value);
 }
 
-void Yices2InterpolatingSolver::initialize()
+void Yices2Interpolator::initialize()
 {
   logic.clear();
   options.clear();
 }
 
-SmtSolver Yices2InterpolatingSolver::new_solver() const
+SmtSolver Yices2Interpolator::new_solver() const
 {
   auto solver = std::make_shared<Yices2Solver>();
   // smt-switch has no option for the solver type
@@ -91,9 +91,9 @@ SmtSolver Yices2InterpolatingSolver::new_solver() const
   return solver;
 }
 
-Result Yices2InterpolatingSolver::compute_interpolant(const Term & A,
-                                                      const Term & B,
-                                                      Term & out_I) const
+Result Yices2Interpolator::compute_interpolant(const Term & A,
+                                               const Term & B,
+                                               Term & out_I) const
 {
   // Each model of B restricted to the shared symbols that A refutes gives a
   // formula A implies and the model falsifies, which B then has to satisfy
@@ -126,12 +126,12 @@ Result Yices2InterpolatingSolver::compute_interpolant(const Term & A,
   }
 }
 
-Result Yices2InterpolatingSolver::refute_model(const Term & A,
-                                               const Term & B,
-                                               SmtSolver & solver_a,
-                                               SmtSolver & solver_b,
-                                               TermsPairVec & model,
-                                               Term & model_interpolant) const
+Result Yices2Interpolator::refute_model(const Term & A,
+                                        const Term & B,
+                                        SmtSolver & solver_a,
+                                        SmtSolver & solver_b,
+                                        TermsPairVec & model,
+                                        Term & model_interpolant) const
 {
   if (A->get_sort()->get_sort_kind() != BOOL
       || B->get_sort()->get_sort_kind() != BOOL)
@@ -227,8 +227,8 @@ Result Yices2InterpolatingSolver::refute_model(const Term & A,
   return Result(UNSAT);
 }
 
-Result Yices2InterpolatingSolver::compute_seq_interpolants(
-    const TermVec & formulae, TermVec & out_I) const
+Result Yices2Interpolator::compute_seq_interpolants(const TermVec & formulae,
+                                                    TermVec & out_I) const
 {
   return sequence_from_interpolants(formulae, out_I);
 }

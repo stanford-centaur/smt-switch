@@ -15,10 +15,10 @@
 #include <vector>
 
 #include "exec_utils.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
 #include "smt-switch/ops.h"
-#include "smt-switch/printing_solver.h"
+#include "smt-switch/printing_interpolator.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
@@ -53,7 +53,7 @@ class MsatPrintingTest : public testing::Test
 TEST_F(MsatPrintingTest, Interpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolating_solver(), os);
+      MsatSolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
 
   Sort intsort = s->make_sort(INT);
@@ -87,7 +87,7 @@ TEST_F(MsatPrintingTest, Interpolation)
 TEST_F(MsatPrintingTest, SequenceInterpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolating_solver(), os);
+      MsatSolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -117,7 +117,7 @@ TEST_F(MsatPrintingTest, SequenceInterpolation)
 TEST_F(MsatPrintingTest, ReusedSequenceInterpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolating_solver(), os);
+      MsatSolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);

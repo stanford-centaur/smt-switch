@@ -14,7 +14,7 @@
 #include <string>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
@@ -66,7 +66,7 @@ TEST(MsatTimeLimit, AcceptedOnceTheEnvironmentExists)
 
 TEST(MsatTimeLimit, StopsAnInterpolationQuery)
 {
-  SmtInterpolator s = MsatSolverFactory::create_interpolating_solver();
+  SmtInterpolator s = MsatSolverFactory::create_interpolator();
   s->set_opt("time-limit", "0.1");
   TermVec distincts = pigeonhole(*s);
   const size_t half = distincts.size() / 2;

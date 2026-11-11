@@ -15,9 +15,9 @@
 
 #include "exec_utils.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/ops.h"
-#include "smt-switch/printing_solver.h"
+#include "smt-switch/printing_interpolator.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
@@ -35,7 +35,7 @@ TEST(Yices2InterpolationPrinting, ReplaysEachCheckOfAQuery)
   SmtInterpolator itp;
   try
   {
-    itp = Yices2SolverFactory::create_interpolating_solver();
+    itp = Yices2SolverFactory::create_interpolator();
   }
   catch (const NotImplementedException & e)
   {

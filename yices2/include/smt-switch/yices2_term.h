@@ -53,7 +53,7 @@ class Yices2Term : public AbsTerm
   term_t term;
 
   friend class Yices2Solver;
-  friend class Yices2InterpolatingSolver;
+  friend class Yices2Interpolator;
 };
 
 }  // namespace smt

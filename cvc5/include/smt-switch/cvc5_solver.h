@@ -16,7 +16,6 @@
 #include <unordered_map>
 
 #include "smt-switch/cvc5_datatype.h"
-#include "smt-switch/interpolating_solver.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
@@ -129,29 +128,6 @@ class Cvc5Solver : public AbsSmtSolver
   std::shared_ptr<Instance> instance;
 
   std::unordered_map<std::string, Term> symbol_table = {};
-};
-
-// Interpolating Solver
-class cvc5InterpolatingSolver : public AbsSmtInterpolator
-{
- public:
-  cvc5InterpolatingSolver();
-  cvc5InterpolatingSolver(const cvc5InterpolatingSolver &) = delete;
-  cvc5InterpolatingSolver & operator=(const cvc5InterpolatingSolver &) = delete;
-
- protected:
-  Result compute_interpolant(const Term & A,
-                             const Term & B,
-                             Term & out_I) const override;
-  Result compute_seq_interpolants(const TermVec & formulae,
-                                  TermVec & out_I) const override;
-  void do_set_opt(const std::string & option,
-                  const std::string & value) override;
-  // sets the options interpolation needs, on construction and after reset()
-  void initialize() override;
-
-  // the regular solver that builds this solver's terms
-  std::shared_ptr<Cvc5Solver> cvc5_solver;
 };
 
 }  // namespace smt

@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
@@ -100,8 +100,8 @@ TEST(MsatForeignHandle, HandlesFromBeforeResetRefused)
 
 TEST(MsatForeignHandle, AnotherInterpolatorsTermsRefused)
 {
-  SmtInterpolator itp = MsatSolverFactory::create_interpolating_solver();
-  SmtInterpolator other = MsatSolverFactory::create_interpolating_solver();
+  SmtInterpolator itp = MsatSolverFactory::create_interpolator();
+  SmtInterpolator other = MsatSolverFactory::create_interpolator();
   Sort other_bv8 = other->make_sort(BV, 8);
   Term y = other->make_symbol("y", other_bv8);
   Term other_a = other->make_term(Equal, y, other->make_term(0, other_bv8));
