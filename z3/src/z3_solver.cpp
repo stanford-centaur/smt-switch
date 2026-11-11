@@ -107,7 +107,7 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
-  throw NotImplementedException("The Z3 backend does not support the operator "
+  throw NotImplementedException("Z3 does not support the operator "
                                 + to_string(po));
 }
 
@@ -290,7 +290,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     if (value == "false")
     {
       throw IncorrectUsageException(
-          "Z3 backend is always incremental -- it cannot be disabled.");
+          "Z3 does not support turning off incremental solving");
     }
   }
   else if (option == "produce-models")
@@ -342,7 +342,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     }
     else
     {
-      throw IncorrectUsageException("Expected a boolean value.");
+      throw IncorrectUsageException("Expected a Boolean value");
     }
   }
   else if (string_opts.find(option) != string_opts.end())
@@ -358,15 +358,12 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     }
     catch (z3::exception & err)
     {
-      throw IncorrectUsageException("Expected an integer value.");
+      throw IncorrectUsageException("Expected an integer value");
     }
   }
   else
   {
-    std::string msg("Option - ");
-    msg += option;
-    msg += " - not implemented for Z3 backend.";
-    throw NotImplementedException(msg.c_str());
+    throw NotImplementedException("Z3 does not support the option " + option);
   }
   if (instance)
   {
@@ -725,7 +722,8 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
   if (zsort->is_function || zterm->is_function)
   {
     throw IncorrectUsageException(
-        "Cannot create constant array with function element");
+        "Can't make a constant array of a function sort or with a function "
+        "element");
   }
   z3::sort arrtype = zsort->get_z3_type();
   if (!arrtype.is_array())
@@ -820,12 +818,12 @@ Term Z3Solver::get_value(const Term & t) const
   shared_ptr<Z3Term> zterm = get_z3_term(t);
   if (zterm->is_function)
   {
-    throw IncorrectUsageException("Cannot evaluate a function.");
+    throw IncorrectUsageException("Can't get the value of a function");
   }
   if (!instance)
   {
     throw IncorrectUsageException(
-        "Last call to check_sat was not sat, cannot get a model.");
+        "Can't get a model before the first call to check_sat");
   }
   z3::model model = instance->slv.get_model();
   z3::expr eval = model.eval(zterm->term, true);
@@ -840,7 +838,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
   if (!instance)
   {
     throw IncorrectUsageException(
-        "Last call to check_sat was not sat, cannot get a model.");
+        "Can't get a model before the first call to check_sat");
   }
   z3::model model = instance->slv.get_model();
   // Z3 gives an array model as a chain of stores over a constant base,
@@ -893,7 +891,7 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
   // internal name, which a user sort of that name would be
   if (is_internal_name(name))
   {
-    throw IncorrectUsageException("sort name " + name + " starts with "
+    throw IncorrectUsageException("Sort name " + name + " starts with "
                                   + std::string(INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
@@ -951,10 +949,8 @@ Sort Z3Solver::make_sort(SortKind sk) const
   }
   else
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and no arguments";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " without arguments");
   }
 
   Sort final_sort = std::make_shared<Z3Sort>(ctx, z_sort);
@@ -969,10 +965,8 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and an integer argument";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from an integer");
   }
 }
 
@@ -982,8 +976,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
   {
     if (sorts.size() < 2)
     {
-      throw IncorrectUsageException(
-          "Function sort must have >=2 sort arguments.");
+      throw IncorrectUsageException("A function sort needs at least two sorts");
     }
 
     // arity is one less, because last sort is return sort
@@ -1019,10 +1012,9 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
-    msg += to_string(sk);
-    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from " + std::to_string(sorts.size())
+                                  + " sorts");
   }
 }
 
@@ -1030,13 +1022,13 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
 {
   if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("symbol " + name + " has already been used.");
+    throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
   // print_term writes an instance's internal name as the applied sort, so a
   // symbol of that name would print as the sort
   if (is_internal_name(name))
   {
-    throw IncorrectUsageException("symbol name " + name + " starts with "
+    throw IncorrectUsageException("Symbol name " + name + " starts with "
                                   + std::string(INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
@@ -1076,7 +1068,7 @@ Term Z3Solver::get_symbol(const std::string & name) const
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+    throw IncorrectUsageException("Symbol named " + name + " does not exist");
   }
   return it->second;
 }
@@ -1087,7 +1079,7 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
 
   if (zsort->is_function)
   {
-    throw IncorrectUsageException("Functions cannot be parameters");
+    throw IncorrectUsageException("Can't make a parameter of a function sort");
   }
 
   return std::make_shared<Z3Term>(ctx,
@@ -1101,10 +1093,8 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
   if (!size)
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to zero terms.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't apply " + op.to_string()
+                                  + " to zero terms");
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
@@ -1119,8 +1109,8 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     {
       if (op.prim_op != Apply_Constructor)
       {
-        throw IncorrectUsageException(
-            "Cannot make a unary operator term with a function.");
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a function");
       }
       res = Z3_mk_app(*ctx, zterm->get_z3_func_decl(), 0, 0);
     }
@@ -1148,7 +1138,7 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     shared_ptr<Z3Term> zterm = get_z3_term(terms[i]);
     if (zterm->is_function)
     {
-      throw IncorrectUsageException("Cannot use a function as an argument to "
+      throw IncorrectUsageException("Can't use a function as an argument to "
                                     + op.to_string());
     }
     zargs.push_back(zterm->term);
