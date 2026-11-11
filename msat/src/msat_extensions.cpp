@@ -17,11 +17,14 @@
 #ifndef SMT_MSAT_EXTENSIONS_H
 #define SMT_MSAT_EXTENSIONS_H
 
+#include "msat_extensions.h"
+
 #include <gmp.h>
 #include <mathsat.h>
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -30,6 +33,25 @@
 using namespace std;
 
 namespace smt {
+
+namespace {
+
+struct MsatStringDeleter
+{
+  void operator()(char * s) const { msat_free(s); }
+};
+
+}  // namespace
+
+string detail::get_msat_string(char * s)
+{
+  unique_ptr<char, MsatStringDeleter> owned(s);
+  if (!owned)
+  {
+    throw InternalSolverException("MathSAT failed to print a term or sort");
+  }
+  return owned.get();
+}
 msat_term ext_msat_make_negate(msat_env e, msat_term t)
 {
   msat_term negone = msat_make_number(e, "-1");
@@ -112,7 +134,8 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   if (!msat_is_bool_type(e, itype))
   {
     string msg("Expecting a Boolean condition for ITE but got ");
-    throw IncorrectUsageException(msg + msat_to_smtlib2_term(e, i));
+    throw IncorrectUsageException(
+        msg + detail::get_msat_string(msat_to_smtlib2_term(e, i)));
   }
 
   // msat_make_term_ite takes no Bool branches
@@ -128,8 +151,10 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   if (MSAT_ERROR_TERM(res))
   {
     string msg("Expecting ITE branches of matching sorts but got ");
-    throw IncorrectUsageException(msg + msat_type_repr(ttype) + " and "
-                                  + msat_type_repr(eltype));
+    msg += detail::get_msat_string(msat_type_repr(ttype));
+    msg += " and ";
+    msg += detail::get_msat_string(msat_type_repr(eltype));
+    throw IncorrectUsageException(msg);
   }
   return res;
 }

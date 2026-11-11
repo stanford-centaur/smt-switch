@@ -19,9 +19,21 @@
 #include <mathsat.h>
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace smt {
+
+namespace detail {
+
+/** Copies and frees a string a MathSAT call returned
+ *  @param s the string, or null if the call failed
+ *  @throws InternalSolverException if s is null
+ */
+std::string get_msat_string(char * s);
+
+}  // namespace detail
+
 msat_term ext_msat_make_negate(msat_env e, msat_term t);
 msat_term ext_msat_make_abs(msat_env e, msat_term t);
 msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2);

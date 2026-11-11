@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <string>
 #include <vector>
 
 #include "exceptions.h"
@@ -58,11 +59,9 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
   mpz_clear(modulus);
   if (!fits)
   {
-    char * s = msat_to_smtlib2_term(e, t);
     std::string msg("The modulus of the MathSAT term ");
-    msg += s;
+    msg += detail::get_msat_string(msat_to_smtlib2_term(e, t));
     msg += " does not fit in an op index";
-    msat_free(s);
     throw NotImplementedException(msg);
   }
   return res;
@@ -326,10 +325,8 @@ Op MsatTerm::get_op() const
     }
     else
     {
-      char * s = msat_to_smtlib2_term(*env, term);
       std::string msg("smt-switch has no PrimOp for the MathSAT term ");
-      msg += s;
-      msat_free(s);
+      msg += detail::get_msat_string(msat_to_smtlib2_term(*env, term));
       throw NotImplementedException(msg);
     }
   }
@@ -432,10 +429,9 @@ bool MsatTerm::is_value() const
   {
     return false;
   }
-  char * name = msat_decl_get_name(msat_term_get_decl(term));
-  bool res = name[0] == '@';
-  msat_free(name);
-  return res;
+  string name =
+      detail::get_msat_string(msat_decl_get_name(msat_term_get_decl(term)));
+  return name[0] == '@';
 }
 
 string MsatTerm::to_string() const
@@ -446,7 +442,7 @@ string MsatTerm::to_string() const
     {
       throw SmtException("Can't print a MathSAT error declaration");
     }
-    string repr = msat_decl_repr(decl);
+    string repr = detail::get_msat_string(msat_decl_repr(decl));
     size_t idx = repr.find(":");
     if (idx != string::npos)
     {
@@ -460,10 +456,7 @@ string MsatTerm::to_string() const
     {
       throw SmtException("Can't print a MathSAT error term");
     }
-    char * s = msat_to_smtlib2_term(*env, term);
-    string res = s;
-    msat_free(s);
-    return res;
+    return detail::get_msat_string(msat_to_smtlib2_term(*env, term));
   }
 }
 
@@ -485,10 +478,9 @@ static string number_to_text(msat_env env,
   }
   is_bv = msat_is_bv_type(env, msat_term_get_type(term), nullptr);
   const bool is_number = msat_term_is_number(env, term);
-  char * s = (is_bv || !is_number) ? msat_to_smtlib2_term(env, term)
-                                   : msat_term_repr(term);
-  string val = s;
-  msat_free(s);
+  string val = detail::get_msat_string((is_bv || !is_number)
+                                           ? msat_to_smtlib2_term(env, term)
+                                           : msat_term_repr(term));
   if (!is_number)
   {
     throw IncorrectUsageException("Can't convert " + val
@@ -509,11 +501,9 @@ string MsatTerm::get_param_name() const
   {
     throw IncorrectUsageException("Only a param has a param name");
   }
-  char * s = msat_decl_get_name(msat_term_get_decl(term));
   // MathSAT names a variable with a quote before the name it was made with
-  string res = s + 1;
-  msat_free(s);
-  return res;
+  return detail::get_msat_string(msat_decl_get_name(msat_term_get_decl(term)))
+      .substr(1);
 }
 
 string MsatTerm::get_selector_name() const
@@ -529,10 +519,8 @@ string MsatTerm::get_symbol_name() const
     throw IncorrectUsageException(
         "Only a symbol that is not a param has a symbol name");
   }
-  char * s = msat_decl_get_name(is_uf ? decl : msat_term_get_decl(term));
-  string res = s;
-  msat_free(s);
-  return res;
+  return detail::get_msat_string(
+      msat_decl_get_name(is_uf ? decl : msat_term_get_decl(term)));
 }
 
 uint64_t MsatTerm::to_int() const

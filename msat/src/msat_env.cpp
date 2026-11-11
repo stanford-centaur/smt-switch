@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "msat_extensions.h"
 #include "utils.h"
 
 namespace smt {
@@ -71,7 +72,7 @@ std::string MsatEnv::get_instance_name(msat_type t) const
   auto it = uninterp_sort_info.find(msat_type_id(t));
   if (it == uninterp_sort_info.end())
   {
-    return msat_type_repr(t);
+    return detail::get_msat_string(msat_type_repr(t));
   }
   return it->second.name;
 }
