@@ -613,8 +613,10 @@ void GenericSolver::await_response(
     // a finished slice or an interrupted wait just retries the loop
     if (ready < 0 && errno != EINTR)
     {
+      int poll_errno = errno;
       throw InternalSolverException("Failed to wait for the solver binary at "
-                                    + path + " to respond: " + strerror(errno));
+                                    + path
+                                    + " to respond: " + strerror(poll_errno));
     }
   }
 }
@@ -638,9 +640,10 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
       {
         continue;
       }
+      int read_errno = errno;
       throw InternalSolverException(
           "Failed to read a response from the solver binary at " + path + ": "
-          + strerror(errno));
+          + strerror(read_errno));
     }
     if (just_read == 0)
     {

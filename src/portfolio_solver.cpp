@@ -254,8 +254,9 @@ Result PortfolioSolver::portfolio_solve()
       {
         continue;
       }
+      const int error = errno;
       throw SmtException(std::string("Could not wait for the solvers: ")
-                         + std::strerror(errno));
+                         + std::strerror(error));
     }
     for (std::size_t i = 0; i < polled.size(); ++i)
     {

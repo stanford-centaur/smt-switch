@@ -137,8 +137,9 @@ void SmtLibReader::parse(const std::string & f)
     input_file.reset(std::fopen(file.c_str(), "r"));
     if (!input_file)
     {
+      int open_errno = errno;
       throw IncorrectUsageException("Cannot open " + file + ": "
-                                    + std::strerror(errno));
+                                    + std::strerror(open_errno));
     }
   }
 
