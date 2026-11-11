@@ -10,9 +10,7 @@ import smt_switch as ss
 from smt_switch.primops import BVOr, BVUlt, Ite
 
 
-@pytest.mark.parametrize(
-    "create_solver", [f for name, f in ss.solvers.items() if name != "yices2"]
-)
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_identity_visit_basic(create_solver):
     solver = create_solver(logging=False)
 

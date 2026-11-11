@@ -4,21 +4,13 @@
 
 import pytest
 
-import smt_switch as ss
 from smt_switch.primops import Ge, Lt, Minus, Mult, Plus
 from smt_switch.sortkinds import REAL
 
-from . import available_solvers
 from .available_solvers import int_support_solvers
 
-termiter_and_int_keys = (
-    available_solvers.termiter_support_solvers.keys()
-    & available_solvers.int_support_solvers.keys()
-)
-termiter_and_int_solvers = list({ss.solvers[n] for n in termiter_and_int_keys})
 
-
-@pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
+@pytest.mark.parametrize("create_solver", int_support_solvers.values())
 def test_reals_simple(create_solver):
     solver = create_solver(logging=False)
     solver.set_logic("QF_LRA")
