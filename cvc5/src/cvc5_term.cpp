@@ -278,8 +278,9 @@ Op Cvc5Term::get_op() const
     const std::uint64_t num_indices = get_num_indices(po);
     if (num_indices == 0)
     {
-      throw NotImplementedException("get_op not implemented for cvc5 Kind "
-                                    + std::to_string(cvc5_kind));
+      throw NotImplementedException(
+          "get_op is not implemented for the cvc5 Kind "
+          + std::to_string(cvc5_kind));
     }
     if (num_indices == 1)
     {
@@ -491,7 +492,7 @@ std::string Cvc5Term::print_value_as(SortKind /* sk */) const
   if (!is_value())
   {
     throw IncorrectUsageException(
-        "Cannot use print_value_as on a non-value term.");
+        "Can't use print_value_as on a term that is not a value");
   }
   return term.toString();
 }
