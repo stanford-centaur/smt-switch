@@ -1,3 +1,9 @@
+# Every recipe is included, so stop here unless Yices2 is being provisioned,
+# or the MCSAT message below reports on a build that will not happen.
+if(NOT "yices2" IN_LIST _requested)
+  return()
+endif()
+
 # Yices2 looks for GMP with `cc -lgmp`, which does not find the GMP installed
 # by Homebrew on macOS, so we need to add its headers and libraries manually
 # to the compiler search paths.
