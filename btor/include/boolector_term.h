@@ -85,8 +85,6 @@ class BoolectorTerm : public AbsTerm
   //   kind: for retrieving operator
   //   e:    for getting children
   mutable BtorNode * bn;
-  // true iff the node is negated
-  bool negated = false;
   // true iff the node was made as a symbol, fixed at construction because
   // Boolector overwrites the kind of a symbol it substitutes
   bool symbol = false;
@@ -103,6 +101,7 @@ class BoolectorTerm : public AbsTerm
 
   // helpers
   bool is_const_array() const;
+  bool is_negated() const;
   void collect_children() const;
   // releases and clears children
   void release_children() const;
