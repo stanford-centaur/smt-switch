@@ -171,7 +171,7 @@ TEST_P(UnitSymbolTests, InternalSymbolName)
 {
   std::string name = internal_name("assump", 1);
   SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == GENERIC_SOLVER || se == MSAT)
+  if (se == BTOR || se == GENERIC_SOLVER || se == MSAT || se == Z3)
   {
     EXPECT_THROW(s->make_symbol(name, boolsort), IncorrectUsageException);
     return;

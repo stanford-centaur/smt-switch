@@ -920,14 +920,17 @@ Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
         "Expected " + std::to_string(arity) + " sort arguments to "
         + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
   }
+  std::string text = "(" + smtlib_quote_symbol(zcon->get_uninterpreted_name());
   std::vector<z3::sort> params;
   params.reserve(sorts.size());
   for (const Sort & s : sorts)
   {
     params.push_back(get_z3_sort(s)->get_z3_type());
+    text += " " + s->to_string();
   }
+  text += ")";
   return std::make_shared<Z3Sort>(
-      ctx, ctx->add_instance(zcon->get_uninterpreted_name(), params));
+      ctx, ctx->add_instance(zcon->get_uninterpreted_name(), params, text));
 }
 
 Sort Z3Solver::make_sort(SortKind sk) const
@@ -1028,6 +1031,14 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   if (symbol_table.find(name) != symbol_table.end())
   {
     throw IncorrectUsageException("symbol " + name + " has already been used.");
+  }
+  // print_term writes an instance's internal name as the applied sort, so a
+  // symbol of that name would print as the sort
+  if (is_internal_name(name))
+  {
+    throw IncorrectUsageException("symbol name " + name + " starts with "
+                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + ", which is reserved for internal use");
   }
 
   shared_ptr<Z3Sort> zsort = get_z3_sort(sort);

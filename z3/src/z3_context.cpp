@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <functional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -52,7 +53,8 @@ std::size_t Z3Context::InstanceKeyHash::operator()(
 }
 
 z3::sort Z3Context::add_instance(const std::string & name,
-                                 const std::vector<z3::sort> & params)
+                                 const std::vector<z3::sort> & params,
+                                 const std::string & text)
 {
   InstanceKey key{ name, {} };
   key.second.reserve(params.size());
@@ -65,9 +67,11 @@ z3::sort Z3Context::add_instance(const std::string & name,
   {
     return it->second;
   }
-  z3::sort sort = uninterpreted_sort(internal_name("sort", count++).c_str());
+  std::string symbol = internal_name("sort", count++);
+  z3::sort sort = uninterpreted_sort(symbol.c_str());
   uninterp_sort_cache.emplace(std::move(key), sort);
   uninterp_sort_info.emplace(sort.id(), SortInstance{ name, params });
+  instance_text.emplace(symbol, text);
   return sort;
 }
 
@@ -105,6 +109,46 @@ void Z3Context::add_datatype_name(const std::string & name)
 bool Z3Context::has_datatype_name(const std::string & name) const
 {
   return datatype_names.count(name) != 0;
+}
+
+std::string Z3Context::print_term(const z3::expr & term) const
+{
+  std::string text = term.to_string();
+  if (instance_text.empty())
+  {
+    return text;
+  }
+  // Z3 writes an instance as its internal name, a whole unbarred symbol; a
+  // barred symbol is a user's name, which may contain one
+  std::string_view delimiters = "|() \t\n\r\f\v";
+  std::string res;
+  res.reserve(text.size());
+  std::size_t i = 0;
+  while (i < text.size())
+  {
+    if (text[i] == '|')
+    {
+      std::size_t end = text.find('|', i + 1);
+      end = end == std::string::npos ? text.size() : end + 1;
+      res.append(text, i, end - i);
+      i = end;
+    }
+    else if (delimiters.find(text[i]) != std::string_view::npos)
+    {
+      res += text[i];
+      ++i;
+    }
+    else
+    {
+      std::size_t end = text.find_first_of(delimiters, i);
+      end = end == std::string::npos ? text.size() : end;
+      std::string symbol = text.substr(i, end - i);
+      auto it = instance_text.find(symbol);
+      res += it == instance_text.end() ? symbol : it->second;
+      i = end;
+    }
+  }
+  return res;
 }
 
 }  // namespace smt

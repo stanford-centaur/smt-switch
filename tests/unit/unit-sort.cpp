@@ -591,13 +591,7 @@ class QuantifiedSortConstructors : public SortConstructors
 
 TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (!GetParam().is_logging_solver && se == Z3)
-  {
-    GTEST_SKIP() << "Z3 prints an applied sort as the internal sort that "
-                    "stands for it";
-  }
-  if (!GetParam().is_logging_solver && se == GENERIC_SOLVER)
+  if (!GetParam().is_logging_solver && GetParam().solver_enum == GENERIC_SOLVER)
   {
     GTEST_SKIP() << "the generic solver prints a quantifier without its "
                     "binders' sorts";
@@ -612,6 +606,23 @@ TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
       testing::AllOf(
           testing::HasSubstr("(List E)"),
           testing::Not(testing::HasSubstr(std::string(INTERNAL_NAME_PREFIX)))));
+}
+
+TEST_P(QuantifiedSortConstructors, BarredSymbolPrintsAsNamed)
+{
+  if (!GetParam().is_logging_solver && GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver prints a quantifier without its "
+                    "binders' sorts";
+  }
+  Sort list_e = s->make_sort(list, SortVec{ elem });
+  std::string name = "x " + internal_name("sort", 0);
+  Term x = s->make_symbol(name, list_e);
+  Term p = s->make_param("p", list_e);
+  Term forall = s->make_term(Forall, p, s->make_term(Equal, p, x));
+  EXPECT_THAT(forall->to_string(),
+              testing::AllOf(testing::HasSubstr("(List E)"),
+                             testing::HasSubstr("|" + name + "|")));
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,

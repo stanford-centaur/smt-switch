@@ -289,7 +289,7 @@ string Z3Term::to_string() const
   }
   else
   {
-    return term.to_string();
+    return ctx->print_term(term);
   }
 }
 
