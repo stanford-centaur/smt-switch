@@ -21,10 +21,10 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -165,21 +165,19 @@ double time_limit_seconds(const std::string & value)
         "The option time-limit takes a nonnegative number of seconds, not "
         + value);
   }
-  return seconds;
+  // Half of what a clock counting nanoseconds in 64 bits holds, so that a
+  // solver adding the limit to the time now cannot overflow; a longer limit
+  // is as good as none.
+  constexpr double longest =
+      std::chrono::duration<double>(std::chrono::nanoseconds::max()).count()
+      / 2;
+  return std::min(seconds, longest);
 }
 
 std::uint64_t time_limit_milliseconds(const std::string & value)
 {
-  double milliseconds = time_limit_seconds(value) * 1000;
-  // The largest 64-bit value rounds up to 2^64 as a double, which is the
-  // first that does not fit.
-  constexpr double too_large =
-      static_cast<double>(std::numeric_limits<std::uint64_t>::max());
-  if (milliseconds >= too_large)
-  {
-    return std::numeric_limits<std::uint64_t>::max();
-  }
-  return static_cast<std::uint64_t>(milliseconds);
+  // time_limit_seconds keeps the limit far below 2^64 milliseconds.
+  return static_cast<std::uint64_t>(time_limit_seconds(value) * 1000);
 }
 
 unsigned detail::numeral_digit(char c)
