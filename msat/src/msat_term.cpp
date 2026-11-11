@@ -276,14 +276,6 @@ Op MsatTerm::get_op() const
   {
     return Op(BVComp);
   }
-  else if (msat_term_is_forall(*env, term))
-  {
-    return Op(Forall);
-  }
-  else if (msat_term_is_exists(*env, term))
-  {
-    return Op(Exists);
-  }
   else if (is_symbol() || is_value())
   {
     return Op();
