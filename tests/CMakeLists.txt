@@ -8,6 +8,16 @@ add_compile_definitions(${SOLVER_COMPILE_DEFINITIONS})
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-Wno-global-constructors>")
 add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:GNU>>:-Wno-effc++>")
 
+# Sets out to value as a C string literal that reads back exactly value: a
+# backslash, a double quote or a newline in it would otherwise end the literal
+# or start an escape sequence.
+function(smt_switch_c_string out value)
+  string(REPLACE "\\" "\\\\" literal "${value}")
+  string(REPLACE "\"" "\\\"" literal "${literal}")
+  string(REPLACE "\n" "\\n" literal "${literal}")
+  set(${out} "\"${literal}\"" PARENT_SCOPE)
+endfunction()
+
 # The generic solver drives a solver's executable rather than the library the
 # rest of the suite links, so it has to be found separately. A provisioned
 # copy, or one given with --<solver>-dir, keeps it under the solver's root; a
@@ -20,7 +30,8 @@ function(smt_switch_find_solver_binary enabled package name variable)
   endif()
   find_program(${variable} NAMES ${name} HINTS "${${package}_ROOT}/bin")
   if(${variable})
-    add_compile_definitions("${variable}=\"${${variable}}\"")
+    smt_switch_c_string(literal "${${variable}}")
+    add_compile_definitions("${variable}=${literal}")
   else()
     message(STATUS "No ${name} executable found, so the generic solver tests skip it")
   endif()
@@ -165,10 +176,8 @@ target_link_libraries(test-term-translation PRIVATE term-utils)
 if(BUILD_SMTLIB_READER)
   switch_add_test(test-smtlib-reader)
   target_link_libraries(test-smtlib-reader PRIVATE smt-switch-smtlib)
-  target_compile_definitions(
-    test-smtlib-reader
-    PRIVATE "SMTLIB_TEST_RESOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/smt2\""
-  )
+  smt_switch_c_string(resource_dir "${CMAKE_CURRENT_SOURCE_DIR}/smt2")
+  target_compile_definitions(test-smtlib-reader PRIVATE "SMTLIB_TEST_RESOURCE_DIR=${resource_dir}")
 endif()
 
 add_subdirectory(unit)
