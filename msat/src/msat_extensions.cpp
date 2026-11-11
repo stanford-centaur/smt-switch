@@ -14,9 +14,6 @@
 **
 **/
 
-#ifndef SMT_MSAT_EXTENSIONS_H
-#define SMT_MSAT_EXTENSIONS_H
-
 #include "msat_extensions.h"
 
 #include <gmp.h>
@@ -335,5 +332,3 @@ msat_term ext_msat_make_uf(msat_env e,
 }
 
 }  // namespace smt
-
-#endif
