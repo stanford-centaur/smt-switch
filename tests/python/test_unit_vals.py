@@ -8,14 +8,10 @@ import smt_switch as ss
 
 from . import available_solvers
 
-termiter_and_int_keys = (
-    available_solvers.termiter_support_solvers.keys()
-    & available_solvers.int_support_solvers.keys()
+
+@pytest.mark.parametrize(
+    "create_solver", available_solvers.int_support_solvers.values()
 )
-termiter_and_int_solvers = list({ss.solvers[n] for n in termiter_and_int_keys})
-
-
-@pytest.mark.parametrize("create_solver", termiter_and_int_solvers)
 def test_unit_bigint(create_solver):
     solver = create_solver(logging=False)
     intsort = solver.make_sort(ss.sortkinds.INT)

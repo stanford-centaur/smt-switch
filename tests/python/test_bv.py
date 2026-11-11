@@ -7,13 +7,8 @@ import pytest
 import smt_switch as ss
 from smt_switch import Op
 
-from . import available_solvers
 
-
-# @pytest.mark.parametrize("create_solver", ss.solvers.values())
-@pytest.mark.parametrize(
-    "create_solver", available_solvers.termiter_support_solvers.values()
-)
+@pytest.mark.parametrize("create_solver", ss.solvers.values())
 def test_bvadd(create_solver):
     solver = create_solver(logging=False)
     solver.set_opt("produce-models", "true")
