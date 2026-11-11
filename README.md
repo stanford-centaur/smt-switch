@@ -203,17 +203,16 @@ ones may work too. What is built automatically is pinned in
 | Boolector | 3.2.2  | 3.2.4         |
 | cvc5      | 1.4.0  | 1.4.2         |
 | MathSAT   | 5.6.12 | 5.6.19        |
-| Yices2    | 2.6.0  | 2.7.0         |
+| Yices2    | 2.7.0  | 2.7.0         |
 | Z3        | 4.12.2 | 5.3.2         |
 
 - Bitwuzla interpolates only from 0.9.0 on, and 0.9.0 and 0.9.1 answer `unknown`
   to some equalities with a constant array.
-- A Yices2 2.6.5 or 2.7.0 built with `--enable-thread-safety` hangs in
+- A Yices2 2.7.0 built with `--enable-thread-safety` hangs in
   `check_sat_assuming` when the answer is sat.
 - Some older executables are not compliant with SMT-LIB, so the generic solver
   fails with them where linking against the same release works: Boolector 3.2.2
-  prints Boolean values as bit-vectors, and Yices2 2.6 prints array values in a
-  notation of its own.
+  prints Boolean values as bit-vectors.
 
 ### Static Linking
 
