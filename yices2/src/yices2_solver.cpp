@@ -152,10 +152,8 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   }
   else
   {
-    string msg("Option ");
-    msg += option;
-    msg += " is not yet supported for the Yices2 backend";
-    throw NotImplementedException(msg);
+    throw NotImplementedException("Yices2 does not support the option "
+                                  + option);
   }
 }
 
@@ -345,8 +343,9 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
   // model cannot evaluate the array itself; get_array_values says so.
   if (sort->get_sort_kind() != ARRAY)
   {
-    throw IncorrectUsageException("Expecting an array sort but got "
-                                  + sort->to_string());
+    throw IncorrectUsageException("Can't make a constant array of sort "
+                                  + sort->to_string()
+                                  + ", which is not an array sort");
   }
   shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   shared_ptr<Yices2Term> yval = backend_pointer_cast<Yices2Term>(val);
@@ -481,7 +480,7 @@ Term Yices2Solver::get_value(const Term & t) const
   {
     yices_clear_error();
     throw IncorrectUsageException(
-        "Last call to check_sat was not sat, cannot get a model.");
+        "Last call to check_sat was not sat, cannot get a model");
   }
 
   if (!yices_term_is_function(yterm->term))
@@ -501,9 +500,9 @@ Term Yices2Solver::get_value(const Term & t) const
   if (sort->get_sort_kind() != ARRAY)
   {
     throw NotImplementedException(
-        "Yices does not convert a function value into a term: "
-        "yices_get_value_as_term fails for a function type. Use get_value on "
-        "an application of it.");
+        "Yices2 can't turn the value of a function into a term, as "
+        "yices_get_value_as_term fails for a function type; use get_value on "
+        "an application of it instead");
   }
   // an array is a function to Yices, so yices_get_value_as_term refuses it
   // too, but its model can be read entry by entry
@@ -565,7 +564,7 @@ static Term term_from_yval(const Yices2Solver & solver,
       if (den != 1)
       {
         throw NotImplementedException(
-            "Yices gave the non-integer array model value "
+            "Yices2 gave the non-integer array model value "
             + std::to_string(num) + "/" + std::to_string(den));
       }
       return solver.make_term(std::to_string(num), sort, 10);
@@ -581,7 +580,7 @@ static Term term_from_yval(const Yices2Solver & solver,
     case YVAL_MAPPING: break;
   }
   throw NotImplementedException(
-      "Yices gave an array model node of tag " + std::to_string(node.node_tag)
+      "Yices2 gave an array model node of tag " + std::to_string(node.node_tag)
       + ", which this backend cannot turn back into a term");
 }
 
@@ -598,7 +597,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   {
     yices_clear_error();
     throw IncorrectUsageException(
-        "Last call to check_sat was not sat, cannot get a model.");
+        "Last call to check_sat was not sat, cannot get a model");
   }
 
   // A constant array is a lambda, which Yices' model can apply but not
@@ -623,7 +622,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   if (yices_val_function_arity(model, &node) != 1)
   {
     throw NotImplementedException(
-        "Yices gave an array model of arity other than one");
+        "Yices2 gave an array model of arity other than one");
   }
 
   yval_t def;
@@ -666,7 +665,7 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   if (!ctx)
   {
     throw IncorrectUsageException(
-        "Last call to check_sat was not unsat, cannot get unsat core.");
+        "Last call to check_sat was not unsat, cannot get unsat core");
   }
   term_vector_t ycore;
   yices_init_term_vector(&ycore);
@@ -675,14 +674,15 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   if (err_code == -1)
   {
     throw IncorrectUsageException(
-        "Last call to check_sat was not unsat, cannot get unsat core.");
+        "Last call to check_sat was not unsat, cannot get unsat core");
   }
 
   for (size_t i = 0; i < ycore.size; ++i)
   {
     if (!ycore.data[i])
     {
-      throw InternalSolverException("Got an empty term from vector");
+      throw InternalSolverException(
+          "Yices2 gave an empty term in the unsat core");
     }
     out.insert(std::make_shared<Yices2Term>(ycore.data[i]));
   }
@@ -762,10 +762,8 @@ Sort Yices2Solver::make_sort(SortKind sk) const
   }
   else
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and no arguments";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " without arguments");
   }
 
   if (yices_error_code() != 0)
@@ -786,10 +784,8 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and an integer argument";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from an integer");
   }
 
   if (yices_error_code() != 0)
@@ -808,8 +804,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
   {
     if (sorts.size() < 2)
     {
-      throw IncorrectUsageException(
-          "Function sort must have >=2 sort arguments.");
+      throw IncorrectUsageException("A function sort needs at least two sorts");
     }
 
     // arity is one less, because last sort is return sort
@@ -839,10 +834,9 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
-    msg += to_string(sk);
-    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from " + std::to_string(sorts.size())
+                                  + " sorts");
   }
 
   if (yices_error_code() != 0)
@@ -857,7 +851,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
 {
   if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("symbol " + name + " has already been used.");
+    throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
 
   shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
@@ -878,7 +872,7 @@ Term Yices2Solver::get_symbol(const std::string & name) const
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+    throw IncorrectUsageException("Symbol named " + name + " does not exist");
   }
   return it->second;
 }
@@ -1174,10 +1168,8 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   size_t size = terms.size();
   if (!size)
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to zero terms.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't apply " + op.to_string()
+                                  + " to zero terms");
   }
 
   vector<term_t> yterms;
@@ -1195,8 +1187,8 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
     // Yices2 has quantifiers, but this backend does not build them yet
-    throw NotImplementedException("The Yices2 backend does not support "
-                                  + to_string(op.prim_op));
+    throw NotImplementedException(to_string(op.prim_op)
+                                  + " is not implemented for Yices2");
   }
   else if (op.prim_op == Apply)
   {

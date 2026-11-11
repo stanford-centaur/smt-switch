@@ -119,7 +119,7 @@ static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
 [[noreturn]] static void no_smt_switch_op(term_t term)
 {
   char * printed = yices_term_to_string(term, 120, 1, 0);
-  std::string message("No smt-switch op for the Yices2 term ");
+  std::string message("smt-switch has no op for the Yices2 term ");
   message += printed;
   yices_free_string(printed);
   throw NotImplementedException(message);
@@ -256,8 +256,9 @@ Op Yices2Term::get_op() const
   }
   // unreachable, and here so that a constructor Yices adds is a -Wswitch
   // warning rather than a term silently without an op
-  throw InternalSolverException("Unknown Yices2 term constructor "
-                                + std::to_string(static_cast<int>(tc)));
+  throw InternalSolverException(
+      "smt-switch has no PrimOp for the Yices2 term constructor "
+      + std::to_string(static_cast<int>(tc)));
 }
 
 Sort Yices2Term::get_sort() const
@@ -629,7 +630,7 @@ std::string Yices2Term::print_value_as(SortKind /* sk */) const
   if (!is_value())
   {
     throw IncorrectUsageException(
-        "Cannot use print_value_as on a non-value term.");
+        "Can't use print_value_as on a term that is not a value");
   }
   return to_string();
 }
