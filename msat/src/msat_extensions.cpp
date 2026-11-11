@@ -34,18 +34,11 @@ using namespace std;
 
 namespace smt {
 
-namespace {
-
-struct MsatStringDeleter
-{
-  void operator()(char * s) const { msat_free(s); }
-};
-
-}  // namespace
+void detail::MsatFreeDeleter::operator()(void * p) const { msat_free(p); }
 
 string detail::get_msat_string(char * s)
 {
-  unique_ptr<char, MsatStringDeleter> owned(s);
+  unique_ptr<char, MsatFreeDeleter> owned(s);
   if (!owned)
   {
     throw InternalSolverException("MathSAT failed to print a term or sort");

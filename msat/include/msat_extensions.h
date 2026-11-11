@@ -26,6 +26,12 @@ namespace smt {
 
 namespace detail {
 
+/** Frees memory a MathSAT call returned, through msat_free */
+struct MsatFreeDeleter
+{
+  void operator()(void * p) const;
+};
+
 /** Copies and frees a string a MathSAT call returned
  *  @param s the string, or null if the call failed
  *  @throws InternalSolverException if s is null
