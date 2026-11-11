@@ -297,8 +297,8 @@ SortKind Z3Sort::get_sort_kind() const
   }
   else
   {
-    std::string msg("Unknown Z3 type");
-    throw NotImplementedException(msg.c_str());
+    throw NotImplementedException("smt-switch has no SortKind for the Z3 sort "
+                                  + type.to_string());
   }
 }
 
@@ -306,7 +306,7 @@ z3::sort Z3Sort::get_z3_type() const
 {
   if (is_function)
   {
-    throw IncorrectUsageException("Cannot get Z3 type from function term.");
+    throw IncorrectUsageException("Can't get a Z3 sort from a function sort");
   }
   if (is_constructor)
   {

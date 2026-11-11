@@ -231,12 +231,10 @@ Op Z3Term::get_op() const
           return Op(Divisible, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
         }
         [[fallthrough]];
-      default: {
-        std::string msg("Option - ");
-        msg += decl.name().str();
-        msg += " - not implemented for Z3 backend.";
-        throw NotImplementedException(msg.c_str());
-      }
+      default:
+        throw NotImplementedException(
+            "smt-switch has no PrimOp for the Z3 operator "
+            + decl.name().str());
     }
   }
 }
@@ -423,9 +421,8 @@ std::size_t Z3Term::get_num_children() const
     // there is a way to get the quantifier body
     // but it's not clear how to get the parameters from a quantified expr
     throw NotImplementedException(
-        string("Z3 backend does not currently ")
-        + "support getting parameters from quantified "
-        + "expression. Use logging if required.");
+        "Getting the children of a quantifier is not implemented for Z3, but "
+        "a logging solver keeps them");
   }
   std::size_t num_args = term.num_args();
   return is_apply(get_op().prim_op) ? num_args + 1 : num_args;
@@ -450,7 +447,7 @@ std::string Z3Term::print_value_as(SortKind /* sk */) const
   if (!is_value())
   {
     throw IncorrectUsageException(
-        "Cannot use print_value_as on a non-value term.");
+        "Can't use print_value_as on a term that is not a value");
   }
   return term.to_string();
 }
@@ -459,7 +456,8 @@ z3::expr Z3Term::get_z3_expr() const
 {
   if (is_function)
   {
-    throw IncorrectUsageException("Cannot get expression from function term.");
+    throw IncorrectUsageException(
+        "Can't get a Z3 expression from a function term");
   }
   return term;
 }
@@ -468,7 +466,8 @@ z3::func_decl Z3Term::get_z3_func_decl() const
 {
   if (!is_function)
   {
-    throw IncorrectUsageException("Cannot get function from expression term.");
+    throw IncorrectUsageException(
+        "Can't get a Z3 function from a term that is not a function");
   }
   return z_func;
 }
