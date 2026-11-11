@@ -128,7 +128,8 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   if (is_initialized())
   {
     // the Bitwuzla instance took its options when it was created
-    throw IncorrectUsageException("Must set options before using solver.");
+    throw IncorrectUsageException(
+        "Options must be set before the solver is used");
   }
   if (option == "time-limit")
   {
@@ -137,7 +138,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
   else if (!options.is_valid(option))
   {
-    throw SmtException("Bitwuzla backend does not support option: " + option);
+    throw SmtException("Bitwuzla does not support the option " + option);
   }
   else
   {
@@ -152,8 +153,8 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
       // message.
       detail.erase(0, detail.find(")"));
       detail.erase(0, detail.find(","));
-      throw IncorrectUsageException("Bitwuzla backend got bad option " + option
-                                    + detail);
+      throw IncorrectUsageException("Bitwuzla got a bad value for the option "
+                                    + option + detail);
     }
   }
 }
@@ -333,7 +334,7 @@ Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
   if (is_internal_name(name))
   {
-    throw IncorrectUsageException("sort name " + name + " starts with "
+    throw IncorrectUsageException("Sort name " + name + " starts with "
                                   + std::string(INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
@@ -408,10 +409,8 @@ Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort from sort kind ");
-    msg += to_string(sk);
-    msg += " with int argument.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from an integer");
   }
 }
 
@@ -421,8 +420,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
   {
     if (sorts.size() < 2)
     {
-      throw IncorrectUsageException(
-          "Function sort must have >=2 sort arguments.");
+      throw IncorrectUsageException("A function sort needs at least two sorts");
     }
 
     bitwuzla::Sort bzla_return_sort = bzla_sort(sorts.back());
@@ -446,10 +444,9 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort kind ");
-    msg += to_string(sk);
-    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from " + std::to_string(sorts.size())
+                                  + " sorts");
   }
 }
 
@@ -471,8 +468,7 @@ Term BzlaSolver::make_term(std::int64_t i, const Sort & sort) const
   if (sk != BV)
   {
     throw NotImplementedException(
-        "Bitwuzla does not support creating values for sort kind"
-        + to_string(sk));
+        "Bitwuzla does not support values of sort kind " + to_string(sk));
   }
 
   return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bzla_sort(sort), i),
@@ -487,8 +483,7 @@ Term BzlaSolver::make_term(const std::string val,
   if (sk != BV)
   {
     throw NotImplementedException(
-        "Bitwuzla does not support creating values for sort kind"
-        + to_string(sk));
+        "Bitwuzla does not support values of sort kind " + to_string(sk));
   }
 
   bitwuzla::Sort bsort = bzla_sort(sort);
@@ -515,14 +510,14 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
   SortKind sk = sort->get_sort_kind();
   if (sk != ARRAY)
   {
-    throw NotImplementedException(
-        "Bitwuzla has not make_sort(Term, Sort) for SortKind: "
-        + to_string(sk));
+    throw NotImplementedException("Can't make a constant array of sort "
+                                  + sort->to_string()
+                                  + ", which is not an array sort");
   }
   else if (val->get_sort() != sort->get_elemsort())
   {
     throw IncorrectUsageException(
-        "Value used to create constant array must match element sort.");
+        "The value of a constant array must have the array's element sort");
   }
 
   return std::make_shared<BzlaTerm>(tm->mk_const_array(bsort, bterm), tm);
@@ -532,7 +527,7 @@ Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
 {
   if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol name " + name + " already used.");
+    throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
   Term sym =
       std::make_shared<BzlaTerm>(tm->mk_const(bzla_sort(sort), name), tm);
@@ -545,7 +540,7 @@ Term BzlaSolver::get_symbol(const std::string & name) const
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+    throw IncorrectUsageException("Symbol named " + name + " does not exist");
   }
   return it->second;
 }
@@ -610,7 +605,8 @@ Term BzlaSolver::substitute(const Term term,
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
       throw SmtException(
-          "Bitwuzla backend doesn't support substitution with non symbol keys");
+          "Bitwuzla does not support substituting a term that is neither a "
+          "symbol nor a param");
     }
     substitution_bterms_map.insert(
         { bzla_term(elem.first), bzla_term(elem.second) });
@@ -636,7 +632,8 @@ TermVec BzlaSolver::substitute_terms(
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
       throw SmtException(
-          "Bitwuzla backend doesn't support substitution with non symbol keys");
+          "Bitwuzla does not support substituting a term that is neither a "
+          "symbol nor a param");
     }
     substitution_bterms_map.insert(
         { bzla_term(elem.first), bzla_term(elem.second) });
@@ -685,7 +682,7 @@ void BzlaInterpolatingSolver::do_set_opt(const std::string & option,
   if (option == "produce-interpolants")
   {
     throw IncorrectUsageException(
-        "Bitwuzla interpolator does not allow option: " + option);
+        "The Bitwuzla interpolator does not allow the option " + option);
   }
   if (option == "dump-queries")
   {
@@ -694,8 +691,7 @@ void BzlaInterpolatingSolver::do_set_opt(const std::string & option,
     if (value.empty())
     {
       throw IncorrectUsageException(
-          "Invalid value for option 'dump-queries', "
-          "expected a non-empty string");
+          "The option dump-queries needs a non-empty value");
     }
     dump_queries_prefix = value;
     return;
