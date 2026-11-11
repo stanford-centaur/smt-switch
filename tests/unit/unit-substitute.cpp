@@ -117,11 +117,6 @@ TEST_P(UnitSubstituteTests, SubstitutesUnderNestedTerms)
 
 TEST_P(UnitSubstituteTests, SubstitutesUnderApplication)
 {
-  if (GetParam().solver_enum == BTOR && !GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "Boolector substitutes under array reads only, not under "
-                    "a function application";
-  }
   Term g = s->make_symbol(
       "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
   Term result = s->substitute(s->make_term(Apply, g, x, y), { { x, a } });

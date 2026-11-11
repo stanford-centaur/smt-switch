@@ -21,7 +21,6 @@
 extern "C" {
 #include <btorcore.h>
 #include <btornode.h>
-#include <utils/boolectornodemap.h>
 }
 
 #include <chrono>
@@ -907,39 +906,6 @@ void BoolectorSolver::do_reset_assertions()
     assertions.clear();
     scope_starts.clear();
   }
-}
-
-Term BoolectorSolver::substitute(
-    const Term term, const UnorderedTermMap & substitution_map) const
-{
-  BoolectorNodeMap * bmap = boolector_nodemap_new(btor.get());
-
-  std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(term);
-
-  std::shared_ptr<BoolectorTerm> key;
-  std::shared_ptr<BoolectorTerm> value;
-  for (auto elem : substitution_map)
-  {
-    key = backend_pointer_cast<BoolectorTerm>(elem.first);
-    value = backend_pointer_cast<BoolectorTerm>(elem.second);
-    // boolectornodemap only supports var -> term mappings
-    if (!key->is_symbol())
-    {
-      throw IncorrectUsageException(
-          "boolector backend currently only supports symbol->term "
-          "substitution");
-    }
-    boolector_nodemap_map(bmap, key->node, value->node);
-  }
-
-  // perform the substitution
-  BoolectorNode * substituted =
-      boolector_nodemap_substitute_node(btor.get(), bmap, bt->node);
-  // need to copy it because deleting the map will decrement the reference
-  // counter
-  substituted = boolector_copy(btor.get(), substituted);
-  boolector_nodemap_delete(bmap);
-  return std::make_shared<BoolectorTerm>(btor, substituted);
 }
 
 void BoolectorSolver::dump_smt2(std::string filename) const
