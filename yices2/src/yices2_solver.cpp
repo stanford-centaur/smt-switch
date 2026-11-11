@@ -172,19 +172,6 @@ void Yices2Solver::set_logic(const std::string logic)
         "Yices2 can only set the logic before the first assertion, check or "
         "push");
   }
-  // Without MCSAT, Yices2 2.6.0 accepts a nonlinear logic and then makes a
-  // context without arithmetic.
-  if (!yices_has_mcsat())
-  {
-    for (const auto arithmetic : { "NIA", "NRA", "NIRA" })
-    {
-      if (logic.find(arithmetic) != std::string::npos)
-      {
-        throw IncorrectUsageException("Yices2 cannot use logic " + logic
-                                      + ": it was built without MCSAT");
-      }
-    }
-  }
   // Yices cannot copy a configuration, so try the logic on a scratch one
   // first; a logic Yices rejects, such as one this build does not support,
   // then leaves the configuration as it was
@@ -567,9 +554,7 @@ static Term term_from_yval(const Yices2Solver & solver,
     }
     case YVAL_UNKNOWN:
     case YVAL_ALGEBRAIC:
-#if __YICES_VERSION > 2 || __YICES_VERSION_MAJOR >= 7
     case YVAL_FINITEFIELD:
-#endif
     case YVAL_SCALAR:
     case YVAL_TUPLE:
     case YVAL_FUNCTION:
