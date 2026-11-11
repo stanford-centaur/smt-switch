@@ -34,6 +34,11 @@ string take_yices_error()
   string msg(reason);
   yices_free_string(reason);
   yices_clear_error();
+  // Yices2 ends a few of its error messages with a newline.
+  if (!msg.empty() && msg.back() == '\n')
+  {
+    msg.pop_back();
+  }
   return msg;
 }
 

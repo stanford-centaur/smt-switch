@@ -128,7 +128,8 @@ std::string Yices2Sort::get_uninterpreted_name() const
     const char * res = yices_get_type_name(type);
     if (res == NULL)
     {
-      throw InternalSolverException("Failed to get name of uninterpreted sort");
+      throw InternalSolverException(
+          "Failed to get the name of an uninterpreted sort");
     }
     return res;
   }
@@ -240,7 +241,7 @@ SortKind Yices2Sort::get_sort_kind() const
   }
   else
   {
-    std::string msg("Unknown Yices2 type: ");
+    std::string msg("smt-switch has no SortKind for the Yices2 sort ");
     msg += yices_type_to_string(type, 120, 1, 0);
     throw NotImplementedException(msg.c_str());
   }

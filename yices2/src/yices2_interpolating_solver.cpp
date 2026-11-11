@@ -38,6 +38,11 @@ std::string yices2_error()
   char * reason = yices_error_string();
   std::string message(reason);
   yices_free_string(reason);
+  // Yices2 ends a few of its error messages with a newline.
+  if (!message.empty() && message.back() == '\n')
+  {
+    message.pop_back();
+  }
   return message;
 }
 
@@ -75,8 +80,8 @@ void Yices2InterpolatingSolver::do_set_opt(const std::string & option,
   }
   if (option == "produce-interpolants")
   {
-    throw IncorrectUsageException("Yices2 interpolator does not allow option: "
-                                  + option);
+    throw IncorrectUsageException(
+        "The Yices2 interpolator does not allow the option " + option);
   }
   // the regular solver refuses what a Yices2 solver would
   backend_solver->set_opt(option, value);
