@@ -36,11 +36,6 @@ MsatSort::MsatSort(const std::shared_ptr<MsatEnv> & e, msat_type t)
 {
 }
 
-MsatSort::MsatSort(const std::shared_ptr<MsatEnv> & e, msat_type t, msat_decl d)
-    : env(e), type(t), uf_decl(d), is_uf_type(true)
-{
-}
-
 MsatSort::MsatSort(const std::shared_ptr<MsatEnv> & e,
                    std::string name,
                    std::uint64_t arity)
@@ -106,45 +101,36 @@ Sort MsatSort::get_elemsort() const
 
 SortVec MsatSort::get_domain_sorts() const
 {
-  if (!is_uf_type)
+  std::size_t arity;
+  msat_type * param_types;
+  if (is_constructor
+      || !msat_is_function_type(*env, type, &arity, &param_types, nullptr))
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
                                   + " has no domain sorts");
   }
-
-  std::size_t arity = msat_decl_get_arity(uf_decl);
   SortVec sorts;
   sorts.reserve(arity);
-  msat_type tmp_type;
   for (std::size_t i = 0; i < arity; i++)
   {
-    tmp_type = msat_decl_get_arg_type(uf_decl, i);
-    if (MSAT_ERROR_TYPE(type))
-    {
-      throw InternalSolverException("Got error type");
-    }
-    // Note: assuming first-order, function can't take function arguments
-    sorts.push_back(std::make_shared<MsatSort>(env, tmp_type));
+    sorts.push_back(std::make_shared<MsatSort>(env, param_types[i]));
   }
+  msat_free(param_types);
   return sorts;
 }
 
 Sort MsatSort::get_codomain_sort() const
 {
-  if (!is_uf_type)
+  msat_type return_type;
+  if (is_constructor
+      || !msat_is_function_type(*env, type, nullptr, nullptr, &return_type))
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
                                   + " has no codomain sort");
   }
-  msat_type t = msat_decl_get_return_type(uf_decl);
-  // Note: assuming first-order, e.g. functions can't return functions
-  if (MSAT_ERROR_TYPE(t))
-  {
-    throw InternalSolverException("Got error type");
-  }
-  return std::make_shared<MsatSort>(env, t);
+  return std::make_shared<MsatSort>(env, return_type);
 }
 
 std::string MsatSort::get_uninterpreted_name() const
@@ -260,7 +246,7 @@ SortKind MsatSort::get_sort_kind() const
   {
     return ARRAY;
   }
-  else if (is_uf_type)
+  else if (msat_is_function_type(*env, type, nullptr, nullptr, nullptr))
   {
     return FUNCTION;
   }

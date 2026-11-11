@@ -352,6 +352,20 @@ TEST_P(UnitSortArithTests, SortKinds)
   EXPECT_EQ(realsort->get_sort_kind(), REAL);
 }
 
+TEST_P(UnitSortArithTests, FunctionSortLeavesNamesFree)
+{
+  s->make_sort(FUNCTION, SortVec{ intsort, intsort });
+  EXPECT_NO_THROW(s->make_symbol("internal_ref_fun_Int_return_Int", intsort));
+}
+
+TEST_P(UnitSortArithTests, FunctionSortAfterSymbolOfAnyName)
+{
+  s->make_symbol("internal_ref_fun_Int_return_Int", intsort);
+  Sort f = s->make_sort(FUNCTION, SortVec{ intsort, intsort });
+  EXPECT_EQ(f->get_domain_sorts(), SortVec{ intsort });
+  EXPECT_EQ(f->get_codomain_sort(), intsort);
+}
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UninterpretedSorts);
 class UninterpretedSorts : public UnitSortTests
 {

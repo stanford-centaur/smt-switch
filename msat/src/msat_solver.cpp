@@ -620,8 +620,6 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
     // arity is one less, because last sort is return sort
     size_t arity = sorts.size() - 1;
 
-    string decl_name("internal_ref_fun");
-
     std::vector<msat_type> msorts;
     msorts.reserve(arity);
     msat_type msort;
@@ -635,20 +633,11 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
         msort = msat_get_bv_type(*env, 1);
       }
       msorts.push_back(msort);
-      decl_name += ("_" + sorts[i]->to_string());
     }
-    Sort sort = sorts.back();
-    msort = get_msat_sort(sort)->get_msat_type();
-    decl_name += ("_return_" + sort->to_string());
+    msort = get_msat_sort(sorts.back())->get_msat_type();
     msat_type mfunsort =
         msat_get_function_type(*env, msorts.data(), arity, msort);
-
-    // creating a reference decl, because it's the only way to get codomain and
-    // domain sorts i.e. there's no msat_is_function_type(msat_env, msat_type)
-    msat_decl ref_fun_decl =
-        msat_declare_function(*env, decl_name.c_str(), mfunsort);
-
-    return std::make_shared<MsatSort>(env, mfunsort, ref_fun_decl);
+    return std::make_shared<MsatSort>(env, mfunsort);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
