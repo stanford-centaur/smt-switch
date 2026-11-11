@@ -71,8 +71,8 @@ static PrimOp primop_of(BtorNodeKind k)
     case BTOR_UF_NODE: return NUM_OPS_AND_NULL;
     case BTOR_UPDATE_NODE: return Store;
     default:
-      throw SmtException("Can't find PrimOp for BtorNodeKind "
-                         + std::to_string(k) + " see boolector/btornode.h");
+      throw SmtException("smt-switch has no PrimOp for the Boolector node kind "
+                         + std::to_string(k));
   }
 }
 
@@ -218,7 +218,8 @@ Sort BoolectorTerm::get_sort() const
   }
   else
   {
-    throw SmtException("Failed to translate boolector sort to smt-switch sort");
+    throw SmtException(
+        "Failed to translate a Boolector sort to an smt-switch sort");
   }
 
   return sort;
@@ -303,12 +304,14 @@ std::string BoolectorTerm::to_string() const
     int64_t status = fflush(stream);
     if (status != 0)
     {
-      throw InternalSolverException("Error flushing stream for btor to_string");
+      throw InternalSolverException(
+          "Failed to flush the stream for Boolector's to_string");
     }
     status = fclose(stream);
     if (status != 0)
     {
-      throw InternalSolverException("Error closing stream for btor to_string");
+      throw InternalSolverException(
+          "Failed to close the stream for Boolector's to_string");
     }
     sres = cres;
     free(cres);
@@ -322,7 +325,7 @@ static std::string const_to_bits(Btor * btor, BoolectorNode * node)
   if (!boolector_is_const(btor, node))
   {
     throw IncorrectUsageException(
-        "Can't get bitstring from a non-constant term.");
+        "Can't get a bitstring from a term that is not a constant");
   }
   // the bits of the constant itself, which need no model, unlike its
   // assignment
@@ -411,7 +414,7 @@ Term BoolectorTerm::get_child(std::size_t i) const
   BtorNode * res = children[i];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
-    throw SmtException("Should never have an args node in children look up");
+    throw SmtException("Boolector gave an args node as a child");
   }
 
   // increment internal reference counter
@@ -428,7 +431,7 @@ std::string BoolectorTerm::print_value_as(SortKind sk) const
   if (!is_value())
   {
     throw IncorrectUsageException(
-        "Cannot use print_value_as on a non-value term.");
+        "Can't use print_value_as on a term that is not a value");
   }
 
   BoolectorSort s = boolector_get_sort(btor.get(), node);

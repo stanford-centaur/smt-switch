@@ -164,7 +164,13 @@ BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
   // Boolector exits the process on an abort condition unless given an abort
   // callback, so throw instead. The callback is global, not per instance.
   auto throw_exception = [](const char * msg) -> void {
-    throw InternalSolverException(msg);
+    std::string text(msg);
+    // Boolector ends every abort message with a newline.
+    if (!text.empty() && text.back() == '\n')
+    {
+      text.pop_back();
+    }
+    throw InternalSolverException(text);
   };
   boolector_set_abort(throw_exception);
   boolector_set_term(btor.get(), reached_deadline, this);
@@ -272,10 +278,8 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 
     if (!option_set)
     {
-      std::string msg("Option ");
-      msg += option;
-      msg += " could not be found in the boolector backend.";
-      throw NotImplementedException(msg);
+      throw NotImplementedException("Boolector does not support the option "
+                                    + option);
     }
   }
 }
@@ -383,9 +387,9 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
   }
   else
   {
-    throw IncorrectUsageException(
-        "Constant arrays are the only value that can be created with "
-        "mkTerm(Term, Sort) but the sort is not an array sort.");
+    throw IncorrectUsageException("Can't make a constant array of sort "
+                                  + sort->to_string()
+                                  + ", which is not an array sort");
   }
 }
 
@@ -535,13 +539,13 @@ Term BoolectorSolver::get_value(const Term & t) const
   }
   else if (sk == FUNCTION)
   {
-    throw NotImplementedException("UF models unimplemented.");
+    throw NotImplementedException(
+        "Getting the value of a function is not implemented for Boolector");
   }
   else
   {
-    std::string msg("Can't get value for term with sort constructor = ");
-    msg += to_string(sk);
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't get the value of a term of sort kind "
+                                  + to_string(sk));
   }
   return result;
 }
@@ -637,10 +641,8 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort from sort kind ");
-    msg += to_string(sk);
-    msg += " with int argument.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from an integer");
   }
 }
 
@@ -650,8 +652,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   {
     if (sorts.size() < 2)
     {
-      throw IncorrectUsageException(
-          "Function sort must have >=2 sort arguments.");
+      throw IncorrectUsageException("A function sort needs at least two sorts");
     }
 
     Sort returnsort = sorts.back();
@@ -680,10 +681,9 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
-    msg += to_string(sk);
-    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from " + std::to_string(sorts.size())
+                                  + " sorts");
   }
 }
 
@@ -692,12 +692,12 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   // check that name is available, which btor_node_set_symbol below does not
   if (symbol_table.find(name) != symbol_table.end())
   {
-    throw IncorrectUsageException("symbol " + name + " has already been used.");
+    throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
   // params are named this way, in the table symbols share
   if (is_internal_name(name))
   {
-    throw IncorrectUsageException("symbol name " + name + " starts with "
+    throw IncorrectUsageException("Symbol name " + name + " starts with "
                                   + std::string(INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
@@ -735,7 +735,7 @@ Term BoolectorSolver::get_symbol(const std::string & name) const
   auto it = symbol_table.find(name);
   if (it == symbol_table.end())
   {
-    throw IncorrectUsageException("Symbol named " + name + " does not exist.");
+    throw IncorrectUsageException("Symbol named " + name + " does not exist");
   }
   return it->second;
 }
@@ -765,7 +765,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   if (!size)
   {
     throw IncorrectUsageException("Can't apply " + op.to_string()
-                                  + " to zero terms.");
+                                  + " to zero terms");
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
@@ -892,10 +892,9 @@ void BoolectorSolver::do_reset_assertions()
   if (!base_context_1)
   {
     throw NotImplementedException(
-        "Boolector does not support reset_assertions. "
-        "However, you can use set_opt(\"base-context-1\", \"true\")"
-        " to do all solving at context 1, which then will allow "
-        " calling reset_assertions. This may impact performance");
+        "Boolector does not support reset_assertions unless the option "
+        "base-context-1 is true, which does all solving at context 1 and can "
+        "cost performance");
   }
   else
   {
