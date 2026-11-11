@@ -59,9 +59,9 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
   if (!fits)
   {
     char * s = msat_to_smtlib2_term(e, t);
-    std::string msg("The modulus of the Msat term ");
+    std::string msg("The modulus of the MathSAT term ");
     msg += s;
-    msg += " does not fit in an op index.";
+    msg += " does not fit in an op index";
     msat_free(s);
     throw NotImplementedException(msg);
   }
@@ -327,9 +327,8 @@ Op MsatTerm::get_op() const
     else
     {
       char * s = msat_to_smtlib2_term(*env, term);
-      std::string msg("Msat term ");
+      std::string msg("smt-switch has no PrimOp for the MathSAT term ");
       msg += s;
-      msg += " has an unknown op.";
       msat_free(s);
       throw NotImplementedException(msg);
     }
@@ -355,7 +354,8 @@ Sort MsatTerm::get_sort() const
 
     if (!param_types.size())
     {
-      throw InternalSolverException("Expecting non-zero arity for UF.");
+      throw InternalSolverException(
+          "Expecting a nonzero arity for an uninterpreted function");
     }
 
     msat_type funtype = msat_get_function_type(*env,
@@ -444,7 +444,7 @@ string MsatTerm::to_string() const
   {
     if (MSAT_ERROR_DECL(decl))
     {
-      throw SmtException("Can't get representation for MathSAT error decl!");
+      throw SmtException("Can't print a MathSAT error declaration");
     }
     string repr = msat_decl_repr(decl);
     size_t idx = repr.find(":");
@@ -458,7 +458,7 @@ string MsatTerm::to_string() const
   {
     if (MSAT_ERROR_TERM(term))
     {
-      throw SmtException("Can't get representation for MathSAT error term!");
+      throw SmtException("Can't print a MathSAT error term");
     }
     char * s = msat_to_smtlib2_term(*env, term);
     string res = s;
@@ -613,7 +613,7 @@ std::string MsatTerm::print_value_as(SortKind /* sk */) const
   if (!is_value())
   {
     throw IncorrectUsageException(
-        "Cannot use print_value_as on a non-value term.");
+        "Can't use print_value_as on a term that is not a value");
   }
   return to_string();
 }
@@ -622,7 +622,7 @@ msat_term MsatTerm::get_msat_term() const
 {
   if (is_uf)
   {
-    throw IncorrectUsageException("Cannot get msat_term from UF.");
+    throw IncorrectUsageException("Can't get the msat_term of a function");
   }
   return term;
 }
@@ -631,7 +631,8 @@ msat_decl MsatTerm::get_msat_decl() const
 {
   if (!is_uf)
   {
-    throw IncorrectUsageException("Cannot get msat_decl from term.");
+    throw IncorrectUsageException(
+        "Can't get the msat_decl of a term that is not a function");
   }
   return decl;
 }

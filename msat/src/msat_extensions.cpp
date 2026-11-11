@@ -111,7 +111,7 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
 
   if (!msat_is_bool_type(e, itype))
   {
-    string msg("Expecting a boolean term for first ITE argument but got\n\t");
+    string msg("Expecting a Boolean condition for ITE but got ");
     throw IncorrectUsageException(msg + msat_to_smtlib2_term(e, i));
   }
 
@@ -127,8 +127,8 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   msat_term res = msat_make_term_ite(e, i, t, el);
   if (MSAT_ERROR_TERM(res))
   {
-    string msg("Expecting matching branch terms for ITE but got\n\t");
-    throw IncorrectUsageException(msg + msat_type_repr(ttype) + " "
+    string msg("Expecting ITE branches of matching sorts but got ");
+    throw IncorrectUsageException(msg + msat_type_repr(ttype) + " and "
                                   + msat_type_repr(eltype));
   }
   return res;

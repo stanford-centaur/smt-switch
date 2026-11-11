@@ -308,7 +308,7 @@ void MsatSolver::do_assert(const Term & t)
   shared_ptr<MsatTerm> mterm = get_msat_term(t);
   if (msat_assert_formula(*env, mterm->term))
   {
-    string msg("Cannot assert term: ");
+    string msg("Can't assert the term ");
     msg += t->to_string();
     throw IncorrectUsageException(msg);
   }
@@ -434,11 +434,11 @@ Term MsatSolver::get_value(const Term & t) const
 
   if (MSAT_ERROR_TERM(val))
   {
-    string msg("Error getting value for ");
+    string msg("Can't get the value of ");
     msg += t->to_string();
     msg +=
-        ".\nBe sure the last check-sat call was sat and the term only contains "
-        "constants in this solving environment.";
+        " unless the last check-sat was sat and the term contains only this "
+        "solver's symbols";
     throw IncorrectUsageException(msg);
   }
 
@@ -454,8 +454,9 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
 
   if (arr->get_sort()->get_sort_kind() != ARRAY)
   {
-    throw IncorrectUsageException("Cannot get array values of non-array term "
-                                  + arr->to_string());
+    throw IncorrectUsageException("Can't get the array values of "
+                                  + arr->to_string()
+                                  + ", which is not an array");
   }
 
   shared_ptr<MsatTerm> marr = get_msat_term(arr);
@@ -463,11 +464,11 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
 
   if (MSAT_ERROR_TERM(mval))
   {
-    string msg("Error getting value for ");
+    string msg("Can't get the value of ");
     msg += arr->to_string();
     msg +=
-        ".\nBe sure the last check-sat call was sat and the term only contains "
-        "constants in this solving environment.";
+        " unless the last check-sat was sat and the term contains only this "
+        "solver's symbols";
     throw IncorrectUsageException(msg);
   }
 
@@ -503,16 +504,16 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   if (!last_query_assuming)
   {
     throw SmtException(
-        "Called get_unsat_assumptions after check-sat, or "
-        "check-sat-assuming with no assumptions. Should be "
-        "used after a non-trivial call to check-sat-assuming.");
+        "MathSAT has no unsat assumptions unless the last query was a "
+        "check_sat_assuming with assumptions");
   }
   msat_term * mcore_iter = mcore;
   for (size_t i = 0; i < core_size; ++i)
   {
     if (MSAT_ERROR_TERM(*mcore_iter))
     {
-      throw InternalSolverException("got an error term in the unsat core");
+      throw InternalSolverException(
+          "MathSAT gave an error term in the unsat core");
     }
     out.insert(std::make_shared<MsatTerm>(
         env, assumption_map_.at(msat_term_id(*mcore_iter))));
@@ -527,7 +528,7 @@ Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
   // internal name, which a user sort of that name would be
   if (is_internal_name(name))
   {
-    throw IncorrectUsageException("sort name " + name + " starts with "
+    throw IncorrectUsageException("Sort name " + name + " starts with "
                                   + std::string(INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
@@ -583,10 +584,8 @@ Sort MsatSolver::make_sort(SortKind sk) const
   }
   else
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and no arguments";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " without arguments");
   }
 }
 
@@ -599,10 +598,8 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
   }
   else
   {
-    std::string msg("Can't create sort with sort constructor ");
-    msg += to_string(sk);
-    msg += " and an integer argument";
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from an integer");
   }
 }
 
@@ -613,8 +610,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   {
     if (sorts.size() < 2)
     {
-      throw IncorrectUsageException(
-          "Function sort must have >=2 sort arguments.");
+      throw IncorrectUsageException("A function sort needs at least two sorts");
     }
 
     // arity is one less, because last sort is return sort
@@ -650,10 +646,9 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   else
   {
-    std::string msg("Can't create sort from sort constructor ");
-    msg += to_string(sk);
-    msg += " with a vector of sorts of size " + std::to_string(sorts.size());
-    throw IncorrectUsageException(msg.c_str());
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " from " + std::to_string(sorts.size())
+                                  + " sorts");
   }
 }
 
@@ -766,8 +761,9 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   if (sort->get_sort_kind() != ARRAY)
   {
-    throw IncorrectUsageException(
-        "Expecting to create a const array but got a non array sort");
+    throw IncorrectUsageException("Can't make a constant array of sort "
+                                  + sort->to_string()
+                                  + ", which is not an array sort");
   }
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
   shared_ptr<MsatTerm> mval = get_msat_term(val);
@@ -791,7 +787,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   // assumption labels are named this way, in the table symbols share
   if (is_internal_name(name))
   {
-    throw IncorrectUsageException("symbol name " + name + " starts with "
+    throw IncorrectUsageException("Symbol name " + name + " starts with "
                                   + std::string(INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
@@ -800,23 +796,20 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   if (!MSAT_ERROR_DECL(decl))
   {
     // symbol already exists
-    string msg("Symbol name ");
-    msg += name;
-    msg += " has already used.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
 
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
   if (MSAT_ERROR_TYPE(msort->get_msat_type()))
   {
-    throw InternalSolverException("Got error type in MathSAT backend.");
+    throw InternalSolverException("Got an error type from MathSAT");
   }
 
   decl = msat_declare_function(*env, name.c_str(), msort->get_msat_type());
 
   if (MSAT_ERROR_DECL(decl))
   {
-    throw SmtException("Got msat error decl when creating " + name + " of sort "
+    throw SmtException("MathSAT refused to declare " + name + " of sort "
                        + sort->to_string());
   }
 
@@ -829,7 +822,8 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     msat_term res = msat_make_constant(*env, decl);
     if (MSAT_ERROR_TERM(res))
     {
-      throw InternalSolverException("Got error term.");
+      throw InternalSolverException("MathSAT refused to make a constant for "
+                                    + name);
     }
     return std::make_shared<MsatTerm>(env, res);
   }
@@ -844,10 +838,7 @@ Term MsatSolver::get_symbol(const std::string & name) const
   if (MSAT_ERROR_DECL(decl))
   {
     // symbol already exists
-    string msg("Symbol named ");
-    msg += name;
-    msg += " does not exist.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Symbol named " + name + " does not exist");
   }
 
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
@@ -875,10 +866,8 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   size_t size = terms.size();
   if (!size)
   {
-    string msg("Can't apply ");
-    msg += op.to_string();
-    msg += " to zero terms.";
-    throw IncorrectUsageException(msg);
+    throw IncorrectUsageException("Can't apply " + op.to_string()
+                                  + " to zero terms");
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
@@ -934,12 +923,14 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
 
   if (MSAT_ERROR_TERM(res))
   {
-    string msg("Failed to create term given ");
+    string msg("MathSAT failed to apply ");
     msg += op.to_string();
-    msg += " and";
+    msg += " to";
+    string separator = " ";
     for (const auto & t : terms)
     {
-      msg += " " + t->to_string() + ",";
+      msg += separator + t->to_string();
+      separator = ", ";
     }
     throw InternalSolverException(msg);
   }
@@ -1176,7 +1167,8 @@ void MsatSolver::EnvWrapper::set_option(const std::string & name,
 {
   if (env)
   {
-    throw IncorrectUsageException("Must set options before using solver.");
+    throw IncorrectUsageException(
+        "Can't set an option after the first term, sort or query");
   }
   // msat_set_option returns zero on success
   if (!cfg)
@@ -1187,15 +1179,15 @@ void MsatSolver::EnvWrapper::set_option(const std::string & name,
                         name.c_str(),
                         value.c_str()))
     {
-      throw InternalSolverException("Option " + name
-                                    + " unsupported in mathsat.");
+      throw InternalSolverException("MathSAT does not support the option "
+                                    + name);
     }
     pending.emplace_back(name, value);
   }
   else if (msat_set_option(as_msat_config(cfg), name.c_str(), value.c_str()))
   {
-    throw InternalSolverException("Option " + name
-                                  + " unsupported in mathsat.");
+    throw InternalSolverException("MathSAT does not support the option "
+                                  + name);
   }
 }
 
@@ -1276,8 +1268,8 @@ void MsatInterpolatingSolver::do_set_opt(const string & option,
   const string name = msat_option_name(option);
   if (name == "interpolation" || name == "theory.bv.eager")
   {
-    throw IncorrectUsageException("MathSAT interpolator does not allow option: "
-                                  + option);
+    throw IncorrectUsageException(
+        "The MathSAT interpolator does not allow the option " + option);
   }
   msat_solver_->set_opt(option, value);
 }
