@@ -22,14 +22,15 @@ target_link_libraries(smt-switch-msat PUBLIC MathSAT::mathsat)
 find_package(GMP REQUIRED)
 target_link_libraries(smt-switch-msat PUBLIC GMP::gmp)
 # mathsat.h gives no version to compare, so the minimum is checked through
-# msat_type_id, which sorts are hashed by and 5.6.8 added.
+# msat_is_function_type, which function sorts are read with and 5.6.12 added.
 smt_switch_check_source_compiles(
-  SMT_SWITCH_MSAT_HAS_TYPE_ID
+  SMT_SWITCH_MSAT_HAS_IS_FUNCTION_TYPE
   TARGETS MathSAT::mathsat GMP::gmp
-  SOURCE "#include <mathsat.h>\nsize_t id(msat_type t) { return msat_type_id(t); }"
+  SOURCE
+    "#include <mathsat.h>\nint f(msat_env e, msat_type t) { return msat_is_function_type(e, t, NULL, NULL, NULL); }"
 )
-if(NOT SMT_SWITCH_MSAT_HAS_TYPE_ID)
-  message(FATAL_ERROR "smt-switch needs MathSAT 5.6.8 or newer")
+if(NOT SMT_SWITCH_MSAT_HAS_IS_FUNCTION_TYPE)
+  message(FATAL_ERROR "smt-switch needs MathSAT 5.6.12 or newer")
 endif()
 
 add_library(SmtSwitch::smt-switch-msat ALIAS smt-switch-msat)

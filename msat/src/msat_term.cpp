@@ -363,7 +363,7 @@ Sort MsatTerm::get_sort() const
                                                param_types.size(),
                                                msat_decl_get_return_type(decl));
 
-    return std::make_shared<MsatSort>(env, funtype, decl);
+    return std::make_shared<MsatSort>(env, funtype);
   }
 }
 

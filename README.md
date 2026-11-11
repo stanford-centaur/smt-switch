@@ -202,7 +202,7 @@ ones may work too. What is built automatically is pinned in
 | Bitwuzla  | 0.4.0  | 0.9.1         |
 | Boolector | 3.2.2  | 3.2.4         |
 | cvc5      | 1.4.0  | 1.4.2         |
-| MathSAT   | 5.6.8  | 5.6.19        |
+| MathSAT   | 5.6.12 | 5.6.19        |
 | Yices2    | 2.6.0  | 2.7.0         |
 | Z3        | 4.12.2 | 5.3.2         |
 
@@ -212,9 +212,8 @@ ones may work too. What is built automatically is pinned in
   `check_sat_assuming` when the answer is sat.
 - Some older executables are not compliant with SMT-LIB, so the generic solver
   fails with them where linking against the same release works: Boolector 3.2.2
-  prints Boolean values as bit-vectors, MathSAT before 5.6.11 rejects `#b`
-  literals in `get-value`, and Yices2 2.6 prints array values in a notation of
-  its own.
+  prints Boolean values as bit-vectors, and Yices2 2.6 prints array values in a
+  notation of its own.
 
 ### Static Linking
 
