@@ -14,9 +14,6 @@
 **
 **/
 
-#ifndef SMT_YICES2_EXTENSIONS_H
-#define SMT_YICES2_EXTENSIONS_H
-
 #include "yices2_extensions.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
@@ -99,5 +96,3 @@ term_t ext_yices_bvxor3(term_t t0, term_t t1, term_t t2)
 }
 
 }  // namespace smt
-
-#endif
