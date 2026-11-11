@@ -38,10 +38,15 @@ static_assert(std::is_same_v<unsigned, std::uint32_t>,
               "Z3 takes counts and widths as an unsigned of 32 bits");
 
 // extension function: bvcomp as an ite over equality. Each new term is
-// referenced until the ite holds it, as in ext_Z3_mk_abs.
+// referenced until the ite holds it, as in ext_Z3_mk_abs, and a failed
+// call returns null at once, leaving its error for the caller to read.
 Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
 {
   Z3_ast eq = Z3_mk_eq(c, t1, t2);
+  if (!eq)
+  {
+    return nullptr;
+  }
   Z3_inc_ref(c, eq);
   Z3_sort bvsort1 = Z3_mk_bv_sort(c, 1);
   Z3_ast one = Z3_mk_unsigned_int(c, 1, bvsort1);
@@ -58,12 +63,24 @@ Z3_ast ext_Z3_mk_bvcomp(Z3_context c, Z3_ast t1, Z3_ast t2)
 // extension function: the absolute value of an Int or a Real, built from
 // ite as Z3's C++ API builds it. The context counts references, so each
 // new term is referenced until the ite holds it, or the next call may
-// reuse it.
+// reuse it. A failed call returns null at once, leaving its error for the
+// caller to read: Z3_inc_ref would clear it, while Z3_dec_ref keeps it.
 Z3_ast ext_Z3_mk_abs(Z3_context c, Z3_ast a)
 {
+  // fails on a Bool
   Z3_ast zero = Z3_mk_int(c, 0, Z3_get_sort(c, a));
+  if (!zero)
+  {
+    return nullptr;
+  }
   Z3_inc_ref(c, zero);
+  // fails on a bit-vector, leaving only an Int or a Real
   Z3_ast nonnegative = Z3_mk_ge(c, a, zero);
+  if (!nonnegative)
+  {
+    Z3_dec_ref(c, zero);
+    return nullptr;
+  }
   Z3_inc_ref(c, nonnegative);
   Z3_ast negated = Z3_mk_unary_minus(c, a);
   Z3_inc_ref(c, negated);
