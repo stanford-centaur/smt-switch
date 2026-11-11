@@ -305,7 +305,7 @@ TEST_P(UnitTests, MultiArgFun)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedPrimOp,
                          UnitPrimOpTests,
-                         testing::Range((size_t)0,
+                         testing::Range(size_t{ 0 },
                                         static_cast<size_t>(NUM_OPS_AND_NULL)));
 
 INSTANTIATE_TEST_SUITE_P(
