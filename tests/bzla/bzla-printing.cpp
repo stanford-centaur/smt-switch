@@ -15,6 +15,7 @@
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
+#include "test_paths.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -36,11 +37,12 @@ class BitwuzlaPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_results,
       std::string extra_opts = "")
   {
-#ifdef BITWUZLA_BINARY
-    dump_and_run(BITWUZLA_BINARY, strbuf, expected_results, extra_opts);
-#else
-    GTEST_SKIP() << "configure found no bitwuzla executable";
-#endif
+    if (smt_tests::bitwuzla_binary.empty())
+    {
+      GTEST_SKIP() << "configure found no bitwuzla executable";
+    }
+    dump_and_run(
+        smt_tests::bitwuzla_binary, strbuf, expected_results, extra_opts);
   }
   std::stringbuf strbuf;
   std::ostream * os = nullptr;

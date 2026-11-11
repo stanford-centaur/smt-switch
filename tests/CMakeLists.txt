@@ -8,31 +8,21 @@ add_compile_definitions(${SOLVER_COMPILE_DEFINITIONS})
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-Wno-global-constructors>")
 add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:GNU>>:-Wno-effc++>")
 
-# Sets out to value as a C string literal that reads back exactly value: a
-# backslash, a double quote or a newline in it would otherwise end the literal
-# or start an escape sequence.
-function(smt_switch_c_string out value)
-  string(REPLACE "\\" "\\\\" literal "${value}")
-  string(REPLACE "\"" "\\\"" literal "${literal}")
-  string(REPLACE "\n" "\\n" literal "${literal}")
-  set(${out} "\"${literal}\"" PARENT_SCOPE)
-endfunction()
-
 # The generic solver drives a solver's executable rather than the library the
 # rest of the suite links, so it has to be found separately. A provisioned
 # copy, or one given with --<solver>-dir, keeps it under the solver's root; a
 # system-installed one has it on the PATH, which find_program searches after
-# the hint. Defined only when found, so that the tests can leave the solver
-# out instead of failing; a path set with -D<VARIABLE> is used as given.
+# the hint. Leaves <variable> empty for test_paths.h when none is found, so
+# that the tests can leave the solver out instead of failing; a path set with
+# -D<VARIABLE> is used as given.
 function(smt_switch_find_solver_binary enabled package name variable)
   if(NOT ${enabled})
     return()
   endif()
   find_program(${variable} NAMES ${name} HINTS "${${package}_ROOT}/bin")
-  if(${variable})
-    smt_switch_c_string(literal "${${variable}}")
-    add_compile_definitions("${variable}=${literal}")
-  else()
+  if(NOT ${variable})
+    # rather than the <variable>-NOTFOUND find_program leaves
+    set(${variable} "" PARENT_SCOPE)
     message(STATUS "No ${name} executable found, so the generic solver tests skip it")
   endif()
 endfunction()
@@ -43,6 +33,34 @@ smt_switch_find_solver_binary(BUILD_CVC5 cvc5 cvc5 CVC5_BINARY)
 smt_switch_find_solver_binary(BUILD_MSAT MathSAT mathsat MATHSAT_BINARY)
 smt_switch_find_solver_binary(BUILD_YICES2 Yices2 yices-smt2 YICES2_BINARY)
 smt_switch_find_solver_binary(BUILD_Z3 Z3 z3 Z3_BINARY)
+
+# The paths reach the tests through a generated header rather than compile
+# definitions, which CMake drops when they contain a #. The header holds them
+# as raw string literals, which take any text but their own terminator.
+set(SMTLIB_TEST_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/smt2")
+foreach(
+  path_variable
+  SMTLIB_TEST_RESOURCE_DIR
+  BITWUZLA_BINARY
+  BOOLECTOR_BINARY
+  CVC5_BINARY
+  MATHSAT_BINARY
+  YICES2_BINARY
+  Z3_BINARY
+)
+  string(FIND "${${path_variable}}" ")path\"" terminator)
+  if(NOT terminator EQUAL -1)
+    message(
+      FATAL_ERROR
+      "The tests cannot use ${${path_variable}} because it contains the "
+      "sequence )path\". Move it to a path that does not contain this "
+      "sequence, or configure without the tests (--without-tests or "
+      "-DBUILD_TESTS=OFF)."
+    )
+  endif()
+endforeach()
+configure_file(test_paths.h.in test_paths.h @ONLY)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 option(SYSTEM_GTEST "Should we try to use the system GTest" ON)
 if(SYSTEM_GTEST)
@@ -176,8 +194,6 @@ target_link_libraries(test-term-translation PRIVATE term-utils)
 if(BUILD_SMTLIB_READER)
   switch_add_test(test-smtlib-reader)
   target_link_libraries(test-smtlib-reader PRIVATE smt-switch-smtlib)
-  smt_switch_c_string(resource_dir "${CMAKE_CURRENT_SOURCE_DIR}/smt2")
-  target_compile_definitions(test-smtlib-reader PRIVATE "SMTLIB_TEST_RESOURCE_DIR=${resource_dir}")
 endif()
 
 add_subdirectory(unit)

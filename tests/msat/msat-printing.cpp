@@ -30,6 +30,7 @@
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
+#include "test_paths.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -45,11 +46,12 @@ class MsatPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-#ifdef MATHSAT_BINARY
-    dump_and_run(MATHSAT_BINARY, strbuf, expected_result, extra_opts);
-#else
-    GTEST_SKIP() << "configure found no mathsat executable";
-#endif
+    if (smt_tests::mathsat_binary.empty())
+    {
+      GTEST_SKIP() << "configure found no mathsat executable";
+    }
+    dump_and_run(
+        smt_tests::mathsat_binary, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;
   std::ostream * os;

@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <exception>
 #include <memory>
-#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -74,7 +73,7 @@ vector<SolverConfiguration> replayable(
   vector<SolverConfiguration> result;
   for (SolverConfiguration sc : filter_solver_configurations(attributes))
   {
-    if (solver_binary(sc.solver_enum))
+    if (!solver_binary(sc.solver_enum).empty())
     {
       result.push_back(sc);
     }
@@ -103,7 +102,7 @@ class PrintingTests : public ::testing::Test,
   void expect_replay(const vector<unordered_set<string>> & expected)
   {
     SolverEnum se = GetParam().solver_enum;
-    dump_and_run(solver_binary(se).value(), strbuf, expected, replay_flags(se));
+    dump_and_run(solver_binary(se), strbuf, expected, replay_flags(se));
   }
 
   stringbuf strbuf;

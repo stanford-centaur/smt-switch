@@ -19,13 +19,14 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
-#include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
 #include "exceptions.h"
 #include "logging_solver.h"
+#include "test_paths.h"
 
 #ifdef BUILD_BTOR
 #include "boolector_factory.h"
@@ -83,7 +84,7 @@ SmtSolver create_solver(SolverConfiguration sc)
       break;
     }
     case GENERIC_SOLVER: {
-      std::string path = solver_binary(CVC5).value();
+      std::string path(solver_binary(CVC5));
       std::vector<std::string> args = {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
       };
@@ -188,36 +189,24 @@ std::vector<SolverEnum> available_solver_enums()
 #endif
   };
   // the generic solver drives the cvc5 executable
-  if (solver_binary(CVC5))
+  if (!solver_binary(CVC5).empty())
   {
     enums.push_back(GENERIC_SOLVER);
   }
   return enums;
 }
 
-std::optional<std::string> solver_binary(SolverEnum se)
+std::string_view solver_binary(SolverEnum se)
 {
   switch (se)
   {
-#ifdef BOOLECTOR_BINARY
-    case BTOR: return BOOLECTOR_BINARY;
-#endif
-#ifdef BITWUZLA_BINARY
-    case BZLA: return BITWUZLA_BINARY;
-#endif
-#ifdef CVC5_BINARY
-    case CVC5: return CVC5_BINARY;
-#endif
-#ifdef MATHSAT_BINARY
-    case MSAT: return MATHSAT_BINARY;
-#endif
-#ifdef YICES2_BINARY
-    case YICES2: return YICES2_BINARY;
-#endif
-#ifdef Z3_BINARY
-    case Z3: return Z3_BINARY;
-#endif
-    default: return std::nullopt;
+    case BTOR: return smt_tests::boolector_binary;
+    case BZLA: return smt_tests::bitwuzla_binary;
+    case CVC5: return smt_tests::cvc5_binary;
+    case MSAT: return smt_tests::mathsat_binary;
+    case YICES2: return smt_tests::yices2_binary;
+    case Z3: return smt_tests::z3_binary;
+    default: return "";
   }
 }
 

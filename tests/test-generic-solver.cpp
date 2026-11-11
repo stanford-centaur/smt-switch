@@ -21,7 +21,6 @@
 #include <fstream>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -157,7 +156,7 @@ vector<GenericSolverParam> params_where(
   vector<GenericSolverParam> params;
   for (SolverEnum b : available_non_generic_solver_enums())
   {
-    if (!solver_binary(b) || !filter(b))
+    if (solver_binary(b).empty() || !filter(b))
     {
       continue;
     }
@@ -178,7 +177,7 @@ vector<GenericSolverParam> params_one_buffer_size()
   vector<GenericSolverParam> params;
   for (SolverEnum b : available_non_generic_solver_enums())
   {
-    if (solver_binary(b))
+    if (!solver_binary(b).empty())
     {
       params.emplace_back(b, buffer_size_max);
     }
@@ -210,7 +209,7 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
   void start_binary(std::chrono::milliseconds timeout = solver_response_timeout)
   {
     gs.reset();
-    gs = std::make_shared<GenericSolver>(solver_binary(binary).value(),
+    gs = std::make_shared<GenericSolver>(std::string(solver_binary(binary)),
                                          binary_args(binary),
                                          timeout,
                                          get<1>(GetParam()));
