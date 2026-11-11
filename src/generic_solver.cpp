@@ -363,15 +363,16 @@ void GenericSolver::launch_binary() const
   }
   argv.push_back(nullptr);
 
-  if (pipe(inpipefd) != 0)
+  // Any exec closes every end, so that another child's program, such as a
+  // second solver's binary, cannot hold this solver's pipes open.
+  if (int pipe_errno = detail::make_cloexec_pipe(inpipefd); pipe_errno != 0)
   {
     throw InternalSolverException(
         "Failed to create a pipe from the solver binary at " + path + ": "
-        + strerror(errno));
+        + strerror(pipe_errno));
   }
-  if (pipe(outpipefd) != 0)
+  if (int pipe_errno = detail::make_cloexec_pipe(outpipefd); pipe_errno != 0)
   {
-    int pipe_errno = errno;
     close_fd(inpipefd[0]);
     close_fd(inpipefd[1]);
     throw InternalSolverException(
@@ -381,9 +382,8 @@ void GenericSolver::launch_binary() const
   // a third pipe tells the parent how execv() went: a successful exec
   // closes the write end, so end-of-file means started, an errno means not
   int execpipefd[2] = { -1, -1 };
-  if (pipe(execpipefd) != 0)
+  if (int pipe_errno = detail::make_cloexec_pipe(execpipefd); pipe_errno != 0)
   {
-    int pipe_errno = errno;
     close_fd(inpipefd[0]);
     close_fd(inpipefd[1]);
     close_fd(outpipefd[0]);
@@ -391,19 +391,6 @@ void GenericSolver::launch_binary() const
     throw InternalSolverException(
         "Failed to create a startup pipe for the solver binary at " + path
         + ": " + strerror(pipe_errno));
-  }
-  if (fcntl(execpipefd[1], F_SETFD, FD_CLOEXEC) != 0)
-  {
-    int fcntl_errno = errno;
-    close_fd(inpipefd[0]);
-    close_fd(inpipefd[1]);
-    close_fd(outpipefd[0]);
-    close_fd(outpipefd[1]);
-    close_fd(execpipefd[0]);
-    close_fd(execpipefd[1]);
-    throw InternalSolverException(
-        "Failed to prepare a startup pipe for the solver binary at " + path
-        + ": " + strerror(fcntl_errno));
   }
   pid = fork();
   if (pid < 0)
@@ -423,6 +410,10 @@ void GenericSolver::launch_binary() const
     // Child
     dup2(outpipefd[0], STDIN_FILENO);
     dup2(inpipefd[1], STDOUT_FILENO);
+    // dup2() clears the flag on the copy it makes, but leaves an end that
+    // already was stdin or stdout as it was, which exec would then close.
+    fcntl(STDIN_FILENO, F_SETFD, 0);
+    fcntl(STDOUT_FILENO, F_SETFD, 0);
     // stderr stays the parent's: everything on the pipe is read as an
     // answer, and SMT-LIB answers, errors included, all come on stdout
 
