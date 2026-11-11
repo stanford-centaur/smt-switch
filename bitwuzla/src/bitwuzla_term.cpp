@@ -259,7 +259,7 @@ static std::string bv_value_to_bits(const bitwuzla::Term & term)
   if (!term.is_value() || !term.sort().is_bv())
   {
     throw IncorrectUsageException(
-        "Can't get bitstring from a term that is not a bit-vector value.");
+        "Can't get a bitstring from a term that is not a bit-vector value");
   }
   return term.value<std::string>(2);
 }
@@ -326,7 +326,7 @@ std::string BzlaTerm::print_value_as(SortKind /* sk */) const
   if (!is_value())
   {
     throw IncorrectUsageException(
-        "Cannot use print_value_as on a non-value term.");
+        "Can't use print_value_as on a term that is not a value");
   }
   return to_string();
 }
