@@ -939,7 +939,19 @@ void BoolectorSolver::dump_smt2(std::string filename) const
     fresh->assert_formula(to_fresh.transfer_term(a));
   }
   FILE * file = fopen(filename.c_str(), "w");
-  boolector_dump_smt2(fresh->btor.get(), file);
+  if (!file)
+  {
+    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+  }
+  try
+  {
+    boolector_dump_smt2(fresh->btor.get(), file);
+  }
+  catch (...)
+  {
+    fclose(file);
+    throw;
+  }
   fclose(file);
 }
 
