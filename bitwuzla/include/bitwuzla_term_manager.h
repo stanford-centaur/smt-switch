@@ -8,9 +8,9 @@
  * The backend emulates some features Bitwuzla's API lacks, and keeps what
  * the emulation needs with the term manager, which every sort and term of
  * the term manager shares. For example, Bitwuzla's API has no sort
- * constructors, so each application is an uninterpreted Bitwuzla sort of an
- * internal name, and the term manager records what it applies, which
- * Bitwuzla cannot report.
+ * constructors, so each application is an uninterpreted Bitwuzla sort named
+ * as the applied sort prints, and the term manager records what it
+ * applies, which Bitwuzla cannot report.
  */
 
 #pragma once
@@ -39,11 +39,12 @@ class BzlaTermManager : public bitwuzla::TermManager
   /** The arity of the sort constructor add_constructor recorded as `id` */
   std::uint64_t get_constructor_arity(std::uint64_t id) const;
   /** The sort the sort constructor `constructor` applied to `params` stands
-   *  for: an uninterpreted sort made the first time and given back after,
-   *  so that its sorts can report what it applies
+   *  for: an uninterpreted sort named `symbol`, made the first time and
+   *  given back after, so that its sorts can report what it applies
    */
   bitwuzla::Sort add_instance(std::uint64_t constructor,
-                              const std::vector<bitwuzla::Sort> & params);
+                              const std::vector<bitwuzla::Sort> & params,
+                              const std::string & symbol);
   /** Whether add_instance made `sort` */
   bool is_instance(const bitwuzla::Sort & sort) const;
   /** The id of the sort constructor `sort` applies, which add_instance
@@ -89,7 +90,6 @@ class BzlaTermManager : public bitwuzla::TermManager
   std::unordered_map<InstanceKey, bitwuzla::Sort, InstanceKeyHash>
       uninterp_sort_cache = {};
   std::unordered_map<std::uint64_t, SortInstance> uninterp_sort_info = {};
-  std::uint64_t instance_count = 0;
 };
 
 }  // namespace smt

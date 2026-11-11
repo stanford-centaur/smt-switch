@@ -371,14 +371,20 @@ Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
         "Expected " + std::to_string(arity) + " sort arguments to "
         + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
   }
+  // Bitwuzla prints a sort's symbol as is, so it is the applied sort's
+  // SMT-LIB text
+  std::string symbol =
+      "(" + smtlib_quote_symbol(bcon->get_uninterpreted_name());
   std::vector<bitwuzla::Sort> params;
   params.reserve(sorts.size());
   for (const Sort & s : sorts)
   {
     params.push_back(bzla_sort(s));
+    symbol += " " + s->to_string();
   }
+  symbol += ")";
   return std::make_shared<BzlaSort>(
-      tm->add_instance(bcon->constructor_id, params), tm);
+      tm->add_instance(bcon->constructor_id, params, symbol), tm);
 }
 
 Sort BzlaSolver::make_sort(SortKind sk) const

@@ -14,6 +14,7 @@
 **
 **/
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
@@ -33,6 +34,7 @@
 #include "solver_enums.h"
 #include "sort.h"
 #include "term.h"
+#include "utils.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -568,6 +570,36 @@ TEST_P(SortConstructors, SameNamedConstructorsDiffer)
             s->make_sort(list, SortVec{ elem }));
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(QuantifiedSortConstructors);
+class QuantifiedSortConstructors : public SortConstructors
+{
+};
+
+TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
+{
+  SolverEnum se = GetParam().solver_enum;
+  if (!GetParam().is_logging_solver && se == Z3)
+  {
+    GTEST_SKIP() << "Z3 prints an applied sort as the internal sort that "
+                    "stands for it";
+  }
+  if (!GetParam().is_logging_solver && se == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver prints a quantifier without its "
+                    "binders' sorts";
+  }
+  Sort list_e = s->make_sort(list, SortVec{ elem });
+  Term p = s->make_param("p", list_e);
+  Term f =
+      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ list_e, boolsort }));
+  Term forall = s->make_term(Forall, p, s->make_term(Apply, f, p));
+  EXPECT_THAT(
+      forall->to_string(),
+      testing::AllOf(
+          testing::HasSubstr("(List E)"),
+          testing::Not(testing::HasSubstr(std::string(INTERNAL_NAME_PREFIX)))));
+}
+
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
                          UnitSortTests,
                          testing::ValuesIn(available_solver_configurations()));
@@ -588,5 +620,11 @@ INSTANTIATE_TEST_SUITE_P(
     SortConstructors,
     testing::ValuesIn(filter_solver_configurations({ PARAM_UNINTERP_SORT })),
     ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(UnitSort,
+                         QuantifiedSortConstructors,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { PARAM_UNINTERP_SORT, QUANTIFIERS })),
+                         ConfigName());
 
 }  // namespace
