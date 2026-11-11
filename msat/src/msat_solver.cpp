@@ -1033,6 +1033,10 @@ void MsatSolver::dump_smt2(std::string filename) const
   const std::string & logic = env_wrapper_.get_logic();
   const char * log = logic.empty() ? NULL : logic.c_str();
   FILE * file = fopen(filename.c_str(), "w");
+  if (!file)
+  {
+    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+  }
   msat_to_smtlib2_ext_file(*env, all_asserts, log, true, file);
   fprintf(file, "\n(check-sat)\n");
   fclose(file);
