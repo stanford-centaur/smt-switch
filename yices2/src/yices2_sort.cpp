@@ -52,7 +52,7 @@ std::uint64_t Yices2Sort::get_width() const
     throw IncorrectUsageException(
         "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
   }
-  return (unsigned int)yices_bvtype_size(type);
+  return yices_bvtype_size(type);
 }
 
 Sort Yices2Sort::get_indexsort() const

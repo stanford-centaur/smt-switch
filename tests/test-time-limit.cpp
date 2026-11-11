@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -65,7 +64,7 @@ class TimeLimitTests : public ::testing::Test,
     // Bitwuzla ties a sort to the solver that made it, so each solver has to
     // build its own rather than share one from the fixture.
     Sort bvsort = solver->make_sort(BV, bv_width);
-    size_t num_vars = (size_t)std::pow(2, bv_width) + 1;
+    size_t num_vars = (size_t{ 1 } << bv_width) + 1;
     TermVec vars;
     vars.reserve(num_vars);
     for (size_t i = 0; i < num_vars; ++i)

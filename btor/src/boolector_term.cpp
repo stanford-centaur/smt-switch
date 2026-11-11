@@ -95,9 +95,9 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   }
   else if (k == BTOR_BV_SLICE_NODE)
   {
-    uint32_t upper = ((BtorBVSliceNode *)btor_node_real_addr(bn))->upper;
-    uint32_t lower = ((BtorBVSliceNode *)btor_node_real_addr(bn))->lower;
-    op = Op(Extract, upper, lower);
+    op = Op(Extract,
+            btor_node_bv_slice_get_upper(bn),
+            btor_node_bv_slice_get_lower(bn));
   }
   else if ((k == BTOR_LAMBDA_NODE) && (bn->is_array))
   {
@@ -129,7 +129,7 @@ BoolectorTerm::BoolectorTerm(const std::shared_ptr<Btor> & b, BoolectorNode * n)
   {
     bn = btor_node_real_addr(btor_node_get_simplified(btor.get(), bn));
   }
-  negated = (((((uintptr_t)node) % 2) != 0) && bn->kind != BTOR_BV_CONST_NODE);
+  negated = btor_node_is_inverted(exp) && bn->kind != BTOR_BV_CONST_NODE;
 }
 
 BoolectorTerm::~BoolectorTerm()
@@ -140,9 +140,15 @@ BoolectorTerm::~BoolectorTerm()
 
 // BoolectorNode * -> id
 
-std::size_t BoolectorTerm::hash() const { return (std::size_t)node; }
+std::size_t BoolectorTerm::hash() const
+{
+  return reinterpret_cast<std::size_t>(node);
+}
 
-std::size_t BoolectorTerm::get_id() const { return (std::size_t)node; }
+std::size_t BoolectorTerm::get_id() const
+{
+  return reinterpret_cast<std::size_t>(node);
+}
 
 bool BoolectorTerm::compare(const Term & absterm) const
 {

@@ -44,6 +44,7 @@ set_property(
   PROPERTY
     COMPILE_OPTIONS
       -Wno-extra-semi-stmt
+      -Wno-old-style-cast
       -Wno-sign-compare
       -Wno-unused-function
       $<$<CXX_COMPILER_ID:GNU>:-Wno-effc++>

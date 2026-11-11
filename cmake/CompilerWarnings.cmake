@@ -722,7 +722,7 @@ set(
   -Wnvcc-compat # target-attribute based function overloads are not supported by NVCC
   -Woctal-prefix-extension # octal integer literals are a Clang extension
   -Wodr # some C++ One Definition Rule violations during link time optimization
-  # -Wold-style-cast # a C-style cast is used in a program
+  -Wold-style-cast # a C-style cast is used in a program
   -Woption-ignored # -fjmc works only for ELF
   -Wordered-compare-function-pointers # ordered comparison of function pointers (X and Y)
   -Wout-of-line-declaration # out-of-line declaration of a member must be a definition
