@@ -165,8 +165,9 @@ BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
   // callback, so throw instead. The callback is global, not per instance.
   auto throw_exception = [](const char * msg) -> void {
     std::string text(msg);
-    // Boolector ends every abort message with a newline.
-    if (!text.empty() && text.back() == '\n')
+    // Boolector ends every abort message with a newline, and its argument
+    // checks with a second one.
+    while (!text.empty() && text.back() == '\n')
     {
       text.pop_back();
     }
