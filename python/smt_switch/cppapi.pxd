@@ -136,7 +136,7 @@ cdef extern from "smt-switch/solver.h" namespace "smt":
         void dump_smt2(string filename) except +
 
 
-cdef extern from "smt-switch/interpolating_solver.h" namespace "smt":
+cdef extern from "smt-switch/interpolator.h" namespace "smt":
     cdef cppclass AbsSmtInterpolator(AbsSmtSolver):
         c_Result get_interpolant(
             const c_Term & A, const c_Term & B, c_Term & out_I

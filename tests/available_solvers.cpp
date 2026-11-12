@@ -124,31 +124,31 @@ SmtSolver create_solver(SolverConfiguration sc)
   }
 }
 
-SmtInterpolator create_interpolating_solver(SolverConfiguration sc)
+SmtInterpolator create_interpolator(SolverConfiguration sc)
 {
   switch (sc.solver_enum)
   {
 #ifdef BUILD_BITWUZLA
     case BZLA_INTERPOLATOR: {
-      return BitwuzlaSolverFactory::create_interpolating_solver();
+      return BitwuzlaSolverFactory::create_interpolator();
       break;
     }
 #endif
 #ifdef BUILD_CVC5
     case CVC5_INTERPOLATOR: {
-      return Cvc5SolverFactory::create_interpolating_solver();
+      return Cvc5SolverFactory::create_interpolator();
       break;
     }
 #endif
 #ifdef BUILD_MSAT
     case MSAT_INTERPOLATOR: {
-      return MsatSolverFactory::create_interpolating_solver();
+      return MsatSolverFactory::create_interpolator();
       break;
     }
 #endif
 #ifdef BUILD_YICES2
     case YICES2_INTERPOLATOR: {
-      return Yices2SolverFactory::create_interpolating_solver();
+      return Yices2SolverFactory::create_interpolator();
       break;
     }
 #endif
@@ -259,7 +259,7 @@ std::vector<SolverEnum> available_interpolator_enums()
   // a Yices2 without MCSAT refuses to create an interpolator
   try
   {
-    Yices2SolverFactory::create_interpolating_solver();
+    Yices2SolverFactory::create_interpolator();
     result.push_back(YICES2_INTERPOLATOR);
   }
   catch (const NotImplementedException &)

@@ -17,9 +17,9 @@
 #include "exec_utils.h"
 #include "smt-switch/cvc5_factory.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/ops.h"
-#include "smt-switch/printing_solver.h"
+#include "smt-switch/printing_interpolator.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
@@ -53,7 +53,7 @@ class Cvc5PrintingTest : public testing::Test
 TEST_F(Cvc5PrintingTest, Interpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolating_solver(), os);
+      Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   Sort intsort = s->make_sort(INT);
@@ -97,7 +97,7 @@ TEST_F(Cvc5PrintingTest, Interpolation)
 TEST_F(Cvc5PrintingTest, SequenceInterpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolating_solver(), os);
+      Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -122,7 +122,7 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolation)
 TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
 {
   SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolating_solver(), os);
+      Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -158,7 +158,7 @@ TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
 TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
 {
   SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolating_solver(), os);
+      Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);

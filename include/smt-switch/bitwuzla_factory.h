@@ -28,7 +28,11 @@ class BitwuzlaSolverFactory
   /** Create an interpolating Bitwuzla solver
    *  @return an interpolating Bitwuzla SmtInterpolator
    */
-  static SmtInterpolator create_interpolating_solver();
+  static SmtInterpolator create_interpolator();
+
+  /** As create_interpolator */
+  [[deprecated("use create_interpolator")]] static SmtInterpolator
+  create_interpolating_solver();
 };
 }  // namespace smt
 

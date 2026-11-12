@@ -4,6 +4,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_env.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_extensions.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_factory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_interpolator.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/msat_term.cpp"

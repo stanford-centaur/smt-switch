@@ -32,7 +32,11 @@ class MsatSolverFactory
   /** Create an interpolating MathSAT solver
    *  @return an interpolating MathSAT SmtInterpolator
    */
-  static SmtInterpolator create_interpolating_solver();
+  static SmtInterpolator create_interpolator();
+
+  /** As create_interpolator */
+  [[deprecated("use create_interpolator")]] static SmtInterpolator
+  create_interpolating_solver();
 };
 
 }  // namespace smt

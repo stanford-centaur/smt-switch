@@ -63,7 +63,7 @@ class BzlaTerm : public AbsTerm
   const bitwuzla::Term term;
 
   friend class BzlaSolver;
-  friend class BzlaInterpolatingSolver;
+  friend class BzlaInterpolator;
 };
 
 /** The Bitwuzla kind of the applications of po

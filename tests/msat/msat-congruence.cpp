@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
@@ -33,7 +33,7 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
   for (int a : { 0, 1 })
   {
     SCOPED_TRACE("x = " + std::to_string(a) + " mod 2 in A");
-    SmtInterpolator itp = MsatSolverFactory::create_interpolating_solver();
+    SmtInterpolator itp = MsatSolverFactory::create_interpolator();
     Sort intsort = itp->make_sort(INT);
     Term x = itp->make_symbol("x", intsort);
     Term y = itp->make_symbol("y", intsort);

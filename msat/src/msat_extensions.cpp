@@ -33,6 +33,26 @@ string detail::get_msat_string(char * s)
   }
   return owned.get();
 }
+
+string detail::msat_option_name(const string & option)
+{
+  if (option == "produce-interpolants")
+  {
+    return "interpolation";
+  }
+  if (option == "produce-models")
+  {
+    return "model_generation";
+  }
+  return option;
+}
+
+string detail::last_error_message(msat_env e)
+{
+  const char * msg = msat_last_error_message(e);
+  return msg ? msg : "";
+}
+
 msat_term ext_msat_make_negate(msat_env e, msat_term t)
 {
   msat_term negone = msat_make_number(e, "-1");

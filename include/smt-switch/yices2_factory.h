@@ -26,14 +26,18 @@ class Yices2SolverFactory
    */
   static SmtSolver create(bool logging);
 
-  /** Create a Yices2 interpolating solver; see Yices2InterpolatingSolver
+  /** Create a Yices2 interpolating solver; see Yices2Interpolator
    *  for the theories it interpolates over.
    *  @return a Yices2 interpolating solver
    *  @throws NotImplementedException if this Yices2 was built without
    *          MCSAT, which interpolation needs and which Yices2 has only
    *          when built against LibPoly and CUDD
    */
-  static SmtInterpolator create_interpolating_solver();
+  static SmtInterpolator create_interpolator();
+
+  /** As create_interpolator */
+  [[deprecated("use create_interpolator")]] static SmtInterpolator
+  create_interpolating_solver();
 };
 }  // namespace smt
 

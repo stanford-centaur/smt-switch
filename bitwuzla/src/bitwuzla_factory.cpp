@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "smt-switch/bitwuzla_interpolator.h"
 #include "smt-switch/bitwuzla_solver.h"
 #include "smt-switch/logging_solver.h"
 #include "smt-switch/smt_defs.h"
@@ -26,9 +27,14 @@ SmtSolver BitwuzlaSolverFactory::create(bool logging)
   return solver;
 }
 
+SmtInterpolator BitwuzlaSolverFactory::create_interpolator()
+{
+  return std::make_shared<BzlaInterpolator>();
+}
+
 SmtInterpolator BitwuzlaSolverFactory::create_interpolating_solver()
 {
-  return std::make_shared<BzlaInterpolatingSolver>();
+  return create_interpolator();
 }
 
 /* end BitwuzlaSolverFactory implementation */

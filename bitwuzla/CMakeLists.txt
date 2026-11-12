@@ -2,6 +2,7 @@ add_library(
   smt-switch-bitwuzla
   "${SMT_SWITCH_LIB_TYPE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_factory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_interpolator.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_solver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_sort.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/bitwuzla_term.cpp"

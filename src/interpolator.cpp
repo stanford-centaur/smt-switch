@@ -1,11 +1,11 @@
 /*!
- * \file interpolating_solver.cpp
+ * \file interpolator.cpp
  * \brief Abstract interface for interpolating solvers
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/interpolator.h"
 
 #include <algorithm>
 #include <cstddef>

@@ -64,7 +64,7 @@ class MsatTerm : public AbsTerm
                        ///< uninterpreted function)
 
   friend class MsatSolver;
-  friend class MsatInterpolatingSolver;
+  friend class MsatInterpolator;
 };
 
 }  // namespace smt

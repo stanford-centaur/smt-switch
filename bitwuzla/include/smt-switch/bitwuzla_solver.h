@@ -18,7 +18,6 @@
 #include <unordered_map>
 
 #include "smt-switch/bitwuzla_term_manager.h"
-#include "smt-switch/interpolating_solver.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
@@ -115,38 +114,7 @@ class BzlaSolver : public AbsSmtSolver
 
   std::unordered_map<std::string, Term> symbol_table = {};
 
-  friend class BzlaInterpolatingSolver;
-};
-
-class BzlaInterpolatingSolver : public AbsSmtInterpolator
-{
- public:
-  BzlaInterpolatingSolver();
-  BzlaInterpolatingSolver(const BzlaInterpolatingSolver &) = delete;
-  BzlaInterpolatingSolver & operator=(const BzlaInterpolatingSolver &) = delete;
-
- protected:
-  Result compute_interpolant(const Term & A,
-                             const Term & B,
-                             Term & out_I) const override;
-  Result compute_seq_interpolants(const TermVec & formulae,
-                                  TermVec & out_I) const override;
-  void do_set_opt(const std::string & option,
-                  const std::string & value) override;
-  void forget_queries() override;
-  // enables interpolation, on construction and after reset()
-  void initialize() override;
-
-  // the regular solver that builds this solver's terms
-  std::shared_ptr<BzlaSolver> bzla_solver;
-
-  // assertions from the last interpolation query, indexed by the context level
-  // (although one can get assertions using `bzla->get_assertions()`,
-  // the method does not guarantee that the assertions are in the correct order)
-  mutable TermVec last_itp_query_assertions = {};
-
-  std::string dump_queries_prefix = "";
-  mutable uint32_t itp_query_count = 0;
+  friend class BzlaInterpolator;
 };
 
 }  // namespace smt
