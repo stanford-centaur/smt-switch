@@ -1,7 +1,7 @@
 /*!
  * \file msat-foreign-handle.cpp
  * \brief Tests that MathSAT refuses, and tells apart, terms and sorts from
- * another environment.
+ *        another environment
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -12,7 +12,6 @@
  * make the same terms and sorts in the same order get the same ids for
  * them.
  */
-
 #include <gtest/gtest.h>
 
 #include "smt-switch/exceptions.h"

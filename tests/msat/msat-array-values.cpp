@@ -1,11 +1,10 @@
 /*!
  * \file msat-array-values.cpp
- * \brief Tests that MathSAT's get_array_values refuses what it cannot read.
+ * \brief Tests that MathSAT's get_array_values refuses what it cannot read
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

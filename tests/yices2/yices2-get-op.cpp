@@ -1,6 +1,6 @@
 /*!
  * \file yices2-get-op.cpp
- * \brief Yices2's get_op on the shapes its term representation hides.
+ * \brief Yices2's get_op on the shapes its term representation hides
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -8,7 +8,6 @@
  * These use a non-logging solver, so the backend's own get_op and iteration
  * are what run rather than the op and children a LoggingTerm recorded.
  */
-
 #include <gtest/gtest.h>
 
 #include <memory>

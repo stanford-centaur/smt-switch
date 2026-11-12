@@ -1,11 +1,11 @@
 /*!
  * \file msat-congruence.cpp
- * \brief Tests that MathSAT's congruences in interpolants read as divisible.
+ * \brief Tests that MathSAT's congruences in interpolants read as divisible
  * \author Po-Chun Chien
+ * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

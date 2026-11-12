@@ -1,17 +1,11 @@
-
-/*********************                                                        */
-/*! \file cvc5_datatype.h
-** \verbatim
-** Top contributors (to current version):
-**   Kristopher Brown
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Thin wrapper for cvc5 Datatype-related classes.
-**/
+/*!
+ * \file cvc5_datatype.h
+ * \brief Thin wrapper for cvc5 Datatype-related classes
+ * \author Kristopher Brown
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_CVC5_DATATYPE_H
 #define SMT_SWITCH_CVC5_DATATYPE_H
 

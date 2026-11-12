@@ -1,6 +1,6 @@
 /*!
  * \file yices2-printing.cpp
- * \brief Tests that a printed Yices2 interpolation query replays.
+ * \brief Tests that a printed Yices2 interpolation query replays
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -8,7 +8,6 @@
  * The Yices2 interpolator refutes models of B one at a time, so its script
  * is a check of B per model, one of A under it, and a last check of B.
  */
-
 #include <gtest/gtest.h>
 
 #include <ostream>

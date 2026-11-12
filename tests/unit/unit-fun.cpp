@@ -1,3 +1,10 @@
+/*!
+ * \file unit-fun.cpp
+ * \brief Tests that ops compare equal by their kind and indices
+ * \author Makai Mann
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <string>

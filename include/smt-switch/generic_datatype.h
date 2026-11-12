@@ -1,3 +1,10 @@
+/*!
+ * \file generic_datatype.h
+ * \brief Datatype declarations, constructors and datatypes for GenericSolver
+ * \author Afnaan Hashmi
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_GENERIC_DATATYPE_H
 #define SMT_SWITCH_GENERIC_DATATYPE_H
 

@@ -1,19 +1,10 @@
-/*********************                                                        */
-/*! \file test-generic-term.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief
-**
-**
-**/
-
+/*!
+ * \file test-generic-term.cpp
+ * \brief Tests GenericTerm's ids, properties and constructor checks
+ * \author Yoni Zohar
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <memory>

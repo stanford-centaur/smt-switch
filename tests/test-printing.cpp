@@ -1,19 +1,12 @@
-/*********************                                                        */
-/*! \file test-printing.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar, Áron Ricardo Perez-Lopez
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Tests that the solver's own executable answers what the printing
-**        solver writes the same way the library did.
-**
-**/
-
+/*!
+ * \file test-printing.cpp
+ * \brief Tests that the solver's own executable answers what the printing
+ *        solver writes the same way the library did
+ * \author Yoni Zohar
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2026
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <cstdint>

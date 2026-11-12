@@ -1,19 +1,11 @@
-/*********************                                                        */
-/*! \file test-generic-sort.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief
-**
-**
-**/
-
+/*!
+ * \file test-generic-sort.cpp
+ * \brief Tests GenericSort's properties, accessors and datatype sorts
+ * \author Yoni Zohar
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

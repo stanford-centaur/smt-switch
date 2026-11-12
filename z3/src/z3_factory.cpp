@@ -1,19 +1,10 @@
-/*********************                                                        */
-/*! \file z3_factory.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Lindsey Stuntz
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Factory for creating a Z3 SmtSolver
-**
-**
-**/
-
+/*!
+ * \file z3_factory.cpp
+ * \brief Factory for creating a Z3 SmtSolver
+ * \author Lindsey Stuntz
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/z3_factory.h"
 
 #include <memory>

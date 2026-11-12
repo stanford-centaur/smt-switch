@@ -1,6 +1,6 @@
 /*!
  * \file z3-exceptions.cpp
- * \brief The exceptions the Z3 backend throws.
+ * \brief The exceptions the Z3 backend throws
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * SMT-LIB allows is missing glue, and one applied to an arity or a number of
  * indices SMT-LIB does not allow is misuse.
  */
-
 #include <gtest/gtest.h>
 
 #include "smt-switch/exceptions.h"

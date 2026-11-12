@@ -1,18 +1,10 @@
-/*********************                                                        */
-/*! \file datatype.h
-** \verbatim
-** Top contributors (to current version):
-**   Kristopher Brown
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Abstract interface for SMT datatypes.
-**
-**
-**/
+/*!
+ * \file datatype.h
+ * \brief Abstract interface for SMT datatypes
+ * \author Kristopher Brown
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_DATATYPE_H
 #define SMT_SWITCH_DATATYPE_H
 

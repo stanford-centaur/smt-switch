@@ -1,6 +1,6 @@
 /*!
  * \file btor-bv-values.cpp
- * \brief Bit-vector values made from strings in Boolector.
+ * \brief Bit-vector values made from strings in Boolector
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * minus differently in base 16 and accept malformed numerals, so the
  * backend checks the string itself.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

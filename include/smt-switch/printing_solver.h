@@ -1,17 +1,11 @@
-/*********************                                                        */
-/*! \file printing_solver.h
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Class that wraps another SmtSolver and dumps SMT-LIB
-**        that corresponds to the operations being performed.
-**/
+/*!
+ * \file printing_solver.h
+ * \brief Class that wraps another SmtSolver and dumps SMT-LIB that corresponds
+ *        to the operations being performed
+ * \author Yoni Zohar
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_PRINTING_SOLVER_H
 #define SMT_SWITCH_PRINTING_SOLVER_H
 

@@ -1,6 +1,6 @@
 /*!
  * \file yices2-handle.cpp
- * \brief Tests that a handle from get_context() outlives what it came from.
+ * \brief Tests that a handle from get_context() outlives what it came from
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * Yices instance it lives in, so a handle taken before reset() or before the
  * solver is destroyed still works afterwards.
  */
-
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <gtest/gtest.h>
 #include <yices.h>

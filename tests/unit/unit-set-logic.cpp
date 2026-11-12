@@ -1,6 +1,6 @@
 /*!
  * \file unit-set-logic.cpp
- * \brief Tests that set_logic loses nothing, whether accepted or refused.
+ * \brief Tests that set_logic loses nothing, whether accepted or refused
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,10 +9,9 @@
  * check. Solvers accept more than that, and smt-switch allows what each
  * one allows, so a later set_logic may be accepted or refused with
  * IncorrectUsageException. One it accepts must keep what was made before.
- * A logic the solver does not support is refused with
- * NotImplementedException.
+ *
+ * A logic the solver does not support is refused with NotImplementedException.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

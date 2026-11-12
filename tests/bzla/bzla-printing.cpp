@@ -1,3 +1,10 @@
+/*!
+ * \file bzla-printing.cpp
+ * \brief Tests that printed Bitwuzla interpolation queries replay
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2025
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <memory>

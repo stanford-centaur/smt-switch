@@ -1,18 +1,10 @@
-/*********************                                                        */
-/*! \file test-str.cpp
-** \verbatim
-** Top contributors (to current version):
-**  Nestan Tsiskaridze
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief
-** Tests for theory of strings.
-**/
-
+/*!
+ * \file test-str.cpp
+ * \brief Tests for theory of strings
+ * \author Nestan Tsiskaridze
+ * \date 2023
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <string>

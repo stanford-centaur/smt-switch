@@ -1,19 +1,11 @@
-/*********************                                                        */
-/*! \file cvc5_term.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief cvc5 implementation of AbsTerm
-**
-**
-**/
-
+/*!
+ * \file cvc5_term.cpp
+ * \brief cvc5 implementation of AbsTerm
+ * \author Makai Mann
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/cvc5_term.h"
 
 #include <cvc5/cvc5.h>

@@ -1,6 +1,6 @@
 /*!
  * \file yices2_instance_ref.h
- * \brief A reference to the Yices instance, which lives while any is held.
+ * \brief A reference to the Yices instance, which lives while any is held
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.

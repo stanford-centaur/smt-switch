@@ -1,3 +1,10 @@
+/*!
+ * \file z3_solver.cpp
+ * \brief Z3 implementation of AbsSmtSolver
+ * \author Lindsey Stuntz
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/z3_solver.h"
 
 #include <z3++.h>

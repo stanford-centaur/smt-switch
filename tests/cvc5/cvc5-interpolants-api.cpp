@@ -1,3 +1,10 @@
+/*!
+ * \file cvc5-interpolants-api.cpp
+ * \brief Tests the interpolant cvc5's own API gives for a conjunction
+ * \author Yoni Zohar
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <cvc5/cvc5.h>
 #include <gtest/gtest.h>
 

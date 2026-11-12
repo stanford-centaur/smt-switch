@@ -1,3 +1,11 @@
+/*!
+ * \file datatype.cpp
+ * \brief Abstract interface for SMT datatypes
+ * \author Afnaan Hashmi
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/datatype.h"
 
 #include <cstddef>

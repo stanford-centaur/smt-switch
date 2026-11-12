@@ -1,3 +1,10 @@
+/*!
+ * \file unit-exceptions.cpp
+ * \brief Tests that each exception keeps its message when caught by a base
+ * \author Makai Mann
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <exception>

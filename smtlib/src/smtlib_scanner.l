@@ -1,7 +1,8 @@
 /*!
  * \file smtlib_scanner.l
- * \brief The SMT-LIB tokens, from which flex generates the scanner.
+ * \brief The SMT-LIB tokens, from which flex generates the scanner
  * \author Makai Mann
+ * \author Áron Ricardo Perez-Lopez
  * \date 2021
  * \copyright See the LICENSE file in the top-level source directory.
  */

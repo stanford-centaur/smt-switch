@@ -1,11 +1,10 @@
 /*!
  * \file bitwuzla_term_manager.cpp
- * \brief A Bitwuzla term manager, with what the backend keeps about it.
+ * \brief A Bitwuzla term manager, with what the backend keeps about it
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include "smt-switch/bitwuzla_term_manager.h"
 
 #include <bitwuzla/cpp/bitwuzla.h>

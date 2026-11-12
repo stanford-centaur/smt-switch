@@ -1,6 +1,6 @@
 /*!
  * \file z3_context.h
- * \brief A Z3 context, with what the backend keeps about it.
+ * \brief A Z3 context, with what the backend keeps about it
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.

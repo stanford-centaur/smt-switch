@@ -1,11 +1,10 @@
 /*!
  * \file test-real.cpp
- * \brief Tests for nonlinear real arithmetic.
+ * \brief Tests for nonlinear real arithmetic
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

@@ -1,6 +1,6 @@
 /*!
  * \file z3-handle.cpp
- * \brief Tests that a handle from get_z3_solver() outlives what it came from.
+ * \brief Tests that a handle from get_z3_solver() outlives what it came from
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * handle taken before reset() or before the solver is destroyed still works
  * afterwards.
  */
-
 #include <gtest/gtest.h>
 #include <z3++.h>
 

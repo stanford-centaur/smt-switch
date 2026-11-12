@@ -1,18 +1,11 @@
-/*********************                                                        */
-/*! \file smt.h
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann, Clark Barrett
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief The main include file for the smt-switch abstract interface.
-**
-**
-**/
+/*!
+ * \file smt.h
+ * \brief The main include file for the smt-switch abstract interface
+ * \author Makai Mann
+ * \author Clark Barrett
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_SMT_H
 #define SMT_SWITCH_SMT_H
 

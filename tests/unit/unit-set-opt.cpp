@@ -1,6 +1,6 @@
 /*!
  * \file unit-set-opt.cpp
- * \brief Tests that set_opt refuses what no solver may accept.
+ * \brief Tests that set_opt refuses what no solver may accept
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -11,7 +11,6 @@
  * is refused with IncorrectUsageException, even where the solver would
  * read it.
  */
-
 #include <gtest/gtest.h>
 
 #include "available_solvers.h"

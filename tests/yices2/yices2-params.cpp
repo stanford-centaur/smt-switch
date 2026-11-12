@@ -1,16 +1,15 @@
 /*!
  * \file yices2-params.cpp
- * \brief Yices2's make_param and the predicates that classify its result.
+ * \brief Yices2's make_param and the predicates that classify its result
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * Yices2 does not claim QUANTIFIERS and make_term has no Forall or Exists
- * case, so a parameter cannot yet be bound through smt-switch. What is
- * checked here is that one can be built and classified, which is what
+ * Yices2 does not claim QUANTIFIERS, and make_term refuses Forall and Exists as
+ * not implemented, so a parameter cannot yet be bound through smt-switch. What
+ * is checked here is that one can be built and classified, which is what
  * TermTranslator needs of it.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

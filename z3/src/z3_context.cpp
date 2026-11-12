@@ -1,11 +1,10 @@
 /*!
  * \file z3_context.cpp
- * \brief A Z3 context, with what the backend keeps about it.
+ * \brief A Z3 context, with what the backend keeps about it
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include "smt-switch/z3_context.h"
 
 #include <z3++.h>

@@ -1,19 +1,11 @@
-/*********************                                                        */
-/*! \file sort_inference.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Utility functions for checking sortedness and computing the
-**        expected sort when building a term.
-**
-**/
-
+/*!
+ * \file sort_inference.cpp
+ * \brief Utility functions for checking sortedness and computing the expected
+ *        sort when building a term
+ * \author Makai Mann
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/sort_inference.h"
 
 #include <algorithm>

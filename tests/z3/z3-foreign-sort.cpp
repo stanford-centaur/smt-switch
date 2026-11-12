@@ -1,7 +1,6 @@
 /*!
  * \file z3-foreign-sort.cpp
- * \brief Tests that Z3 refuses, and tells apart, sorts from another Z3
- * context.
+ * \brief Tests that Z3 refuses, and tells apart, sorts from another Z3 context
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -11,7 +10,6 @@
  * context. Z3 numbers sorts per context, so two solvers that make the same
  * sorts in the same order get the same numbers for them.
  */
-
 #include <gtest/gtest.h>
 
 #include "smt-switch/exceptions.h"

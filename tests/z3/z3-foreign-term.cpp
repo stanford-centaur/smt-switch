@@ -1,6 +1,6 @@
 /*!
  * \file z3-foreign-term.cpp
- * \brief Tests that Z3 refuses terms from another Z3 context.
+ * \brief Tests that Z3 refuses terms from another Z3 context
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * another one as its own, failing inside Z3 or building terms that mix the
  * two contexts.
  */
-
 #include <gtest/gtest.h>
 
 #include "smt-switch/exceptions.h"

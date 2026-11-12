@@ -1,18 +1,11 @@
-/*********************                                                        */
-/*! \file portfolio_solver.h
-** \verbatim
-** Top contributors (to current version):
-**   Amalee Wilson
-** This file is part of the smt-switch project.
-** Copyright (c) 2021 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Header for a portfolio solving function that takes a vector
-**        of solvers and a term, and returns check_sat from the first solver
-**        that finishes.
-**/
+/*!
+ * \file portfolio_solver.h
+ * \brief Header for a portfolio solving function that takes a vector of solvers
+ *        and a term, and returns check_sat from the first solver that finishes
+ * \author Amalee Wilson
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_PORTFOLIO_SOLVER_H
 #define SMT_SWITCH_PORTFOLIO_SOLVER_H
 

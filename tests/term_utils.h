@@ -1,6 +1,6 @@
 /*!
  * \file term_utils.h
- * \brief What a term has to match after a round trip through a solver.
+ * \brief What a term has to match after a round trip through a solver
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.

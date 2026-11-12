@@ -1,19 +1,12 @@
-/*********************                                                        */
-/*! \file yices2_solver.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Amalee Wilson, Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Yices2 implementation of AbsSmtSolver
-**
-**
-**/
-
+/*!
+ * \file yices2_solver.cpp
+ * \brief Yices2 implementation of AbsSmtSolver
+ * \author Amalee Wilson
+ * \author Makai Mann
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/yices2_solver.h"
 
 #include <gmp.h>

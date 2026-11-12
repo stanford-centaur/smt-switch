@@ -1,7 +1,7 @@
 /*!
  * \file cvc5-handle.cpp
  * \brief Tests that handles from get_cvc5_solver() and get_term_manager()
- * outlive what they came from.
+ *        outlive what they came from
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -10,7 +10,6 @@
  * manager with the caller, so handles taken before reset() or before the
  * solver is destroyed still work afterwards.
  */
-
 #include <cvc5/cvc5.h>
 #include <gtest/gtest.h>
 

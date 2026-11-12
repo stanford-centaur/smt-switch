@@ -1,19 +1,12 @@
-/*********************                                                        */
-/*! \file solver.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann, Clark Barrett
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Abstract interface for SMT solvers.
-**
-**
-**/
-
+/*!
+ * \file solver.cpp
+ * \brief Abstract interface for SMT solvers
+ * \author Makai Mann
+ * \author Clark Barrett
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/solver.h"
 
 #include <cstdint>

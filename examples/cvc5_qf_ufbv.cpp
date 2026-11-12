@@ -1,3 +1,10 @@
+/*!
+ * \file cvc5_qf_ufbv.cpp
+ * \brief A small incremental QF_UFBV query solved with cvc5
+ * \author Makai Mann
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <smt-switch/cvc5_factory.h>
 #include <smt-switch/smt.h>
 
