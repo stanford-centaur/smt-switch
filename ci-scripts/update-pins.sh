@@ -4,7 +4,8 @@
 #
 # The pins are cmake/provision/*/pin.cmake, plus the MathSAT version and
 # checksums in ci-scripts/download-mathsat.sh. A pin naming a COMMIT rather than
-# a TAG is left alone.
+# a TAG is left alone. Rewriting a solver's pin also rewrites its newest tested
+# release in the README's version table.
 set -euo pipefail
 shopt -s inherit_errexit
 
@@ -14,6 +15,7 @@ source "$(dirname "$0")/vars.sh"
 root_dir=$(realpath "$(dirname "$0")/..")
 provision_dir=$root_dir/cmake/provision
 mathsat_script=$root_dir/ci-scripts/download-mathsat.sh
+readme=$root_dir/README.md
 mathsat_site=https://mathsat.fbk.eu
 gnu_cgit=https://cgit.git.savannah.gnu.org/cgit
 
@@ -107,6 +109,11 @@ release_notes_url() {
     return
   fi
   repo=$(pin_value "$pin" GITHUB_REPO)
+  if [[ $pin == z3 ]]; then
+    # Z3's release pages only point to this file, read at the release's tag.
+    echo "https://github.com/$repo/blob/$version/RELEASE_NOTES.md"
+    return
+  fi
   if [[ -n $repo ]]; then
     echo "https://github.com/$repo/releases/tag/$version"
     return
@@ -149,19 +156,74 @@ check_candidate() {
   fi
 }
 
+# Escapes text for the replacement of a sed s command delimited by |.
+sed_escape() {
+  local escaped=$1
+  escaped=${escaped//\\/\\\\} # \ begins an escape, so it goes first
+  escaped=${escaped//&/\\&}   # & stands for the whole match
+  escaped=${escaped//|/\\|}   # | ends the replacement
+  echo "$escaped"
+}
+
 replace_line() {
   local file=$1 prefix=$2 value=$3 count escaped
   if [[ -z $value ]]; then
     die "$file: refusing to write an empty value"
   fi
-  escaped=${value//\\/\\\\} # \ begins an escape, so it goes first
-  escaped=${escaped//&/\\&} # & stands for the whole match
-  escaped=${escaped//|/\\|} # | ends the replacement
+  escaped=$(sed_escape "$value")
   count=$(grep -c -E "^$prefix" "$file") || count=0
   if ((count != 1)); then
     die "$file: '$prefix' matched $count lines in $file, expected 1"
   fi
   sed -i -E "s|^($prefix).*|\\1$escaped|" "$file"
+}
+
+# Brings the "Newest tested" cell of a solver's row in the README's version
+# table to the given release, keeping the cell's width, or with "show" only
+# prints that edit. A release too long for the cell leaves the table for
+# mdformat to realign. The row is the one named after the pin, ignoring case.
+# A pin with a GNU_PROJECT is a build tool, which has no row.
+update_readme_table() {
+  local pin=$1 latest=$2 action=$3 project version matches count number old
+  local new escaped
+  local -a cells
+  if [[ $pin != mathsat ]]; then
+    project=$(pin_value "$pin" GNU_PROJECT)
+    if [[ -n $project ]]; then
+      return
+    fi
+  fi
+  # some projects put their name before the version in their tags, as in
+  # z3-<version> or cvc5-<version>
+  version=$latest
+  if [[ $version != [0-9]* ]]; then
+    version=${version#*-}
+  fi
+  matches=$(grep -n -i -E "^\| $pin +\|" "$readme") || matches=""
+  count=$(grep -c . <<<"$matches") || count=0
+  if ((count != 1)); then
+    die "README.md: the row of $pin matched $count lines, expected 1"
+  fi
+  number=${matches%%:*}
+  old=${matches#*:}
+  IFS='|' read -r -a cells <<<"$old"
+  if ((${#cells[@]} != 4)); then
+    die "README.md: the row of $pin does not have three cells: $old"
+  fi
+  printf -v 'cells[3]' ' %-*s ' "$((${#cells[3]} - 2))" "$version"
+  new=$(
+    IFS='|'
+    echo "${cells[*]}|"
+  )
+  if [[ $new == "$old" ]]; then
+    return
+  fi
+  if [[ $action == show ]]; then
+    printf 'README.md\n-%s\n+%s\n' "$old" "$new"
+    return
+  fi
+  escaped=$(sed_escape "$new")
+  sed -i "${number}s|.*|$escaped|" "$readme"
 }
 
 # checksum_linux_x86_64 holds the hash for linux-x86_64: the first
@@ -261,7 +323,10 @@ record() {
     behind)
       case $mode in
         list) echo "$pin: $current -> $latest" ;;
-        show) show_edit "$file" "$prefix" "$latest" ;;
+        show)
+          show_edit "$file" "$prefix" "$latest"
+          update_readme_table "$pin" "$latest" show
+          ;;
         apply)
           echo "$pin: $current -> $latest"
           if [[ $pin == mathsat ]]; then
@@ -269,6 +334,7 @@ record() {
           else
             apply_provisioned "$pin" "$file" "$prefix" "$latest"
           fi
+          update_readme_table "$pin" "$latest" apply
           ;;
         *) die "unreachable mode '$mode'" ;;
       esac
