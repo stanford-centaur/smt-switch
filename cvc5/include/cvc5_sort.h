@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_CVC5_SORT_H
+#define SMT_SWITCH_CVC5_SORT_H
 
 #include <cvc5/cvc5.h>
 
@@ -61,3 +61,5 @@ class Cvc5Sort : public AbsSort
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_CVC5_SORT_H

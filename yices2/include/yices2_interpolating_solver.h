@@ -5,8 +5,8 @@
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_YICES2_INTERPOLATING_SOLVER_H
+#define SMT_SWITCH_YICES2_INTERPOLATING_SOLVER_H
 
 #include <string>
 #include <utility>
@@ -73,3 +73,5 @@ class Yices2InterpolatingSolver : public AbsSmtInterpolator
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_YICES2_INTERPOLATING_SOLVER_H

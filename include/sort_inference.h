@@ -13,8 +13,8 @@
 **        expected sort when building a term.
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_SORT_INFERENCE_H
+#define SMT_SWITCH_SORT_INFERENCE_H
 
 #include <unordered_set>
 
@@ -225,3 +225,5 @@ Sort constructor_sort(Op op,
                       const SortVec & sorts);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_SORT_INFERENCE_H

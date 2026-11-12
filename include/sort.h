@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_SORT_H
+#define SMT_SWITCH_SORT_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -118,3 +118,5 @@ struct hash<smt::Sort>
   size_t operator()(const smt::Sort & s) const;
 };
 }  // namespace std
+
+#endif  // SMT_SWITCH_SORT_H

@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BOOLECTOR_SOLVER_H
+#define SMT_SWITCH_BOOLECTOR_SOLVER_H
 
 #include <btortypes.h>
 
@@ -144,3 +144,5 @@ class BoolectorSolver : public AbsSmtSolver
   Result solve();
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BOOLECTOR_SOLVER_H

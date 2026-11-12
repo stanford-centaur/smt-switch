@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_SOLVER_ENUMS_H
+#define SMT_SWITCH_SOLVER_ENUMS_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <ostream>
 #include <string>
@@ -108,3 +108,5 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute sa);
 std::string to_string(SolverAttribute a);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_SOLVER_ENUMS_H

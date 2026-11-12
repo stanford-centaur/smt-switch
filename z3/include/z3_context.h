@@ -12,8 +12,8 @@
  * the context records what it applies and how it prints, which Z3 cannot
  * report.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_Z3_CONTEXT_H
+#define SMT_SWITCH_Z3_CONTEXT_H
 
 #include <z3++.h>
 
@@ -103,3 +103,5 @@ class Z3Context : public z3::context
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_Z3_CONTEXT_H

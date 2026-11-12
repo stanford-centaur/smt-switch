@@ -15,8 +15,8 @@
 **        individual nodes (term occurrences) within the full term.
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_TREE_WALKER_H
+#define SMT_SWITCH_TREE_WALKER_H
 
 #include <unordered_map>
 #include <utility>
@@ -155,3 +155,5 @@ class TreeWalker
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_TREE_WALKER_H

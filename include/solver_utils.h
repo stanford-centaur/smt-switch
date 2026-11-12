@@ -13,7 +13,8 @@
 **        use only, not from the API.
 **
 **/
-#pragma once
+#ifndef SMT_SWITCH_SOLVER_UTILS_H
+#define SMT_SWITCH_SOLVER_UTILS_H
 
 #include <cstddef>
 #include <cstdint>
@@ -272,3 +273,5 @@ UnorderedTermMap store_chain_values(
     const std::vector<std::pair<Term, Term>> & stores);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_SOLVER_UTILS_H

@@ -13,8 +13,8 @@
 **        and has maps for tagging supported features and filtering solvers
 **        by feature.
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_AVAILABLE_SOLVERS_H
+#define SMT_SWITCH_AVAILABLE_SOLVERS_H
 
 #include <iostream>
 #include <string>
@@ -125,3 +125,5 @@ struct ConfigPairName
   }
 };
 }  // namespace smt_tests
+
+#endif  // SMT_SWITCH_AVAILABLE_SOLVERS_H

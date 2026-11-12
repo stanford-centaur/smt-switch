@@ -17,8 +17,8 @@
  * neither a constructor's name and arity nor what an instance applies, and
  * the variable a constant array binds for each index type.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_YICES2_INSTANCE_REF_H
+#define SMT_SWITCH_YICES2_INSTANCE_REF_H
 
 #include <yices_types.h>
 
@@ -75,3 +75,5 @@ class Yices2InstanceRef
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_YICES2_INSTANCE_REF_H

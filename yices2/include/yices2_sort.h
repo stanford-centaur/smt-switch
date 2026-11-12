@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_YICES2_SORT_H
+#define SMT_SWITCH_YICES2_SORT_H
 
 #include <yices_types.h>
 
@@ -65,3 +65,5 @@ class Yices2Sort : public AbsSort
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_YICES2_SORT_H

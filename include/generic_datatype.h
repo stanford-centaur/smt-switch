@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SMT_SWITCH_GENERIC_DATATYPE_H
+#define SMT_SWITCH_GENERIC_DATATYPE_H
 
 #include <cstddef>
 #include <string>
@@ -95,3 +96,5 @@ class GenericDatatype : public AbsDatatype
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_GENERIC_DATATYPE_H

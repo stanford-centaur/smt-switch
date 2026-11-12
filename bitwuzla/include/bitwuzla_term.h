@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BITWUZLA_TERM_H
+#define SMT_SWITCH_BITWUZLA_TERM_H
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -84,3 +84,5 @@ bitwuzla::Kind to_bitwuzla_kind(PrimOp po);
 PrimOp to_primop(bitwuzla::Kind kind);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BITWUZLA_TERM_H

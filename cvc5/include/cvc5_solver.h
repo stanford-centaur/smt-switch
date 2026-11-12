@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_CVC5_SOLVER_H
+#define SMT_SWITCH_CVC5_SOLVER_H
 
 #include <cvc5/cvc5.h>
 
@@ -163,3 +163,5 @@ class cvc5InterpolatingSolver : public AbsSmtInterpolator
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_CVC5_SOLVER_H

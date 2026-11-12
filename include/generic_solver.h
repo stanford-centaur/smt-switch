@@ -31,8 +31,8 @@
 **    symbol or sort declared since the check, which the model knows
 **    nothing about.
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_GENERIC_SOLVER_H
+#define SMT_SWITCH_GENERIC_SOLVER_H
 
 #include <sys/types.h>
 
@@ -467,3 +467,5 @@ class GenericSolver : public AbsSmtSolver
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_GENERIC_SOLVER_H

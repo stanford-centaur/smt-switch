@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_SMT_H
+#define SMT_SWITCH_SMT_H
 
 #ifdef SMT_SWITCH_INTERNAL
 #error "smt.h is for external users; include the specific headers instead"
@@ -52,3 +52,5 @@
 
 // Transfer terms between solvers.
 #include "term_translator.h"  // IWYU pragma: export
+
+#endif  // SMT_SWITCH_SMT_H

@@ -13,8 +13,8 @@
  **
  **
  **/
-
-#pragma once
+#ifndef SMT_SWITCH_Z3_TERM_H
+#define SMT_SWITCH_Z3_TERM_H
 
 #include <z3++.h>
 
@@ -75,3 +75,5 @@ class Z3Term : public AbsTerm
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_Z3_TERM_H

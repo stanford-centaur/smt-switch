@@ -14,8 +14,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_TERM_HASHTABLE_H
+#define SMT_SWITCH_TERM_HASHTABLE_H
 
 #include <cstddef>
 #include <unordered_map>
@@ -52,3 +52,5 @@ class TermHashTable
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_TERM_HASHTABLE_H

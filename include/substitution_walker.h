@@ -12,8 +12,8 @@
 ** \brief Substitution walker for doing substitutions with a persistent cache
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_SUBSTITUTION_WALKER_H
+#define SMT_SWITCH_SUBSTITUTION_WALKER_H
 
 #include "identity_walker.h"
 #include "smt_defs.h"
@@ -33,3 +33,5 @@ class SubstitutionWalker : public IdentityWalker
   ~SubstitutionWalker() override;
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_SUBSTITUTION_WALKER_H

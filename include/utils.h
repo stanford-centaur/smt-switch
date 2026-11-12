@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_UTILS_H
+#define SMT_SWITCH_UTILS_H
 
 #include <cstddef>
 #include <cstdint>
@@ -440,3 +440,5 @@ class DisjointSet
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_UTILS_H

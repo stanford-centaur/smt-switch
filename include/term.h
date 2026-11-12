@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_TERM_H
+#define SMT_SWITCH_TERM_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -238,3 +238,5 @@ TermIter begin(const Term & t);
 TermIter end(const Term & t);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_TERM_H

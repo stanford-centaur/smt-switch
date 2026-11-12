@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BITWUZLA_SORT_H
+#define SMT_SWITCH_BITWUZLA_SORT_H
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -69,3 +69,5 @@ class BzlaSort : public AbsSort
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BITWUZLA_SORT_H

@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BITWUZLA_SOLVER_H
+#define SMT_SWITCH_BITWUZLA_SOLVER_H
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -156,3 +156,5 @@ class BzlaInterpolatingSolver : public AbsSmtInterpolator
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BITWUZLA_SOLVER_H

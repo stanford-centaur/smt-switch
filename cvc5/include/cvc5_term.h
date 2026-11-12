@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_CVC5_TERM_H
+#define SMT_SWITCH_CVC5_TERM_H
 
 #include <cvc5/cvc5.h>
 
@@ -78,3 +78,5 @@ cvc5::Kind to_cvc5_kind(PrimOp po);
 PrimOp to_primop(cvc5::Kind kind);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_CVC5_TERM_H

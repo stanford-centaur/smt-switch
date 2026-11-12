@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BOOLECTOR_FACTORY_H
+#define SMT_SWITCH_BOOLECTOR_FACTORY_H
 
 #include "smt_defs.h"
 
@@ -35,3 +35,5 @@ class BoolectorSolverFactory
   static SmtSolver create(bool logging);
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BOOLECTOR_FACTORY_H

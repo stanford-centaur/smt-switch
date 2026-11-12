@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_MSAT_TERM_H
+#define SMT_SWITCH_MSAT_TERM_H
 
 #include <mathsat.h>
 
@@ -76,3 +76,5 @@ class MsatTerm : public AbsTerm
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_TERM_H

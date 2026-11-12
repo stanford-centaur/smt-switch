@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_Z3_SOLVER_H
+#define SMT_SWITCH_Z3_SOLVER_H
 
 #include <z3++.h>
 
@@ -156,3 +156,5 @@ class Z3Solver : public AbsSmtSolver
                        const DatatypeConstructorDecl &) const;
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_Z3_SOLVER_H

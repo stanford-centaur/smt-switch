@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_MSAT_SOLVER_H
+#define SMT_SWITCH_MSAT_SOLVER_H
 
 #include <mathsat.h>
 
@@ -275,3 +275,5 @@ class MsatInterpolatingSolver : public AbsSmtInterpolator
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_SOLVER_H

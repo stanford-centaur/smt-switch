@@ -12,8 +12,8 @@
 ** \brief Class that wraps another SmtSolver and dumps SMT-LIB
 **        that corresponds to the operations being performed.
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_PRINTING_SOLVER_H
+#define SMT_SWITCH_PRINTING_SOLVER_H
 
 #include <cstddef>
 #include <cstdint>
@@ -226,3 +226,5 @@ SmtInterpolator create_printing_interpolator(
     PrintingStyleEnum style);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_PRINTING_SOLVER_H

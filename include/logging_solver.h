@@ -13,8 +13,8 @@
 **        wrapping sorts and terms and performs hash-consing.
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_LOGGING_SOLVER_H
+#define SMT_SWITCH_LOGGING_SOLVER_H
 
 #include <cstddef>
 #include <cstdint>
@@ -163,3 +163,5 @@ class LoggingSolver : public AbsSmtSolver
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_LOGGING_SOLVER_H
