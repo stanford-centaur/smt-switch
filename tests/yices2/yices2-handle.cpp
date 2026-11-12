@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 
-#include "yices2_solver.h"
+#include "smt-switch/yices2_solver.h"
 
 using namespace smt;
 

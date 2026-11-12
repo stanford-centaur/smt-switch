@@ -14,7 +14,7 @@
 **
 **/
 
-#include "boolector_term.h"
+#include "smt-switch/boolector_term.h"
 
 #include <boolector.h>
 
@@ -33,9 +33,9 @@ extern "C" {
 #include <string>
 #include <string_view>
 
-#include "boolector_sort.h"
-#include "exceptions.h"
-#include "utils.h"
+#include "smt-switch/boolector_sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

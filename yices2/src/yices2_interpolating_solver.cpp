@@ -10,7 +10,7 @@
  * function, so the same loop is run here over the shared symbols only.
  */
 
-#include "yices2_interpolating_solver.h"
+#include "smt-switch/yices2_interpolating_solver.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
@@ -21,13 +21,13 @@
 #include <string>
 #include <vector>
 
-#include "exceptions.h"
-#include "solver_utils.h"
-#include "sort.h"
-#include "utils.h"
-#include "yices2_extensions.h"
-#include "yices2_solver.h"
-#include "yices2_term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/utils.h"
+#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_solver.h"
+#include "smt-switch/yices2_term.h"
 
 namespace smt {
 

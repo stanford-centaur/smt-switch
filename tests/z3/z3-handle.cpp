@@ -16,7 +16,7 @@
 #include <memory>
 #include <string>
 
-#include "z3_solver.h"
+#include "smt-switch/z3_solver.h"
 
 using namespace smt;
 

@@ -14,7 +14,7 @@
 **
 **/
 
-#include "bitwuzla_solver.h"
+#include "smt-switch/bitwuzla_solver.h"
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -31,14 +31,14 @@
 #include <utility>
 #include <vector>
 
-#include "bitwuzla_sort.h"
-#include "bitwuzla_term.h"
-#include "exceptions.h"
-#include "ops.h"
-#include "result.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "utils.h"
+#include "smt-switch/bitwuzla_sort.h"
+#include "smt-switch/bitwuzla_term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

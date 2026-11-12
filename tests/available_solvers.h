@@ -23,8 +23,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "smt_defs.h"
-#include "solver_enums.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_enums.h"
 
 namespace smt_tests {
 

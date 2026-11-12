@@ -14,7 +14,7 @@
 **
 **/
 
-#include "logging_solver.h"
+#include "smt-switch/logging_solver.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,19 +23,19 @@
 #include <utility>
 #include <vector>
 
-#include "datatype.h"
-#include "exceptions.h"
-#include "logging_datatype.h"
-#include "logging_sort.h"
-#include "logging_term.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "sort.h"
-#include "sort_inference.h"
-#include "term.h"
-#include "term_hashtable.h"
-#include "utils.h"
+#include "smt-switch/datatype.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/logging_datatype.h"
+#include "smt-switch/logging_sort.h"
+#include "smt-switch/logging_term.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/sort_inference.h"
+#include "smt-switch/term.h"
+#include "smt-switch/term_hashtable.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

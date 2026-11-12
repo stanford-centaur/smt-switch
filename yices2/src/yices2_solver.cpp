@@ -14,7 +14,7 @@
 **
 **/
 
-#include "yices2_solver.h"
+#include "smt-switch/yices2_solver.h"
 
 #include <gmp.h>
 #include <signal.h>
@@ -33,15 +33,15 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "result.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "utils.h"
-#include "yices2_extensions.h"
-#include "yices2_sort.h"
-#include "yices2_term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
+#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_sort.h"
+#include "smt-switch/yices2_term.h"
 
 using namespace std;
 

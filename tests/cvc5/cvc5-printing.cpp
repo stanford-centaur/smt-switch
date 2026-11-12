@@ -22,16 +22,16 @@
 #include <unordered_set>
 #include <vector>
 
-#include "cvc5_factory.h"
-#include "exceptions.h"
 #include "exec_utils.h"
-#include "interpolating_solver.h"
-#include "ops.h"
-#include "printing_solver.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/cvc5_factory.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/printing_solver.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 #include "test_paths.h"
 
 using namespace smt;

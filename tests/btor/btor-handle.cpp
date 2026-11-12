@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 
-#include "boolector_solver.h"
+#include "smt-switch/boolector_solver.h"
 
 using namespace smt;
 

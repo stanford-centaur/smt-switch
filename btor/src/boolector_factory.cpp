@@ -14,12 +14,12 @@
 **
 **/
 
-#include "boolector_factory.h"
+#include "smt-switch/boolector_factory.h"
 
 #include <memory>
 
-#include "boolector_solver.h"
-#include "logging_solver.h"
+#include "smt-switch/boolector_solver.h"
+#include "smt-switch/logging_solver.h"
 
 namespace smt {
 

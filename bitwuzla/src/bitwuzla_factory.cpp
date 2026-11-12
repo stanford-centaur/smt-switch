@@ -14,13 +14,13 @@
 **
 **/
 
-#include "bitwuzla_factory.h"
+#include "smt-switch/bitwuzla_factory.h"
 
 #include <memory>
 
-#include "bitwuzla_solver.h"
-#include "logging_solver.h"
-#include "smt_defs.h"
+#include "smt-switch/bitwuzla_solver.h"
+#include "smt-switch/logging_solver.h"
+#include "smt-switch/smt_defs.h"
 
 namespace smt {
 

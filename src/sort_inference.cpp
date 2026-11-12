@@ -14,7 +14,7 @@
 **
 **/
 
-#include "sort_inference.h"
+#include "smt-switch/sort_inference.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -26,11 +26,11 @@
 #include <string>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
 
 namespace smt {
 

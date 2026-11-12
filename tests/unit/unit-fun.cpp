@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "ops.h"
+#include "smt-switch/ops.h"
 
 using namespace smt;
 using namespace std;

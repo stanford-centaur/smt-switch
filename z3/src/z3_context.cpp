@@ -6,7 +6,7 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 
-#include "z3_context.h"
+#include "smt-switch/z3_context.h"
 
 #include <z3++.h>
 
@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "utils.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

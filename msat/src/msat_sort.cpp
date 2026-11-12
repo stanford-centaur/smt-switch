@@ -14,7 +14,7 @@
 **
 **/
 
-#include "msat_sort.h"
+#include "smt-switch/msat_sort.h"
 
 #include <mathsat.h>
 
@@ -25,9 +25,9 @@
 #include <string>
 #include <utility>
 
-#include "exceptions.h"
-#include "msat_extensions.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/msat_extensions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

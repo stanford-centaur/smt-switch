@@ -4,7 +4,8 @@
 
 """Test SortingNetwork through Python bindings.
 
-See include/sorting_network.h for more information on the SortingNetwork class.
+See include/smt-switch/sorting_network.h for more information on the
+SortingNetwork class.
 """
 
 from itertools import product

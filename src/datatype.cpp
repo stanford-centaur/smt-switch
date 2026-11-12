@@ -1,4 +1,4 @@
-#include "datatype.h"
+#include "smt-switch/datatype.h"
 
 #include <cstddef>
 #include <functional>

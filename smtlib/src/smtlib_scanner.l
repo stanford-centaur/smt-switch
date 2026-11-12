@@ -71,7 +71,7 @@ inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
 #include <new>
 #include <stdexcept>
 
-#include "utils.h"
+#include "smt-switch/utils.h"
 
 // The length of the token, as the location counts it. Some flex versions
 // declare yyleng as an int and others as a yy_size_t. A token too long for

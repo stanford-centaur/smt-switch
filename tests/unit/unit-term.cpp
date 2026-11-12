@@ -26,16 +26,16 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "exceptions.h"
-#include "generic_sort.h"
-#include "generic_term.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/generic_sort.h"
+#include "smt-switch/generic_term.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 using namespace smt;
 using namespace smt_tests;

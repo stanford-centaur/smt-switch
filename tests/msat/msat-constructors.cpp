@@ -19,13 +19,13 @@
 #include <memory>
 #include <string>
 
-#include "interpolating_solver.h"
-#include "msat_solver.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
+#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/msat_solver.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
 
 using namespace smt;
 

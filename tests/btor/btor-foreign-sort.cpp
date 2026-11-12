@@ -14,12 +14,12 @@
 
 #include <gtest/gtest.h>
 
-#include "boolector_factory.h"
-#include "exceptions.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "sort.h"
+#include "smt-switch/boolector_factory.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
 
 using namespace smt;
 

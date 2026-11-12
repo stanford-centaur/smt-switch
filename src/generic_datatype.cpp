@@ -1,4 +1,4 @@
-#include "generic_datatype.h"
+#include "smt-switch/generic_datatype.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -8,10 +8,10 @@
 #include <tuple>
 #include <utility>
 
-#include "exceptions.h"
-#include "solver_utils.h"
-#include "sort.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

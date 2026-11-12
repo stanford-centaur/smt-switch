@@ -13,19 +13,19 @@
 **
 **/
 
-#include "sorting_network.h"
+#include "smt-switch/sorting_network.h"
 
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

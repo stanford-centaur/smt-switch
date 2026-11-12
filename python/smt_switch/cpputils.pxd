@@ -2,7 +2,7 @@ from .cppapi cimport c_Term, c_TermVec, c_UnorderedTermSet
 from .cppenums cimport c_PrimOp
 
 
-cdef extern from "utils.h" namespace "smt":
+cdef extern from "smt-switch/utils.h" namespace "smt":
     void get_free_symbolic_consts(
         const c_Term & term, c_UnorderedTermSet & out
     ) except +

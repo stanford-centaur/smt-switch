@@ -174,28 +174,30 @@ other words, it should query the underlying solver for information (e.g. the
 sort of a term) whenever possible. To implement a new solver, look at the
 abstract classes in:
 
-- `include/sort.h`
-- `include/term.h`
-- `include/solver.h`
+- `include/smt-switch/sort.h`
+- `include/smt-switch/term.h`
+- `include/smt-switch/solver.h`
 
 You will need to implement a solver-specific version of each of those classes.
-To be able to build terms, you should map each operator in `include/ops.h`. Note
-that some methods have default implementations in `*.cpp` files under the `src`
-directory. These default implementations can be replaced with solver-specific
-implementations for performance improvements. For example, `substitute` takes a
-map and a term and performs sub-term substitution. This has a default
-implementation but is overridden in the `boolector` implementation to rely on
-`boolector's` underlying substitution map infrastructure.
+To be able to build terms, you should map each operator in
+`include/smt-switch/ops.h`. Note that some methods have default implementations
+in `*.cpp` files under the `src` directory. These default implementations can be
+replaced with solver-specific implementations for performance improvements. For
+example, `substitute` takes a map and a term and performs sub-term substitution.
+This has a default implementation but is overridden in the `boolector`
+implementation to rely on `boolector's` underlying substitution map
+infrastructure.
 
 Bit-vector widths and `Op` indices are `std::uint64_t` throughout smt-switch: in
 parameters, return values, members and locals. Convert one to the type a
 solver's API takes only at that call, through `detail::narrow_width`,
-`detail::narrow_index` or `detail::narrow` from `include/solver_utils.h`, which
-throw `IncorrectUsageException` for a value that does not fit. Keep a value in
-the solver's own type only when its API returned it.
+`detail::narrow_index` or `detail::narrow` from
+`include/smt-switch/solver_utils.h`, which throw `IncorrectUsageException` for a
+value that does not fit. Keep a value in the solver's own type only when its API
+returned it.
 
-All your solver header and source files should be put in `<solver name>/include`
-and `<solver name>/src`, respectively.
+All your solver header and source files should be put in
+`<solver name>/include/smt-switch` and `<solver name>/src`, respectively.
 
 Finally, you would make a `create` method which can instantiate a pointer to
-your new solver. For example, see `include/cvc5_factory.h`.
+your new solver. For example, see `include/smt-switch/cvc5_factory.h`.

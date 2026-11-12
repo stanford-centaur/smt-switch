@@ -1,0 +1,128 @@
+/*********************                                                        */
+/*! \file boolector_sort.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief Boolector implementation of AbsSort
+**
+**
+**/
+#ifndef SMT_SWITCH_BOOLECTOR_SORT_H
+#define SMT_SWITCH_BOOLECTOR_SORT_H
+
+#include <btortypes.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/sort.h"
+
+namespace smt {
+
+class BoolectorSortBase : public AbsSort
+{
+ public:
+  BoolectorSortBase(SortKind k,
+                    const std::shared_ptr<Btor> & b,
+                    BoolectorSort s);
+  ~BoolectorSortBase() override;
+  // the destructor releases sort, so a copy would release it twice
+  BoolectorSortBase(const BoolectorSortBase &) = delete;
+  BoolectorSortBase & operator=(const BoolectorSortBase &) = delete;
+  std::size_t hash() const override;
+  std::uint64_t get_width() const override;
+  Sort get_indexsort() const override;
+  Sort get_elemsort() const override;
+  SortVec get_domain_sorts() const override;
+  Sort get_codomain_sort() const override;
+  std::string get_uninterpreted_name() const override;
+  std::size_t get_arity() const override;
+  Sort get_uninterpreted_constructor() const override;
+  SortVec get_uninterpreted_param_sorts() const override;
+  Datatype get_datatype() const override;
+  bool compare(const Sort & s) const override;
+  SortKind get_sort_kind() const override;
+
+  // Getters for solver-specific objects
+  // for interacting with third-party Boolector-specific software
+
+  BoolectorSort get_btor_sort() const;
+
+ protected:
+  // keeps the instance alive for as long as this object is
+  std::shared_ptr<Btor> btor;
+  BoolectorSort sort;
+  SortKind sk;
+
+  friend class BoolectorSolver;
+};
+
+/** The Boolector C API doesn't support querying sorts for the index sort
+    of an array sort, etc...
+    (in Boolector asking for the index is done on a node, i.e. Term, rather than
+   a sort) Thus, we need to track some extra information for implementing
+   AbsSort. To make this simpler, we have unique classes for each sort.
+ */
+
+class BoolectorBVSort : public BoolectorSortBase
+{
+ public:
+  BoolectorBVSort(const std::shared_ptr<Btor> & b,
+                  BoolectorSort s,
+                  std::uint64_t w);
+  std::uint64_t get_width() const override;
+
+ protected:
+  // bit-vector width
+  // Note: we need to store this in addition to the BoolectorSort
+  //       because in Boolector the width is retrieved from a node not a sort
+  std::uint64_t width;
+
+  friend class BoolectorSolver;
+};
+
+class BoolectorArraySort : public BoolectorSortBase
+{
+ public:
+  BoolectorArraySort(const std::shared_ptr<Btor> & b,
+                     BoolectorSort s,
+                     Sort is,
+                     Sort es);
+  Sort get_indexsort() const override;
+  Sort get_elemsort() const override;
+
+ protected:
+  Sort indexsort;
+  Sort elemsort;
+
+  friend class BoolectorSolver;
+};
+
+class BoolectorUFSort : public BoolectorSortBase
+{
+ public:
+  BoolectorUFSort(const std::shared_ptr<Btor> & b,
+                  BoolectorSort s,
+                  SortVec sorts,
+                  Sort codomain);
+  SortVec get_domain_sorts() const override;
+  Sort get_codomain_sort() const override;
+
+ protected:
+  SortVec domain_sorts;
+  Sort codomain_sort;
+
+  friend class BoolectorSolver;
+};
+}  // namespace smt
+
+#endif  // SMT_SWITCH_BOOLECTOR_SORT_H

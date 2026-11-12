@@ -14,12 +14,12 @@
 **
 **/
 
-#include "solver_enums.h"
+#include "smt-switch/solver_enums.h"
 
 #include <sstream>
 #include <unordered_set>
 
-#include "exceptions.h"
+#include "smt-switch/exceptions.h"
 
 namespace smt {
 

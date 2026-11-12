@@ -1,11 +1,11 @@
-#include "tree_walker.h"
+#include "smt-switch/tree_walker.h"
 
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include "smt_defs.h"
-#include "term.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

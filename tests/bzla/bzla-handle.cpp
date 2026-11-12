@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "bitwuzla_solver.h"
+#include "smt-switch/bitwuzla_solver.h"
 
 using namespace smt;
 

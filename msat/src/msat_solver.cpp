@@ -14,7 +14,7 @@
 **
 **/
 
-#include "msat_solver.h"
+#include "smt-switch/msat_solver.h"
 
 #include <gmp.h>
 #include <mathsat.h>
@@ -30,15 +30,15 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "msat_extensions.h"
-#include "msat_sort.h"
-#include "msat_term.h"
-#include "ops.h"
-#include "result.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/msat_extensions.h"
+#include "smt-switch/msat_sort.h"
+#include "smt-switch/msat_term.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
 
 using namespace std;
 

@@ -18,11 +18,11 @@
 
 #include <string>
 
-#include "boolector_factory.h"
-#include "exceptions.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
+#include "smt-switch/boolector_factory.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
 
 using namespace smt;
 

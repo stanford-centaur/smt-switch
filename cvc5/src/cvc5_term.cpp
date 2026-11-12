@@ -14,7 +14,7 @@
 **
 **/
 
-#include "cvc5_term.h"
+#include "smt-switch/cvc5_term.h"
 
 #include <cvc5/cvc5.h>
 
@@ -26,10 +26,10 @@
 #include <string>
 #include <utility>
 
-#include "cvc5_sort.h"
-#include "exceptions.h"
-#include "ops.h"
-#include "utils.h"
+#include "smt-switch/cvc5_sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

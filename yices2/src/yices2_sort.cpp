@@ -14,7 +14,7 @@
 **
 **/
 
-#include "yices2_sort.h"
+#include "smt-switch/yices2_sort.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
@@ -25,8 +25,8 @@
 #include <string>
 #include <vector>
 
-#include "exceptions.h"
-#include "yices2_extensions.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/yices2_extensions.h"
 
 namespace smt {
 

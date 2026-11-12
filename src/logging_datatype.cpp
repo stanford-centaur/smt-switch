@@ -6,7 +6,7 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 
-#include "logging_datatype.h"
+#include "smt-switch/logging_datatype.h"
 
 #include <cstddef>
 #include <functional>
@@ -15,8 +15,8 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

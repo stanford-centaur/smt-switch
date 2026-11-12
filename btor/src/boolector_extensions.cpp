@@ -14,7 +14,7 @@
 **
 **/
 
-#include "boolector_extensions.h"
+#include "smt-switch/boolector_extensions.h"
 
 #include <boolector.h>
 

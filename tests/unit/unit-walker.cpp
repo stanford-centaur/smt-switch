@@ -25,14 +25,14 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "identity_walker.h"
-#include "ops.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "sort.h"
-#include "term.h"
-#include "tree_walker.h"
+#include "smt-switch/identity_walker.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/tree_walker.h"
 
 using namespace smt;
 using namespace smt_tests;

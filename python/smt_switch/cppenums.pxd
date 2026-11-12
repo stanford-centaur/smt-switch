@@ -1,6 +1,6 @@
 from libcpp.string cimport string
 
-cdef extern from "ops.h" namespace "smt":
+cdef extern from "smt-switch/ops.h" namespace "smt":
     cdef cppclass c_SortKind "smt::SortKind":
         pass
 
@@ -8,12 +8,12 @@ cdef extern from "ops.h" namespace "smt":
         pass
 
 
-cdef extern from "result.h" namespace "smt":
+cdef extern from "smt-switch/result.h" namespace "smt":
     cdef cppclass c_ResultType "smt::ResultType":
         pass
 
 
-cdef extern from "sort.h" namespace "smt":
+cdef extern from "smt-switch/sort.h" namespace "smt":
     cdef c_SortKind c_ARRAY "smt::ARRAY"
     cdef c_SortKind c_BOOL "smt::BOOL"
     cdef c_SortKind c_BV "smt::BV"
@@ -23,7 +23,7 @@ cdef extern from "sort.h" namespace "smt":
     string to_string(c_SortKind sk) except +
 
 
-cdef extern from "solver_enums.h" namespace "smt":
+cdef extern from "smt-switch/solver_enums.h" namespace "smt":
     cdef cppclass c_SolverEnum "smt::SolverEnum":
         pass
 
@@ -64,7 +64,7 @@ cdef extern from "solver_enums.h" namespace "smt":
 
     string to_string(c_SolverAttribute sa) except +
 
-cdef extern from "ops.h" namespace "smt":
+cdef extern from "smt-switch/ops.h" namespace "smt":
     cdef c_PrimOp c_And "smt::And"
     cdef c_PrimOp c_Or "smt::Or"
     cdef c_PrimOp c_Xor "smt::Xor"
@@ -143,7 +143,7 @@ cdef extern from "ops.h" namespace "smt":
     string to_string(c_PrimOp op) except +
 
 
-cdef extern from "result.h" namespace "smt":
+cdef extern from "smt-switch/result.h" namespace "smt":
     cdef c_ResultType SAT
     cdef c_ResultType UNSAT
     cdef c_ResultType UNKNOWN

@@ -4,11 +4,11 @@
 #include <memory>
 #include <string>
 
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
-#include "z3_factory.h"
-#include "z3_sort.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/z3_factory.h"
+#include "smt-switch/z3_sort.h"
 
 using namespace smt;
 

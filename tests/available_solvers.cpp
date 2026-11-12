@@ -24,33 +24,33 @@
 #include <unordered_set>
 #include <vector>
 
-#include "exceptions.h"
-#include "logging_solver.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/logging_solver.h"
 #include "test_paths.h"
 
 #ifdef BUILD_BTOR
-#include "boolector_factory.h"
+#include "smt-switch/boolector_factory.h"
 #endif
 
 #ifdef BUILD_BITWUZLA
-#include "bitwuzla_factory.h"
+#include "smt-switch/bitwuzla_factory.h"
 #endif
 
 #ifdef BUILD_CVC5
-#include "cvc5_factory.h"
-#include "generic_solver.h"
+#include "smt-switch/cvc5_factory.h"
+#include "smt-switch/generic_solver.h"
 #endif
 
 #ifdef BUILD_MSAT
-#include "msat_factory.h"
+#include "smt-switch/msat_factory.h"
 #endif
 
 #ifdef BUILD_YICES2
-#include "yices2_factory.h"
+#include "smt-switch/yices2_factory.h"
 #endif
 
 #ifdef BUILD_Z3
-#include "z3_factory.h"
+#include "smt-switch/z3_factory.h"
 #endif
 
 using namespace smt;
