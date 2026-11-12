@@ -13,7 +13,7 @@
 **
 **
 **/
-#include "cvc5_solver.h"
+#include "smt-switch/cvc5_solver.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -26,15 +26,15 @@
 #include <utility>
 #include <vector>
 
-#include "cvc5_datatype.h"
-#include "cvc5_sort.h"
-#include "cvc5_term.h"
-#include "datatype.h"
-#include "exceptions.h"
-#include "result.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "utils.h"
+#include "smt-switch/cvc5_datatype.h"
+#include "smt-switch/cvc5_sort.h"
+#include "smt-switch/cvc5_term.h"
+#include "smt-switch/datatype.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/result.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

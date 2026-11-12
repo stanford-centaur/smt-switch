@@ -28,10 +28,10 @@
 #include <string>
 #include <utility>
 
-#include "ops.h"
-#include "smt_defs.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 class SmtLibReader;
@@ -44,10 +44,10 @@ class SmtLibScanner;
 #include <cstdint>
 #include <stdexcept>
 
-#include "smtlib_reader.h"
+#include "smt-switch/smtlib_reader.h"
 #include "smtlib_scanner.h"
-#include "solver.h"
-#include "utils.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

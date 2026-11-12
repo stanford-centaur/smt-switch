@@ -19,14 +19,14 @@
 #include <memory>
 #include <string>
 
-#include "msat_factory.h"
-#include "msat_solver.h"  // only needed for the static_pointer_cast for testing
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/msat_factory.h"
+#include "smt-switch/msat_solver.h"  // only needed for the static_pointer_cast for testing
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 using namespace smt;
 using namespace std;

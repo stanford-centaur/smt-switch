@@ -14,16 +14,16 @@
 **
 **/
 
-#include "identity_walker.h"
+#include "smt-switch/identity_walker.h"
 
 #include <memory>
 #include <unordered_map>
 #include <utility>
 
-#include "ops.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "term.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

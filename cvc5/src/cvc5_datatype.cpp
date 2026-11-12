@@ -1,4 +1,4 @@
-#include "cvc5_datatype.h"
+#include "smt-switch/cvc5_datatype.h"
 
 #include <cstddef>
 #include <functional>
@@ -7,10 +7,10 @@
 #include <tuple>
 #include <utility>
 
-#include "cvc5_sort.h"
-#include "exceptions.h"
-#include "solver_utils.h"
-#include "utils.h"
+#include "smt-switch/cvc5_sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

@@ -6,7 +6,7 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 
-#include "msat_env.h"
+#include "smt-switch/msat_env.h"
 
 #include <mathsat.h>
 
@@ -16,8 +16,8 @@
 #include <utility>
 #include <vector>
 
-#include "msat_extensions.h"
-#include "utils.h"
+#include "smt-switch/msat_extensions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

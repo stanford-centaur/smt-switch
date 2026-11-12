@@ -7,7 +7,7 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 
-#include "yices2_instance_ref.h"
+#include "smt-switch/yices2_instance_ref.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>

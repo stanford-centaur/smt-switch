@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "cvc5_solver.h"
+#include "smt-switch/cvc5_solver.h"
 
 using namespace smt;
 

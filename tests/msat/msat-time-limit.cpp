@@ -14,15 +14,15 @@
 #include <cstddef>
 #include <string>
 
-#include "exceptions.h"
-#include "interpolating_solver.h"
-#include "msat_factory.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/interpolating_solver.h"
+#include "smt-switch/msat_factory.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 using namespace smt;
 

@@ -14,7 +14,7 @@
 **
 **/
 
-#include "yices2_extensions.h"
+#include "smt-switch/yices2_extensions.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 
-#include "exceptions.h"
+#include "smt-switch/exceptions.h"
 
 using namespace std;
 

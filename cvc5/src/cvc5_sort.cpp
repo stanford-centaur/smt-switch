@@ -14,7 +14,7 @@
 **
 **/
 
-#include "cvc5_sort.h"
+#include "smt-switch/cvc5_sort.h"
 
 #include <cvc5/cvc5.h>
 
@@ -22,8 +22,8 @@
 #include <memory>
 #include <vector>
 
-#include "cvc5_datatype.h"
-#include "exceptions.h"
+#include "smt-switch/cvc5_datatype.h"
+#include "smt-switch/exceptions.h"
 
 namespace smt {
 

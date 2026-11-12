@@ -1,0 +1,100 @@
+#ifndef SMT_SWITCH_GENERIC_DATATYPE_H
+#define SMT_SWITCH_GENERIC_DATATYPE_H
+
+#include <cstddef>
+#include <string>
+#include <vector>
+
+#include "smt-switch/datatype.h"
+#include "smt-switch/smt_defs.h"
+
+namespace smt {
+
+// Struct used to hold everything needed to work with datatype selectors
+struct SelectorComponents
+{
+  // Name of the selector and its associated sort, which for a self selector
+  // is null except in the copy a sort keeps when its datatype is used
+  std::string name = "";
+  Sort sort = nullptr;
+  // Used to determine if the sort needs to be replaced later
+  // on. Usually true if no further work needs to be done to the selector.
+  bool finalized = false;
+};
+
+class GenericDatatypeDecl : public AbsDatatypeDecl
+{
+ public:
+  explicit GenericDatatypeDecl(std::string name);
+  std::string get_name() const override;
+
+ protected:
+  friend class GenericSolver;
+  std::string dt_name;
+};
+
+class GenericDatatypeConstructorDecl : public AbsDatatypeConstructorDecl
+{
+ public:
+  explicit GenericDatatypeConstructorDecl(const std::string & name);
+  std::string get_name() const override;
+  std::size_t hash() const override;
+  bool compare(const DatatypeConstructorDecl & d) const override;
+  bool less(const DatatypeConstructorDecl & d) const override;
+  // Stores a new selector in the constructor object. newSelector: the
+  // SelectorComponents to be added.
+  void add_new_selector(const SelectorComponents & newSelector);
+  std::vector<SelectorComponents> get_selector_vector() const;
+  // Returns the size of selector_vector
+  int get_selector_count() const;
+  std::string get_dt_name() const;
+
+ protected:
+  std::vector<SelectorComponents> selector_vector = {};
+  std::string cons_name;
+  DatatypeDecl dt_decl = nullptr;
+  // Setter for the dt_decl member. Only to be used when a constructor
+  // is added to a datatype. datatype_decl: The DatatypeDecl of the datatype.
+  void update_stored_dt(const DatatypeDecl & datatype_decl);
+  friend class GenericSolver;
+  friend class GenericDatatype;
+};
+
+class GenericDatatype : public AbsDatatype
+{
+ public:
+  explicit GenericDatatype(const DatatypeDecl & dt_declaration);
+  int get_num_constructors() const override;
+  int get_num_selectors(std::string cons) const override;
+  std::vector<std::string> get_constructor_names() const override;
+  std::vector<std::string> get_selector_names(
+      const std::string & cons) const override;
+  Sort get_selector_sort(const std::string & cons,
+                         const std::string & sel) const override;
+  std::string get_name() const override;
+  // Stores a constructor object (dt_cons_decl) in the datatype object.
+  void add_constructor(const DatatypeConstructorDecl & dt_cons_decl);
+  // Stores a new selector (newSelector) in the constructor object
+  // (dt_cons_decl) if the constructor is associated with the datatype
+  void add_selector(const DatatypeConstructorDecl & dt_cons_decl,
+                    const SelectorComponents & newSelector);
+  std::vector<DatatypeConstructorDecl> get_cons_vector() const;
+  // Updates the sort of any selector whose finalized field is
+  // false. The not-finalized selectors have their sorts set to new_sort.
+  // This function is used only as part of the process of adding a
+  // 'self-selector'. A self selector holds no sort until this function
+  // is called, when the datatype's sort is created, to give the
+  // datatype's copy of it the datatype sort.
+  void change_sort_of_selector(const Sort new_sort);
+  std::hash<std::string> str_hash = {};
+
+ protected:
+  DatatypeDecl dt_decl;
+  std::vector<DatatypeConstructorDecl> cons_decl_vector = {};
+
+  friend class GenericSolver;
+};
+
+}  // namespace smt
+
+#endif  // SMT_SWITCH_GENERIC_DATATYPE_H

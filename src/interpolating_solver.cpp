@@ -14,7 +14,7 @@
 **
 **/
 
-#include "interpolating_solver.h"
+#include "smt-switch/interpolating_solver.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -23,10 +23,10 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 

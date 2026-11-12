@@ -21,11 +21,11 @@
 #include <memory>
 #include <string>
 
-#include "exceptions.h"
-#include "smt_defs.h"
-#include "term.h"
-#include "yices2_factory.h"
-#include "yices2_term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/term.h"
+#include "smt-switch/yices2_factory.h"
+#include "smt-switch/yices2_term.h"
 
 using namespace smt;
 

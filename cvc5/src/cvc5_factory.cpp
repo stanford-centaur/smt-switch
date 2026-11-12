@@ -14,12 +14,12 @@
 **
 **/
 
-#include "cvc5_factory.h"
+#include "smt-switch/cvc5_factory.h"
 
 #include <memory>
 
-#include "cvc5_solver.h"
-#include "logging_solver.h"
+#include "smt-switch/cvc5_solver.h"
+#include "smt-switch/logging_solver.h"
 
 namespace smt {
 

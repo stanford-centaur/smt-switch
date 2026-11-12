@@ -14,7 +14,7 @@
 **
 **/
 
-#include "logging_term.h"
+#include "smt-switch/logging_term.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -22,11 +22,11 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "sort.h"
-#include "term.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

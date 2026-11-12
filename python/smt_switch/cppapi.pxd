@@ -23,7 +23,7 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-cdef extern from "sort.h" namespace "smt":
+cdef extern from "smt-switch/sort.h" namespace "smt":
     cdef cppclass AbsSort:
         AbsSort() except +
         string to_string() except +
@@ -37,7 +37,7 @@ cdef extern from "sort.h" namespace "smt":
         c_SortKind get_sort_kind() except +
 
 
-cdef extern from "ops.h" namespace "smt":
+cdef extern from "smt-switch/ops.h" namespace "smt":
     cdef cppclass c_OpIndices "smt::Op::Indices":
         size_t size() except +
         uint64_t operator[](size_t i) except +
@@ -57,7 +57,7 @@ cdef extern from "ops.h" namespace "smt":
     ostream& operator<<(ostream & output, const c_Op o) except +
 
 
-cdef extern from "term.h" namespace "smt":
+cdef extern from "smt-switch/term.h" namespace "smt":
     cdef cppclass c_TermIter "smt::TermIter":
         c_TermIter() except +
         c_TermIter& operator++() except +
@@ -85,7 +85,7 @@ cdef extern from "term.h" namespace "smt":
     ostream& operator<<(ostream& output, const c_Term t) except +
 
 
-cdef extern from "result.h" namespace "smt":
+cdef extern from "smt-switch/result.h" namespace "smt":
     cdef cppclass c_Result "smt::Result":
         bint is_sat() except +
         bint is_unsat() except +
@@ -95,7 +95,7 @@ cdef extern from "result.h" namespace "smt":
         string to_string() except+
 
 
-cdef extern from "solver.h" namespace "smt":
+cdef extern from "smt-switch/solver.h" namespace "smt":
     cdef cppclass AbsSmtSolver:
         AbsSmtSolver() except +
         void set_opt(const string option, const string value) except +
@@ -136,14 +136,14 @@ cdef extern from "solver.h" namespace "smt":
         void dump_smt2(string filename) except +
 
 
-cdef extern from "interpolating_solver.h" namespace "smt":
+cdef extern from "smt-switch/interpolating_solver.h" namespace "smt":
     cdef cppclass AbsSmtInterpolator(AbsSmtSolver):
         c_Result get_interpolant(
             const c_Term & A, const c_Term & B, c_Term & out_I
         ) except +
 
 
-cdef extern from "sorting_network.h" namespace "smt":
+cdef extern from "smt-switch/sorting_network.h" namespace "smt":
     cdef cppclass c_SortingNetwork "smt::SortingNetwork":
         c_SortingNetwork(const c_SmtSolver & solver) except +
         c_TermVec sorting_network(const c_TermVec & unsorted) except +

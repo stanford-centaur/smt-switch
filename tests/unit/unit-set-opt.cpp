@@ -15,9 +15,9 @@
 #include <gtest/gtest.h>
 
 #include "available_solvers.h"
-#include "exceptions.h"
-#include "smt_defs.h"
-#include "solver.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
 
 using namespace smt;
 using namespace smt_tests;

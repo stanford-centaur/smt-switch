@@ -14,17 +14,17 @@
 **
 **/
 
-#include "yices2_factory.h"
+#include "smt-switch/yices2_factory.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
 
 #include <memory>
 
-#include "exceptions.h"
-#include "logging_solver.h"
-#include "yices2_interpolating_solver.h"
-#include "yices2_solver.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/logging_solver.h"
+#include "smt-switch/yices2_interpolating_solver.h"
+#include "smt-switch/yices2_solver.h"
 
 namespace smt {
 

@@ -6,7 +6,7 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 
-#include "exceptions.h"
+#include "smt-switch/exceptions.h"
 
 SmtException::SmtException(const char * message) : msg(message) {}
 

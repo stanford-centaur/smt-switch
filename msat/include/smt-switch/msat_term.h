@@ -1,0 +1,80 @@
+/*********************                                                        */
+/*! \file msat_term.h
+** \verbatim
+** Top contributors (to current version):
+**   Makai Mann
+** This file is part of the smt-switch project.
+** Copyright (c) 2020 by the authors listed in the file AUTHORS
+** in the top-level source directory) and their institutional affiliations.
+** All rights reserved.  See the file LICENSE in the top-level source
+** directory for licensing information.\endverbatim
+**
+** \brief MathSAT implementation of AbsTerm
+**
+**
+**/
+#ifndef SMT_SWITCH_MSAT_TERM_H
+#define SMT_SWITCH_MSAT_TERM_H
+
+#include <mathsat.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "smt-switch/msat_env.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+
+namespace smt {
+
+class MsatTerm : public AbsTerm
+{
+ public:
+  MsatTerm(const std::shared_ptr<MsatEnv> & e, msat_term t);
+  MsatTerm(const std::shared_ptr<MsatEnv> & e, msat_decl d);
+  std::size_t hash() const override;
+  std::size_t get_id() const override;
+  bool compare(const Term & absterm) const override;
+  Op get_op() const override;
+  Sort get_sort() const override;
+  bool is_symbol() const override;
+  bool is_param() const override;
+  bool is_symbolic_const() const override;
+  bool is_value() const override;
+  virtual std::string to_string() const override;
+  std::string get_constructor_name() const override;
+  std::string get_param_name() const override;
+  std::string get_selector_name() const override;
+  std::string get_symbol_name() const override;
+  uint64_t to_int() const override;
+  int64_t to_signed_int() const override;
+  bool to_bool() const override;
+  std::string print_value_as(SortKind sk) const override;
+
+  // Getters for solver-specific objects
+  // for interacting with third-party MathSAT-specific software
+  msat_term get_msat_term() const;
+  msat_decl get_msat_decl() const;
+
+ protected:
+  std::size_t get_num_children() const override;
+  Term get_child(std::size_t i) const override;
+
+  // shared with the solver, so the environment lives as long as this term
+  std::shared_ptr<MsatEnv> env;
+  // whichever of term and decl is not wrapped stays null (invalid)
+  msat_term term = {};
+  msat_decl decl = {};
+  bool is_uf = false;  ///< set to true if wrapping a msat_decl (e.g. an
+                       ///< uninterpreted function)
+
+  friend class MsatSolver;
+  friend class MsatInterpolatingSolver;
+};
+
+}  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_TERM_H

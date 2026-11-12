@@ -1,4 +1,4 @@
-#include "z3_solver.h"
+#include "smt-switch/z3_solver.h"
 
 #include <z3++.h>
 
@@ -16,18 +16,18 @@
 #include <valarray>
 #include <vector>
 
-#include "datatype.h"
-#include "exceptions.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "sort.h"
-#include "utils.h"
-#include "z3_datatype.h"
-#include "z3_sort.h"
-#include "z3_term.h"
+#include "smt-switch/datatype.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/utils.h"
+#include "smt-switch/z3_datatype.h"
+#include "smt-switch/z3_sort.h"
+#include "smt-switch/z3_term.h"
 
 using namespace std;
 

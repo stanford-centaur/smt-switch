@@ -24,14 +24,14 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "exceptions.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "smtlib_reader.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/smtlib_reader.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 #include "test_paths.h"
 
 using namespace smt;

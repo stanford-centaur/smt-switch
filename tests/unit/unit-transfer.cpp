@@ -22,13 +22,13 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "ops.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "sort.h"
-#include "term.h"
-#include "term_translator.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/term_translator.h"
 
 using namespace smt;
 using namespace smt_tests;

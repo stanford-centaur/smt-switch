@@ -16,7 +16,7 @@
 #include <memory>
 #include <string>
 
-#include "msat_solver.h"
+#include "smt-switch/msat_solver.h"
 
 using namespace smt;
 

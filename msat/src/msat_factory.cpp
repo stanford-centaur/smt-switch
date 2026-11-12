@@ -14,12 +14,12 @@
 **
 **/
 
-#include "msat_factory.h"
+#include "smt-switch/msat_factory.h"
 
 #include <memory>
 
-#include "logging_solver.h"
-#include "msat_solver.h"
+#include "smt-switch/logging_solver.h"
+#include "smt-switch/msat_solver.h"
 
 namespace smt {
 

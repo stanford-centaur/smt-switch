@@ -1,13 +1,13 @@
-#include "z3_term.h"
+#include "smt-switch/z3_term.h"
 
 #include <cstdint>
 #include <memory>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "solver_utils.h"
-#include "utils.h"
-#include "z3_sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
+#include "smt-switch/z3_sort.h"
 
 using namespace std;
 

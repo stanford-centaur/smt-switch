@@ -14,7 +14,7 @@
 **
 **/
 
-#include "bitwuzla_sort.h"
+#include "smt-switch/bitwuzla_sort.h"
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -26,8 +26,8 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

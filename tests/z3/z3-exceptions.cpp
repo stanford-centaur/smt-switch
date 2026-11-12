@@ -12,14 +12,14 @@
 
 #include <gtest/gtest.h>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "sort.h"
-#include "term.h"
-#include "z3_factory.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/z3_factory.h"
 
 using namespace smt;
 

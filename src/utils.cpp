@@ -14,7 +14,7 @@
 **
 **/
 
-#include "utils.h"
+#include "smt-switch/utils.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -30,16 +30,16 @@
 #include <unordered_map>
 #include <vector>
 
-#include "datatype.h"
-#include "exceptions.h"
-#include "identity_walker.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_utils.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/datatype.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/identity_walker.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

@@ -83,39 +83,39 @@ solvers["z3"] = create_z3_solver
 
 
 DECLARE_BTOR = """
-cdef extern from "boolector_factory.h":
+cdef extern from "smt-switch/boolector_factory.h":
     c_SmtSolver cpp_create_btor_solver "smt::BoolectorSolverFactory::create" (bint logging) except +
 """
 
 
 DECLARE_BITWUZLA = """
-cdef extern from "bitwuzla_factory.h":
+cdef extern from "smt-switch/bitwuzla_factory.h":
     c_SmtSolver cpp_create_bitwuzla_solver "smt::BitwuzlaSolverFactory::create" (bint logging) except +
     c_SmtInterpolator cpp_create_bitwuzla_interpolator "smt::BitwuzlaSolverFactory::create_interpolating_solver" () except +
 """
 
 
 DECLARE_CVC5 = """
-cdef extern from "cvc5_factory.h":
+cdef extern from "smt-switch/cvc5_factory.h":
     c_SmtSolver cpp_create_cvc5_solver "smt::Cvc5SolverFactory::create" (bint logging) except +
     c_SmtInterpolator cpp_create_cvc5_interpolator "smt::Cvc5SolverFactory::create_interpolating_solver" () except +
 """
 
 
 DECLARE_MSAT = """
-cdef extern from "msat_factory.h":
+cdef extern from "smt-switch/msat_factory.h":
     c_SmtSolver cpp_create_msat_solver "smt::MsatSolverFactory::create" (bint logging) except +
     c_SmtInterpolator cpp_create_msat_interpolator "smt::MsatSolverFactory::create_interpolating_solver" () except +
 """
 
 DECLARE_YICES2 = """
-cdef extern from "yices2_factory.h":
+cdef extern from "smt-switch/yices2_factory.h":
     c_SmtSolver cpp_create_yices2_solver "smt::Yices2SolverFactory::create" (bint logging) except +
     c_SmtInterpolator cpp_create_yices2_interpolator "smt::Yices2SolverFactory::create_interpolating_solver" () except +
 """
 
 DECLARE_Z3 = """
-cdef extern from "z3_factory.h":
+cdef extern from "smt-switch/z3_factory.h":
     c_SmtSolver cpp_create_z3_solver "smt::Z3SolverFactory::create" (bint logging) except +
 """
 

@@ -14,12 +14,12 @@
 **
 **/
 
-#include "result.h"
+#include "smt-switch/result.h"
 
 #include <string>
 #include <utility>
 
-#include "exceptions.h"
+#include "smt-switch/exceptions.h"
 
 namespace smt {
 

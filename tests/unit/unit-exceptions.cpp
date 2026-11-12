@@ -3,7 +3,7 @@
 #include <exception>
 #include <string>
 
-#include "exceptions.h"
+#include "smt-switch/exceptions.h"
 
 // Callers catch SmtException, or std::exception, to handle any error the
 // library raises, so every exception class must be catchable as both and

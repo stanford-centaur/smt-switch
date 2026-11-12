@@ -6,7 +6,7 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 
-#include "bitwuzla_term_manager.h"
+#include "smt-switch/bitwuzla_term_manager.h"
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "utils.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

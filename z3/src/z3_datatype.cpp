@@ -1,4 +1,4 @@
-#include "z3_datatype.h"
+#include "smt-switch/z3_datatype.h"
 
 #include <cstddef>
 #include <functional>
@@ -7,9 +7,9 @@
 #include <tuple>
 #include <utility>
 
-#include "exceptions.h"
-#include "utils.h"
-#include "z3_sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/utils.h"
+#include "smt-switch/z3_sort.h"
 
 namespace z3 {
 

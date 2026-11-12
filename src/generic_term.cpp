@@ -14,7 +14,7 @@
 **
 **/
 
-#include "generic_term.h"
+#include "smt-switch/generic_term.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,13 +23,13 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "generic_sort.h"
-#include "ops.h"
-#include "smt_defs.h"
-#include "sort.h"
-#include "term.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/generic_sort.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

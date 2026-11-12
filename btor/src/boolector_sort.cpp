@@ -14,7 +14,7 @@
 **
 **/
 
-#include "boolector_sort.h"
+#include "smt-switch/boolector_sort.h"
 
 #include <boolector.h>
 
@@ -23,8 +23,8 @@
 #include <functional>
 #include <utility>
 
-#include "exceptions.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

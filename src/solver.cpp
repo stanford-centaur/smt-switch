@@ -14,7 +14,7 @@
 **
 **/
 
-#include "solver.h"
+#include "smt-switch/solver.h"
 
 #include <cstdint>
 #include <list>
@@ -22,12 +22,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "exceptions.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver_enums.h"
-#include "sort.h"
-#include "term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

@@ -14,7 +14,7 @@
 **
 **/
 
-#include "smtlib_reader.h"
+#include "smt-switch/smtlib_reader.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -32,12 +32,12 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
 #include "smtlib_parser.h"
 #include "smtlib_scanner.h"
-#include "solver.h"
-#include "sort.h"
 
 SmtLibParseException::~SmtLibParseException() = default;
 

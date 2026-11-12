@@ -15,7 +15,7 @@
 **
 **/
 
-#include "term_hashtable.h"
+#include "smt-switch/term_hashtable.h"
 
 #include <cstddef>
 #include <unordered_set>

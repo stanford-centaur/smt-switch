@@ -164,10 +164,6 @@ set(
 
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})
 add_library(SmtSwitch::smt-switch ALIAS smt-switch)
-
-# Headers install into include/smt-switch, and consumers spell the prefix:
-# #include "smt-switch/smt.h". In the build tree they are found unprefixed,
-# hence the two interfaces.
 target_include_directories(
   smt-switch
   PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIRS}>" $<INSTALL_INTERFACE:include>
@@ -317,7 +313,7 @@ endif()
 # install smt-switch
 install(TARGETS smt-switch EXPORT SmtSwitchTargets DESTINATION lib)
 # install public headers
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/" DESTINATION include/smt-switch)
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/" DESTINATION include)
 
 ######################### Install the CMake package ############################
 include(CMakePackageConfigHelpers)

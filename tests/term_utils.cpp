@@ -15,12 +15,12 @@
 #include <utility>
 #include <vector>
 
-#include "ops.h"
-#include "result.h"
-#include "solver.h"
-#include "sort.h"
-#include "term.h"
-#include "utils.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/utils.h"
 
 using namespace smt;
 

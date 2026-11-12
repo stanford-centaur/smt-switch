@@ -14,7 +14,7 @@
 **
 **/
 
-#include "boolector_solver.h"
+#include "smt-switch/boolector_solver.h"
 
 #include <boolector.h>
 
@@ -34,15 +34,15 @@ extern "C" {
 #include <utility>
 #include <vector>
 
-#include "boolector_extensions.h"
-#include "boolector_sort.h"
-#include "boolector_term.h"
-#include "exceptions.h"
-#include "ops.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "term_translator.h"
-#include "utils.h"
+#include "smt-switch/boolector_extensions.h"
+#include "smt-switch/boolector_sort.h"
+#include "smt-switch/boolector_term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/term_translator.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

@@ -14,7 +14,7 @@
 **
 **/
 
-#include "ops.h"
+#include "smt-switch/ops.h"
 
 #include <algorithm>
 #include <climits>
@@ -24,8 +24,8 @@
 #include <string>
 #include <utility>
 
-#include "exceptions.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
 

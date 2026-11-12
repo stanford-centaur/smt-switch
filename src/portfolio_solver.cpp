@@ -14,7 +14,7 @@
 **        that finishes.
 **/
 
-#include "portfolio_solver.h"
+#include "smt-switch/portfolio_solver.h"
 
 #include <poll.h>
 #include <sys/types.h>
@@ -32,13 +32,13 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "solver_utils.h"
-#include "sort.h"
-#include "term_translator.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term_translator.h"
 
 namespace {
 

@@ -28,19 +28,19 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "exceptions.h"
-#include "generic_datatype.h"
-#include "generic_solver.h"
-#include "generic_term.h"
-#include "ops.h"
-#include "result.h"
-#include "smt_defs.h"
-#include "solver.h"
-#include "solver_enums.h"
-#include "sort.h"
-#include "term.h"
-#include "term_translator.h"
-#include "utils.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/generic_datatype.h"
+#include "smt-switch/generic_solver.h"
+#include "smt-switch/generic_term.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
+#include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
+#include "smt-switch/term.h"
+#include "smt-switch/term_translator.h"
+#include "smt-switch/utils.h"
 
 using namespace smt;
 using namespace smt_tests;

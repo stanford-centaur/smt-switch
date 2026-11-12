@@ -14,7 +14,7 @@
 **
 **/
 
-#include "solver_utils.h"
+#include "smt-switch/solver_utils.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -30,10 +30,10 @@
 #include <utility>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "solver.h"
-#include "term.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/solver.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

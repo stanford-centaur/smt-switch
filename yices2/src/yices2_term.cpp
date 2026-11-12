@@ -14,7 +14,7 @@
 **
 **/
 
-#include "yices2_term.h"
+#include "smt-switch/yices2_term.h"
 
 #include <gmp.h>
 #include <yices.h>
@@ -24,12 +24,12 @@
 #include <string>
 #include <vector>
 
-#include "exceptions.h"
-#include "ops.h"
-#include "solver_utils.h"
-#include "utils.h"
-#include "yices2_extensions.h"
-#include "yices2_sort.h"
+#include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/solver_utils.h"
+#include "smt-switch/utils.h"
+#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_sort.h"
 
 using namespace std;
 

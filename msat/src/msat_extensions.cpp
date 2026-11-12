@@ -14,7 +14,7 @@
 **
 **/
 
-#include "msat_extensions.h"
+#include "smt-switch/msat_extensions.h"
 
 #include <gmp.h>
 #include <mathsat.h>
@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "exceptions.h"
+#include "smt-switch/exceptions.h"
 
 using namespace std;
 
