@@ -24,6 +24,7 @@
 
 #include "available_solvers.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/smtlib_reader.h"
@@ -672,6 +673,18 @@ TEST_P(Logics, AllAfterTerm)
   // ALL, which the native backends accept
   s->make_term(true);
   EXPECT_NO_THROW(reader->set_logic("ALL"));
+}
+
+TEST_P(Logics, BVIntConversionsAreStandard)
+{
+  SmtSolver fresh = create_solver(GetParam());
+  SmtLibReader strict_reader(fresh, true);
+  strict_reader.set_logic("ALL");
+  EXPECT_EQ(strict_reader.lookup_primop("ubv_to_int"), UBV_To_Int);
+  EXPECT_EQ(strict_reader.lookup_primop("sbv_to_int"), SBV_To_Int);
+  EXPECT_EQ(strict_reader.lookup_primop("int_to_bv"), Int_To_BV);
+  EXPECT_EQ(strict_reader.lookup_primop("bv2nat"), NUM_OPS_AND_NULL);
+  EXPECT_EQ(strict_reader.lookup_primop("int2bv"), NUM_OPS_AND_NULL);
 }
 
 INSTANTIATE_TEST_SUITE_P(
