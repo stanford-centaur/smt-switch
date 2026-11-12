@@ -682,6 +682,13 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
   }
 }
 
+Sort BoolectorSolver::make_sort(const Sort & /* sort_con */,
+                                const SortVec & /* sorts */) const
+{
+  throw NotImplementedException("Uninterpreted sorts are not supported by "
+                                + to_string(solver_enum));
+}
+
 Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
 {
   // check that name is available, which btor_node_set_symbol below does not

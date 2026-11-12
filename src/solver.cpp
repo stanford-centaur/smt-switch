@@ -110,14 +110,6 @@ void AbsSmtSolver::reset_assertions()
   context_level = 0;
 }
 
-Sort AbsSmtSolver::make_sort(const Sort & /* sort_con */,
-                             const SortVec & /* sorts */) const
-{
-  throw NotImplementedException(
-      "Uninterpreted sort constructors are not supported by "
-      + to_string(solver_enum));
-}
-
 Term AbsSmtSolver::make_term(const std::string & /* s */,
                              bool /* useEscSequences */,
                              const Sort & /* sort */) const
