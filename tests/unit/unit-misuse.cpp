@@ -33,8 +33,8 @@ class Misuse : public testing::Test,
 
 TEST_P(Misuse, GetValueWithoutProduceModels)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == YICES2 || se == Z3)
+  solvers::Kind kind = GetParam().solver_kind;
+  if (kind == solvers::YICES2 || kind == solvers::Z3)
   {
     GTEST_SKIP() << "the backend gives a model without produce-models";
   }
@@ -126,8 +126,8 @@ TEST_P(Misuse, UnsatAssumptionsAfterSatCheck)
 
 TEST_P(Misuse, ZeroWidthBitVector)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == MSAT || se == GENERIC_SOLVER)
+  solvers::Kind kind = GetParam().solver_kind;
+  if (kind == solvers::MSAT || kind == solvers::GENERIC)
   {
     GTEST_SKIP() << "the backend makes a bit-vector sort of width 0";
   }

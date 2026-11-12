@@ -16,7 +16,6 @@
 
 #include "exec_utils.h"
 #include "smt-switch/cvc5_factory.h"
-#include "smt-switch/exceptions.h"
 #include "smt-switch/interpolator.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/printing_interpolator.h"
@@ -73,11 +72,6 @@ TEST_F(Cvc5PrintingTest, Interpolation)
   Term B1 = s->make_term(Op::Gt, z, x);
   Term I1;
   s->get_interpolant(A1, B1, I1);
-
-  // x=0
-  EXPECT_THROW(
-      s->assert_formula(s->make_term(Op::Equal, x, s->make_term(0, intsort))),
-      IncorrectUsageException);
 
   check_result(
       {

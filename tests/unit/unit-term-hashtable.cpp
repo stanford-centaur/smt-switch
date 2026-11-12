@@ -26,7 +26,7 @@ namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTestsHashTable);
 class UnitTestsHashTable : public testing::Test,
-                           public testing::WithParamInterface<SolverEnum>
+                           public testing::WithParamInterface<solvers::Kind>
 {
  protected:
   void SetUp() override
@@ -34,8 +34,8 @@ class UnitTestsHashTable : public testing::Test,
     // need to make sure we're not using a LoggingSolver
     // otherwise the reference counts of terms will be influenced
     // thus, use the "lite" solvers
-    SolverEnum se = GetParam();
-    SolverConfiguration sc(se, false);
+    solvers::Kind kind = GetParam();
+    SolverConfiguration sc(kind, false);
     s = create_solver(sc);
 
     bvsort = s->make_sort(SortKind::BV, 4);

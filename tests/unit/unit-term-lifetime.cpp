@@ -57,7 +57,7 @@ TEST_P(TermLifetimeTests, TermsOutliveTheirSolver)
 TEST_P(TermLifetimeTests, TermsOutliveReset)
 {
   const SolverConfiguration & sc = GetParam();
-  if (sc.solver_enum == GENERIC_SOLVER)
+  if (sc.solver_kind == solvers::GENERIC)
   {
     GTEST_SKIP() << "reset() times out on the generic solver";
   }

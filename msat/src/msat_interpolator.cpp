@@ -48,7 +48,7 @@ std::string with_error(const std::string & text, const std::string & error)
 }  // namespace
 
 MsatInterpolator::MsatInterpolator()
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>()),
+    : AbsSmtInterpolator(interpolators::MSAT, std::make_shared<MsatSolver>()),
       msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
 {
   initialize();

@@ -350,7 +350,7 @@ GenericSolver::GenericSolver(std::string solver_path,
                              std::vector<std::string> args,
                              std::chrono::milliseconds timeout,
                              unsigned int buffer_size)
-    : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
+    : AbsSmtSolver(solvers::GENERIC),
       path(std::move(solver_path)),
       cmd_line_args(std::move(args)),
       read_buf_size(buffer_size),
@@ -2176,7 +2176,7 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
     run_command(CommandKind::OPTION,
                 smtlib::SET_OPTION_STR,
                 ":" + option,
-                parse_bool_opt(option, value) ? "true" : "false");
+                backend::parse_bool_opt(option, value) ? "true" : "false");
     return;
   }
   run_command(CommandKind::OPTION, smtlib::SET_OPTION_STR, ":" + option, value);

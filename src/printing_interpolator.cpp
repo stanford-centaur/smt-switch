@@ -32,20 +32,25 @@ namespace {
 constexpr const char * name_prefix = "smt_switch_generated_";
 
 // the message for an interpolator whose queries printing cannot write
-std::string no_query_syntax(SolverEnum se)
+std::string no_query_syntax(interpolators::Kind kind)
 {
-  return "A printing interpolator cannot write the queries of " + to_string(se);
+  return "A printing interpolator cannot write the queries of "
+         + to_string(kind);
 }
 
 }  // namespace
 
+// The terms are built, and their declarations printed, with the wrapped
+// interpolator's regular solver; everything else goes to the wrapped
+// interpolator, which the options, the logic and resets have to reach.
 PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream & os)
-    : AbsSmtInterpolator(s->get_solver_enum(),
-                         std::make_shared<PrintingSolver>(s, os)),
+    : AbsSmtInterpolator(
+          s->get_kind(),
+          std::make_shared<PrintingSolver>(s->backend_solver, os)),
       wrapped_interpolator(std::move(s)),
       out_stream(os)
 {
-  if (get_solver_enum() == YICES2_INTERPOLATOR)
+  if (get_kind() == interpolators::YICES2)
   {
     out_stream.get() << "; run with yices-smt2 --mcsat --incremental"
                      << std::endl;
@@ -57,67 +62,53 @@ Result PrintingInterpolator::compute_interpolant(const Term & A,
                                                  const Term & B,
                                                  Term & out_I) const
 {
-  switch (get_solver_enum())
+  switch (get_kind())
   {
-    case CVC5_INTERPOLATOR:
-    case YICES2_INTERPOLATOR: {
+    case interpolators::CVC5:
+    case interpolators::YICES2: {
       TermVec interpolant;
       Result r = print_query({ A, B }, interpolant);
       out_I = interpolant.front();
       return r;
     }
     // both define it as the sequence interpolant of A and B
-    case BZLA_INTERPOLATOR:
-    case MSAT_INTERPOLATOR: return interpolant_from_sequence(A, B, out_I);
-    case BTOR:
-    case BZLA:
-    case CVC5:
-    case GENERIC_SOLVER:
-    case MSAT:
-    case YICES2:
-    case Z3: break;
+    case interpolators::BZLA:
+    case interpolators::MSAT: return interpolant_from_sequence(A, B, out_I);
   }
-  throw NotImplementedException(no_query_syntax(get_solver_enum()));
+  throw NotImplementedException(no_query_syntax(get_kind()));
 }
 
 Result PrintingInterpolator::compute_seq_interpolants(const TermVec & formulae,
                                                       TermVec & out_I) const
 {
-  switch (get_solver_enum())
+  switch (get_kind())
   {
     // Both split a sequence query into one get_interpolant query per split,
     // with sequence_from_interpolants, and keep what it reuses between
     // queries. Splitting it here the same way asks the same queries, and
     // prints each as it is asked.
-    case CVC5_INTERPOLATOR:
-    case YICES2_INTERPOLATOR:
+    case interpolators::CVC5:
+    case interpolators::YICES2:
       return sequence_from_interpolants(formulae, out_I);
     // both answer it natively
-    case BZLA_INTERPOLATOR:
-    case MSAT_INTERPOLATOR: return print_query(formulae, out_I);
-    case BTOR:
-    case BZLA:
-    case CVC5:
-    case GENERIC_SOLVER:
-    case MSAT:
-    case YICES2:
-    case Z3: break;
+    case interpolators::BZLA:
+    case interpolators::MSAT: return print_query(formulae, out_I);
   }
-  throw NotImplementedException(no_query_syntax(get_solver_enum()));
+  throw NotImplementedException(no_query_syntax(get_kind()));
 }
 
 Result PrintingInterpolator::print_query(const TermVec & formulae,
                                          TermVec & out_I) const
 {
-  switch (get_solver_enum())
+  switch (get_kind())
   {
-    case BZLA_INTERPOLATOR:
-    case MSAT_INTERPOLATOR: {
+    case interpolators::BZLA:
+    case interpolators::MSAT: {
       // Both keep each formula at a context level of its own, keep those of
       // the longest prefix the query shares with the last one unless
       // incremental is off, and push the rest. MathSAT resets its
       // environment instead of popping when it keeps none.
-      bool msat = get_solver_enum() == MSAT_INTERPOLATOR;
+      bool msat = get_kind() == interpolators::MSAT;
       TermVec & asserted = record->asserted;
       std::vector<std::string> & asserted_names = record->asserted_names;
       std::size_t num_reused = 0;
@@ -185,7 +176,7 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       }
       return r;
     }
-    case CVC5_INTERPOLATOR: {
+    case interpolators::CVC5: {
       // A get_interpolant query, printed once it is answered: cvc5 asks for
       // an interpolant of the assertions and the negation of B
       Term I;
@@ -200,7 +191,7 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       out_stream.get() << "(" << smtlib::POP_STR << " 1)" << std::endl;
       return r;
     }
-    case YICES2_INTERPOLATOR: {
+    case interpolators::YICES2: {
       // A get_interpolant query. Yices2 refutes models of B one after
       // another, which are not seen from here, so its rounds are run here
       // through refute_model and printed as they go: a check of B that
@@ -298,15 +289,8 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         model_interpolants.push_back(model_interpolant);
       }
     }
-    case BTOR:
-    case BZLA:
-    case CVC5:
-    case GENERIC_SOLVER:
-    case MSAT:
-    case YICES2:
-    case Z3: break;
   }
-  throw NotImplementedException(no_query_syntax(get_solver_enum()));
+  throw NotImplementedException(no_query_syntax(get_kind()));
 }
 
 void PrintingInterpolator::set_opt(const std::string option,
@@ -323,10 +307,34 @@ void PrintingInterpolator::set_opt(const std::string option,
   AbsSmtInterpolator::set_opt(option, value);
 }
 
+// these are printed once the wrapped interpolator accepts them, so that a
+// refused one is not replayed
+
+void PrintingInterpolator::set_logic(const std::string logic)
+{
+  wrapped_interpolator->set_logic(logic);
+  out_stream.get() << "(" << smtlib::SET_LOGIC_STR << " " << logic << ")"
+                   << std::endl;
+}
+
 void PrintingInterpolator::do_set_opt(const std::string & option,
                                       const std::string & value)
 {
-  backend_solver->set_opt(option, value);
+  wrapped_interpolator->set_opt(option, value);
+  out_stream.get() << "(" << smtlib::SET_OPTION_STR << " :" << option << " "
+                   << value << ")" << std::endl;
+}
+
+void PrintingInterpolator::reset_backend_assertions()
+{
+  out_stream.get() << "(" << smtlib::RESET_ASSERTIONS_STR << ")" << std::endl;
+  wrapped_interpolator->reset_assertions();
+}
+
+void PrintingInterpolator::reset_backend()
+{
+  out_stream.get() << "(" << smtlib::RESET_STR << ")" << std::endl;
+  wrapped_interpolator->reset();
 }
 
 void PrintingInterpolator::forget_queries()
@@ -337,7 +345,7 @@ void PrintingInterpolator::forget_queries()
 
 void PrintingInterpolator::initialize()
 {
-  if (get_solver_enum() == YICES2_INTERPOLATOR)
+  if (get_kind() == interpolators::YICES2)
   {
     // printed by the regular solver, as yices-smt2 needs it for
     // get-unsat-model-interpolant

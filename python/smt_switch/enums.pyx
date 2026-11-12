@@ -21,24 +21,44 @@ cdef class SortKind:
         return <int> self.sk
 
 
-cdef class SolverEnum:
-    def __eq__(self, SolverEnum other):
-        return (<int> self.se) == (<int> other.se)
+cdef class SolverKind:
+    def __eq__(self, SolverKind other):
+        return (<int> self.ck) == (<int> other.ck)
 
-    def __ne__(self, SolverEnum other):
-        return (<int> self.se) != (<int> other.se)
+    def __ne__(self, SolverKind other):
+        return (<int> self.ck) != (<int> other.ck)
 
     def __hash__(self):
-        return hash((<int> self.se, self.name))
+        return hash(<int> self.ck)
 
     def __str__(self):
-        return to_string(self.se).decode()
+        return to_string(self.ck).decode()
 
     def __repr__(self):
-        return to_string(self.se).decode()
+        return to_string(self.ck).decode()
 
     def as_int(self):
-        return <int> self.se
+        return <int> self.ck
+
+
+cdef class InterpolatorKind:
+    def __eq__(self, InterpolatorKind other):
+        return (<int> self.ck) == (<int> other.ck)
+
+    def __ne__(self, InterpolatorKind other):
+        return (<int> self.ck) != (<int> other.ck)
+
+    def __hash__(self):
+        return hash(<int> self.ck)
+
+    def __str__(self):
+        return to_string(self.ck).decode()
+
+    def __repr__(self):
+        return to_string(self.ck).decode()
+
+    def as_int(self):
+        return <int> self.ck
 
 
 cdef class OpKind:

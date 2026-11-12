@@ -29,7 +29,7 @@
 namespace smt {
 
 BzlaInterpolator::BzlaInterpolator()
-    : AbsSmtInterpolator(BZLA_INTERPOLATOR, std::make_shared<BzlaSolver>()),
+    : AbsSmtInterpolator(interpolators::BZLA, std::make_shared<BzlaSolver>()),
       bzla_solver(std::static_pointer_cast<BzlaSolver>(backend_solver))
 {
   initialize();

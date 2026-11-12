@@ -54,39 +54,35 @@ void init_solver(SmtSolver gs)
 }
 
 /** The arguments the binary of a native backend's solver is started with */
-std::vector<std::string> binary_args(SolverEnum se)
+std::vector<std::string> binary_args(solvers::Kind kind)
 {
-  switch (se)
+  switch (kind)
   {
-    case BTOR: return { "--incremental" };
+    case solvers::BTOR: return { "--incremental" };
     // Bitwuzla is always incremental, so it has no flag for it
-    case BZLA: return { "--lang", "smt2" };
-    case CVC5:
+    case solvers::BZLA: return { "--lang", "smt2" };
+    case solvers::CVC5:
       return {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "--arrays-exp"
       };
-    case MSAT: return { "" };
-    case YICES2: return { "--incremental" };
+    case solvers::MSAT: return { "" };
+    case solvers::YICES2: return { "--incremental" };
     // Z3 reads SMT-LIB 2 from standard input only when told to, and is
     // incremental without a flag
-    case Z3: return { "-smt2", "-in" };
-    case GENERIC_SOLVER:
-    case BZLA_INTERPOLATOR:
-    case CVC5_INTERPOLATOR:
-    case MSAT_INTERPOLATOR:
-    case YICES2_INTERPOLATOR: break;
+    case solvers::Z3: return { "-smt2", "-in" };
+    case solvers::GENERIC: break;
   }
-  throw NotImplementedException("No binary for " + to_string(se));
+  throw NotImplementedException("No binary for " + to_string(kind));
 }
 
 /** Whether the binary accepts what the attribute describes: its native
  *  backend's attribute, except where the binary was seen to differ.
  */
-bool has_attribute(SolverEnum b, SolverAttribute a)
+bool has_attribute(solvers::Kind b, SolverAttribute a)
 {
   // The boolector binary answers get-value for a select, then dies of
   // SIGSEGV on get-value for the array itself.
-  if (b == BTOR && a == SolverAttribute::ARRAY_MODELS)
+  if (b == solvers::BTOR && a == SolverAttribute::ARRAY_MODELS)
   {
     return false;
   }
@@ -97,36 +93,42 @@ bool has_attribute(SolverEnum b, SolverAttribute a)
  *  SolverAttribute covers. Boolector does not: "only bit-vector sorts
  *  supported as return sort for arity > 0".
  */
-bool has_array_returning_functions(SolverEnum b) { return b != BTOR; }
+bool has_array_returning_functions(solvers::Kind b)
+{
+  return b != solvers::BTOR;
+}
 
 /** Whether the binary answers unsupported to a set-option it does not know,
  *  as SMT-LIB requires, which reaches the caller as NotImplementedException.
  *  No SolverAttribute covers it. Bitwuzla answers success instead, Z3 an
  *  error, and Boolector exits.
  */
-bool answers_unsupported_options(SolverEnum b)
+bool answers_unsupported_options(solvers::Kind b)
 {
-  return b == CVC5 || b == MSAT || b == YICES2;
+  return b == solvers::CVC5 || b == solvers::MSAT || b == solvers::YICES2;
 }
 
 /** Whether the binary takes a second set-logic, which SMT-LIB forbids.
  *  Boolector and Bitwuzla do.
  */
-bool accepts_second_logic(SolverEnum b) { return b == BTOR || b == BZLA; }
+bool accepts_second_logic(solvers::Kind b)
+{
+  return b == solvers::BTOR || b == solvers::BZLA;
+}
 
 /** Whether the binary answers unsupported to a set-logic it does not know,
  *  as SMT-LIB requires. cvc5 and Yices2 answer an error instead, Bitwuzla
  *  and Boolector exit, and MathSAT answers success.
  */
-bool answers_unsupported_logics(SolverEnum b) { return b == Z3; }
+bool answers_unsupported_logics(solvers::Kind b) { return b == solvers::Z3; }
 
 /** Whether the binary takes a set-logic after a declaration made without
  *  one, which SMT-LIB forbids. cvc5 settles on ALL at the declaration, and
  *  Yices2 refuses the declaration until it has a logic, so it gets ALL.
  */
-bool accepts_logic_after_declaration(SolverEnum b)
+bool accepts_logic_after_declaration(solvers::Kind b)
 {
-  return b != CVC5 && b != YICES2;
+  return b != solvers::CVC5 && b != solvers::YICES2;
 }
 
 // The smallest supported buffer splits each response into as many reads as
@@ -135,16 +137,16 @@ constexpr unsigned int buffer_size_min = 2;
 constexpr unsigned int buffer_size_max = 256;
 
 // (solver binary, buffer size)
-typedef std::tuple<SolverEnum, unsigned int> GenericSolverParam;
+typedef std::tuple<solvers::Kind, unsigned int> GenericSolverParam;
 
 /** Every buffer size for each available binary that passes the filter. A
  *  built solver without an executable is left out of every suite.
  */
 std::vector<GenericSolverParam> params_where(
-    const std::function<bool(SolverEnum)> & filter)
+    const std::function<bool(solvers::Kind)> & filter)
 {
   std::vector<GenericSolverParam> params;
-  for (SolverEnum b : solvers::available())
+  for (solvers::Kind b : solvers::available())
   {
     if (solver_binary(b).empty() || !filter(b))
     {
@@ -158,14 +160,14 @@ std::vector<GenericSolverParam> params_where(
 
 std::vector<GenericSolverParam> params_with(SolverAttribute a)
 {
-  return params_where([a](SolverEnum b) { return has_attribute(b, a); });
+  return params_where([a](solvers::Kind b) { return has_attribute(b, a); });
 }
 
 /** Each available binary at the biggest buffer size only */
 std::vector<GenericSolverParam> params_one_buffer_size()
 {
   std::vector<GenericSolverParam> params;
-  for (SolverEnum b : solvers::available())
+  for (solvers::Kind b : solvers::available())
   {
     if (!solver_binary(b).empty())
     {
@@ -205,7 +207,7 @@ class GenericSolverTests : public testing::TestWithParam<GenericSolverParam>
                                          std::get<1>(GetParam()));
   }
 
-  SolverEnum binary;
+  solvers::Kind binary;
   SmtSolver gs;
 };
 
@@ -315,7 +317,7 @@ TEST_P(GenericSolverTests, Bool1)
 // a dump holds what the binary still holds, not how it got there
 TEST_P(GenericSolverTests, DumpLeavesOutWhatNoLongerHolds)
 {
-  if (binary == BTOR)
+  if (binary == solvers::BTOR)
   {
     GTEST_SKIP() << "the Boolector binary refuses reset-assertions";
   }
@@ -582,7 +584,7 @@ TEST_P(GenericSolverTests, SymbolsPrintInSmtlibSpelling)
 
 TEST_P(GenericSolverTests, ReservedWordSymbolIsDeclaredQuoted)
 {
-  if (binary == BZLA)
+  if (binary == solvers::BZLA)
   {
     GTEST_SKIP() << "the Bitwuzla binary refuses a reserved word as a "
                     "declared name even in bars, as in |let|";
@@ -1457,7 +1459,7 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
   // Boolector itself answers wrongly, not the parsing here: assuming a
   // name defined as (not bool11), get-unsat-assumptions gives (bool11),
   // and assuming the literal (not bool11) it gives (false).
-  Term culprit = binary == BTOR ? b1 : not_b1;
+  Term culprit = binary == solvers::BTOR ? b1 : not_b1;
   EXPECT_NE(core.find(culprit), core.end());
   gs->pop(1);
 }
@@ -1505,7 +1507,7 @@ TEST_P(GenericSolverTests, FormulaAssumptions)
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverTests,
                          GenericSolverTests,
-                         testing::ValuesIn(params_where([](SolverEnum) {
+                         testing::ValuesIn(params_where([](solvers::Kind) {
                            return true;
                          })),
                          param_name);
@@ -1548,7 +1550,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntQuantifierTests,
                          GenericSolverIntQuantifierTests,
-                         testing::ValuesIn(params_where([](SolverEnum b) {
+                         testing::ValuesIn(params_where([](solvers::Kind b) {
                            return has_attribute(b, SolverAttribute::THEORY_INT)
                                   && has_attribute(
                                       b, SolverAttribute::QUANTIFIERS);

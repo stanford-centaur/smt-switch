@@ -35,23 +35,19 @@ namespace {
 /** The flags that have a solver's executable read a printed session given
  *  as a file
  */
-std::string replay_flags(SolverEnum se)
+std::string replay_flags(solvers::Kind kind)
 {
-  switch (se)
+  switch (kind)
   {
-    case BTOR: return "--incremental";
-    case BZLA: return "";
-    case CVC5: return "--incremental";
-    case MSAT: return "";
-    case YICES2: return "--incremental";
-    case Z3: return "-smt2";
-    case GENERIC_SOLVER:
-    case BZLA_INTERPOLATOR:
-    case CVC5_INTERPOLATOR:
-    case MSAT_INTERPOLATOR:
-    case YICES2_INTERPOLATOR: break;
+    case solvers::BTOR: return "--incremental";
+    case solvers::BZLA: return "";
+    case solvers::CVC5: return "--incremental";
+    case solvers::MSAT: return "";
+    case solvers::YICES2: return "--incremental";
+    case solvers::Z3: return "-smt2";
+    case solvers::GENERIC: break;
   }
-  throw NotImplementedException("No executable for " + to_string(se));
+  throw NotImplementedException("No executable for " + to_string(kind));
 }
 
 /** The configurations with all the attributes whose solver has an
@@ -64,7 +60,7 @@ std::vector<SolverConfiguration> replayable(
   for (SolverConfiguration sc :
        filter_solver_configurations_with_generic(attributes))
   {
-    if (!solver_binary(sc.solver_enum).empty())
+    if (!solver_binary(sc.solver_kind).empty())
     {
       result.push_back(sc);
     }
@@ -93,8 +89,8 @@ class PrintingTests : public testing::Test,
   void expect_replay(
       const std::vector<std::unordered_set<std::string>> & expected)
   {
-    SolverEnum se = GetParam().solver_enum;
-    dump_and_run(solver_binary(se), strbuf, expected, replay_flags(se));
+    solvers::Kind kind = GetParam().solver_kind;
+    dump_and_run(solver_binary(kind), strbuf, expected, replay_flags(kind));
   }
 
   std::stringbuf strbuf;

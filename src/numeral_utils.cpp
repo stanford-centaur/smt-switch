@@ -5,8 +5,9 @@
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * Besides the smtlib:: parsers, this file defines the numeral readers of
- * AbsSmtSolver and AbsTerm, which share its helpers.
+ * Besides the smtlib:: parsers, this file defines backend::parse_nat_opt
+ * and the numeral readers of AbsSmtSolver and AbsTerm, which share its
+ * helpers.
  */
 #include "smt-switch/numeral_utils.h"
 
@@ -465,8 +466,8 @@ std::uint64_t AbsSmtSolver::bv_value_to_uint64(const std::string & val,
                           : words[0];
 }
 
-std::uint64_t AbsSmtSolver::parse_nat_opt(const std::string & option,
-                                          const std::string & value)
+std::uint64_t backend::parse_nat_opt(const std::string & option,
+                                     const std::string & value)
 {
   std::uint64_t number = 0;
   if (!decimal_to_uint64(value, number))

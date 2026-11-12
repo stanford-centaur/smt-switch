@@ -82,7 +82,7 @@ struct Cvc5Solver::Instance
 };
 
 Cvc5Solver::Cvc5Solver()
-    : AbsSmtSolver(CVC5), instance(std::make_shared<Instance>())
+    : AbsSmtSolver(solvers::CVC5), instance(std::make_shared<Instance>())
 {
 }
 
@@ -95,7 +95,7 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
     cvc5option = "tlimit-per";
     cvc5value =
         std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
-                           parse_time_limit(value))
+                           backend::parse_time_limit(value))
                            .count());
   }
 

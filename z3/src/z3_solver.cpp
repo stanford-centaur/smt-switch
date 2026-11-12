@@ -294,7 +294,9 @@ struct Z3Solver::Instance
 };
 
 Z3Solver::Z3Solver()
-    : AbsSmtSolver(Z3), ctx(std::make_shared<Z3Context>()), solver_params(*ctx)
+    : AbsSmtSolver(solvers::Z3),
+      ctx(std::make_shared<Z3Context>()),
+      solver_params(*ctx)
 {
 }
 
@@ -302,14 +304,14 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (!parse_bool_opt(option, value))
+    if (!backend::parse_bool_opt(option, value))
     {
       throw NotImplementedException("Z3 cannot turn off " + option);
     }
   }
   else if (option == "produce-models")
   {
-    bool on = parse_bool_opt(option, value);
+    bool on = backend::parse_bool_opt(option, value);
     solver_params.set("model", on);
     models_off = !on;
   }
@@ -321,17 +323,17 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
         "timeout",
         static_cast<unsigned>(std::min<std::chrono::milliseconds::rep>(
             std::chrono::duration_cast<std::chrono::milliseconds>(
-                parse_time_limit(value))
+                backend::parse_time_limit(value))
                 .count(),
             std::numeric_limits<unsigned>::max())));
   }
   else if (option == "produce-unsat-assumptions")
   {
-    solver_params.set("unsat_core", parse_bool_opt(option, value));
+    solver_params.set("unsat_core", backend::parse_bool_opt(option, value));
   }
   else if (option == "produce-proofs")
   {
-    solver_params.set(option.c_str(), parse_bool_opt(option, value));
+    solver_params.set(option.c_str(), backend::parse_bool_opt(option, value));
   }
   else
   {

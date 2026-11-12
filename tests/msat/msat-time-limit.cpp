@@ -21,6 +21,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term_builder.h"
 
 namespace smt::tests {
 
@@ -29,7 +30,7 @@ namespace {
 /** @return the constraints of a pigeonhole problem too hard to finish
  *  inside a short limit, each pigeon in a hole of its own
  */
-TermVec pigeonhole(AbsSmtSolver & s)
+TermVec pigeonhole(AbsTermBuilder & s)
 {
   Sort bvsort = s.make_sort(SortKind::BV, 6);
   TermVec vars;

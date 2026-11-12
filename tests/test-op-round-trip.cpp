@@ -121,7 +121,7 @@ class IntBVRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    if (GetParam().solver_enum == YICES2)
+    if (GetParam().solver_kind == solvers::YICES2)
     {
       GTEST_SKIP() << "Yices2 has no conversion between Int and bit-vectors, "
                       "so it can only apply one to a value";

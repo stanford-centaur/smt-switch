@@ -9,14 +9,10 @@
  */
 #include "smt-switch/solver.h"
 
-#include <algorithm>
-#include <chrono>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <list>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -31,7 +27,7 @@
 
 namespace smt {
 
-AbsSmtSolver::AbsSmtSolver(SolverEnum se) : solver_enum(se) {}
+AbsSmtSolver::AbsSmtSolver(solvers::Kind kind) : backend_kind(kind) {}
 
 void AbsSmtSolver::assert_formula(const Term & t)
 {
@@ -119,40 +115,40 @@ Term AbsSmtSolver::make_term(const std::string & /* s */,
                              const Sort & /* sort */) const
 {
   throw NotImplementedException("Strings are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::make_term(const std::wstring & /* s */,
                              const Sort & /* sort */) const
 {
   throw NotImplementedException("Strings are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 DatatypeDecl AbsSmtSolver::make_datatype_decl(const std::string & /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 DatatypeConstructorDecl AbsSmtSolver::make_datatype_constructor_decl(
     const std::string /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::add_constructor(
     DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::add_selector(DatatypeConstructorDecl & /* dt */,
@@ -160,28 +156,28 @@ void AbsSmtSolver::add_selector(DatatypeConstructorDecl & /* dt */,
                                 const Sort & /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
                                      const std::string & /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::get_constructor(const Sort & /* s */,
                                    std::string /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::get_tester(const Sort & /* s */,
                               std::string /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::get_selector(const Sort & /* s */,
@@ -189,97 +185,23 @@ Term AbsSmtSolver::get_selector(const Sort & /* s */,
                                 std::string /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 SortVec AbsSmtSolver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & /* decls */) const
 {
   throw NotImplementedException("make_datatype_sorts is not implemented by "
-                                + to_string(solver_enum));
-}
-
-Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl) const
-{
-  SortVec datatype_sorts = make_datatype_sorts({ decl });
-  if (datatype_sorts.size() != 1)
-  {
-    throw SolverException("make_datatype_sorts gave "
-                          + std::to_string(datatype_sorts.size())
-                          + " sorts for one datatype declaration");
-  }
-  return datatype_sorts[0];
-}
-
-Term AbsSmtSolver::substitute(const Term term,
-                              const UnorderedTermMap & substitution_map) const
-{
-  // each term's result once it is known; a term is rebuilt the second time
-  // it comes off the stack, after its children
-  UnorderedTermMap cache;
-  UnorderedTermSet visited;
-  TermVec to_visit{ term };
-  TermVec cached_children;
-  Term t;
-  while (to_visit.size())
-  {
-    t = to_visit.back();
-    to_visit.pop_back();
-    if (cache.find(t) != cache.end())
-    {
-      continue;
-    }
-    // a key is replaced whole, whatever it is made of
-    auto it = substitution_map.find(t);
-    if (it != substitution_map.end())
-    {
-      cache[t] = it->second;
-      continue;
-    }
-    if (visited.insert(t).second)
-    {
-      to_visit.push_back(t);
-      for (auto c : t)
-      {
-        to_visit.push_back(c);
-      }
-      continue;
-    }
-    cached_children.clear();
-    for (auto c : t)
-    {
-      cached_children.push_back(cache.at(c));
-    }
-
-    // const arrays have children but don't need to be rebuilt
-    // (they're constructed in a particular way anyway)
-    cache[t] = cached_children.size() && !t->is_value()
-                   ? make_term(t->get_op(), cached_children)
-                   : t;
-  }
-
-  return cache.at(term);
-}
-
-TermVec AbsSmtSolver::substitute_terms(
-    const TermVec & terms, const UnorderedTermMap & substitution_map) const
-{
-  TermVec res;
-  res.reserve(terms.size());
-  for (auto t : terms)
-  {
-    res.push_back(substitute(t, substitution_map));
-  }
-  return res;
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException("Dumping to a file is not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
-SolverEnum AbsSmtSolver::get_solver_enum() const { return solver_enum; }
+solvers::Kind AbsSmtSolver::get_kind() const { return backend_kind; }
 
 Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
 {
@@ -350,45 +272,6 @@ void AbsSmtSolver::check_quantifier_binders(const Op & op,
                                     + "but got " + terms[i]->to_string());
     }
   }
-}
-
-bool AbsSmtSolver::parse_bool_opt(const std::string & option,
-                                  const std::string & value)
-{
-  if (value != "true" && value != "false")
-  {
-    throw IncorrectUsageException("The option " + option
-                                  + " takes true or false, not " + value);
-  }
-  return value == "true";
-}
-
-std::chrono::duration<double> AbsSmtSolver::parse_time_limit(
-    const std::string & value)
-{
-  double seconds = 0;
-  std::size_t end = 0;
-  try
-  {
-    seconds = std::stod(value, &end);
-  }
-  catch (const std::logic_error &)
-  {
-    // std::stod failed, so end is still zero
-  }
-  if (end == 0 || end != value.size() || !std::isfinite(seconds) || seconds < 0)
-  {
-    throw IncorrectUsageException(
-        "The option time-limit takes a nonnegative number of seconds, not "
-        + value);
-  }
-  // Half of what a clock counting nanoseconds in 64 bits holds, so that a
-  // solver adding the limit to the time now cannot overflow; a longer limit
-  // is as good as none.
-  constexpr double longest =
-      std::chrono::duration<double>(std::chrono::nanoseconds::max()).count()
-      / 2;
-  return std::chrono::duration<double>(std::min(seconds, longest));
 }
 
 UnorderedTermMap AbsSmtSolver::store_chain_values(

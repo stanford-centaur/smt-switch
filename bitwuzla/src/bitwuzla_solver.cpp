@@ -28,6 +28,7 @@
 #include "smt-switch/bitwuzla_sort.h"
 #include "smt-switch/bitwuzla_term.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
@@ -55,7 +56,7 @@ struct BzlaSolver::Instance
 };
 
 BzlaSolver::BzlaSolver()
-    : AbsSmtSolver(BZLA), tm(std::make_shared<BzlaTermManager>())
+    : AbsSmtSolver(solvers::BZLA), tm(std::make_shared<BzlaTermManager>())
 {
 }
 
@@ -101,7 +102,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (!parse_bool_opt(option, value))
+    if (!backend::parse_bool_opt(option, value))
     {
       throw NotImplementedException("Bitwuzla cannot turn off " + option);
     }
@@ -117,7 +118,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   {
     options.set(bitwuzla::Option::TIME_LIMIT_PER,
                 std::chrono::duration_cast<std::chrono::milliseconds>(
-                    parse_time_limit(value))
+                    backend::parse_time_limit(value))
                     .count());
   }
   else if (!options.is_valid(option))
@@ -131,7 +132,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     std::string bzla_value = value;
     if (option == "produce-models" || option == "produce-unsat-assumptions")
     {
-      bzla_value = parse_bool_opt(option, value) ? "true" : "false";
+      bzla_value = backend::parse_bool_opt(option, value) ? "true" : "false";
     }
     try
     {
@@ -140,7 +141,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
       bitwuzla::Option opt = options.option(option.c_str());
       if (options.is_numeric(opt))
       {
-        options.set(opt, parse_nat_opt(option, value));
+        options.set(opt, backend::parse_nat_opt(option, value));
       }
       else
       {

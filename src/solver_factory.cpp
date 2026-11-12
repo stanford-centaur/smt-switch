@@ -1,6 +1,6 @@
 /*!
  * \file solver_factory.cpp
- * \brief Creating a solver or interpolator from its solver enum
+ * \brief Creating a solver or interpolator from its kind
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -86,98 +86,82 @@ namespace {
 }
 
 /* The backend of a solver or its interpolator */
-const backend::Factory & factory_for(SolverEnum se)
+const backend::Factory & factory_for(solvers::Kind kind)
 {
   // no default, so that -Wswitch reports an enumerator without a case
-  switch (se)
+  switch (kind)
   {
-    case BTOR:
+    case solvers::BTOR:
 #ifdef SMT_SWITCH_STATIC_BACKEND_BTOR
       return backend::smt_switch_backend_btor;
 #else
       return load_backend("btor");
 #endif
-    case BZLA:
-    case BZLA_INTERPOLATOR:
+    case solvers::BZLA:
 #ifdef SMT_SWITCH_STATIC_BACKEND_BITWUZLA
       return backend::smt_switch_backend_bitwuzla;
 #else
       return load_backend("bitwuzla");
 #endif
-    case CVC5:
-    case CVC5_INTERPOLATOR:
+    case solvers::CVC5:
 #ifdef SMT_SWITCH_STATIC_BACKEND_CVC5
       return backend::smt_switch_backend_cvc5;
 #else
       return load_backend("cvc5");
 #endif
-    case MSAT:
-    case MSAT_INTERPOLATOR:
+    case solvers::MSAT:
 #ifdef SMT_SWITCH_STATIC_BACKEND_MSAT
       return backend::smt_switch_backend_msat;
 #else
       return load_backend("msat");
 #endif
-    case YICES2:
-    case YICES2_INTERPOLATOR:
+    case solvers::YICES2:
 #ifdef SMT_SWITCH_STATIC_BACKEND_YICES2
       return backend::smt_switch_backend_yices2;
 #else
       return load_backend("yices2");
 #endif
-    case Z3:
+    case solvers::Z3:
 #ifdef SMT_SWITCH_STATIC_BACKEND_Z3
       return backend::smt_switch_backend_z3;
 #else
       return load_backend("z3");
 #endif
-    case GENERIC_SOLVER:
+    case solvers::GENERIC:
       throw IncorrectUsageException(
           "A generic solver needs a solver binary; construct a GenericSolver "
           "instead");
   }
-  throw InternalException("Unknown SolverEnum: " + std::to_string(se));
+  throw InternalException("Unknown solver kind: " + to_string(kind));
 }
 
 }  // namespace
 
-SmtSolver solvers::create(SolverEnum se, bool logging)
+SmtSolver solvers::create(Kind kind, bool logging)
 {
-  if (is_interpolator_solver_enum(se))
-  {
-    throw IncorrectUsageException(to_string(se)
-                                  + " is an interpolator; use "
-                                    "interpolators::create");
-  }
-  return factory_for(se).create(logging);
+  return factory_for(kind).create(logging);
 }
 
-SmtInterpolator interpolators::create(SolverEnum se)
+SmtInterpolator interpolators::create(Kind kind)
 {
-  if (!is_interpolator_solver_enum(se))
-  {
-    throw IncorrectUsageException(to_string(se)
-                                  + " is not an interpolator; use "
-                                    "solvers::create");
-  }
-  const backend::Factory & factory = factory_for(se);
+  const backend::Factory & factory = factory_for(solver_kind(kind));
   if (!factory.create_interpolator)
   {
-    throw NotImplementedException("This build of " + to_string(se)
+    throw NotImplementedException("This build of " + to_string(kind)
                                   + " cannot interpolate");
   }
   return factory.create_interpolator();
 }
 
-std::vector<SolverEnum> solvers::available()
+std::vector<solvers::Kind> solvers::available()
 {
-  std::vector<SolverEnum> available;
-  for (SolverEnum se : { BTOR, BZLA, CVC5, MSAT, YICES2, Z3 })
+  std::vector<Kind> available;
+  for (Kind kind : { BTOR, BZLA, CVC5, MSAT, YICES2, Z3 })
   {
     try
     {
-      factory_for(se);
-      available.push_back(se);
+      factory_for(kind);
+      available.push_back(kind);
     }
     catch (const NotImplementedException &)
     {
@@ -186,20 +170,17 @@ std::vector<SolverEnum> solvers::available()
   return available;
 }
 
-std::vector<SolverEnum> interpolators::available()
+std::vector<interpolators::Kind> interpolators::available()
 {
-  std::vector<SolverEnum> available;
-  for (SolverEnum se : { BZLA_INTERPOLATOR,
-                         CVC5_INTERPOLATOR,
-                         MSAT_INTERPOLATOR,
-                         YICES2_INTERPOLATOR })
+  std::vector<Kind> available;
+  for (Kind kind : { BZLA, CVC5, MSAT, YICES2 })
   {
     // creating one is the only way to tell whether a backend's build can
     // interpolate
     try
     {
-      create(se);
-      available.push_back(se);
+      create(kind);
+      available.push_back(kind);
     }
     catch (const NotImplementedException &)
     {

@@ -130,7 +130,7 @@ TEST_P(Datatypes, ConstructorFromTermVec)
 
 TEST_P(Datatypes, DeclareSimpleListWithForwardRef)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     return;
   }
@@ -322,7 +322,7 @@ TEST_P(Datatypes, ConstructorAndSelectorNames)
 // each name as declared, though SMT-LIB quotes these
 TEST_P(Datatypes, QuotedConstructorAndSelectorNames)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     GTEST_SKIP() << "the generic solver declares a datatype's names to the "
                     "binary without SMT-LIB quoting";
@@ -477,7 +477,7 @@ TEST_P(Datatypes, ComponentsPrintAsSmtlib)
 
 TEST_P(Datatypes, PrintsAsSmtlib)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER && !GetParam().is_logging_solver)
+  if (s->get_kind() == solvers::GENERIC && !GetParam().is_logging_solver)
   {
     GTEST_SKIP() << "a generic term prints the defined name of each subterm, "
                     "and datatype ops by their smt-switch names";
@@ -603,7 +603,7 @@ TEST_P(Datatypes, ConstructorsOverValuesAreValues)
 
 TEST_P(Datatypes, ModelValueIsValue)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     GTEST_SKIP() << "the generic solver cannot get the value of a datatype "
                     "term";

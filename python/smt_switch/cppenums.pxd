@@ -25,23 +25,31 @@ cdef extern from "smt-switch/sort.h" namespace "smt":
     string to_string(c_SortKind sk) except +
 
 
-cdef extern from "smt-switch/solver_enums.h" namespace "smt":
-    cdef cppclass c_SolverEnum "smt::SolverEnum":
+cdef extern from "smt-switch/solver_enums.h" namespace "smt::solvers":
+    cdef cppclass c_SolverKind "smt::solvers::Kind":
         pass
 
-    cdef c_SolverEnum c_BTOR "smt::BTOR"
-    cdef c_SolverEnum c_BZLA "smt::BZLA"
-    cdef c_SolverEnum c_CVC5 "smt::CVC5"
-    cdef c_SolverEnum c_MSAT "smt::MSAT"
-    cdef c_SolverEnum c_YICES2 "smt::YICES2"
-    cdef c_SolverEnum c_Z3 "smt::Z3"
-    cdef c_SolverEnum c_BZLA_INTERPOLATOR "smt::BZLA_INTERPOLATOR"
-    cdef c_SolverEnum c_MSAT_INTERPOLATOR "smt::MSAT_INTERPOLATOR"
-    cdef c_SolverEnum c_CVC5_INTERPOLATOR "smt::CVC5_INTERPOLATOR"
-    cdef c_SolverEnum c_YICES2_INTERPOLATOR "smt::YICES2_INTERPOLATOR"
-    cdef c_SolverEnum c_GENERIC_SOLVER "smt::GENERIC_SOLVER"
+    cdef c_SolverKind c_BTOR "smt::solvers::BTOR"
+    cdef c_SolverKind c_BZLA "smt::solvers::BZLA"
+    cdef c_SolverKind c_CVC5 "smt::solvers::CVC5"
+    cdef c_SolverKind c_GENERIC "smt::solvers::GENERIC"
+    cdef c_SolverKind c_MSAT "smt::solvers::MSAT"
+    cdef c_SolverKind c_YICES2 "smt::solvers::YICES2"
+    cdef c_SolverKind c_Z3 "smt::solvers::Z3"
 
-    string to_string(c_SolverEnum se) except +
+    string to_string(c_SolverKind kind) except +
+
+
+cdef extern from "smt-switch/solver_enums.h" namespace "smt::interpolators":
+    cdef cppclass c_InterpolatorKind "smt::interpolators::Kind":
+        pass
+
+    cdef c_InterpolatorKind c_BZLA_INTERPOLATOR "smt::interpolators::BZLA"
+    cdef c_InterpolatorKind c_CVC5_INTERPOLATOR "smt::interpolators::CVC5"
+    cdef c_InterpolatorKind c_MSAT_INTERPOLATOR "smt::interpolators::MSAT"
+    cdef c_InterpolatorKind c_YICES2_INTERPOLATOR "smt::interpolators::YICES2"
+
+    string to_string(c_InterpolatorKind kind) except +
 
 
 cdef extern from "smt-switch/ops.h" namespace "smt":

@@ -1,12 +1,12 @@
 /*!
  * \file solver_factory.h
- * \brief Creating a solver or interpolator from its solver enum
+ * \brief Creating a solver or interpolator from its kind
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * Each backend also has its own factory, such as Cvc5SolverFactory. These
- * functions reach any backend through its enum, so a program can choose a
+ * functions reach any backend through its kind, so a program can choose a
  * solver at run time. A backend is found if the program links it or if it
  * is installed beside libsmt-switch.
  */
@@ -23,40 +23,38 @@ namespace smt {
 namespace solvers {
 
 /** Create a solver
- *  @param se the solver, which must not be an interpolator or
- *         GENERIC_SOLVER (construct a GenericSolver for that)
+ *  @param kind the solver, which must not be GENERIC (construct a
+ *         GenericSolver for that)
  *  @param logging if true, wraps the solver in a LoggingSolver
  *  @return the new solver
- *  @throws IncorrectUsageException for an interpolator or GENERIC_SOLVER
+ *  @throws IncorrectUsageException for GENERIC
  *  @throws NotImplementedException if the backend is not available
  *  @throws SystemException if the backend is installed but cannot be loaded
  */
-SmtSolver create(SolverEnum se, bool logging);
+SmtSolver create(Kind kind, bool logging);
 
 /** The solvers create can create
  *  @throws SystemException if a backend is installed but cannot be loaded
  */
-std::vector<SolverEnum> available();
+std::vector<Kind> available();
 
 }  // namespace solvers
 
 namespace interpolators {
 
 /** Create an interpolator
- *  @param se the interpolator, such as CVC5_INTERPOLATOR
+ *  @param kind the interpolator
  *  @return the new interpolator
- *  @throws IncorrectUsageException for a solver enum that is not an
- *          interpolator
  *  @throws NotImplementedException if the backend is not available or
  *          cannot interpolate
  *  @throws SystemException if the backend is installed but cannot be loaded
  */
-SmtInterpolator create(SolverEnum se);
+SmtInterpolator create(Kind kind);
 
 /** The interpolators create can create
  *  @throws SystemException if a backend is installed but cannot be loaded
  */
-std::vector<SolverEnum> available();
+std::vector<Kind> available();
 
 }  // namespace interpolators
 
