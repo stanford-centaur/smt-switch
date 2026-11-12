@@ -204,7 +204,7 @@ ones may work too. What is built automatically is pinned in
 | cvc5      | 1.4.0  | 1.4.2         |
 | MathSAT   | 5.6.12 | 5.6.19        |
 | Yices2    | 2.7.0  | 2.7.0         |
-| Z3        | 4.12.2 | 5.3.2         |
+| Z3        | 4.12.2 | 5.4.1        |
 
 - Bitwuzla interpolates only from 0.9.0 on, and 0.9.0 and 0.9.1 answer `unknown`
   to some equalities with a constant array.
