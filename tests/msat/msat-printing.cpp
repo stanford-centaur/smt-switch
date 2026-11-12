@@ -1,18 +1,11 @@
-/*********************                                                        */
-/*! \file msat-printing.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief
-**
-**
-**/
+/*!
+ * \file msat-printing.cpp
+ * \brief Tests that printed MathSAT interpolation queries replay
+ * \author Yoni Zohar
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <memory>

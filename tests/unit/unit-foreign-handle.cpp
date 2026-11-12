@@ -1,6 +1,6 @@
 /*!
  * \file unit-foreign-handle.cpp
- * \brief Tests that a solver refuses handles made by another solver.
+ * \brief Tests that a solver refuses handles made by another solver
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -10,7 +10,6 @@
  * otherwise. A term, sort or datatype declaration made by one must be
  * refused by the other, and terms of the two never compare equal.
  */
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

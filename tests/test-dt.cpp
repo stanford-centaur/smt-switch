@@ -1,19 +1,11 @@
-/*********************                                                        */
-/*! \file test-dt.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Kristopher Brown
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Tests for theory of datatypes.
-**
-**
-**/
-
+/*!
+ * \file test-dt.cpp
+ * \brief Tests for theory of datatypes
+ * \author Kristopher Brown
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

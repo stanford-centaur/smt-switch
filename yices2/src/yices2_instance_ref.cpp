@@ -1,12 +1,11 @@
 /*!
  * \file yices2_instance_ref.cpp
  * \brief Counts the references to the Yices instance, setting it up for the
- *        first and freeing it after the last.
+ *        first and freeing it after the last
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include "smt-switch/yices2_instance_ref.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)

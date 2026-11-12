@@ -1,19 +1,10 @@
-/*********************                                                        */
-/*! \file unit-reset.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Áron Ricardo Perez-Lopez
-** This file is part of the smt-switch project.
-** Copyright (c) 2026 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Unit tests for resetting a solver.
-**
-**
-**/
-
+/*!
+ * \file unit-reset.cpp
+ * \brief Unit tests for resetting a solver
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2026
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <memory>

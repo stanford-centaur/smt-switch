@@ -1,18 +1,10 @@
-/*********************                                                        */
-/*! \file yices2_extensions.h
-** \verbatim
-** Top contributors (to current version):
-**   Amalee Wilson
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Helper functions for certain operations in the Yices C API
-**
-**
-**/
+/*!
+ * \file yices2_extensions.h
+ * \brief Helper functions for certain operations in the Yices C API
+ * \author Amalee Wilson
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_YICES2_EXTENSIONS_H
 #define SMT_SWITCH_YICES2_EXTENSIONS_H
 

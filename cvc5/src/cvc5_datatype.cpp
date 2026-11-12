@@ -1,3 +1,11 @@
+/*!
+ * \file cvc5_datatype.cpp
+ * \brief Thin wrapper for cvc5 Datatype-related classes
+ * \author Afnaan Hashmi
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/cvc5_datatype.h"
 
 #include <cstddef>

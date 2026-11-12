@@ -1,6 +1,6 @@
 /*!
  * \file yices2_interpolating_solver.cpp
- * \brief An interpolating solver on Yices2's MCSAT.
+ * \brief An interpolating solver on Yices2's MCSAT
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * symbol of B's models, and MCSAT cannot take the value of an array or a
  * function, so the same loop is run here over the shared symbols only.
  */
-
 #include "smt-switch/yices2_interpolating_solver.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)

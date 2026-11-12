@@ -1,3 +1,10 @@
+/*!
+ * \file z3_term.cpp
+ * \brief Z3 implementation of AbsTerm
+ * \author Lindsey Stuntz
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/z3_term.h"
 
 #include <cstdint>

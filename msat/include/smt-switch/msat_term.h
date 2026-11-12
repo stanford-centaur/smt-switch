@@ -1,18 +1,10 @@
-/*********************                                                        */
-/*! \file msat_term.h
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief MathSAT implementation of AbsTerm
-**
-**
-**/
+/*!
+ * \file msat_term.h
+ * \brief MathSAT implementation of AbsTerm
+ * \author Makai Mann
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_MSAT_TERM_H
 #define SMT_SWITCH_MSAT_TERM_H
 

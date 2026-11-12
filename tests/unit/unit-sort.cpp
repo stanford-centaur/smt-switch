@@ -1,19 +1,11 @@
-/*********************                                           */
-/*! \file unit-sort.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Unit tests for sorts
-**
-**
-**/
-
+/*!
+ * \file unit-sort.cpp
+ * \brief Unit tests for sorts
+ * \author Makai Mann
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

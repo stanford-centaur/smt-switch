@@ -1,6 +1,6 @@
 /*!
  * \file test-op-round-trip.cpp
- * \brief Checks that a term can be rebuilt from its op and children.
+ * \brief Checks that a term can be rebuilt from its op and children
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * children, and build it again with make_term. Each check builds one
  * operator's term and expects that to give back the same term.
  */
-
 #include <gtest/gtest.h>
 
 #include <memory>

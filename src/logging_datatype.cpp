@@ -1,11 +1,10 @@
 /*!
  * \file logging_datatype.cpp
- * \brief Datatype declarations as a LoggingSolver records them.
+ * \brief Datatype declarations as a LoggingSolver records them
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include "smt-switch/logging_datatype.h"
 
 #include <cstddef>

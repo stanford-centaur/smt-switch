@@ -1,6 +1,6 @@
 /*!
  * \file yices2-queries.cpp
- * \brief Tests Yices2's model and core queries before a usable check.
+ * \brief Tests Yices2's model and core queries before a usable check
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * context, which would fix the logic and options, and without handing
  * Yices a model that is not there.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

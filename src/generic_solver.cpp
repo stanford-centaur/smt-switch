@@ -1,19 +1,11 @@
-/*********************                                                        */
-/*! \file generic_solver.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-**
-** \brief A class that represents a generic solver
-**
-**/
-
+/*!
+ * \file generic_solver.cpp
+ * \brief A class that represents a generic solver
+ * \author Yoni Zohar
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 /* Uses code to interact with a process from:
 ** https://stackoverflow.com/a/6172578/1364765
 */

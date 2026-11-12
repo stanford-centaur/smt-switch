@@ -1,6 +1,6 @@
 /*!
  * \file smtlib_parser.yy
- * \brief The SMT-LIB grammar, from which Bison generates the parser.
+ * \brief The SMT-LIB grammar, from which Bison generates the parser
  * \author Makai Mann
  * \date 2021
  * \copyright See the LICENSE file in the top-level source directory.

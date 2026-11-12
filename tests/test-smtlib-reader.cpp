@@ -1,15 +1,14 @@
 /*!
  * \file test-smtlib-reader.cpp
- * \brief Tests the SmtLibReader.
+ * \brief Tests the SmtLibReader
  * \author Makai Mann
  * \author Áron Ricardo Perez-Lopez
- * \date 2020
+ * \date 2021
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * The benchmarks under tests/smt2 state the answer to each check-sat with a
  * (set-info :status ...) before it, as SMT-LIB's incremental benchmarks do.
  */
-
 #include <gtest/gtest.h>
 
 #include <algorithm>

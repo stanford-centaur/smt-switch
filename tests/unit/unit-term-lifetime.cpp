@@ -1,6 +1,6 @@
 /*!
  * \file unit-term-lifetime.cpp
- * \brief Tests that terms, sorts and child iterators outlive what made them.
+ * \brief Tests that terms, sorts and child iterators outlive what made them
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -10,7 +10,6 @@
  * iterator over a term's children must still yield them after the term is
  * gone.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

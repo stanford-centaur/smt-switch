@@ -1,7 +1,6 @@
 /*!
  * \file bzla-term-manager.cpp
- * \brief Tests that Bitwuzla refuses terms and sorts from another term
- * manager.
+ * \brief Tests that Bitwuzla refuses terms and sorts from another term manager
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -10,7 +9,6 @@
  * a term or sort made by another solver, or by the same one before a reset,
  * cannot be used. That is a usage error, as on cvc5.
  */
-
 #include <gtest/gtest.h>
 
 #include <memory>

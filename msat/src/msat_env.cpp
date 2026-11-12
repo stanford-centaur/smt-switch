@@ -1,11 +1,10 @@
 /*!
  * \file msat_env.cpp
- * \brief A MathSAT environment, with what the backend keeps about it.
+ * \brief A MathSAT environment, with what the backend keeps about it
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  */
-
 #include "smt-switch/msat_env.h"
 
 #include <mathsat.h>

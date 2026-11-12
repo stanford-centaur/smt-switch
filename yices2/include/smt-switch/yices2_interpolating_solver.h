@@ -1,6 +1,6 @@
 /*!
  * \file yices2_interpolating_solver.h
- * \brief An interpolating solver on Yices2's MCSAT.
+ * \brief An interpolating solver on Yices2's MCSAT
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.

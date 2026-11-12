@@ -1,36 +1,35 @@
-/*********************                                                        */
-/*! \file generic_solver.h
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Represents a Generic Solver.
-** The current implementation of the generic solver has the following
-** limitations:
-** 1. Some AbsSmtSolver methods are not implemented.
-**    These functions are defined first, under an appropriate comment below.
-** 2. The buffer size used to read the output of the solver binary
-**    is limited to values between 2 and 256.
-** 3. Generic solvers cannot be used in term transfer/translation.
-** 4. Only on Linux is the solver process signalled when its parent dies.
-** 5. All declarations made in the solver are global and permanent
-**    (set-option :global-declarations true), meaning that popping
-**    assertion levels does not remove them.
-** 6. The solver follows the binary's SMT-LIB execution mode (start,
-**    assert, sat, unsat) and refuses a command the mode does not permit,
-**    such as get_value after anything but a sat or unknown check. A
-**    command that needs a logic but arrives in start mode first sets the
-**    logic ALL. A symbol, sort or term made after a check reaches the
-**    binary only once the next command leaves the sat or unsat mode, so
-**    the model can still be read; get_value refuses a term that uses a
-**    symbol or sort declared since the check, which the model knows
-**    nothing about.
-**/
+/*!
+ * \file generic_solver.h
+ * \brief Represents a Generic Solver
+ * \author Yoni Zohar
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ *
+ * The current implementation of the generic solver has the following
+ * limitations:
+ * 1. Some AbsSmtSolver methods are not implemented. make_datatype_sorts is
+ *    declared first, under a comment saying so, and the string-value make_term
+ *    overloads keep AbsSmtSolver's default, which throws
+ *    NotImplementedException.
+ * 2. The buffer size used to read the output of the solver binary
+ *    is limited to values between 2 and 256.
+ * 3. Generic solvers cannot be used in term transfer/translation.
+ * 4. Only on Linux is the solver process signalled when its parent dies.
+ * 5. All declarations made in the solver are global and permanent
+ *    (set-option :global-declarations true), meaning that popping
+ *    assertion levels does not remove them.
+ * 6. The solver tracks the binary's SMT-LIB execution mode (start, assert, sat,
+ *    unsat) and refuses a read the mode does not permit, such as get_value
+ *    after anything but a sat or unknown check. set_logic is sent in any mode,
+ *    and the binary decides whether to accept it. If an assertion or check in
+ *    start mode gets an error from the binary, the solver sends (set-logic ALL)
+ *    and tries the command once more. A symbol, sort or term made after a check
+ *    reaches the binary only once the next command leaves the sat or unsat
+ *    mode, so the model can still be read. get_value refuses a term that uses a
+ *    symbol or sort declared since the check, since the model knows nothing
+ *    about them.
+ */
 #ifndef SMT_SWITCH_GENERIC_SOLVER_H
 #define SMT_SWITCH_GENERIC_SOLVER_H
 

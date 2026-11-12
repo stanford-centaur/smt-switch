@@ -1,6 +1,6 @@
 /*!
  * \file msat-config.cpp
- * \brief Tests the configuration MathSAT's environment is made from.
+ * \brief Tests the configuration MathSAT's environment is made from
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,11 +9,11 @@
  * out-of-range value is refused only when the environment is made from the
  * configuration, at the first term, sort or query. A query that needs no
  * environment must not make one, or it would fix the configuration.
+ *
  * A logic picks a whole configuration, so once there is one, only its own
  * logic is accepted again; with none set, the plain configuration counts as
  * ALL.
  */
-
 #include <gtest/gtest.h>
 
 #include <fstream>

@@ -1,6 +1,6 @@
 /*!
  * \file yices2-exceptions.cpp
- * \brief The exceptions Yices2 throws for failed calls and refused operators.
+ * \brief The exceptions Yices2 throws for failed calls and refused operators
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * call that is reported without clearing it would be reported again by the
  * next call that checks for one.
  */
-
 #include <gtest/gtest.h>
 
 #include <chrono>

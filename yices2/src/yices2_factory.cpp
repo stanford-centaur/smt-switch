@@ -1,19 +1,10 @@
-/*********************                                                        */
-/*! \file yices2_factory.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Amalee Wilson
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Factory for creating a Yices2 SmtSolver
-**
-**
-**/
-
+/*!
+ * \file yices2_factory.cpp
+ * \brief Factory for creating a Yices2 SmtSolver
+ * \author Amalee Wilson
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/yices2_factory.h"
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)

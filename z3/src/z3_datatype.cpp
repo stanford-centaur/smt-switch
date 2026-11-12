@@ -1,3 +1,11 @@
+/*!
+ * \file z3_datatype.cpp
+ * \brief Z3 implementations of the datatype interfaces
+ * \author Tung-Che Chang
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2024
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/z3_datatype.h"
 
 #include <cstddef>

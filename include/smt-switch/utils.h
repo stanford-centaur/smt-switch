@@ -1,18 +1,11 @@
-/*********************                                                        */
-/*! \file utils.h
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann, Ahmed Irfan
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Utility functions.
-**
-**
-**/
+/*!
+ * \file utils.h
+ * \brief Utility functions
+ * \author Makai Mann
+ * \author Ahmed Irfan
+ * \date 2019
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_UTILS_H
 #define SMT_SWITCH_UTILS_H
 

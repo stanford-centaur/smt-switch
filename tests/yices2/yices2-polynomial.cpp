@@ -1,19 +1,10 @@
-/*********************                                                        */
-/*! \file yices2-polynomial.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Amalee Wilson
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief
-**
-**
-**/
-
+/*!
+ * \file yices2-polynomial.cpp
+ * \brief Tests that a Yices2 term with no smt-switch op refuses get_op
+ * \author Amalee Wilson
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <gtest/gtest.h>
 #include <yices.h>

@@ -1,16 +1,16 @@
 /*!
  * \file z3-datatype.cpp
- * \brief Tests that a Z3 constructor decl can go into several datatypes.
+ * \brief Tests that a Z3 constructor decl can go into several datatypes
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * Z3 overloads constructors across datatypes, so one constructor decl may
- * be added to several of them. Each must then give a self selector its own
- * datatype's sort. cvc5 and the generic solver refuse the reuse, as SMT-LIB
- * constructor names are global, so this is not a shared datatype test.
+ * Z3 overloads constructors across datatypes, so one constructor decl may be
+ * added to several of them. Each must then give a self selector its own
+ * datatype's sort. cvc5 refuses the reuse, and so would any SMT-LIB compliant
+ * binary behind the generic solver, as SMT-LIB constructor names are global, so
+ * this is not a shared datatype test.
  */
-
 #include <gtest/gtest.h>
 
 #include <memory>

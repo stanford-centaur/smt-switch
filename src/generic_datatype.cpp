@@ -1,3 +1,10 @@
+/*!
+ * \file generic_datatype.cpp
+ * \brief Datatype declarations, constructors and datatypes for GenericSolver
+ * \author Afnaan Hashmi
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/generic_datatype.h"
 
 #include <algorithm>

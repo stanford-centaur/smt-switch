@@ -1,3 +1,10 @@
+/*!
+ * \file z3_test.cpp
+ * \brief Tests that a Z3 datatype sort wraps a Z3 datatype
+ * \author Lindsey Stuntz
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 #include <z3++.h>
 

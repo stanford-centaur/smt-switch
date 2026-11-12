@@ -1,14 +1,13 @@
 /*!
  * \file msat-time-limit.cpp
- * \brief MathSAT time limits outside what the general time-limit suite checks.
+ * \brief MathSAT time limits outside what the general time-limit suite checks
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * Every other MathSAT option is fixed once the environment exists, and the
- * general suite runs no interpolators.
+ * Every other MathSAT option that has an effect is fixed once the environment
+ * exists, and the general suite runs no interpolators.
  */
-
 #include <gtest/gtest.h>
 
 #include <cstddef>

@@ -1,3 +1,10 @@
+/*!
+ * \file z3_datatype.h
+ * \brief Z3 implementations of the datatype interfaces
+ * \author Tung-Che Chang
+ * \date 2024
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_Z3_DATATYPE_H
 #define SMT_SWITCH_Z3_DATATYPE_H
 

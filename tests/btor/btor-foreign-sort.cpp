@@ -1,7 +1,7 @@
 /*!
  * \file btor-foreign-sort.cpp
  * \brief Tests that Boolector refuses, and tells apart, sorts from another
- * Boolector instance.
+ *        Boolector instance
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -11,7 +11,6 @@
  * be read as this instance's sort of the same number. Two solvers that make
  * the same sorts in the same order get the same numbers for them.
  */
-
 #include <gtest/gtest.h>
 
 #include "smt-switch/boolector_factory.h"

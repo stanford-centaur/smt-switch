@@ -1,3 +1,11 @@
+/*!
+ * \file z3_sort.cpp
+ * \brief Z3 implementation of AbsSort
+ * \author Lindsey Stuntz
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/z3_sort.h"
 
 #include <cstddef>

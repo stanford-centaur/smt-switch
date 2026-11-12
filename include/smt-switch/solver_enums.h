@@ -1,18 +1,10 @@
-/*********************                                                        */
-/*! \file solver_enums.h
-** \verbatim
-** Top contributors (to current version):
-**   Makai Mann
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Enums for identifying SmtSolver objects
-**
-**
-**/
+/*!
+ * \file solver_enums.h
+ * \brief Enums for identifying SmtSolver objects
+ * \author Makai Mann
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_SOLVER_ENUMS_H
 #define SMT_SWITCH_SOLVER_ENUMS_H
 

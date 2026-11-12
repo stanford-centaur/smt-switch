@@ -1,6 +1,6 @@
 /*!
  * \file bzla-options.cpp
- * \brief Tests when options can be set on a Bitwuzla solver.
+ * \brief Tests when options can be set on a Bitwuzla solver
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -9,7 +9,6 @@
  * use, and ignores later changes, so set_opt must refuse them instead. A
  * query that needs no instance must not create one.
  */
-
 #include <gtest/gtest.h>
 
 #include <string>

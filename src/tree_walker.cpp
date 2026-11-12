@@ -1,3 +1,11 @@
+/*!
+ * \file tree_walker.cpp
+ * \brief Tree walker class that can be inherited and modified for term
+ *        traversal and manipulation
+ * \author Allison Guman
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include "smt-switch/tree_walker.h"
 
 #include <memory>

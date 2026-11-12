@@ -1,20 +1,17 @@
-/*********************                                                        */
-/*! \file printing_solver.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Yoni Zohar
-** This file is part of the smt-switch project.
-** Copyright (c) 2020 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Class that wraps another SmtSolver and dumps SMT-LIB
-**        that corresponds to the operations being performed.
-**        The SMT-LIB command is printed before being executed,
-**        so that in case of an error it easier to see when it happened.
-**/
-
+/*!
+ * \file printing_solver.cpp
+ * \brief Class that wraps another SmtSolver and dumps SMT-LIB that corresponds
+ *        to the operations being performed
+ * \author Yoni Zohar
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2020
+ * \copyright See the LICENSE file in the top-level source directory.
+ *
+ * Most commands are printed before they are executed, so that in case of an
+ * error it is easier to see where it happened. Option, logic, symbol and
+ * datatype declarations are printed only once the wrapped solver has accepted
+ * them, so that a refused one is not replayed.
+ */
 #include "smt-switch/printing_solver.h"
 
 #include <cstddef>

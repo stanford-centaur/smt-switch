@@ -1,6 +1,6 @@
 /*!
  * \file logging_datatype.h
- * \brief Datatype declarations as a LoggingSolver records them.
+ * \brief Datatype declarations as a LoggingSolver records them
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.

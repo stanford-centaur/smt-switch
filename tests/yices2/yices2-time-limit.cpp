@@ -1,6 +1,6 @@
 /*!
  * \file yices2-time-limit.cpp
- * \brief Yices2 time limits leave the program's own SIGALRM alone.
+ * \brief Tests that Yices2 time limits leave the program's own SIGALRM alone
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -8,7 +8,6 @@
  * Yices2 time limits run on the process's one SIGALRM timer, which the
  * program may be using as well.
  */
-
 #include <gtest/gtest.h>
 #include <signal.h>
 #include <sys/time.h>

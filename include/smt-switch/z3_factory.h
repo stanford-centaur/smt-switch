@@ -1,3 +1,10 @@
+/*!
+ * \file z3_factory.h
+ * \brief Factory for creating a Z3 SmtSolver
+ * \author Lindsey Stuntz
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #ifndef SMT_SWITCH_Z3_FACTORY_H
 #define SMT_SWITCH_Z3_FACTORY_H
 

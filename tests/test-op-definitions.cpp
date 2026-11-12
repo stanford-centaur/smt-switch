@@ -1,14 +1,14 @@
 /*!
  * \file test-op-definitions.cpp
- * \brief Checks that operators mean what their definitions say.
+ * \brief Checks that operators mean what their definitions say
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * Each check asserts that an operator and its definition in terms of other
- * operators can differ, and expects that to be unsatisfiable.
+ * Each check asserts that something the operator's definition says can fail,
+ * usually its equality with a definition in terms of other operators, and
+ * expects that to be unsatisfiable.
  */
-
 #include <gtest/gtest.h>
 
 #include <cstdint>

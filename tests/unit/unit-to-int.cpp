@@ -1,17 +1,11 @@
-/*********************                                                        */
-/*! \file unit-to-int.cpp
-** \verbatim
-** Top contributors (to current version):
-**   Áron Ricardo Perez-Lopez
-** This file is part of the smt-switch project.
-** Copyright (c) 2026 by the authors listed in the file AUTHORS
-** in the top-level source directory) and their institutional affiliations.
-** All rights reserved.  See the file LICENSE in the top-level source
-** directory for licensing information.\endverbatim
-**
-** \brief Tests for Term::to_int and Term::to_signed_int, on constants and
-**        on model values, which some solvers print differently.
-**/
+/*!
+ * \file unit-to-int.cpp
+ * \brief Tests for Term::to_int and Term::to_signed_int, on constants and on
+ *        model values, which some solvers print differently
+ * \author Áron Ricardo Perez-Lopez
+ * \date 2026
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <gtest/gtest.h>
 
 #include <cstddef>

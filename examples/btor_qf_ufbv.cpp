@@ -1,3 +1,10 @@
+/*!
+ * \file btor_qf_ufbv.cpp
+ * \brief A small incremental QF_UFBV query solved with Boolector
+ * \author Makai Mann
+ * \date 2021
+ * \copyright See the LICENSE file in the top-level source directory.
+ */
 #include <smt-switch/boolector_factory.h>
 #include <smt-switch/smt.h>
 
