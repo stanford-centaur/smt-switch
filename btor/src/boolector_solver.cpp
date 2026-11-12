@@ -202,7 +202,8 @@ static std::shared_ptr<Btor> new_btor()
   });
 }
 
-BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
+BoolectorSolver::BoolectorSolver()
+    : AbsSmtSolver(SolverKind::BTOR), btor(new_btor())
 {
   // Boolector exits the process on an abort condition unless given an abort
   // callback, so throw instead. The callback is global, not per instance.
@@ -609,7 +610,7 @@ Sort BoolectorSolver::make_sort(const std::string /* name */,
                                 uint64_t /* arity */) const
 {
   throw NotImplementedException("Uninterpreted sorts are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(get_kind()));
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk) const
@@ -686,7 +687,7 @@ Sort BoolectorSolver::make_sort(const Sort & /* sort_con */,
                                 const SortVec & /* sorts */) const
 {
   throw NotImplementedException("Uninterpreted sorts are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(get_kind()));
 }
 
 Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)

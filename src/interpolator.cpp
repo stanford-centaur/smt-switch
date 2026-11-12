@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -16,73 +17,27 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
+#include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
 
 namespace smt {
 
-AbsSmtInterpolator::AbsSmtInterpolator(SolverEnum se, SmtSolver backend)
-    : AbsSmtSolver(se), backend_solver(std::move(backend))
+AbsSmtInterpolator::AbsSmtInterpolator(InterpolatorKind itp_kind,
+                                       SmtSolver backend)
+    : backend_solver(std::move(backend)), interpolator_kind(itp_kind)
 {
 }
 
-// ------------------------- Forbidden ---------------------------------------
-
-void AbsSmtInterpolator::do_push(std::uint64_t /* num */)
+InterpolatorKind AbsSmtInterpolator::get_kind() const
 {
-  throw IncorrectUsageException("Can't call push from interpolating solver");
+  return interpolator_kind;
 }
 
-void AbsSmtInterpolator::do_pop(std::uint64_t /* num */)
+SolverEnum AbsSmtInterpolator::get_solver_enum() const
 {
-  throw IncorrectUsageException("Can't call pop from interpolating solver");
+  return detail::solver_enum(interpolator_kind);
 }
-
-void AbsSmtInterpolator::do_assert(const Term & /* t */)
-{
-  throw IncorrectUsageException(
-      "Can't assert formulas in interpolating solver");
-}
-
-Result AbsSmtInterpolator::check_sat()
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat from interpolating solver");
-}
-
-Result AbsSmtInterpolator::do_check_sat_assuming(
-    const TermVec & /* assumptions */)
-{
-  throw IncorrectUsageException(
-      "Can't call check_sat_assuming from interpolating solver");
-}
-
-Term AbsSmtInterpolator::get_value(const Term & /* t */) const
-{
-  throw IncorrectUsageException("Can't get values from interpolating solver");
-}
-
-UnorderedTermMap AbsSmtInterpolator::get_array_values(
-    const Term & /* arr */, Term & /* out_const_base */) const
-{
-  throw IncorrectUsageException(
-      "Can't get array values from interpolating solver");
-}
-
-void AbsSmtInterpolator::get_unsat_assumptions(
-    UnorderedTermSet & /* out */) const
-{
-  throw IncorrectUsageException(
-      "Can't get unsat assumptions from interpolating solver");
-}
-
-void AbsSmtInterpolator::dump_smt2(std::string /* filename */) const
-{
-  throw IncorrectUsageException(
-      "Can't dump assertions from interpolating solver, which holds none");
-}
-
-std::uint64_t AbsSmtInterpolator::get_context_level() const { return 0; }
 
 // ------------------------- Handled here ------------------------------------
 
@@ -98,24 +53,31 @@ void AbsSmtInterpolator::set_opt(const std::string option,
   incremental_mode = bool_option_value(option, value);
 }
 
-void AbsSmtInterpolator::do_reset_assertions()
+void AbsSmtInterpolator::reset_assertions()
 {
   last_itp_query_formulae.clear();
   last_itp_query_interpolants.clear();
   forget_queries();
-  backend_solver->reset_assertions();
+  reset_backend_assertions();
 }
 
-void AbsSmtInterpolator::do_reset()
+void AbsSmtInterpolator::reset()
 {
   // first, as what is kept can be terms that the reset destroys
   last_itp_query_formulae.clear();
   last_itp_query_interpolants.clear();
   forget_queries();
-  backend_solver->reset();
+  reset_backend();
   incremental_mode = true;
   initialize();
 }
+
+void AbsSmtInterpolator::reset_backend_assertions()
+{
+  backend_solver->reset_assertions();
+}
+
+void AbsSmtInterpolator::reset_backend() { backend_solver->reset(); }
 
 void AbsSmtInterpolator::forget_queries() {}
 
@@ -128,8 +90,9 @@ Result AbsSmtInterpolator::refute_model(const Term & /* A */,
                                         TermsPairVec & /* model */,
                                         Term & /* model_interpolant */) const
 {
-  throw NotImplementedException(to_string(get_solver_enum())
-                                + " does not interpolate by refuting models");
+  throw NotImplementedException(
+      "The " + to_string(interpolator_kind)
+      + " interpolator does not interpolate by refuting models");
 }
 
 // ------------------------- Forwarded ---------------------------------------

@@ -50,34 +50,38 @@ using namespace smt;
 
 namespace smt_tests {
 
-SolverConfiguration::SolverConfiguration(smt::SolverEnum se, bool ils)
-    : solver_enum(se), is_logging_solver(ils)
+SolverConfiguration::SolverConfiguration(smt::SolverKind kind, bool ils)
+    : solver_kind(kind), is_logging_solver(ils)
 {
 }
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
-  switch (sc.solver_enum)
+  // Every kind has a case, so -Wswitch flags a new one; a solver this build
+  // leaves out breaks out to the throw below.
+  switch (sc.solver_kind)
   {
+    case SolverKind::BTOR:
 #ifdef BUILD_BTOR
-    case BTOR: {
       return BoolectorSolverFactory::create(sc.is_logging_solver);
+#else
       break;
-    }
 #endif
+    case SolverKind::BZLA:
 #ifdef BUILD_BITWUZLA
-    case BZLA: {
       return BitwuzlaSolverFactory::create(sc.is_logging_solver);
+#else
       break;
-    }
 #endif
+    case SolverKind::CVC5:
 #ifdef BUILD_CVC5
-    case CVC5: {
       return Cvc5SolverFactory::create(sc.is_logging_solver);
+#else
       break;
-    }
-    case GENERIC_SOLVER: {
-      std::string path(solver_binary(CVC5));
+#endif
+    case SolverKind::GENERIC: {
+#ifdef BUILD_CVC5
+      std::string path(solver_binary(SolverKind::CVC5));
       std::vector<std::string> args = {
         "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
       };
@@ -97,120 +101,121 @@ SmtSolver create_solver(SolverConfiguration sc)
       {
         return std::make_shared<GenericSolver>(path, args, response_timeout, 5);
       }
+#else
       break;
-    }
 #endif
+    }
+    case SolverKind::MSAT:
 #ifdef BUILD_MSAT
-    case MSAT: {
       return MsatSolverFactory::create(sc.is_logging_solver);
+#else
       break;
-    }
 #endif
+    case SolverKind::YICES2:
 #ifdef BUILD_YICES2
-    case YICES2: {
       return Yices2SolverFactory::create(sc.is_logging_solver);
+#else
       break;
-    }
 #endif
+    case SolverKind::Z3:
 #ifdef BUILD_Z3
-    case Z3: {
       return Z3SolverFactory::create(sc.is_logging_solver);
+#else
       break;
-    }
 #endif
-    default: {
-      throw SmtException("Unhandled solver enum");
-    }
   }
+  throw SmtException("Solver " + to_string(sc.solver_kind) + " is not built");
 }
 
-SmtInterpolator create_interpolator(SolverConfiguration sc)
+SmtInterpolator create_interpolator(InterpolatorKind itp_kind)
 {
-  switch (sc.solver_enum)
+  // Every kind has a case, so -Wswitch flags a new one; an interpolator this
+  // build leaves out breaks out to the throw below.
+  switch (itp_kind)
   {
+    case InterpolatorKind::BZLA:
 #ifdef BUILD_BITWUZLA
-    case BZLA_INTERPOLATOR: {
       return BitwuzlaSolverFactory::create_interpolator();
+#else
       break;
-    }
 #endif
+    case InterpolatorKind::CVC5:
 #ifdef BUILD_CVC5
-    case CVC5_INTERPOLATOR: {
       return Cvc5SolverFactory::create_interpolator();
+#else
       break;
-    }
 #endif
+    case InterpolatorKind::MSAT:
 #ifdef BUILD_MSAT
-    case MSAT_INTERPOLATOR: {
       return MsatSolverFactory::create_interpolator();
+#else
       break;
-    }
 #endif
+    case InterpolatorKind::YICES2:
 #ifdef BUILD_YICES2
-    case YICES2_INTERPOLATOR: {
       return Yices2SolverFactory::create_interpolator();
+#else
       break;
-    }
 #endif
-    default: {
-      throw SmtException("Unhandled solver enum");
-    }
   }
+  throw SmtException("Interpolator " + to_string(itp_kind) + " is not built");
 }
 
-std::vector<SolverEnum> available_solver_enums()
+std::vector<SolverKind> available_solver_kinds()
 {
-  // the regular (non-interpolator) solvers
-  std::vector<SolverEnum> enums = {
+  std::vector<SolverKind> kinds = {
 #ifdef BUILD_BTOR
-    BTOR,
+    SolverKind::BTOR,
 #endif
 #ifdef BUILD_BITWUZLA
-    BZLA,
+    SolverKind::BZLA,
 #endif
 #ifdef BUILD_CVC5
-    CVC5,
+    SolverKind::CVC5,
 #endif
 #ifdef BUILD_MSAT
-    MSAT,
+    SolverKind::MSAT,
 #endif
 #ifdef BUILD_YICES2
-    YICES2,
+    SolverKind::YICES2,
 #endif
 #ifdef BUILD_Z3
-    Z3,
+    SolverKind::Z3,
 #endif
   };
   // the generic solver drives the cvc5 executable
-  if (!solver_binary(CVC5).empty())
+  if (!solver_binary(SolverKind::CVC5).empty())
   {
-    enums.push_back(GENERIC_SOLVER);
+    kinds.push_back(SolverKind::GENERIC);
   }
-  return enums;
+  return kinds;
 }
 
-std::string_view solver_binary(SolverEnum se)
+std::string_view solver_binary(SolverKind solver_kind)
 {
-  switch (se)
+  // no default, so that -Wswitch reports an enumerator without a case
+  switch (solver_kind)
   {
-    case BTOR: return smt_tests::boolector_binary;
-    case BZLA: return smt_tests::bitwuzla_binary;
-    case CVC5: return smt_tests::cvc5_binary;
-    case MSAT: return smt_tests::mathsat_binary;
-    case YICES2: return smt_tests::yices2_binary;
-    case Z3: return smt_tests::z3_binary;
-    default: return "";
+    case SolverKind::BTOR: return smt_tests::boolector_binary;
+    case SolverKind::BZLA: return smt_tests::bitwuzla_binary;
+    case SolverKind::CVC5: return smt_tests::cvc5_binary;
+    case SolverKind::MSAT: return smt_tests::mathsat_binary;
+    case SolverKind::YICES2: return smt_tests::yices2_binary;
+    case SolverKind::Z3: return smt_tests::z3_binary;
+    // the generic solver drives another solver's executable
+    case SolverKind::GENERIC: break;
   }
+  return "";
 }
 
-std::vector<SolverEnum> available_non_generic_solver_enums()
+std::vector<SolverKind> available_non_generic_solver_kinds()
 {
-  std::vector<SolverEnum> result;
-  for (SolverEnum se : available_solver_enums())
+  std::vector<SolverKind> result;
+  for (SolverKind solver_kind : available_solver_kinds())
   {
-    if (se != SolverEnum::GENERIC_SOLVER)
+    if (solver_kind != SolverKind::GENERIC)
     {
-      result.push_back(se);
+      result.push_back(solver_kind);
     }
   }
   return result;
@@ -219,10 +224,10 @@ std::vector<SolverEnum> available_non_generic_solver_enums()
 std::vector<SolverConfiguration> available_solver_configurations()
 {
   std::vector<SolverConfiguration> configs;
-  for (SolverEnum e : available_solver_enums())
+  for (SolverKind solver_kind : available_solver_kinds())
   {
-    SolverConfiguration sct(e, true);
-    SolverConfiguration scf(e, false);
+    SolverConfiguration sct(solver_kind, true);
+    SolverConfiguration scf(solver_kind, false);
     configs.push_back(sct);
     configs.push_back(scf);
   }
@@ -235,7 +240,7 @@ std::vector<SolverConfiguration> available_non_generic_solver_configurations()
   std::vector<SolverConfiguration> result;
   for (SolverConfiguration sc : original)
   {
-    if (sc.solver_enum != SolverEnum::GENERIC_SOLVER)
+    if (sc.solver_kind != SolverKind::GENERIC)
     {
       result.push_back(sc);
     }
@@ -243,24 +248,24 @@ std::vector<SolverConfiguration> available_non_generic_solver_configurations()
   return result;
 }
 
-std::vector<SolverEnum> available_interpolator_enums()
+std::vector<InterpolatorKind> available_interpolator_kinds()
 {
-  std::vector<SolverEnum> result;
+  std::vector<InterpolatorKind> result;
 #ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
-  result.push_back(BZLA_INTERPOLATOR);
+  result.push_back(InterpolatorKind::BZLA);
 #endif
 #ifdef BUILD_CVC5
-  result.push_back(CVC5_INTERPOLATOR);
+  result.push_back(InterpolatorKind::CVC5);
 #endif
 #ifdef BUILD_MSAT
-  result.push_back(MSAT_INTERPOLATOR);
+  result.push_back(InterpolatorKind::MSAT);
 #endif
 #ifdef BUILD_YICES2
   // a Yices2 without MCSAT refuses to create an interpolator
   try
   {
     Yices2SolverFactory::create_interpolator();
-    result.push_back(YICES2_INTERPOLATOR);
+    result.push_back(InterpolatorKind::YICES2);
   }
   catch (const NotImplementedException &)
   {
@@ -269,87 +274,62 @@ std::vector<SolverEnum> available_interpolator_enums()
   return result;
 }
 
-std::vector<SolverConfiguration> available_interpolator_configurations()
-{
-  std::vector<SolverConfiguration> result;
-  for (SolverEnum e : available_interpolator_enums())
-  {
-    SolverConfiguration sc(e, false);
-    result.push_back(sc);
-  }
-  return result;
-}
-
 namespace {
 
-/** Whether se has every one of the attributes */
-bool has_all_attributes(SolverEnum se,
+/** Whether solver_kind has every one of the attributes */
+bool has_all_attributes(SolverKind solver_kind,
                         const std::unordered_set<SolverAttribute> & attributes)
 {
-  const std::unordered_set<SolverAttribute> se_attrs =
-      get_solver_attributes(se);
+  const std::unordered_set<SolverAttribute> sk_attrs =
+      get_solver_attributes(solver_kind);
   return std::all_of(
-      attributes.begin(), attributes.end(), [&se_attrs](SolverAttribute a) {
-        return se_attrs.find(a) != se_attrs.end();
+      attributes.begin(), attributes.end(), [&sk_attrs](SolverAttribute a) {
+        return sk_attrs.find(a) != sk_attrs.end();
       });
 }
 
 }  // namespace
 
-SolverEnum interpolator_base_solver(SolverEnum se)
-{
-  switch (se)
-  {
-    case BZLA_INTERPOLATOR: return BZLA;
-    case CVC5_INTERPOLATOR: return CVC5;
-    case MSAT_INTERPOLATOR: return MSAT;
-    case YICES2_INTERPOLATOR: return YICES2;
-    default: {
-      throw SmtException("Unhandled interpolator solver enum");
-    }
-  }
-}
-
-std::vector<SolverConfiguration> filter_interpolator_configurations(
+std::vector<InterpolatorKind> filter_interpolator_kinds(
     const std::unordered_set<SolverAttribute> attributes)
 {
-  std::vector<SolverConfiguration> result;
-  for (SolverConfiguration sc : available_interpolator_configurations())
+  std::vector<InterpolatorKind> result;
+  for (InterpolatorKind itp_kind : available_interpolator_kinds())
   {
-    if (has_all_attributes(sc.solver_enum, attributes))
+    if (has_all_attributes(solver_kind(itp_kind), attributes))
     {
-      result.push_back(sc);
+      result.push_back(itp_kind);
     }
   }
   return result;
 }
 
-std::vector<SolverEnum> filter_solver_enums(
+std::vector<SolverKind> filter_solver_kinds(
     const std::unordered_set<SolverAttribute> attributes)
 {
-  std::vector<SolverEnum> filtered_enums;
-  for (auto se : available_solver_enums())
+  std::vector<SolverKind> filtered_kinds;
+  for (auto solver_kind : available_solver_kinds())
   {
-    if (has_all_attributes(se, attributes))
+    if (has_all_attributes(solver_kind, attributes))
     {
-      filtered_enums.push_back(se);
+      filtered_kinds.push_back(solver_kind);
     }
   }
-  return filtered_enums;
+  return filtered_kinds;
 }
 
 std::vector<SolverConfiguration> filter_solver_configurations(
     const std::unordered_set<SolverAttribute> attributes)
 {
-  // first get the enums
-  std::vector<SolverEnum> filtered_enums = filter_solver_enums(attributes);
+  // first get the kinds
+  std::vector<SolverKind> filtered_kinds = filter_solver_kinds(attributes);
 
   // compute result
   std::vector<SolverConfiguration> result;
-  for (SolverEnum e : filtered_enums)
+  for (SolverKind solver_kind : filtered_kinds)
   {
-    SolverConfiguration scf(e, false);
-    SolverConfiguration sct(e, true);
+    SolverConfiguration scf(solver_kind, false);
+    SolverConfiguration sct(solver_kind, true);
     result.push_back(scf);
     result.push_back(sct);
   }
@@ -362,16 +342,16 @@ std::vector<SolverConfiguration> filter_solver_configurations(
     std::unordered_set<SolverAttribute> reduced_attributes = attributes;
     reduced_attributes.erase(TERMITER);
     reduced_attributes.erase(FULL_TRANSFER);
-    // get filtered enums for the rest of the attributes
-    std::vector<SolverEnum> reduced_filtered_enums =
-        filter_solver_enums(reduced_attributes);
-    std::unordered_set<SolverEnum> filtered_enums_set(filtered_enums.begin(),
-                                                      filtered_enums.end());
-    for (auto se : reduced_filtered_enums)
+    // get filtered kinds for the rest of the attributes
+    std::vector<SolverKind> reduced_filtered_kinds =
+        filter_solver_kinds(reduced_attributes);
+    std::unordered_set<SolverKind> filtered_kinds_set(filtered_kinds.begin(),
+                                                      filtered_kinds.end());
+    for (auto solver_kind : reduced_filtered_kinds)
     {
-      if (filtered_enums_set.find(se) == filtered_enums_set.end())
+      if (filtered_kinds_set.find(solver_kind) == filtered_kinds_set.end())
       {
-        result.push_back(SolverConfiguration(se, true));
+        result.push_back(SolverConfiguration(solver_kind, true));
       }
     }
   }
@@ -386,7 +366,7 @@ std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
   std::vector<SolverConfiguration> result;
   for (SolverConfiguration sc : original_result)
   {
-    if (sc.solver_enum != SolverEnum::GENERIC_SOLVER)
+    if (sc.solver_kind != SolverKind::GENERIC)
     {
       result.push_back(sc);
     }
@@ -396,13 +376,13 @@ std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
 
 std::ostream & operator<<(std::ostream & o, SolverConfiguration sc)
 {
-  o << sc.solver_enum << "(logging=" << sc.is_logging_solver << ")";
+  o << sc.solver_kind << "(logging=" << sc.is_logging_solver << ")";
   return o;
 }
 
 std::string config_name(SolverConfiguration sc)
 {
-  std::string name = to_string(sc.solver_enum);
+  std::string name = to_string(sc.solver_kind);
   if (sc.is_logging_solver)
   {
     name += "_LOGGING";

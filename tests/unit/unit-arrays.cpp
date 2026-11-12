@@ -63,7 +63,7 @@ TEST_P(UnitArrayTests, ConstArr)
 
   EXPECT_TRUE(r.is_sat());
 
-  if (GetParam().solver_enum == YICES2)
+  if (GetParam().solver_kind == SolverKind::YICES2)
   {
     // Yices2 has no model value for a constant array, which it keeps as a
     // lambda; the rest of this test asks for one

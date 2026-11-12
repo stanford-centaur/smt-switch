@@ -100,9 +100,7 @@ std::string PrintingDatatypeDecl::get_name() const { return name; }
 
 // implementations
 PrintingSolver::PrintingSolver(SmtSolver s, std::ostream * os)
-    : AbsSmtSolver(s->get_solver_enum()),
-      wrapped_solver(std::move(s)),
-      out_stream(os)
+    : AbsSmtSolver(s->get_kind()), wrapped_solver(std::move(s)), out_stream(os)
 {
 }
 

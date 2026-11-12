@@ -68,7 +68,7 @@ struct BzlaSolver::Instance
 };
 
 BzlaSolver::BzlaSolver()
-    : AbsSmtSolver(BZLA), tm(std::make_shared<BzlaTermManager>())
+    : AbsSmtSolver(SolverKind::BZLA), tm(std::make_shared<BzlaTermManager>())
 {
 }
 

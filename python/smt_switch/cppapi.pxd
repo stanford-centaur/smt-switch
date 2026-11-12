@@ -9,6 +9,7 @@ from .cppenums cimport c_PrimOp, c_SortKind
 
 ctypedef shared_ptr[AbsSort] c_Sort
 ctypedef shared_ptr[AbsTerm] c_Term
+ctypedef shared_ptr[AbsSmtTermBuilder] c_SmtTermBuilder
 ctypedef shared_ptr[AbsSmtSolver] c_SmtSolver
 ctypedef shared_ptr[AbsSmtInterpolator] c_SmtInterpolator
 ctypedef vector[c_Sort] c_SortVec
@@ -95,20 +96,8 @@ cdef extern from "smt-switch/result.h" namespace "smt":
         string to_string() except+
 
 
-cdef extern from "smt-switch/solver.h" namespace "smt":
-    cdef cppclass AbsSmtSolver:
-        AbsSmtSolver() except +
-        void set_opt(const string option, const string value) except +
-        void set_logic(const string logic) except +
-        void assert_formula(const c_Term & t) except +
-        c_Result check_sat() except +
-        c_Result check_sat_assuming(const c_TermVec & assumptions) except +
-        void push(uint64_t num) except +
-        void pop(uint64_t num) except +
-        uint64_t get_context_level() except +
-        void pop_all() except +
-        c_Term get_value(c_Term& t) except +
-        void get_unsat_assumptions(c_UnorderedTermSet& out) except +
+cdef extern from "smt-switch/term_builder.h" namespace "smt":
+    cdef cppclass AbsSmtTermBuilder:
         c_Sort make_sort(const string name, uint64_t arity) except +
         c_Sort make_sort(const c_SortKind sk) except +
         c_Sort make_sort(const c_SortKind sk, uint64_t size) except +
@@ -128,16 +117,35 @@ cdef extern from "smt-switch/solver.h" namespace "smt":
         c_Term make_symbol(const string name, const c_Sort & sort) except +
         c_Term make_param(const string name, const c_Sort & sort) except +
         c_Term make_term(const c_Op op, const c_TermVec & terms) except +
-        void reset() except +
-        void reset_assertions() except +
         c_Term substitute(
             const c_Term term, const c_UnorderedTermMap & substitution_map
         ) except +
+
+
+cdef extern from "smt-switch/solver.h" namespace "smt":
+    cdef cppclass AbsSmtSolver(AbsSmtTermBuilder):
+        void set_opt(const string option, const string value) except +
+        void set_logic(const string logic) except +
+        void assert_formula(const c_Term & t) except +
+        c_Result check_sat() except +
+        c_Result check_sat_assuming(const c_TermVec & assumptions) except +
+        void push(uint64_t num) except +
+        void pop(uint64_t num) except +
+        uint64_t get_context_level() except +
+        void pop_all() except +
+        c_Term get_value(c_Term& t) except +
+        void get_unsat_assumptions(c_UnorderedTermSet& out) except +
+        void reset() except +
+        void reset_assertions() except +
         void dump_smt2(string filename) except +
 
 
 cdef extern from "smt-switch/interpolator.h" namespace "smt":
-    cdef cppclass AbsSmtInterpolator(AbsSmtSolver):
+    cdef cppclass AbsSmtInterpolator(AbsSmtTermBuilder):
+        void set_opt(const string option, const string value) except +
+        void set_logic(const string logic) except +
+        void reset() except +
+        void reset_assertions() except +
         c_Result get_interpolant(
             const c_Term & A, const c_Term & B, c_Term & out_I
         ) except +

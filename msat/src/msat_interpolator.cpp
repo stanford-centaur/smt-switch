@@ -34,7 +34,8 @@ static string with_error(const string & text, const string & error)
 }
 
 MsatInterpolator::MsatInterpolator()
-    : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>()),
+    : AbsSmtInterpolator(InterpolatorKind::MSAT,
+                         std::make_shared<MsatSolver>()),
       msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
 {
   initialize();

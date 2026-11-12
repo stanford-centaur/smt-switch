@@ -26,6 +26,9 @@ using Sort = std::shared_ptr<AbsSort>;
 class AbsTerm;
 using Term = std::shared_ptr<AbsTerm>;
 
+class AbsSmtTermBuilder;
+using SmtTermBuilder = std::shared_ptr<AbsSmtTermBuilder>;
+
 class AbsSmtSolver;
 using SmtSolver = std::shared_ptr<AbsSmtSolver>;
 

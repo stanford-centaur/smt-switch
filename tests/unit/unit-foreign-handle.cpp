@@ -40,7 +40,7 @@ class ForeignHandle : public ::testing::TestWithParam<SolverConfiguration>
     const SolverConfiguration & sc = GetParam();
     s = create_solver(sc);
     other = create_solver(
-        SolverConfiguration(sc.solver_enum, !sc.is_logging_solver));
+        SolverConfiguration(sc.solver_kind, !sc.is_logging_solver));
     boolsort = s->make_sort(BOOL);
     other_boolsort = other->make_sort(BOOL);
   }

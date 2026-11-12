@@ -39,6 +39,7 @@ class PrintingInterpolator : public AbsSmtInterpolator
       default;
 
   void set_opt(const std::string option, const std::string value) override;
+  void set_logic(const std::string logic) override;
 
  protected:
   Result compute_interpolant(const Term & A,
@@ -48,6 +49,8 @@ class PrintingInterpolator : public AbsSmtInterpolator
                                   TermVec & out_I) const override;
   void do_set_opt(const std::string & option,
                   const std::string & value) override;
+  void reset_backend_assertions() override;
+  void reset_backend() override;
   void forget_queries() override;
   void initialize() override;
 

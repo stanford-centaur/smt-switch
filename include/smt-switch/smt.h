@@ -43,6 +43,9 @@
 // Abstract term interface.
 #include "smt-switch/term.h"  // IWYU pragma: export
 
+// Term and sort building interface, shared by solvers and interpolators.
+#include "smt-switch/term_builder.h"  // IWYU pragma: export
+
 // Transfer terms between solvers.
 #include "smt-switch/term_translator.h"  // IWYU pragma: export
 

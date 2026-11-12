@@ -13,6 +13,7 @@ from .sortkinds import BV, INT, int2sortkind
 from .cppapi cimport (
     AbsSmtInterpolator,
     AbsSmtSolver,
+    AbsSmtTermBuilder,
     c_Op,
     c_SmtInterpolator,
     c_Sort,
@@ -127,9 +128,9 @@ cdef class Result:
 
 
 cdef class Sort:
-    def __init__(self, SmtSolver solver):
-        # the solver this came from, which wraps the sorts and terms that
-        # its methods return
+    def __init__(self, SmtTermBuilder solver):
+        # the solver or interpolator this came from, which wraps the sorts and
+        # terms that its methods return
         self.solver = solver
 
     def get_width(self):
@@ -243,9 +244,9 @@ def _parse_number_at(tokens, i, text):
 
 
 cdef class Term:
-    def __init__(self, SmtSolver solver):
-        # the solver this came from, which wraps the sorts and terms that
-        # its methods return
+    def __init__(self, SmtTermBuilder solver):
+        # the solver or interpolator this came from, which wraps the sorts and
+        # terms that its methods return
         self.solver = solver
 
     def get_op(self):
@@ -297,7 +298,7 @@ cdef class Term:
 
     def __bool__(self):
         cdef c_Sort csort = dref(self.ct).get_sort()
-        cdef c_Sort cboolsort = dref(self.solver.css).make_sort(c_BOOL)
+        cdef c_Sort cboolsort = dref(self.solver.ctb).make_sort(c_BOOL)
 
         if csort != cboolsort or not dref(self.ct).is_value():
             raise ValueError("Cannot call bool on {}".format(str(self)))
@@ -313,7 +314,139 @@ cdef class Term:
             yield t
 
 
-cdef class SmtSolver:
+cdef class SmtTermBuilder:
+    def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
+        cdef Sort s = Sort(self)
+        cdef c_SortKind sk
+        cdef c_SortVec csv
+
+        if isinstance(arg0, str):
+            s.cs = dref(self.ctb).make_sort(<const string> arg0.encode(), <int?> arg1)
+        elif isinstance(arg0, SortKind):
+            sk = (<SortKind> arg0).sk
+            if arg1 is None:
+                s.cs = dref(self.ctb).make_sort(sk)
+            elif isinstance(arg1, int) and arg2 is None:
+                s.cs = dref(self.ctb).make_sort(sk, <int> arg1)
+            elif isinstance(arg1, Sort) and arg2 is None:
+                s.cs = dref(self.ctb).make_sort(sk, (<Sort> arg1).cs)
+            elif isinstance(arg1, list) and arg2 is None:
+                for a in arg1:
+                    csv.push_back((<Sort?> a).cs)
+                s.cs = dref(self.ctb).make_sort(sk, csv)
+            elif arg3 is None:
+                s.cs = dref(self.ctb).make_sort(
+                    sk, (<Sort?> arg1).cs, (<Sort?> arg2).cs
+                )
+            elif arg3 is not None:
+                s.cs = dref(self.ctb).make_sort(sk, (<Sort?> arg1).cs,
+                                                    (<Sort?> arg2).cs,
+                                                    (<Sort?> arg3).cs)
+            else:
+                raise ValueError(
+                    "Cannot find matching function for {}".format(
+                        [type(a) for a in [arg0, arg1, arg2, arg3]]
+                    )
+                )
+        else:
+            raise ValueError(
+                "Cannot find matching function for {}".format(
+                    [type(a) for a in [arg0, arg1, arg2, arg3]]
+                )
+            )
+        return s
+
+    def make_term(self, op_or_val, *args):
+        cdef Term term = Term(self)
+        cdef c_TermVec ctv
+
+        if isinstance(op_or_val, PrimOp):
+            op_or_val = Op(op_or_val)
+
+        # expand a list argument
+        if len(args) > 0:
+            if (isinstance(args[0], list) and len(args) > 1) or \
+               any([isinstance(a, list) for a in args[1:]]):
+                raise ValueError(
+                    "Cannot call make_term with signature {}".format(
+                        [type(a) for a in args]
+                    )
+                )
+            elif isinstance(args[0], list):
+                # expand arguments in list to be args
+                args = args[0]
+
+        if isinstance(op_or_val, Op):
+            if not op_or_val:
+                raise ValueError("Got a null Op in make_term")
+
+            if not args:
+                raise ValueError(
+                    "Can't call make_term with an Op ({}) and no arguments"
+                    .format(op_or_val)
+                )
+
+            for a in args:
+                ctv.push_back((<Term?> a).ct)
+            term.ct = dref(self.ctb).make_term((<Op> op_or_val).op, ctv)
+        elif isinstance(op_or_val, bool) and len(args) == 0:
+            term.ct = dref(self.ctb).make_term(<bint> op_or_val)
+        elif (isinstance(op_or_val, str) and len(args) == 1
+              and isinstance(args[0], Sort)):
+            term.ct = dref(self.ctb).make_term(
+                <const string> op_or_val.encode(), (<Sort> args[0]).cs
+            )
+        elif (isinstance(op_or_val, str) and len(args) == 2
+              and isinstance(args[0], Sort)):
+            term.ct = dref(self.ctb).make_term(<const string> op_or_val.encode(),
+                                               (<Sort> args[0]).cs,
+                                               <int?> args[1])
+        elif (isinstance(op_or_val, int) and len(args) == 1
+              and isinstance(args[0], Sort)):
+            # always use the string representation of integers (to handle large ints)
+            term.ct = dref(self.ctb).make_term(
+                (<const string?> str(op_or_val).encode()), (<Sort> args[0]).cs
+            )
+        elif (isinstance(op_or_val, Term) and len(args) == 1
+              and isinstance(args[0], Sort)):
+            # this is for creating a constant array
+            term.ct = dref(self.ctb).make_term(
+                (<Term?> op_or_val).ct, (<Sort?> args[0]).cs
+            )
+        else:
+            raise ValueError(
+                "Couldn't find matching function for {}".format(
+                    [type(a) for a in [op_or_val] + args]
+                )
+            )
+        return term
+
+    def make_symbol(self, str name, Sort sort):
+        cdef Term term = Term(self)
+        term.ct = dref(self.ctb).make_symbol(name.encode(), sort.cs)
+        return term
+
+    def make_param(self, str name, Sort sort):
+        cdef Term term = Term(self)
+        term.ct = dref(self.ctb).make_param(name.encode(), sort.cs)
+        return term
+
+    def substitute(self, Term t, dict substitution_map):
+        cdef Term term = Term(self)
+        cdef c_UnorderedTermMap utm
+
+        for k, v in substitution_map.items():
+            utm[(<Term?> k).ct] = (<Term?> v).ct
+
+        term.ct = dref(self.ctb).substitute(t.ct, utm)
+        return term
+
+
+cdef class SmtSolver(SmtTermBuilder):
+    cdef void set_solver(self, c_SmtSolver css):
+        self.css = css
+        self.ctb = static_pointer_cast[AbsSmtTermBuilder, AbsSmtSolver](css)
+
     def set_opt(self, str option, str value):
         dref(self.css).set_opt(option.encode(), value.encode())
 
@@ -371,146 +504,34 @@ cdef class SmtSolver:
             unsat_assumptions.add(term)
         return unsat_assumptions
 
-    def make_sort(self, arg0, arg1=None, arg2=None, arg3=None):
-        cdef Sort s = Sort(self)
-        cdef c_SortKind sk
-        cdef c_SortVec csv
-
-        if isinstance(arg0, str):
-            s.cs = dref(self.css).make_sort(<const string> arg0.encode(), <int?> arg1)
-        elif isinstance(arg0, SortKind):
-            sk = (<SortKind> arg0).sk
-            if arg1 is None:
-                s.cs = dref(self.css).make_sort(sk)
-            elif isinstance(arg1, int) and arg2 is None:
-                s.cs = dref(self.css).make_sort(sk, <int> arg1)
-            elif isinstance(arg1, Sort) and arg2 is None:
-                s.cs = dref(self.css).make_sort(sk, (<Sort> arg1).cs)
-            elif isinstance(arg1, list) and arg2 is None:
-                for a in arg1:
-                    csv.push_back((<Sort?> a).cs)
-                s.cs = dref(self.css).make_sort(sk, csv)
-            elif arg3 is None:
-                s.cs = dref(self.css).make_sort(
-                    sk, (<Sort?> arg1).cs, (<Sort?> arg2).cs
-                )
-            elif arg3 is not None:
-                s.cs = dref(self.css).make_sort(sk, (<Sort?> arg1).cs,
-                                                    (<Sort?> arg2).cs,
-                                                    (<Sort?> arg3).cs)
-            else:
-                raise ValueError(
-                    "Cannot find matching function for {}".format(
-                        [type(a) for a in [arg0, arg1, arg2, arg3]]
-                    )
-                )
-        else:
-            raise ValueError(
-                "Cannot find matching function for {}".format(
-                    [type(a) for a in [arg0, arg1, arg2, arg3]]
-                )
-            )
-        return s
-
-    def make_term(self, op_or_val, *args):
-        cdef Term term = Term(self)
-        cdef c_TermVec ctv
-
-        if isinstance(op_or_val, PrimOp):
-            op_or_val = Op(op_or_val)
-
-        # expand a list argument
-        if len(args) > 0:
-            if (isinstance(args[0], list) and len(args) > 1) or \
-               any([isinstance(a, list) for a in args[1:]]):
-                raise ValueError(
-                    "Cannot call make_term with signature {}".format(
-                        [type(a) for a in args]
-                    )
-                )
-            elif isinstance(args[0], list):
-                # expand arguments in list to be args
-                args = args[0]
-
-        if isinstance(op_or_val, Op):
-            if not op_or_val:
-                raise ValueError("Got a null Op in make_term")
-
-            if not args:
-                raise ValueError(
-                    "Can't call make_term with an Op ({}) and no arguments"
-                    .format(op_or_val)
-                )
-
-            for a in args:
-                ctv.push_back((<Term?> a).ct)
-            term.ct = dref(self.css).make_term((<Op> op_or_val).op, ctv)
-        elif isinstance(op_or_val, bool) and len(args) == 0:
-            term.ct = dref(self.css).make_term(<bint> op_or_val)
-        elif (isinstance(op_or_val, str) and len(args) == 1
-              and isinstance(args[0], Sort)):
-            term.ct = dref(self.css).make_term(
-                <const string> op_or_val.encode(), (<Sort> args[0]).cs
-            )
-        elif (isinstance(op_or_val, str) and len(args) == 2
-              and isinstance(args[0], Sort)):
-            term.ct = dref(self.css).make_term(<const string> op_or_val.encode(),
-                                               (<Sort> args[0]).cs,
-                                               <int?> args[1])
-        elif (isinstance(op_or_val, int) and len(args) == 1
-              and isinstance(args[0], Sort)):
-            # always use the string representation of integers (to handle large ints)
-            term.ct = dref(self.css).make_term(
-                (<const string?> str(op_or_val).encode()), (<Sort> args[0]).cs
-            )
-        elif (isinstance(op_or_val, Term) and len(args) == 1
-              and isinstance(args[0], Sort)):
-            # this is for creating a constant array
-            term.ct = dref(self.css).make_term(
-                (<Term?> op_or_val).ct, (<Sort?> args[0]).cs
-            )
-        else:
-            raise ValueError(
-                "Couldn't find matching function for {}".format(
-                    [type(a) for a in [op_or_val] + args]
-                )
-            )
-        return term
-
-    def make_symbol(self, str name, Sort sort):
-        cdef Term term = Term(self)
-        term.ct = dref(self.css).make_symbol(name.encode(), sort.cs)
-        return term
-
-    def make_param(self, str name, Sort sort):
-        cdef Term term = Term(self)
-        term.ct = dref(self.css).make_param(name.encode(), sort.cs)
-        return term
-
     def reset(self):
         dref(self.css).reset()
 
     def reset_assertions(self):
         dref(self.css).reset_assertions()
 
-    def substitute(self, Term t, dict substitution_map):
-        cdef Term term = Term(self)
-        cdef c_UnorderedTermMap utm
-
-        for k, v in substitution_map.items():
-            utm[(<Term?> k).ct] = (<Term?> v).ct
-
-        term.ct = dref(self.css).substitute(t.ct, utm)
-        return term
-
     def dump_smt2(self, str filename):
         dref(self.css).dump_smt2(filename.encode())
 
 
-cdef class SmtInterpolator(SmtSolver):
+cdef class SmtInterpolator(SmtTermBuilder):
     cdef void set_interpolator(self, c_SmtInterpolator csi):
         self.csi = csi
-        self.css = static_pointer_cast[AbsSmtSolver, AbsSmtInterpolator](csi)
+        self.ctb = static_pointer_cast[AbsSmtTermBuilder, AbsSmtInterpolator](
+            csi
+        )
+
+    def set_opt(self, str option, str value):
+        dref(self.csi).set_opt(option.encode(), value.encode())
+
+    def set_logic(self, str logic):
+        dref(self.csi).set_logic(logic.encode())
+
+    def reset(self):
+        dref(self.csi).reset()
+
+    def reset_assertions(self):
+        dref(self.csi).reset_assertions()
 
     def get_interpolant(self, Term A, Term B):
         '''

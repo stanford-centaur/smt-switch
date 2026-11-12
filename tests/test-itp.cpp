@@ -13,6 +13,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -41,13 +42,13 @@ namespace {
 // THEORY_BV
 struct ItpParam
 {
-  SolverConfiguration config;
+  InterpolatorKind kind;
   SolverAttribute theory;
 };
 
 ostream & operator<<(ostream & o, const ItpParam & p)
 {
-  return o << p.config << " over " << p.theory;
+  return o << p.kind << " over " << p.theory;
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ItpTests);
@@ -57,7 +58,7 @@ class ItpTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    itp = create_interpolator(GetParam().config);
+    itp = create_interpolator(GetParam().kind);
 
     // the queries order the symbols, so unsigned bit-vector comparisons
     // keep them unsatisfiable
@@ -107,15 +108,15 @@ TEST_P(ItpTests, Interpolant)
 // sequence interpolant of formulae: a chain, as get_sequence_interpolants
 // promises. A regular solver of the same backend checks each implication,
 // in the logic given if one is.
-void expect_chain(SolverEnum interpolator,
+void expect_chain(InterpolatorKind interpolator,
                   const TermVec & formulae,
                   const TermVec & interpolants,
                   const string & query,
                   const string & logic = "")
 {
   ASSERT_EQ(interpolants.size(), formulae.size() - 1) << query;
-  SmtSolver checker = create_solver(
-      SolverConfiguration(interpolator_base_solver(interpolator), false));
+  SmtSolver checker =
+      create_solver(SolverConfiguration(solver_kind(interpolator), false));
   checker->set_opt("incremental", "true");
   if (!logic.empty())
   {
@@ -173,8 +174,7 @@ TEST_P(ItpTests, SequenceInterpolants)
 
   Result r = itp->get_sequence_interpolants(formulae, interpolants);
   ASSERT_TRUE(r.is_unsat());
-  expect_chain(
-      GetParam().config.solver_enum, formulae, interpolants, "A1, A2, A3");
+  expect_chain(GetParam().kind, formulae, interpolants, "A1, A2, A3");
 }
 
 // A bounded model checking unrolling: a and b start at 0, each step
@@ -183,12 +183,12 @@ TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
 {
   PrimOp add = GetParam().theory == THEORY_INT ? Plus : BVAdd;
   // cvc5 takes a while for the deeper bit-vector unrollings
-  bool cvc5_bv = GetParam().config.solver_enum == CVC5_INTERPOLATOR
+  bool cvc5_bv = GetParam().kind == InterpolatorKind::CVC5
                  && GetParam().theory == THEORY_BV;
   int max_k = cvc5_bv ? 3 : 5;
   for (int k = 2; k <= max_k; ++k)
   {
-    SmtInterpolator s = create_interpolator(GetParam().config);
+    SmtInterpolator s = create_interpolator(GetParam().kind);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
                                                : s->make_sort(BV, 8);
     Term one = s->make_term(1, srt);
@@ -219,46 +219,20 @@ TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
     TermVec interpolants;
     ASSERT_TRUE(s->get_sequence_interpolants(formulae, interpolants).is_unsat())
         << "k = " << k;
-    expect_chain(GetParam().config.solver_enum,
-                 formulae,
-                 interpolants,
-                 "k = " + std::to_string(k));
+    expect_chain(
+        GetParam().kind, formulae, interpolants, "k = " + std::to_string(k));
   }
 }
 
-TEST_P(ItpTests, ReportsItsSolverEnum)
+TEST_P(ItpTests, ReportsItsKind)
 {
-  EXPECT_EQ(itp->get_solver_enum(), GetParam().config.solver_enum);
+  EXPECT_EQ(itp->get_kind(), GetParam().kind);
 }
 
-TEST_P(ItpTests, RefusesSolvingCalls)
-{
-  Term t = itp->make_term(lt, x, y);
-  EXPECT_THROW(itp->push(), IncorrectUsageException);
-  EXPECT_THROW(itp->pop(), IncorrectUsageException);
-  EXPECT_THROW(itp->pop_all(), IncorrectUsageException);
-  EXPECT_THROW(itp->assert_formula(t), IncorrectUsageException);
-  EXPECT_THROW(itp->check_sat(), IncorrectUsageException);
-  EXPECT_THROW(itp->check_sat_assuming(TermVec{ t }), IncorrectUsageException);
-  EXPECT_THROW(itp->get_value(x), IncorrectUsageException);
-  Term const_base;
-  EXPECT_THROW(itp->get_array_values(x, const_base), IncorrectUsageException);
-  UnorderedTermSet assumptions;
-  EXPECT_THROW(itp->get_unsat_assumptions(assumptions),
-               IncorrectUsageException);
-}
-
-// an interpolation query uses the backend's own context levels, which must
-// not show through
-TEST_P(ItpTests, ContextLevelStaysZero)
-{
-  Term A =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
-  Term B = itp->make_term(gt, x, z);
-  Term I;
-  ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
-  EXPECT_EQ(itp->get_context_level(), 0);
-}
+// an interpolator answers interpolation queries only, so it offers no
+// solving calls to make by mistake
+static_assert(!std::is_convertible_v<SmtInterpolator, SmtSolver>,
+              "an interpolator is not a solver");
 
 TEST_P(ItpTests, RefusesTurningInterpolationOff)
 {
@@ -268,6 +242,28 @@ TEST_P(ItpTests, RefusesTurningInterpolationOff)
       itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
   Term I;
   EXPECT_TRUE(itp->get_interpolant(A, itp->make_term(gt, x, z), I).is_unsat());
+  EXPECT_TRUE(I);
+}
+
+// terms a regular solver built can be translated into an interpolator and
+// interpolated there
+TEST_P(ItpTests, InterpolatesTranslatedTerms)
+{
+  SmtSolver s =
+      create_solver(SolverConfiguration(solver_kind(GetParam().kind), false));
+  Sort srt =
+      GetParam().theory == THEORY_INT ? s->make_sort(INT) : s->make_sort(BV, 8);
+  Term a = s->make_symbol("a", srt);
+  Term b = s->make_symbol("b", srt);
+  Term c = s->make_symbol("c", srt);
+  Term A = s->make_term(And, s->make_term(lt, a, b), s->make_term(lt, b, c));
+  Term B = s->make_term(gt, a, c);
+
+  TermTranslator to_itp(itp);
+  Term I;
+  EXPECT_TRUE(
+      itp->get_interpolant(to_itp.transfer_term(A), to_itp.transfer_term(B), I)
+          .is_unsat());
   EXPECT_TRUE(I);
 }
 
@@ -300,7 +296,7 @@ TEST_P(ItpTests, ReuseKeepsResults)
 {
   for (const char * incremental : { "true", "false" })
   {
-    SmtInterpolator s = create_interpolator(GetParam().config);
+    SmtInterpolator s = create_interpolator(GetParam().kind);
     s->set_opt("incremental", incremental);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
                                                : s->make_sort(BV, 8);
@@ -346,7 +342,7 @@ TEST_P(ItpTests, ReuseKeepsResults)
               << i << ": " << sym;
         }
       }
-      expect_chain(GetParam().config.solver_enum,
+      expect_chain(GetParam().kind,
                    queries[q],
                    itps,
                    std::string("incremental ") + incremental + ", query "
@@ -375,7 +371,7 @@ TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
   auto log_after_reset = [this](bool turn_off) {
     std::ostringstream out;
     SmtInterpolator s = create_printing_interpolator(
-        create_interpolator(GetParam().config), &out);
+        create_interpolator(GetParam().kind), &out);
     if (turn_off)
     {
       s->set_opt("incremental", "false");
@@ -468,8 +464,8 @@ TEST_P(ItpTests, RefusesNonBooleanAndNullFormulae)
 TEST_P(ItpTests, PrintingWritesNoRefusedQuery)
 {
   std::ostringstream out;
-  SmtInterpolator s = create_printing_interpolator(
-      create_interpolator(GetParam().config), &out);
+  SmtInterpolator s =
+      create_printing_interpolator(create_interpolator(GetParam().kind), &out);
   Sort srt =
       GetParam().theory == THEORY_INT ? s->make_sort(INT) : s->make_sort(BV, 8);
   Term a = s->make_symbol("a", srt);
@@ -502,13 +498,6 @@ TEST_P(ItpTests, RefusedNonBooleanFormulaLeavesNoAssertionBehind)
           .is_sat());
 }
 
-// an interpolator holds no assertions, so there is nothing to dump
-TEST_P(ItpTests, RefusesDumping)
-{
-  EXPECT_THROW(itp->dump_smt2(testing::TempDir() + "itp.smt2"),
-               IncorrectUsageException);
-}
-
 // no interpolator passes incremental on to its solver, so the log does not
 // show it, but the wrapped interpolator still takes it and checks it
 TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
@@ -536,8 +525,7 @@ TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
   TermVec interpolants;
   ASSERT_TRUE(
       printing->get_sequence_interpolants(formulae, interpolants).is_unsat());
-  expect_chain(
-      GetParam().config.solver_enum, formulae, interpolants, "A1, A2, A3");
+  expect_chain(GetParam().kind, formulae, interpolants, "A1, A2, A3");
 }
 
 TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
@@ -561,13 +549,13 @@ TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
     {
       EXPECT_TRUE(shared.count(symbol)) << I << " mentions " << symbol;
     }
-    expect_chain(GetParam().config.solver_enum, { A, B }, { I }, "A, B");
+    expect_chain(GetParam().kind, { A, B }, { I }, "A, B");
   }
 }
 
 TEST_P(ItpTests, InterpolatesOverASharedArray)
 {
-  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
+  if (GetParam().kind == InterpolatorKind::YICES2)
   {
     GTEST_SKIP() << "the Yices2 interpolator fixes each shared symbol to its "
                     "value in a model, which MCSAT cannot do for an array";
@@ -579,7 +567,7 @@ TEST_P(ItpTests, InterpolatesOverASharedArray)
   Term B = itp->make_term(lt, read, x);
   Term I;
   ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
-  expect_chain(GetParam().config.solver_enum, { A, B }, { I }, "A, B");
+  expect_chain(GetParam().kind, { A, B }, { I }, "A, B");
 }
 
 TEST_P(ItpTests, NonlinearInterpolant)
@@ -588,7 +576,7 @@ TEST_P(ItpTests, NonlinearInterpolant)
   {
     GTEST_SKIP() << "a square is never negative only over the integers";
   }
-  if (GetParam().config.solver_enum == MSAT_INTERPOLATOR)
+  if (GetParam().kind == InterpolatorKind::MSAT)
   {
     GTEST_SKIP() << "MathSAT answers unknown to nonlinear integer arithmetic";
   }
@@ -602,8 +590,7 @@ TEST_P(ItpTests, NonlinearInterpolant)
   get_free_symbolic_consts(I, free_symbols);
   EXPECT_EQ(free_symbols.count(x), 0u) << I;
   // a regular Yices2 solves nonlinear arithmetic only in a nonlinear logic
-  expect_chain(
-      GetParam().config.solver_enum, { A, B }, { I }, "A, B", "QF_NIA");
+  expect_chain(GetParam().kind, { A, B }, { I }, "A, B", "QF_NIA");
 }
 
 // each interpolator runs the tests in every theory it supports
@@ -612,10 +599,9 @@ vector<ItpParam> itp_params()
   vector<ItpParam> params;
   for (SolverAttribute theory : { THEORY_INT, THEORY_BV })
   {
-    for (SolverConfiguration sc :
-         filter_interpolator_configurations({ theory }))
+    for (InterpolatorKind itp_kind : filter_interpolator_kinds({ theory }))
     {
-      params.push_back({ sc, theory });
+      params.push_back({ itp_kind, theory });
     }
   }
   return params;
@@ -624,16 +610,9 @@ vector<ItpParam> itp_params()
 // names a case after its solver and theory, e.g. CVC5_INT or BZLA_BV
 string itp_param_name(const testing::TestParamInfo<ItpParam> & info)
 {
-  string solver = to_string(info.param.config.solver_enum);
-  solver = solver.substr(0, solver.find("_INTERPOLATOR"));
   string theory = to_string(info.param.theory);
-  theory = theory.substr(theory.find("THEORY_") + 7);
-  string name = solver + "_" + theory;
-  if (info.param.config.is_logging_solver)
-  {
-    name += "_LOGGING";
-  }
-  return name;
+  return to_string(info.param.kind) + "_"
+         + theory.substr(theory.find("THEORY_") + 7);
 }
 
 INSTANTIATE_TEST_SUITE_P(,

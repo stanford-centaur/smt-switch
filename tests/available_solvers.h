@@ -25,29 +25,26 @@ namespace smt_tests {
 struct SolverConfiguration
 {
   // fields
-  smt::SolverEnum solver_enum;
+  smt::SolverKind solver_kind;
   bool is_logging_solver;
 
-  SolverConfiguration(smt::SolverEnum se, bool ils);
+  SolverConfiguration(smt::SolverKind kind, bool ils);
 };
 
 /** Creates an SmtSolver of the provided type */
 smt::SmtSolver create_solver(SolverConfiguration sc);
 
-/** Creates an interpolating SmtSolver of the provided type */
-smt::SmtInterpolator create_interpolator(SolverConfiguration sc);
-
-/** The regular solver an interpolator is built on, whose theories it shares */
-smt::SolverEnum interpolator_base_solver(smt::SolverEnum se);
+/** Creates an interpolator of the provided kind */
+smt::SmtInterpolator create_interpolator(smt::InterpolatorKind itp_kind);
 
 // collect all the available solvers
-std::vector<smt::SolverEnum> available_solver_enums();
+std::vector<smt::SolverKind> available_solver_kinds();
 
 /** The solver's own executable, or empty if configure found none */
-std::string_view solver_binary(smt::SolverEnum se);
+std::string_view solver_binary(smt::SolverKind solver_kind);
 
 // collect all the available solvers non generic
-std::vector<smt::SolverEnum> available_non_generic_solver_enums();
+std::vector<smt::SolverKind> available_non_generic_solver_kinds();
 
 // collect all the available solvers
 std::vector<SolverConfiguration> available_solver_configurations();
@@ -55,22 +52,20 @@ std::vector<SolverConfiguration> available_solver_configurations();
 // collect all the available solvers without generics
 std::vector<SolverConfiguration> available_non_generic_solver_configurations();
 
-// collect all the available interpolating solvers
-std::vector<smt::SolverEnum> available_interpolator_enums();
+// collect all the available interpolators
+std::vector<smt::InterpolatorKind> available_interpolator_kinds();
 
-// collect all the available interpolating solvers
-std::vector<SolverConfiguration> available_interpolator_configurations();
-
-/** Filter the available interpolating solvers by a set of attributes
- * @return all available interpolating solvers that have *all* the attributes
+/** Filter the available interpolators by a set of attributes of the solvers
+ *  that build their terms
+ * @return all available interpolators that have *all* the attributes
  */
-std::vector<SolverConfiguration> filter_interpolator_configurations(
+std::vector<smt::InterpolatorKind> filter_interpolator_kinds(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 /** Filter the available solvers by a set of attributes
  * @return all available solvers that have *all* the attributes
  */
-std::vector<smt::SolverEnum> filter_solver_enums(
+std::vector<smt::SolverKind> filter_solver_kinds(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 /** Filter the available solvers by a set of attributes

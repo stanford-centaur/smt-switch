@@ -198,7 +198,7 @@ Result PortfolioSolver::portfolio_solve()
   {
     // Everything that can throw comes before the fork, so that no child is
     // left untracked, neither killed nor reaped.
-    std::string label = smt::to_string(solver->get_solver_enum());
+    std::string label = smt::to_string(solver->get_kind());
     int fds[2];
     if (int pipe_errno = detail::make_cloexec_pipe(fds); pipe_errno != 0)
     {

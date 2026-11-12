@@ -7,7 +7,6 @@
  */
 #include <gtest/gtest.h>
 
-#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -16,7 +15,6 @@
 
 #include "exec_utils.h"
 #include "smt-switch/cvc5_factory.h"
-#include "smt-switch/exceptions.h"
 #include "smt-switch/interpolator.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/printing_interpolator.h"
@@ -75,16 +73,6 @@ TEST_F(Cvc5PrintingTest, Interpolation)
   Term B1 = s->make_term(Gt, z, x);
   Term I1;
   s->get_interpolant(A1, B1, I1);
-
-  try
-  {
-    // x=0
-    s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort)));
-  }
-  catch (IncorrectUsageException & e)
-  {
-    std::cout << e.what() << std::endl;
-  }
 
   check_result(
       {

@@ -11,9 +11,8 @@
 
 #include <cstdint>
 #include <list>
-#include <memory>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/result.h"
@@ -26,7 +25,14 @@ namespace smt {
 
 // TODO: Implement a generic visitor
 
-AbsSmtSolver::AbsSmtSolver(SolverEnum se) : solver_enum(se) {}
+AbsSmtSolver::AbsSmtSolver(SolverKind solver_kind) : backend_kind(solver_kind)
+{
+}
+
+AbsSmtSolver::AbsSmtSolver(SolverEnum se)
+    : AbsSmtSolver(detail::solver_kind(se))
+{
+}
 
 void AbsSmtSolver::assert_formula(const Term & t)
 {
@@ -115,40 +121,40 @@ Term AbsSmtSolver::make_term(const std::string & /* s */,
                              const Sort & /* sort */) const
 {
   throw NotImplementedException("Strings are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::make_term(const std::wstring & /* s */,
                              const Sort & /* sort */) const
 {
   throw NotImplementedException("Strings are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 DatatypeDecl AbsSmtSolver::make_datatype_decl(const std::string & /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 DatatypeConstructorDecl AbsSmtSolver::make_datatype_constructor_decl(
     const std::string /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::add_constructor(
     DatatypeDecl & /* dt */, const DatatypeConstructorDecl & /* con */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::add_selector(DatatypeConstructorDecl & /* dt */,
@@ -156,28 +162,28 @@ void AbsSmtSolver::add_selector(DatatypeConstructorDecl & /* dt */,
                                 const Sort & /* s */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
                                      const std::string & /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::get_constructor(const Sort & /* s */,
                                    std::string /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::get_tester(const Sort & /* s */,
                               std::string /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::get_selector(const Sort & /* s */,
@@ -185,88 +191,27 @@ Term AbsSmtSolver::get_selector(const Sort & /* s */,
                                 std::string /* name */) const
 {
   throw NotImplementedException("Datatypes are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
 SortVec AbsSmtSolver::make_datatype_sorts(
     const std::vector<DatatypeDecl> & /* decls */) const
 {
   throw NotImplementedException("make_datatype_sorts is not implemented by "
-                                + to_string(solver_enum));
-}
-
-Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl) const
-{
-  SortVec datatype_sorts = make_datatype_sorts({ decl });
-  if (datatype_sorts.size() != 1)
-  {
-    throw InternalSolverException("make_datatype_sorts gave "
-                                  + std::to_string(datatype_sorts.size())
-                                  + " sorts for one datatype declaration");
-  }
-  return datatype_sorts[0];
-}
-
-Term AbsSmtSolver::substitute(const Term term,
-                              const UnorderedTermMap & substitution_map) const
-{
-  // cache starts with the substitutions
-  UnorderedTermMap cache(substitution_map);
-  TermVec to_visit{ term };
-  TermVec cached_children;
-  Term t;
-  while (to_visit.size())
-  {
-    t = to_visit.back();
-    to_visit.pop_back();
-    if (cache.find(t) == cache.end())
-    {
-      // doesn't get updated yet, just marking as visited
-      cache[t] = t;
-      to_visit.push_back(t);
-      for (auto c : t)
-      {
-        to_visit.push_back(c);
-      }
-    }
-    else
-    {
-      cached_children.clear();
-      for (auto c : t)
-      {
-        cached_children.push_back(cache.at(c));
-      }
-
-      // const arrays have children but don't need to be rebuilt
-      // (they're constructed in a particular way anyway)
-      if (cached_children.size() && !t->is_value())
-      {
-        cache[t] = make_term(t->get_op(), cached_children);
-      }
-    }
-  }
-
-  return cache.at(term);
-}
-
-TermVec AbsSmtSolver::substitute_terms(
-    const TermVec & terms, const UnorderedTermMap & substitution_map) const
-{
-  TermVec res;
-  res.reserve(terms.size());
-  for (auto t : terms)
-  {
-    res.push_back(substitute(t, substitution_map));
-  }
-  return res;
+                                + to_string(backend_kind));
 }
 
 void AbsSmtSolver::dump_smt2(std::string /* filename */) const
 {
   throw NotImplementedException("Dumping to a file is not supported by "
-                                + to_string(solver_enum));
+                                + to_string(backend_kind));
 }
 
-SolverEnum AbsSmtSolver::get_solver_enum() const { return solver_enum; }
+SolverKind AbsSmtSolver::get_kind() const { return backend_kind; }
+
+SolverEnum AbsSmtSolver::get_solver_enum() const
+{
+  return detail::solver_enum(backend_kind);
+}
 
 }  // namespace smt

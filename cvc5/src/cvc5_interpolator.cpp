@@ -24,7 +24,8 @@
 namespace smt {
 
 Cvc5Interpolator::Cvc5Interpolator()
-    : AbsSmtInterpolator(CVC5_INTERPOLATOR, std::make_shared<Cvc5Solver>()),
+    : AbsSmtInterpolator(InterpolatorKind::CVC5,
+                         std::make_shared<Cvc5Solver>()),
       cvc5_solver(std::static_pointer_cast<Cvc5Solver>(backend_solver))
 {
   initialize();

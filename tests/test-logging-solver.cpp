@@ -190,7 +190,7 @@ TEST_P(Logging, WrongKindAccessors)
 
 TEST_P(Logging, TermFromAnotherSolver)
 {
-  if (GetParam().solver_enum == GENERIC_SOLVER)
+  if (GetParam().solver_kind == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "generic terms compare by their text, so another generic "
                     "solver's x is taken for this one's";
@@ -251,13 +251,13 @@ class LoggingUninterpretedArrays : public Logging
 
 TEST_P(LoggingUninterpretedArrays, ValuesHoldAssertedEntry)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == MSAT)
+  SolverKind se = GetParam().solver_kind;
+  if (se == SolverKind::MSAT)
   {
     GTEST_SKIP() << "MathSAT's model of an array indexed by an uninterpreted "
                     "sort is a constant array without the asserted entry";
   }
-  if (se == GENERIC_SOLVER)
+  if (se == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver cannot read back a value of an "
                     "uninterpreted sort";

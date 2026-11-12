@@ -34,35 +34,43 @@ class UnitSolverEnumTests
   SmtSolver s;
 };
 
-TEST_P(UnitSolverEnumTests, SolverEnumMatch)
+TEST_P(UnitSolverEnumTests, SolverKindMatch)
 {
-  SolverConfiguration sc = GetParam();
-  SolverEnum se = sc.solver_enum;
-  ASSERT_EQ(se, s->get_solver_enum());
+  EXPECT_EQ(GetParam().solver_kind, s->get_kind());
 }
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolverEnum,
                          UnitSolverEnumTests,
                          testing::ValuesIn(available_solver_configurations()));
 
-TEST(UnitSolverEnumNames, EverySolverEnumPrints)
+TEST(UnitSolverEnumNames, EverySolverKindPrints)
 {
-  const vector<pair<SolverEnum, string>> names({
-      { BTOR, "BTOR" },
-      { BZLA, "BZLA" },
-      { CVC5, "CVC5" },
-      { GENERIC_SOLVER, "GENERIC_SOLVER" },
-      { MSAT, "MSAT" },
-      { YICES2, "YICES2" },
-      { Z3, "Z3" },
-      { BZLA_INTERPOLATOR, "BZLA_INTERPOLATOR" },
-      { CVC5_INTERPOLATOR, "CVC5_INTERPOLATOR" },
-      { MSAT_INTERPOLATOR, "MSAT_INTERPOLATOR" },
-      { YICES2_INTERPOLATOR, "YICES2_INTERPOLATOR" },
+  const vector<pair<SolverKind, string>> names({
+      { SolverKind::BTOR, "BTOR" },
+      { SolverKind::BZLA, "BZLA" },
+      { SolverKind::CVC5, "CVC5" },
+      { SolverKind::GENERIC, "GENERIC" },
+      { SolverKind::MSAT, "MSAT" },
+      { SolverKind::YICES2, "YICES2" },
+      { SolverKind::Z3, "Z3" },
   });
-  for (const auto & [se, name] : names)
+  for (const auto & [solver_kind, name] : names)
   {
-    EXPECT_EQ(to_string(se), name);
+    EXPECT_EQ(to_string(solver_kind), name);
+  }
+}
+
+TEST(UnitSolverEnumNames, EveryInterpolatorKindPrints)
+{
+  const vector<pair<InterpolatorKind, string>> names({
+      { InterpolatorKind::BZLA, "BZLA" },
+      { InterpolatorKind::CVC5, "CVC5" },
+      { InterpolatorKind::MSAT, "MSAT" },
+      { InterpolatorKind::YICES2, "YICES2" },
+  });
+  for (const auto & [itp_kind, name] : names)
+  {
+    EXPECT_EQ(to_string(itp_kind), name);
   }
 }
 
@@ -97,25 +105,25 @@ TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
 {
   // a backend that breaks this has to say so here, rather than let the
   // attributes drift apart
-  for (SolverEnum se : available_non_generic_solver_enums())
+  for (SolverKind solver_kind : available_non_generic_solver_kinds())
   {
-    EXPECT_EQ(solver_has_attribute(se, FULL_TRANSFER),
-              solver_has_attribute(se, TERMITER)
-                  && !solver_has_attribute(se, BOOL_BV1_ALIASING))
-        << to_string(se);
+    EXPECT_EQ(solver_has_attribute(solver_kind, FULL_TRANSFER),
+              solver_has_attribute(solver_kind, TERMITER)
+                  && !solver_has_attribute(solver_kind, BOOL_BV1_ALIASING))
+        << to_string(solver_kind);
   }
   // TermTranslator refuses the generic solver whatever it iterates
-  EXPECT_FALSE(solver_has_attribute(GENERIC_SOLVER, FULL_TRANSFER));
+  EXPECT_FALSE(solver_has_attribute(SolverKind::GENERIC, FULL_TRANSFER));
 }
 
-TEST(UnitSolverAttributes, InterpolatorsShareTheirSolversAttributes)
+TEST(UnitSolverAttributes, InterpolatorsBuildTermsWithTheirOwnBackend)
 {
-  for (SolverEnum se :
-       { BZLA_INTERPOLATOR, CVC5_INTERPOLATOR, MSAT_INTERPOLATOR })
+  for (InterpolatorKind itp_kind : { InterpolatorKind::BZLA,
+                                     InterpolatorKind::CVC5,
+                                     InterpolatorKind::MSAT,
+                                     InterpolatorKind::YICES2 })
   {
-    EXPECT_EQ(get_solver_attributes(se),
-              get_solver_attributes(interpolator_base_solver(se)))
-        << to_string(se);
+    EXPECT_EQ(to_string(solver_kind(itp_kind)), to_string(itp_kind));
   }
 }
 

@@ -27,7 +27,7 @@ namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTestsHashTable);
 class UnitTestsHashTable : public testing::Test,
-                           public testing::WithParamInterface<SolverEnum>
+                           public testing::WithParamInterface<SolverKind>
 {
  protected:
   void SetUp() override
@@ -35,7 +35,7 @@ class UnitTestsHashTable : public testing::Test,
     // need to make sure we're not using a LoggingSolver
     // otherwise the reference counts of terms will be influenced
     // thus, use the "lite" solvers
-    SolverEnum se = GetParam();
+    SolverKind se = GetParam();
     SolverConfiguration sc(se, false);
     s = create_solver(sc);
 
@@ -78,6 +78,6 @@ TEST_P(UnitTestsHashTable, HashTable)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitHashTable,
     UnitTestsHashTable,
-    testing::ValuesIn(available_non_generic_solver_enums()));
+    testing::ValuesIn(available_non_generic_solver_kinds()));
 
 }  // namespace

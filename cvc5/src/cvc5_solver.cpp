@@ -64,7 +64,7 @@ struct Cvc5Solver::Instance
 };
 
 Cvc5Solver::Cvc5Solver()
-    : AbsSmtSolver(CVC5), instance(std::make_shared<Instance>())
+    : AbsSmtSolver(SolverKind::CVC5), instance(std::make_shared<Instance>())
 {
 }
 

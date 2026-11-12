@@ -17,6 +17,32 @@
 #include <unordered_set>
 
 namespace smt {
+
+/** The backend of a regular solver */
+enum class SolverKind
+{
+  BTOR,
+  BZLA,
+  CVC5,
+  GENERIC,
+  MSAT,
+  YICES2,
+  Z3
+};
+
+/** The backend of an interpolator */
+enum class InterpolatorKind
+{
+  BZLA,
+  CVC5,
+  MSAT,
+  YICES2
+};
+
+/** A regular solver's or an interpolator's backend; superseded by
+ *  SolverKind and InterpolatorKind, and taken or returned only by
+ *  deprecated functions
+ */
 enum SolverEnum
 {
   BTOR = 0,        // boolector
@@ -81,23 +107,75 @@ enum SolverAttribute
   // python/smt_switch/cppenums.pxd and python/smt_switch/solverattr.pyx
 };
 
+/** @return the kind of the regular solver that builds the terms of an
+ *          interpolator of kind itp_kind, whose attributes it shares
+ */
+SolverKind solver_kind(InterpolatorKind itp_kind);
+
+bool solver_has_attribute(SolverKind solver_kind, SolverAttribute sa);
+
+std::unordered_set<SolverAttribute> get_solver_attributes(
+    SolverKind solver_kind);
+
+std::ostream & operator<<(std::ostream & o, SolverKind solver_kind);
+
+std::string to_string(SolverKind solver_kind);
+
+std::ostream & operator<<(std::ostream & o, InterpolatorKind itp_kind);
+
+std::string to_string(InterpolatorKind itp_kind);
+
+std::ostream & operator<<(std::ostream & o, SolverAttribute sa);
+
+std::string to_string(SolverAttribute a);
+
 /** Returns true iff the SolverEnum corresponds to an Interpolator
  *  @param se the solver enum to check
  *  @return true iff the se is a *_INTERPOLATOR enum
  */
-bool is_interpolator_solver_enum(SolverEnum se);
+[[deprecated("use SolverKind or InterpolatorKind")]] bool
+is_interpolator_solver_enum(SolverEnum se);
 
-bool solver_has_attribute(SolverEnum se, SolverAttribute sa);
+[[deprecated("use the SolverKind overload")]] bool solver_has_attribute(
+    SolverEnum se, SolverAttribute sa);
 
-std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se);
+[[deprecated(
+    "use the SolverKind overload")]] std::unordered_set<SolverAttribute>
+get_solver_attributes(SolverEnum se);
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
 std::string to_string(SolverEnum e);
 
-std::ostream & operator<<(std::ostream & o, SolverAttribute sa);
+/** @throws IncorrectUsageException for an interpolator's enumerator */
+[[deprecated("use SolverKind")]] SolverKind to_solver_kind(SolverEnum se);
 
-std::string to_string(SolverAttribute a);
+/** @throws IncorrectUsageException for a regular solver's enumerator */
+[[deprecated("use InterpolatorKind")]] InterpolatorKind to_interpolator_kind(
+    SolverEnum se);
+
+[[deprecated("use SolverKind")]] SolverEnum to_solver_enum(
+    SolverKind solver_kind);
+
+[[deprecated("use InterpolatorKind")]] SolverEnum to_solver_enum(
+    InterpolatorKind itp_kind);
+
+namespace detail {
+
+// The conversions the deprecated functions in several files are built on,
+// as GCC warns where one deprecated function calls another; they go when
+// SolverEnum does
+
+/** The backend of se; an interpolator's is the regular solver that builds
+ *  its terms
+ */
+SolverKind solver_kind(SolverEnum se);
+
+SolverEnum solver_enum(SolverKind solver_kind);
+
+SolverEnum solver_enum(InterpolatorKind itp_kind);
+
+}  // namespace detail
 
 }  // namespace smt
 

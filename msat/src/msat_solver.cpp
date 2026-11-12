@@ -222,7 +222,7 @@ static msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
 
 // MsatSolver implementation
 
-MsatSolver::MsatSolver() : AbsSmtSolver(MSAT) {}
+MsatSolver::MsatSolver() : AbsSmtSolver(SolverKind::MSAT) {}
 
 void MsatSolver::set_opt(const string option, const string value)
 {
