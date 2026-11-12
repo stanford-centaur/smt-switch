@@ -32,6 +32,7 @@
 #include "smt_defs.h"
 #include "sort.h"
 #include "term.h"
+#include "test_paths.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -47,11 +48,11 @@ class Cvc5PrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-#ifdef CVC5_BINARY
-    dump_and_run(CVC5_BINARY, strbuf, expected_result, extra_opts);
-#else
-    GTEST_SKIP() << "configure found no cvc5 executable";
-#endif
+    if (smt_tests::cvc5_binary.empty())
+    {
+      GTEST_SKIP() << "configure found no cvc5 executable";
+    }
+    dump_and_run(smt_tests::cvc5_binary, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;
   std::ostream * os;

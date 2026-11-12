@@ -22,6 +22,7 @@
 #include "result.h"
 #include "smt_defs.h"
 #include "sort.h"
+#include "test_paths.h"
 #include "yices2_factory.h"
 
 using namespace smt;
@@ -48,15 +49,15 @@ TEST(Yices2InterpolationPrinting, ReplaysEachCheckOfAQuery)
   Term p = s->make_symbol("p", s->make_sort(BOOL));
   Term I;
   ASSERT_TRUE(s->get_interpolant(p, s->make_term(Not, p), I).is_unsat());
-#ifdef YICES2_BINARY
+  if (smt_tests::yices2_binary.empty())
+  {
+    GTEST_SKIP() << "configure found no yices-smt2 executable";
+  }
   dump_and_run(
-      YICES2_BINARY,
+      smt_tests::yices2_binary,
       strbuf,
       { { "sat" }, { "((p false))" }, { "unsat" }, { "p" }, { "unsat" } },
       "--mcsat --incremental");
-#else
-  GTEST_SKIP() << "configure found no yices-smt2 executable";
-#endif
 }
 
 }  // namespace

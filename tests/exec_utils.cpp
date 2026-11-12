@@ -26,6 +26,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace smt_tests {
 
@@ -60,7 +61,7 @@ std::string exec(const char * cmd)
   return result;
 }
 
-void dump_and_run(const std::string & executable_path,
+void dump_and_run(std::string_view executable_path,
                   std::stringbuf & strbuf,
                   std::vector<std::unordered_set<std::string>> expected_results,
                   std::string extra_opts)
@@ -71,7 +72,7 @@ void dump_and_run(const std::string & executable_path,
   filename += "-sample.smt2";
 
   // Construct command string.
-  std::string command = executable_path;
+  std::string command(executable_path);
   command += " ";
   if (!extra_opts.empty())
   {
