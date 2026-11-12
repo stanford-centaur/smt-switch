@@ -271,10 +271,6 @@ TEST_P(IntArithmeticTests, PowerOfSymbol)
 
 TEST_P(IntArithmeticTests, PowerBySymbol)
 {
-  if (GetParam().solver_enum == MSAT)
-  {
-    GTEST_SKIP() << "MathSAT finds no exponent n with 2^n = 8";
-  }
   Term n = s->make_symbol("n", intsort);
   Term power;
   try
