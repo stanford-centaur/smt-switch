@@ -880,6 +880,14 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       cterm = backend_pointer_cast<Cvc5Term>(t);
       cterms.push_back(cterm->term);
     }
+    // cvc5 solves a power only for a constant nonnegative exponent
+    if (op.prim_op == Pow && cterms.size() == 2
+        && (!cterms[1].isIntegerValue()
+            || cterms[1].getIntegerValue().front() == '-'))
+    {
+      throw NotImplementedException(
+          "cvc5 can only raise to a constant non-negative integer exponent");
+    }
     if (op.prim_op == Forall || op.prim_op == Exists)
     {
       cvc5::Kind quant_kind = to_cvc5_kind(op.prim_op);
