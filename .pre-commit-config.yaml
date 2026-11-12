@@ -170,3 +170,12 @@ repos:
         language: python
         entry: python ci-scripts/check-include-guards.py
         files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)(\.in)?$
+      # A macro ignores scope and namespaces: use a constexpr variable, a
+      # function or a template instead. Include guards are the exception,
+      # and the hook above checks those. The flex scanner (*.l) is left out
+      # because flex is configured through macros.
+      - id: no-define
+        name: no define in C++
+        language: pygrep
+        entry: ^\s*#\s*define\b(?!\s+SMT_SWITCH_\w+_H\s*$)
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx|yy)(\.in)?$
