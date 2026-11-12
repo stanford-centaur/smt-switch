@@ -81,6 +81,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: ci-scripts/update-pins.sh --apply --pin "${{ matrix.pin }}"
+      - uses: j178/prek-action@v3.1.0
+        if: steps.check.outputs.allowed == 'true'
+        with:
+          install-only: true
+      - name: Format what the script rewrote
+        if: steps.check.outputs.allowed == 'true'
+        run: |
+          mapfile -t files < <(git diff --name-only)
+          # a hook that rewrites a file fails, so the second run checks that
+          # the result is clean
+          prek run --files "${files[@]}" || prek run --files "${files[@]}"
       - name: Commit to the branch
         if: steps.check.outputs.allowed == 'true'
         env:
