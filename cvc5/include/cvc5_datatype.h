@@ -12,8 +12,8 @@
 **
 ** \brief Thin wrapper for cvc5 Datatype-related classes.
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_CVC5_DATATYPE_H
+#define SMT_SWITCH_CVC5_DATATYPE_H
 
 #include <cvc5/cvc5.h>
 
@@ -90,3 +90,5 @@ class Cvc5Datatype : public AbsDatatype
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_CVC5_DATATYPE_H

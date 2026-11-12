@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_EXCEPTIONS_H
+#define SMT_SWITCH_EXCEPTIONS_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <exception>
 #include <string>
@@ -81,3 +81,5 @@ class InternalSolverException : public SmtException
   // defined in the .cpp to anchor the vtable
   ~InternalSolverException() override;
 };
+
+#endif  // SMT_SWITCH_EXCEPTIONS_H

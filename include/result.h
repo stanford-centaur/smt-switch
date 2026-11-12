@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_RESULT_H
+#define SMT_SWITCH_RESULT_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <ostream>
 #include <string>
@@ -55,3 +55,5 @@ bool operator==(const Result & r1, const Result & r2);
 bool operator!=(const Result & r1, const Result & r2);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_RESULT_H

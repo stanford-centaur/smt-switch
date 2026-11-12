@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_INTERPOLATING_SOLVER_H
+#define SMT_SWITCH_INTERPOLATING_SOLVER_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <cstdint>
 #include <string>
@@ -294,3 +294,5 @@ class AbsSmtInterpolator : public AbsSmtSolver
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_INTERPOLATING_SOLVER_H

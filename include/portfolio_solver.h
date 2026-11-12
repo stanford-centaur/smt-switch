@@ -13,7 +13,8 @@
 **        of solvers and a term, and returns check_sat from the first solver
 **        that finishes.
 **/
-#pragma once
+#ifndef SMT_SWITCH_PORTFOLIO_SOLVER_H
+#define SMT_SWITCH_PORTFOLIO_SOLVER_H
 
 #include <vector>
 
@@ -47,3 +48,5 @@ class PortfolioSolver
   Term portfolio_term;
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_PORTFOLIO_SOLVER_H

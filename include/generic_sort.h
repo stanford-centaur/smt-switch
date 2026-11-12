@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_GENERIC_SORT_H
+#define SMT_SWITCH_GENERIC_SORT_H
 
 #include <cstddef>
 #include <cstdint>
@@ -184,3 +184,5 @@ class DatatypeComponentSort : public GenericSort
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_GENERIC_SORT_H

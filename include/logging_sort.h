@@ -13,8 +13,8 @@
 **        SortKind and parameters (for solvers that alias sorts).
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_LOGGING_SORT_H
+#define SMT_SWITCH_LOGGING_SORT_H
 
 #include <cstddef>
 #include <cstdint>
@@ -173,3 +173,5 @@ class DatatypeComponentLoggingSort : public LoggingSort
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_LOGGING_SORT_H

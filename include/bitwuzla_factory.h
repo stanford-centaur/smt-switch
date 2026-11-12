@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BITWUZLA_FACTORY_H
+#define SMT_SWITCH_BITWUZLA_FACTORY_H
 
 #include "smt_defs.h"
 
@@ -39,3 +39,5 @@ class BitwuzlaSolverFactory
   static SmtInterpolator create_interpolating_solver();
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BITWUZLA_FACTORY_H

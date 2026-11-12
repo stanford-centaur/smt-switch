@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SMT_SWITCH_Z3_DATATYPE_H
+#define SMT_SWITCH_Z3_DATATYPE_H
 
 #include <z3++.h>
 
@@ -76,3 +77,5 @@ class Z3Datatype : public AbsDatatype
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_Z3_DATATYPE_H

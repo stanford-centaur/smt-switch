@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_YICES2_SOLVER_H
+#define SMT_SWITCH_YICES2_SOLVER_H
 
 #include <gmp.h>  // IWYU pragma: keep (required by yices.h)
 #include <yices.h>
@@ -149,3 +149,5 @@ class Yices2Solver : public AbsSmtSolver
   bool timelimit_end();
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_YICES2_SOLVER_H

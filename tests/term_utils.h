@@ -12,8 +12,8 @@
  * Conflating the two either lets a logging solver lose the input or excludes
  * every solver that rewrites.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_TERM_UTILS_H
+#define SMT_SWITCH_TERM_UTILS_H
 
 #include <gtest/gtest.h>
 
@@ -50,3 +50,5 @@ namespace smt_tests {
     const smt::Term & original);
 
 }  // namespace smt_tests
+
+#endif  // SMT_SWITCH_TERM_UTILS_H

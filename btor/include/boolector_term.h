@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_BOOLECTOR_TERM_H
+#define SMT_SWITCH_BOOLECTOR_TERM_H
 
 #include <btortypes.h>
 
@@ -110,3 +110,5 @@ class BoolectorTerm : public AbsTerm
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BOOLECTOR_TERM_H

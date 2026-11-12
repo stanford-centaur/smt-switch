@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_YICES2_EXTENSIONS_H
+#define SMT_SWITCH_YICES2_EXTENSIONS_H
 
 #include <yices_types.h>
 
@@ -52,3 +52,5 @@ term_t ext_yices_bvcomp(term_t t0, term_t t1);
 term_t ext_yices_bvxor3(term_t t0, term_t t1, term_t t2);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_YICES2_EXTENSIONS_H

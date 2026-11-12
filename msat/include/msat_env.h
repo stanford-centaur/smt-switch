@@ -11,8 +11,8 @@
  * so each application is an uninterpreted MathSAT type of an internal name,
  * and the environment records what it applies, which MathSAT cannot report.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_MSAT_ENV_H
+#define SMT_SWITCH_MSAT_ENV_H
 
 #include <mathsat.h>
 
@@ -81,3 +81,5 @@ class MsatEnv : public msat_env
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_ENV_H

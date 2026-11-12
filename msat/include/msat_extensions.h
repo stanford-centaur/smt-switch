@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_MSAT_EXTENSIONS_H
+#define SMT_SWITCH_MSAT_EXTENSIONS_H
 
 #include <mathsat.h>
 
@@ -71,3 +71,5 @@ msat_term ext_msat_make_uf(msat_env e,
                            std::vector<msat_term> args);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_EXTENSIONS_H

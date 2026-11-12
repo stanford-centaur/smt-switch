@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_MSAT_SORT_H
+#define SMT_SWITCH_MSAT_SORT_H
 
 #include <mathsat.h>
 
@@ -68,3 +68,5 @@ class MsatSort : public AbsSort
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_SORT_H

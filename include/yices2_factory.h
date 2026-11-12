@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_YICES2_FACTORY_H
+#define SMT_SWITCH_YICES2_FACTORY_H
 
 #include "smt_defs.h"
 
@@ -44,3 +44,5 @@ class Yices2SolverFactory
   static SmtInterpolator create_interpolating_solver();
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_YICES2_FACTORY_H

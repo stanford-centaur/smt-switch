@@ -13,12 +13,12 @@
 **        a cache so it can be called multiple times (without redeclaring
 **        symbols, which would throw an exception).
 **/
+#ifndef SMT_SWITCH_TERM_TRANSLATOR_H
+#define SMT_SWITCH_TERM_TRANSLATOR_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <cstdint>
 #include <string>
@@ -203,3 +203,5 @@ class TermTranslator
   std::unordered_set<std::string> datatypes_in_progress = {};
 };
 }  // namespace smt
+
+#endif  // SMT_SWITCH_TERM_TRANSLATOR_H

@@ -11,8 +11,8 @@
  * logging sorts. The datatype of a logging datatype sort reads its
  * selectors' sorts back from them.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_LOGGING_DATATYPE_H
+#define SMT_SWITCH_LOGGING_DATATYPE_H
 
 #include <cstddef>
 #include <memory>
@@ -98,3 +98,5 @@ class LoggingDatatype : public AbsDatatype
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_LOGGING_DATATYPE_H

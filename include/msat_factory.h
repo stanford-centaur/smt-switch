@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_MSAT_FACTORY_H
+#define SMT_SWITCH_MSAT_FACTORY_H
 
 #include "smt_defs.h"
 
@@ -44,3 +44,5 @@ class MsatSolverFactory
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_MSAT_FACTORY_H

@@ -162,3 +162,11 @@ repos:
         language: pygrep
         entry: \bassert\(|#\s*include\s*<(cassert|assert\.h)>
         files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx|yy|l)$
+      # Every header has an include guard named after the path external
+      # users include it by, so smt-switch/solver.h is guarded by
+      # SMT_SWITCH_SOLVER_H. Source files have none.
+      - id: include-guards
+        name: include guards
+        language: python
+        entry: python ci-scripts/check-include-guards.py
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)(\.in)?$

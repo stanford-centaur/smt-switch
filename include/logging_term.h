@@ -13,8 +13,8 @@
 **        Op and children (for solvers that rewrite terms on the fly).
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_LOGGING_TERM_H
+#define SMT_SWITCH_LOGGING_TERM_H
 
 #include <cstddef>
 #include <cstdint>
@@ -94,3 +94,5 @@ class LoggingTerm : public AbsTerm
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_LOGGING_TERM_H

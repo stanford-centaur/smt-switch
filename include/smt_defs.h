@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_SMT_DEFS_H
+#define SMT_SWITCH_SMT_DEFS_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <cstddef>
 #include <memory>
@@ -70,3 +70,5 @@ struct hash<smt::Datatype>
   size_t operator()(const smt::Datatype & d) const;
 };
 }  // namespace std
+
+#endif  // SMT_SWITCH_SMT_DEFS_H

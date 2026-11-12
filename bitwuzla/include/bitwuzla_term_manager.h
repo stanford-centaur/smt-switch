@@ -12,8 +12,8 @@
  * as the applied sort prints, and the term manager records what it
  * applies, which Bitwuzla cannot report.
  */
-
-#pragma once
+#ifndef SMT_SWITCH_BITWUZLA_TERM_MANAGER_H
+#define SMT_SWITCH_BITWUZLA_TERM_MANAGER_H
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
@@ -93,3 +93,5 @@ class BzlaTermManager : public bitwuzla::TermManager
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_BITWUZLA_TERM_MANAGER_H

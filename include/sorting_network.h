@@ -12,8 +12,8 @@
 ** \brief Implements a symbolic sorting network for boolean-sorted terms.
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_SORTING_NETWORK_H
+#define SMT_SWITCH_SORTING_NETWORK_H
 
 #include "smt_defs.h"
 #include "term.h"
@@ -95,3 +95,5 @@ class SortingNetwork
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_SORTING_NETWORK_H

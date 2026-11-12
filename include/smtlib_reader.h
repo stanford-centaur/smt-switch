@@ -13,8 +13,8 @@
 **
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_SMTLIB_READER_H
+#define SMT_SWITCH_SMTLIB_READER_H
 
 #include <cstddef>
 #include <cstdint>
@@ -449,3 +449,5 @@ class SmtLibReader
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_SMTLIB_READER_H

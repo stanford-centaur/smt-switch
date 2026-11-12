@@ -13,8 +13,8 @@
 **        term traversal and manipulation.
 **
 **/
-
-#pragma once
+#ifndef SMT_SWITCH_IDENTITY_WALKER_H
+#define SMT_SWITCH_IDENTITY_WALKER_H
 
 #include "smt_defs.h"
 #include "term.h"
@@ -108,3 +108,5 @@ class IdentityWalker
 };
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_IDENTITY_WALKER_H

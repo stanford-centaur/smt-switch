@@ -13,12 +13,12 @@
 **
 **
 **/
+#ifndef SMT_SWITCH_DATATYPE_H
+#define SMT_SWITCH_DATATYPE_H
 
 #ifndef SMT_SWITCH_INTERNAL
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
-
-#pragma once
 
 #include <cstddef>
 #include <string>
@@ -111,3 +111,5 @@ bool operator<=(const Datatype & d1, const Datatype & d2);
 bool operator>=(const Datatype & d1, const Datatype & d2);
 
 }  // namespace smt
+
+#endif  // SMT_SWITCH_DATATYPE_H
