@@ -1790,10 +1790,12 @@ std::string smtlib_application(
            + get_text(var->get_sort(), sort_text) + ")) "
            + get_text(children[1], term_text) + ")";
   }
-  if (op.prim_op == Pow && children[1]->is_value())
+  const bool bv_power =
+      op.prim_op == Pow && children[0]->get_sort()->get_sort_kind() == BV;
+  if (op.prim_op == Pow && children[1]->is_value()
+      && (bv_power || children[1]->to_signed_int() >= 2))
   {
-    std::string res =
-        children[0]->get_sort()->get_sort_kind() == BV ? "(bvmul" : "(*";
+    std::string res = bv_power ? "(bvmul" : "(*";
     for (std::uint64_t i = children[1]->to_int(); i > 0; --i)
     {
       res += " " + get_text(children[0], term_text);

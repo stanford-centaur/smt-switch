@@ -186,8 +186,9 @@ std::string smtlib_unquote_symbol(const std::string & s);
  *    nullary constructor applied is that constructor alone;
  *  - a quantifier lists its bound variable with its sort,
  *    (forall ((x S)) body);
- *  - SMT-LIB has no power, so a power to a constant exponent n is the
- *    product of n factors, with * or bvmul.
+ *  - a power to a constant exponent n of 2 or more is the product of n
+ *    factors with *, which solvers without SMT-LIB's ** read too, and a
+ *    bit-vector power is one with bvmul.
  *  @param op the operator
  *  @param children what it is applied to
  *  @param term_text how a child is written

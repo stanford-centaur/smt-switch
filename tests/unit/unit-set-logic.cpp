@@ -9,7 +9,8 @@
  * check. Solvers accept more than that, and smt-switch allows what each
  * one allows, so a later set_logic may be accepted or refused with
  * IncorrectUsageException. One it accepts must keep what was made before.
- * A name that is not a logic is refused with IncorrectUsageException too.
+ * A name that is not a logic is refused with IncorrectUsageException too,
+ * and a logic the solver lacks with NotImplementedException.
  */
 #include <gtest/gtest.h>
 
@@ -137,11 +138,19 @@ TEST_P(SetLogic, KeepsScopes)
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
-TEST_P(SetLogic, NotALogic)
+TEST_P(SetLogic, LogicNames)
 {
   EXPECT_THROW(s->set_logic("NOT_A_LOGIC"), IncorrectUsageException);
   EXPECT_THROW(s->set_logic("QF_"), IncorrectUsageException);
   EXPECT_THROW(s->set_logic(""), IncorrectUsageException);
+  // a logic, though one a solver without Ints or nonlinear arithmetic lacks
+  try
+  {
+    s->set_logic("QF_EIA");
+  }
+  catch (const NotImplementedException &)
+  {
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(

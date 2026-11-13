@@ -640,15 +640,29 @@ TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
   EXPECT_EQ(gs->get_value(x), one);
 }
 
-TEST_P(GenericSolverIntTests, PowNeedsConstantNonNegativeExponent)
+TEST_P(GenericSolverIntTests, PowNeedsTwoArguments)
 {
   Sort int_sort = gs->make_sort(INT);
   Term x = gs->make_symbol("x", int_sort);
-  Term y = gs->make_symbol("y", int_sort);
-  EXPECT_THROW(gs->make_term(Pow, x, y), NotImplementedException);
-  EXPECT_THROW(gs->make_term(Pow, x, gs->make_term(-1, int_sort)),
-               NotImplementedException);
   EXPECT_THROW(gs->make_term(Pow, TermVec({ x })), IncorrectUsageException);
+}
+
+TEST_P(GenericSolverIntTests, PowBySymbol)
+{
+  Sort int_sort = gs->make_sort(INT);
+  Term n = gs->make_symbol("n", int_sort);
+  Term power;
+  try
+  {
+    power = gs->make_term(Pow, gs->make_term(2, int_sort), n);
+  }
+  catch (const NotImplementedException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
+  gs->assert_formula(gs->make_term(Equal, power, gs->make_term(8, int_sort)));
+  ASSERT_TRUE(gs->check_sat().is_sat());
+  EXPECT_EQ(gs->get_value(n), gs->make_term(3, int_sort));
 }
 
 TEST_P(GenericSolverTests, Bv3)

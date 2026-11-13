@@ -123,6 +123,13 @@ void Cvc5Solver::set_logic(const std::string logic)
       {
         throw IncorrectUsageException(logic + " is not a logic");
       }
+      // A cvc5 without QF_EIA still solves the ** Pow is under QF_NIA, as far
+      // as it can.
+      if (logic == "QF_EIA")
+      {
+        set_logic("QF_NIA");
+        return;
+      }
       throw NotImplementedException("cvc5 does not support the logic " + logic);
     }
     throw IncorrectUsageException(e.what());

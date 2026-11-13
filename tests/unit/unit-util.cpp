@@ -845,6 +845,13 @@ TEST_P(SmtLibApplication, PowerIsAProduct)
             "(* x x x)");
 }
 
+TEST_P(SmtLibApplication, PowerWithoutAProduct)
+{
+  EXPECT_EQ(smtlib_application(Op(Pow), { x, s->make_term(0, intsort) }),
+            "(** x 0)");
+  EXPECT_EQ(smtlib_application(Op(Pow), { x, x }), "(** x x)");
+}
+
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          SmtLibApplication,
                          testing::ValuesIn(filter_solver_configurations(

@@ -1835,23 +1835,30 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
     throw IncorrectUsageException("Can't create divisible with index < 1");
   }
 
-  // SMT-LIB has no pow, so a power is sent as the product it stands for.
-  // Pow is over Int, where a negative exponent has no product to stand for.
-  if (op.prim_op == Pow)
+  // A power to a constant exponent is unfolded, as not all solvers support it.
+  if (op.prim_op == Pow && terms.size() == 2 && terms[1]->is_value())
   {
     if (!check_sortedness(op, terms))
     {
       throw IncorrectUsageException(
           "Pow takes an Int base and an Int exponent");
     }
-    if (!terms[1]->is_value() || terms[1]->to_signed_int() < 0)
+    const std::int64_t exponent = terms[1]->to_signed_int();
+    if (exponent >= 0)
     {
-      throw NotImplementedException(
-          "The generic solver can only raise to a constant non-negative "
-          "integer exponent, but got "
-          + terms[1]->to_string());
+      return make_power(*this, terms[0], exponent);
     }
-    return make_power(*this, terms[0], terms[1]->to_signed_int());
+    Sort sort = terms[0]->get_sort();
+    Term one = make_term(1, sort);
+    Term minus_one = make_term(-1, sort);
+    // We can always compute exponents of 1 and -1.
+    return make_term(Ite,
+                     make_term(Equal, terms[0], one),
+                     one,
+                     make_term(Ite,
+                               make_term(Equal, terms[0], minus_one),
+                               exponent % 2 == 0 ? one : minus_one,
+                               make_term(0, sort)));
   }
 
   // a quantifier binds one parameter (see ops.cpp), so `forall x y . body`
@@ -1873,8 +1880,22 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   }
   repr += ")";
   Term term = std::make_shared<GenericTerm>(sort, op, terms, repr);
-  Term stored_term = store_term(term);
-  return stored_term;
+  try
+  {
+    return store_term(term);
+  }
+  catch (IncorrectUsageException &)
+  {
+    // The sorts are checked, so a binary refusing a power, which has a
+    // symbolic exponent here, does not read SMT-LIB's **.
+    if (op.prim_op != Pow)
+    {
+      throw;
+    }
+    throw NotImplementedException(
+        "The binary does not read SMT-LIB's **, which a power to a symbolic "
+        "exponent needs");
+  }
 }
 
 Term GenericSolver::get_value(const Term & t) const
@@ -2189,6 +2210,7 @@ void GenericSolver::set_logic(const std::string logic)
   try
   {
     run_command(CommandKind::LOGIC, SET_LOGIC_STR, logic);
+    return;
   }
   catch (NotImplementedException &)
   {
@@ -2198,8 +2220,21 @@ void GenericSolver::set_logic(const std::string logic)
     {
       throw IncorrectUsageException(logic + " is not a logic");
     }
-    throw;
+    if (logic != "QF_EIA")
+    {
+      throw;
+    }
   }
+  catch (IncorrectUsageException &)
+  {
+    if (logic != "QF_EIA")
+    {
+      throw;
+    }
+  }
+  // A binary without QF_EIA still solves the ** Pow is under QF_NIA, as far
+  // as it can.
+  set_logic("QF_NIA");
 }
 
 void GenericSolver::do_assert(const Term & t)

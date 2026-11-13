@@ -389,7 +389,7 @@ bool is_smtlib_logic(const std::string & name)
     }
   }
   for (std::string_view arithmetic :
-       { "IDL", "RDL", "LIA", "LRA", "LIRA", "NIA", "NRA", "NIRA" })
+       { "IDL", "RDL", "LIA", "LRA", "LIRA", "NIA", "NRA", "NIRA", "EIA" })
   {
     if (rest == arithmetic)
     {
