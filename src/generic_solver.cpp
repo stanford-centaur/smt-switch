@@ -865,7 +865,7 @@ std::string GenericSolver::run_command(const std::string & cmd,
       // print-success does not cover a command that answers with a result
       if (is_error_response(reply))
       {
-        throw Exception("Exception from the solver: " + reply);
+        throw IncorrectUsageException("Exception from the solver: " + reply);
       }
       break;
   }
@@ -2262,7 +2262,7 @@ Result GenericSolver::str_to_result(std::string result) const
   }
   else
   {
-    throw NotImplementedException(
+    throw SolverException(
         "Unimplemented result type from the generic solver. The result was: "
         + result);
   }

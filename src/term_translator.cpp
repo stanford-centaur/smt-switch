@@ -135,7 +135,8 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
   }
   else
   {
-    throw Exception("Failed to transfer sort: " + sort->to_string());
+    throw NotImplementedException("Failed to transfer sort: "
+                                  + sort->to_string());
   }
 }
 
@@ -220,8 +221,8 @@ Term TermTranslator::transfer_datatype_component(const Term & term)
       }
     }
   }
-  throw Exception("Failed to transfer selector " + name
-                  + ": its datatype has no selector of that name");
+  throw InternalException("Failed to transfer selector " + name
+                          + ": its datatype has no selector of that name");
 }
 
 Sort TermTranslator::uninterpreted_sort(const std::string & name,
@@ -364,9 +365,9 @@ Term TermTranslator::transfer_term(const Term & term)
           Sort valsort = val->get_sort();
           if (s->get_elemsort() != valsort)
           {
-            throw Exception("Expecting element sort but got "
-                            + val->get_sort()->to_string() + " and "
-                            + s->to_string());
+            throw NotImplementedException("Expecting element sort but got "
+                                          + val->get_sort()->to_string()
+                                          + " and " + s->to_string());
           }
           else if (valsort->get_sort_kind() == ARRAY)
           {
@@ -629,7 +630,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
   {
     if (val != "true" && val != "false")
     {
-      throw Exception("Unexpected boolean value: " + val);
+      throw IncorrectUsageException("Unexpected boolean value: " + val);
     }
     else
     {
@@ -897,22 +898,23 @@ Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
     {
       return solver->make_term(term->to_int() == 1);
     }
-    throw Exception("Cannot interpret " + term->to_string() + " as a bool.");
+    throw NotImplementedException("Cannot interpret " + term->to_string()
+                                  + " as a bool.");
   }
   else if (sk == BV && cur_sk == BOOL)
   {
     if (sort->get_width() != 1)
     {
-      throw Exception("Cannot interpret " + term->to_string() + " as "
-                      + sort->to_string());
+      throw NotImplementedException("Cannot interpret " + term->to_string()
+                                    + " as " + sort->to_string());
     }
 
     if (term->is_value())
     {
       return solver->make_term(term->to_bool() ? 1 : 0, sort);
     }
-    throw Exception("Cannot interpret " + term->to_string() + " as "
-                    + sort->to_string());
+    throw NotImplementedException("Cannot interpret " + term->to_string()
+                                  + " as " + sort->to_string());
   }
   else if (sk == REAL && cur_sk == INT)
   {
