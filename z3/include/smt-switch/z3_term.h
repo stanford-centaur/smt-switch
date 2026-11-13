@@ -9,6 +9,7 @@
 #define SMT_SWITCH_Z3_TERM_H
 
 #include <z3++.h>
+#include <z3_version.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -21,6 +22,17 @@
 #include "smt-switch/z3_context.h"
 
 namespace smt {
+
+namespace detail {
+
+/** Whether Z3 makes the power of two Ints a Real, as before Z3 5.4.0 */
+inline constexpr bool z3_int_power_is_real =
+    Z3_MAJOR_VERSION < 5 || (Z3_MAJOR_VERSION == 5 && Z3_MINOR_VERSION < 4);
+
+/** SMT-LIB's power of the Ints base and exponent, from Z3's Real power */
+z3::expr smtlib_int_power(const z3::expr & base, const z3::expr & exponent);
+
+}  // namespace detail
 
 class Z3Term : public AbsTerm
 {

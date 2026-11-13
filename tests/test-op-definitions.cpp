@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "available_solvers.h"
+#include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
@@ -233,13 +234,36 @@ TEST_P(IntOpDefinitionTests, Pow)
 {
   Sort intsort = v->get_sort();
   Term three = s->make_term(3, intsort);
-  // a constant base keeps these linear; 0^0 is left out, as Z3 leaves it
-  // undefined
+  EXPECT_EQ(s->make_term(Pow, v, three)->get_sort(), intsort);
+  // a constant base keeps these linear
   expect_equivalent(s->make_term(Pow, s->make_term(-2, intsort), three),
                     s->make_term(-8, intsort));
-  expect_equivalent(s->make_term(Pow, three, s->make_term(0, intsort)),
-                    s->make_term(1, intsort));
+  expect_equivalent(s->make_term(Pow, three, zero), s->make_term(1, intsort));
+  expect_equivalent(s->make_term(Pow, zero, zero), s->make_term(1, intsort));
   expect_equivalent(s->make_term(Pow, v, s->make_term(1, intsort)), v);
+}
+
+TEST_P(IntOpDefinitionTests, PowByNegativeExponent)
+{
+  Sort intsort = v->get_sort();
+  // an integer only for a base of 1 or -1, and 0 otherwise
+  constexpr int64_t cases[][3] = {
+    { 2, -1, 0 }, { 0, -1, 0 }, { -1, -3, -1 }, { -1, -2, 1 }, { 1, -2, 1 },
+  };
+  for (const auto & c : cases)
+  {
+    Term power;
+    try
+    {
+      power = s->make_term(
+          Pow, s->make_term(c[0], intsort), s->make_term(c[1], intsort));
+    }
+    catch (const NotImplementedException & e)
+    {
+      GTEST_SKIP() << e.what();
+    }
+    expect_equivalent(power, s->make_term(c[2], intsort));
+  }
 }
 
 TEST_P(IntOpDefinitionTests, Divisible)

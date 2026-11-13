@@ -1134,6 +1134,16 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
     z3::expr body = to_expr(*ctx, zargs.back());
     res = op.prim_op == Forall ? forall(params, body) : exists(params, body);
   }
+  else if (detail::z3_int_power_is_real && op.prim_op == Pow && size == 2
+           && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[0])) == Z3_INT_SORT
+           && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[1]))
+                  == Z3_INT_SORT)
+  {
+    return std::make_shared<Z3Term>(
+        ctx,
+        detail::smtlib_int_power(to_expr(*ctx, zargs[0]),
+                                 to_expr(*ctx, zargs[1])));
+  }
   else if (size == 2)
   {
     res = binary_term(*ctx, op.prim_op, zargs[0], zargs[1]);
