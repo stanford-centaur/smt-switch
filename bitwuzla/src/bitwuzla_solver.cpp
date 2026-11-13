@@ -43,15 +43,13 @@ static Term make_bzla_term(const std::shared_ptr<BzlaTermManager> & tm,
                            bitwuzla::Kind kind,
                            const std::vector<bitwuzla::Term> & args,
                            const std::vector<std::uint64_t> & indices = {})
+try
 {
-  try
-  {
-    return std::make_shared<BzlaTerm>(tm->mk_term(kind, args, indices), tm);
-  }
-  catch (const bitwuzla::Exception & e)
-  {
-    throw IncorrectUsageException(e.what());
-  }
+  return std::make_shared<BzlaTerm>(tm->mk_term(kind, args, indices), tm);
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 struct BzlaSolver::Instance

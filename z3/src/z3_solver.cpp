@@ -408,37 +408,34 @@ void Z3Solver::add_constructor(z3::sort dtsort,
 }
 
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
+try
 {
-  try
+  std::shared_ptr<Z3DatatypeDecl> cd = backend_pointer_cast<Z3DatatypeDecl>(d);
+  // as SMT-LIB declares a datatype once
+  if (cd->used)
   {
-    std::shared_ptr<Z3DatatypeDecl> cd =
-        backend_pointer_cast<Z3DatatypeDecl>(d);
-    // as SMT-LIB declares a datatype once
-    if (cd->used)
-    {
-      throw IncorrectUsageException("Datatype declaration " + cd->name
-                                    + " was used for a sort already");
-    }
-    if (ctx->has_datatype_name(cd->name))
-    {
-      throw IncorrectUsageException("Datatype " + cd->name
-                                    + " was declared already");
-    }
-    auto dtsort = ctx->datatype_sort(ctx->str_symbol(cd->name.c_str()));
-    z3::constructors cs{ *ctx };
-    for (auto cons : cd->consvec)
-    {
-      add_constructor(dtsort, &cs, cons);
-    }
-    auto sort = ctx->datatype(ctx->str_symbol(cd->name.data()), cs);
-    cd->used = true;
-    ctx->add_datatype_name(cd->name);
-    return std::make_shared<Z3Sort>(ctx, sort);
+    throw IncorrectUsageException("Datatype declaration " + cd->name
+                                  + " was used for a sort already");
   }
-  catch (const z3::exception & e)
+  if (ctx->has_datatype_name(cd->name))
   {
-    ctx->rethrow(e);
+    throw IncorrectUsageException("Datatype " + cd->name
+                                  + " was declared already");
   }
+  auto dtsort = ctx->datatype_sort(ctx->str_symbol(cd->name.c_str()));
+  z3::constructors cs{ *ctx };
+  for (auto cons : cd->consvec)
+  {
+    add_constructor(dtsort, &cs, cons);
+  }
+  auto sort = ctx->datatype(ctx->str_symbol(cd->name.data()), cs);
+  cd->used = true;
+  ctx->add_datatype_name(cd->name);
+  return std::make_shared<Z3Sort>(ctx, sort);
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 SortVec Z3Solver::make_datatype_sorts(
@@ -492,91 +489,79 @@ SortVec Z3Solver::make_datatype_sorts(
 }
 
 DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s) const
+try
 {
-  try
-  {
-    return std::make_shared<Z3DatatypeDecl>(s);
-  }
-  catch (const z3::exception & e)
-  {
-    ctx->rethrow(e);
-  }
+  return std::make_shared<Z3DatatypeDecl>(s);
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 DatatypeConstructorDecl Z3Solver::make_datatype_constructor_decl(
     const std::string s) const
+try
 {
-  try
-  {
-    return std::make_shared<Z3DatatypeConstructorDecl>(ctx, s);
-  }
-  catch (const z3::exception & e)
-  {
-    ctx->rethrow(e);
-  }
+  return std::make_shared<Z3DatatypeConstructorDecl>(ctx, s);
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 void Z3Solver::add_constructor(DatatypeDecl & dt,
                                const DatatypeConstructorDecl & cons) const
+try
 {
-  try
-  {
-    auto z3dt = backend_pointer_cast<Z3DatatypeDecl>(dt);
-    z3dt->consvec.push_back(
-        backend_pointer_cast<Z3DatatypeConstructorDecl>(cons));
-  }
-  catch (const z3::exception & e)
-  {
-    ctx->rethrow(e);
-  }
+  auto z3dt = backend_pointer_cast<Z3DatatypeDecl>(dt);
+  z3dt->consvec.push_back(
+      backend_pointer_cast<Z3DatatypeConstructorDecl>(cons));
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
                             const std::string & name,
                             const Sort & s) const
+try
 {
-  try
-  {
-    auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->selectors.emplace_back(name, get_z3_sort(s)->get_z3_type());
-  }
-  catch (const z3::exception & e)
-  {
-    ctx->rethrow(e);
-  }
+  auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
+  cdt->selectors.emplace_back(name, get_z3_sort(s)->get_z3_type());
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
                                  const std::string & name) const
+try
 {
-  try
-  {
-    auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
-    cdt->selectors.emplace_back(name, z3::sort(*ctx));
-  }
-  catch (const z3::exception & e)
-  {
-    ctx->rethrow(e);
-  }
+  auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
+  cdt->selectors.emplace_back(name, z3::sort(*ctx));
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 Term Z3Solver::get_constructor(const Sort & s, std::string name) const
+try
 {
-  try
+  auto z3sort = get_z3_sort(s);
+  z3::sort dt = z3sort->get_z3_datatype();
+  for (auto cons_raw : dt.constructors())
   {
-    auto z3sort = get_z3_sort(s);
-    z3::sort dt = z3sort->get_z3_datatype();
-    for (auto cons_raw : dt.constructors())
-    {
-      z3::func_decl cons{ *ctx, cons_raw };
-      if (cons.name().str() == name) return std::make_shared<Z3Term>(ctx, cons);
-    }
-    throw IncorrectUsageException("Constructor " + name + " not found");
+    z3::func_decl cons{ *ctx, cons_raw };
+    if (cons.name().str() == name) return std::make_shared<Z3Term>(ctx, cons);
   }
-  catch (const z3::exception & e)
-  {
-    ctx->rethrow(e);
-  }
+  throw IncorrectUsageException("Constructor " + name + " not found");
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 Term Z3Solver::get_tester(const Sort & s, std::string name) const
