@@ -287,9 +287,9 @@ void SmtLibReader::add_theory(LogicTheory theory)
               Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right };
       break;
     case LogicTheory::BVIA:
+      ops = { Int_To_BV, UBV_To_Int, SBV_To_Int };
       if (!strict_)
       {
-        ops = { Int_To_BV, UBV_To_Int, SBV_To_Int };
         // obsolete spellings of int_to_bv and ubv_to_int
         primops_.emplace("int2bv", Int_To_BV);
         primops_.emplace("bv2nat", UBV_To_Int);
