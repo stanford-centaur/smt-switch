@@ -34,7 +34,7 @@ namespace smt {
 
 /** The PrimOp of the nodes of kind k, or NUM_OPS_AND_NULL for a kind whose
  *  nodes are not applications
- *  @throws SmtException for a kind with no PrimOp
+ *  @throws Exception for a kind with no PrimOp
  */
 static PrimOp primop_of(BtorNodeKind k)
 {
@@ -63,8 +63,8 @@ static PrimOp primop_of(BtorNodeKind k)
     case BTOR_UF_NODE: return NUM_OPS_AND_NULL;
     case BTOR_UPDATE_NODE: return Store;
     default:
-      throw SmtException("smt-switch has no PrimOp for the Boolector node kind "
-                         + std::to_string(k));
+      throw Exception("smt-switch has no PrimOp for the Boolector node kind "
+                      + std::to_string(k));
   }
 }
 
@@ -231,7 +231,7 @@ Sort BoolectorTerm::get_sort() const
   }
   else
   {
-    throw SmtException(
+    throw Exception(
         "Failed to translate a Boolector sort to an smt-switch sort");
   }
 
@@ -476,7 +476,7 @@ Term BoolectorTerm::get_child(std::size_t i) const
   BtorNode * res = children[i];
   if (btor_node_real_addr(res)->kind == BTOR_ARGS_NODE)
   {
-    throw SmtException("Boolector gave an args node as a child");
+    throw Exception("Boolector gave an args node as a child");
   }
 
   // increment internal reference counter

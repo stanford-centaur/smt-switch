@@ -50,8 +50,8 @@ std::string Result::to_string() const
     case UNKNOWN: return "unknown";
     case NUM_RESULTS: break;
   }
-  throw SmtException("Result::to_string got a ResultType with no name: "
-                     + std::to_string(static_cast<int>(result)));
+  throw Exception("Result::to_string got a ResultType with no name: "
+                  + std::to_string(static_cast<int>(result)));
 }
 
 std::ostream & operator<<(std::ostream & output, const Result r)

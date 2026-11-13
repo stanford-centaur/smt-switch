@@ -32,7 +32,7 @@ std::string get_yices2_error();
 
 /** Copies and frees a string a Yices call returned
  *  @param s the string, or null if the call failed
- *  @throws InternalSolverException with Yices' error if s is null
+ *  @throws SolverException with Yices' error if s is null
  */
 std::string get_yices2_string(char * s);
 

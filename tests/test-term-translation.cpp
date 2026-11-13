@@ -573,7 +573,7 @@ TEST_P(TranslationTests, UninterpretedSort)
     // need to fail if either solver doesn't support uninterpreted sorts
     Sort dummy_sort = s2->make_sort("dummy", 0);
   }
-  catch (SmtException & e)
+  catch (Exception & e)
   {
     // if this solver doesn't support uninterpreted sorts, that's fine
     // just stop the test
@@ -604,7 +604,7 @@ TEST_P(TranslationTests, ApplicationOfFewerArguments)
     u1 = s1->make_sort("U", 0);
     u2 = s2->make_sort("U", 0);
   }
-  catch (SmtException & e)
+  catch (Exception & e)
   {
     GTEST_SKIP() << "both solvers need uninterpreted sorts";
   }

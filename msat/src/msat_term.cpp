@@ -44,7 +44,7 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
   if (!msat_term_is_int_modular_congruence(e, t, modulus))
   {
     mpz_clear(modulus);
-    throw InternalSolverException(
+    throw SolverException(
         "MathSAT tagged a term as a congruence but gave no modulus for it");
   }
   bool fits = mpz_fits_ulong_p(modulus);
@@ -344,7 +344,7 @@ Sort MsatTerm::get_sort() const
 
     if (!param_types.size())
     {
-      throw InternalSolverException(
+      throw SolverException(
           "Expecting a nonzero arity for an uninterpreted function");
     }
 
@@ -433,7 +433,7 @@ string MsatTerm::to_string() const
   {
     if (MSAT_ERROR_DECL(decl))
     {
-      throw SmtException("Can't print a MathSAT error declaration");
+      throw Exception("Can't print a MathSAT error declaration");
     }
     return smtlib_quote_symbol(get_symbol_name());
   }
@@ -441,7 +441,7 @@ string MsatTerm::to_string() const
   {
     if (MSAT_ERROR_TERM(term))
     {
-      throw SmtException("Can't print a MathSAT error term");
+      throw Exception("Can't print a MathSAT error term");
     }
     return detail::get_msat_string(msat_to_smtlib2_term(*env, term));
   }

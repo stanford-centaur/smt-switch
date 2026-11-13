@@ -16,13 +16,12 @@
 #include <exception>
 #include <string>
 
-/**
-   Base exception for this codebase.
-   All other exceptions used in the code should be derived
-     classes of this.
- */
+namespace smt {
 
-class SmtException : public std::exception
+/** Base of every exception smt-switch throws. Catch it to handle any of
+ *  them; the subclasses say what went wrong.
+ */
+class Exception : public std::exception
 {
  public:
   /** Constructor (C strings).
@@ -31,12 +30,12 @@ class SmtException : public std::exception
    *                 Hence, responsibility for deleting the char* lies
    *                 with the caller.
    */
-  explicit SmtException(const char * message);
+  explicit Exception(const char * message);
 
   /** Constructor (C++ STL strings).
    *  @param message The error message.
    */
-  explicit SmtException(const std::string & message);
+  explicit Exception(const std::string & message);
 
   /** Returns a pointer to the (constant) error description.
    *  @return A pointer to a const char*. The underlying memory
@@ -51,28 +50,55 @@ class SmtException : public std::exception
   std::string msg;
 };
 
-class IncorrectUsageException : public SmtException
+/** Thrown when the caller asks for something SMT-LIB, or the solver's
+ *  documented contract for an extension, does not allow: a value of the
+ *  wrong sort, a name that is not a logic, or a call the solver's current
+ *  state rules out.
+ */
+class IncorrectUsageException : public Exception
 {
  public:
-  using SmtException::SmtException;
+  using Exception::Exception;
   // defined in the .cpp to anchor the vtable
   ~IncorrectUsageException() override;
 };
 
-class NotImplementedException : public SmtException
+/** Thrown when SmtLibReader cannot parse its input: a syntax error, a
+ *  symbol, sort or character it does not know, or something it or the
+ *  solver refuses, such as a redeclaration. The message starts with where,
+ *  as file:line.column.
+ */
+class ParseException : public Exception
 {
  public:
-  using SmtException::SmtException;
+  using Exception::Exception;
+  // defined in the .cpp to anchor the vtable
+  ~ParseException() override;
+};
+
+/** Thrown for a request that is allowed but that the solver, or its
+ *  smt-switch backend, cannot carry out: an option it does not know, a
+ *  logic or theory it lacks, or turning off an option it always keeps on.
+ */
+class NotImplementedException : public Exception
+{
+ public:
+  using Exception::Exception;
   // defined in the .cpp to anchor the vtable
   ~NotImplementedException() override;
 };
 
-class InternalSolverException : public SmtException
+/** Thrown when the solver itself fails, for instance by hitting an
+ *  internal limit or assertion.
+ */
+class SolverException : public Exception
 {
  public:
-  using SmtException::SmtException;
+  using Exception::Exception;
   // defined in the .cpp to anchor the vtable
-  ~InternalSolverException() override;
+  ~SolverException() override;
 };
+
+}  // namespace smt
 
 #endif  // SMT_SWITCH_EXCEPTIONS_H

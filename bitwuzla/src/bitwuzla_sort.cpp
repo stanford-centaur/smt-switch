@@ -225,7 +225,7 @@ SortKind BzlaSort::get_sort_kind() const
   }
   else
   {
-    throw SmtException(
+    throw Exception(
         "Failed to translate a Bitwuzla sort to an smt-switch sort");
   }
 }

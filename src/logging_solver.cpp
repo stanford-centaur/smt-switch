@@ -554,7 +554,7 @@ Term LoggingSolver::get_value(const Term & t) const
     UnorderedTermMap pairs = get_array_values(t, out_const_base);
     if (!out_const_base)
     {
-      throw InternalSolverException(
+      throw SolverException(
           "Wrapped solver did not provide constant base. Please use "
           "get_array_values instead of get_value of an array");
     }
@@ -621,7 +621,7 @@ void LoggingSolver::get_unsat_assumptions(UnorderedTermSet & out) const
     // assumption_cache stored a mapping so we can recover the logging term
     if (assumption_cache->find(c) == assumption_cache->end())
     {
-      throw InternalSolverException(
+      throw SolverException(
           "Got an element in the unsat core that was not cached from "
           "check_sat_assuming in LoggingSolver.");
     }

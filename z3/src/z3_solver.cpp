@@ -369,7 +369,7 @@ void Z3Solver::set_logic(const std::string logic)
       }
       throw NotImplementedException("Z3 does not support the logic " + logic);
     }
-    throw InternalSolverException(e.msg());
+    throw SolverException(e.msg());
   }
   instance->slv.set(solver_params);
 }
@@ -437,7 +437,7 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -499,7 +499,7 @@ DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s) const
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -512,7 +512,7 @@ DatatypeConstructorDecl Z3Solver::make_datatype_constructor_decl(
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -527,7 +527,7 @@ void Z3Solver::add_constructor(DatatypeDecl & dt,
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -542,7 +542,7 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -556,7 +556,7 @@ void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -575,7 +575,7 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
   }
   catch (z3::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -858,7 +858,7 @@ void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   // was check_sat instead of check_sat_assuming
   if (!last_query_assuming || !instance)
   {
-    throw SmtException(
+    throw Exception(
         "Can only call get_unsat_assumptions after check_sat_assuming");
   }
   z3::expr_vector core = instance->slv.unsat_core();

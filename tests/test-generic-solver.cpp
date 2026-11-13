@@ -632,7 +632,7 @@ TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
       gs->make_term(Equal, gs->make_term(BVMul, wide_x, wide_y), product));
   gs->assert_formula(gs->make_term(BVUgt, x, one));
   gs->assert_formula(gs->make_term(BVUgt, y, one));
-  EXPECT_THROW(gs->check_sat(), InternalSolverException);
+  EXPECT_THROW(gs->check_sat(), SolverException);
 
   gs->pop(1);
   gs->assert_formula(gs->make_term(Equal, x, one));
@@ -1583,7 +1583,7 @@ TEST(GenericSolver, BinaryClosedItsInput)
           vector<string>{ "-c", "exec 0<&-; echo success; exec sleep 10" },
           solver_response_timeout,
           5),
-      InternalSolverException);
+      SolverException);
 }
 
 TEST(GenericSolver, StderrIsNotAnAnswer)

@@ -350,7 +350,7 @@ class UnsatCoreReducer
    *  @param rand_seed if strickly positive then assump will be shuffled.
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
-   *  @throws InternalSolverException if the reducer answers unknown
+   *  @throws SolverException if the reducer answers unknown
    */
   bool reduce_assump_unsatcore(const Term & formula,
                                const TermVec & assump,
@@ -372,7 +372,7 @@ class UnsatCoreReducer
    *  returns false if the formula conjoined with the assump is satisfiable,
    *          otherwise returns true
    *  @throws IncorrectUsageException if an assumption appears more than once
-   *  @throws InternalSolverException if the reducer answers unknown
+   *  @throws SolverException if the reducer answers unknown
    */
   bool linear_reduce_assump_unsatcore(const Term & formula,
                                       const TermVec & assump,

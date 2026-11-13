@@ -12,7 +12,7 @@
 
 #include "smt-switch/exceptions.h"
 
-// Callers catch SmtException, or std::exception, to handle any error the
+// Callers catch smt::Exception, or std::exception, to handle any error the
 // library raises, so every exception class must be catchable as both and
 // keep its message.
 template <typename E>
@@ -20,10 +20,10 @@ class UnitExceptions : public ::testing::Test
 {
 };
 
-using ExceptionTypes = ::testing::Types<SmtException,
-                                        IncorrectUsageException,
-                                        NotImplementedException,
-                                        InternalSolverException>;
+using ExceptionTypes = ::testing::Types<smt::Exception,
+                                        smt::IncorrectUsageException,
+                                        smt::NotImplementedException,
+                                        smt::SolverException>;
 // GTest takes the name generator as a variadic third parameter, and leaving
 // it out altogether is a C++20 extension. The trailing comma passes it empty
 // instead, which selects the same default generator.
@@ -31,7 +31,7 @@ TYPED_TEST_SUITE(UnitExceptions, ExceptionTypes, );
 
 TYPED_TEST(UnitExceptions, CaughtAsSmtException)
 {
-  EXPECT_THROW(throw TypeParam("test"), SmtException);
+  EXPECT_THROW(throw TypeParam("test"), smt::Exception);
 }
 
 TYPED_TEST(UnitExceptions, CaughtAsStdException)

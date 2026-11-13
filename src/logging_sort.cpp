@@ -154,8 +154,8 @@ bool LoggingSort::compare(const Sort & s) const
       return false;
     }
   }
-  throw SmtException("LoggingSort comparison got an out-of-range SortKind "
-                     + std::to_string(static_cast<int>(sk)));
+  throw Exception("LoggingSort comparison got an out-of-range SortKind "
+                  + std::to_string(static_cast<int>(sk)));
 }
 
 // dispatched to underlying sort

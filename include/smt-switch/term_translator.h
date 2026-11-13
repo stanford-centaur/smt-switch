@@ -178,7 +178,7 @@ class TermTranslator
    *  that matches one of the other solver, found by its printed name
    *  @param term a constructor, selector or tester of the other solver
    *  @return the same component of the transferred datatype
-   *  throws an SmtException if term prints as none of its datatype's
+   *  throws an Exception if term prints as none of its datatype's
    *  constructors, selectors or testers
    */
   Term transfer_datatype_component(const Term & term);

@@ -66,7 +66,7 @@ static void set_btor_opt(Btor * btor, BtorOption opt, std::uint32_t value)
   {
     boolector_set_opt(btor, opt, value);
   }
-  catch (InternalSolverException & e)
+  catch (SolverException & e)
   {
     // Boolector aborts only on what the caller asked for: a value out of
     // range, or an option that can no longer change.
@@ -214,7 +214,7 @@ BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
     {
       text.pop_back();
     }
-    throw InternalSolverException(text);
+    throw SolverException(text);
   };
   boolector_set_abort(throw_exception);
   boolector_set_term(btor.get(), reached_deadline, this);
@@ -412,7 +412,7 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
     return std::make_shared<BoolectorTerm>(
         btor, boolector_const(btor.get(), bits.c_str()));
   }
-  catch (InternalSolverException & e)
+  catch (SolverException & e)
   {
     // pretty safe to assume that an error here is due to incorrect usage
     throw IncorrectUsageException(e.what());
@@ -432,7 +432,7 @@ Term BoolectorSolver::make_term(std::string val,
     return std::make_shared<BoolectorTerm>(
         btor, boolector_const(btor.get(), bits.c_str()));
   }
-  catch (InternalSolverException & e)
+  catch (SolverException & e)
   {
     // pretty safe to assume that an error here is due to incorrect usage
     throw IncorrectUsageException(e.what());

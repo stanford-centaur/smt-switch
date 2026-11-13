@@ -145,7 +145,7 @@ Result BzlaInterpolator::compute_seq_interpolants(
   }
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 
   if (bzla_res == bitwuzla::Result::SAT)

@@ -26,7 +26,7 @@ struct MsatFreeDeleter
 
 /** Copies and frees a string a MathSAT call returned
  *  @param s the string, or null if the call failed
- *  @throws InternalSolverException if s is null
+ *  @throws SolverException if s is null
  */
 std::string get_msat_string(char * s);
 

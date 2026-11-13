@@ -228,7 +228,7 @@ Result BzlaSolver::check_sat()
   }
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 
   if (r == bitwuzla::Result::SAT)
@@ -261,7 +261,7 @@ Result BzlaSolver::do_check_sat_assuming(const TermVec & assumptions)
   }
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 
   if (res == bitwuzla::Result::SAT)
@@ -345,7 +345,7 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   }
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
   for (auto && elt : bcore)
   {
@@ -371,7 +371,7 @@ Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
   }
   catch (bitwuzla::Exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -627,7 +627,7 @@ Term BzlaSolver::substitute(const Term term,
   {
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
-      throw SmtException(
+      throw Exception(
           "Bitwuzla does not support substituting a term that is neither a "
           "symbol nor a param");
     }
@@ -654,7 +654,7 @@ TermVec BzlaSolver::substitute_terms(
   {
     if (!elem.first->is_symbolic_const() && !elem.first->is_param())
     {
-      throw SmtException(
+      throw Exception(
           "Bitwuzla does not support substituting a term that is neither a "
           "symbol nor a param");
     }

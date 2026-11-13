@@ -151,9 +151,9 @@ TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
   TermVec assump({ s->make_term(Not, a), s->make_term(Not, b) });
   TermVec red;
   EXPECT_THROW(uscr.reduce_assump_unsatcore(formula, assump, red),
-               InternalSolverException);
+               SolverException);
   EXPECT_THROW(uscr.linear_reduce_assump_unsatcore(formula, assump, red),
-               InternalSolverException);
+               SolverException);
 }
 
 // The unsat cores reducer module requires the

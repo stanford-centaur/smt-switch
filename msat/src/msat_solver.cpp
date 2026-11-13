@@ -461,7 +461,7 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   }
   if (!last_query_assuming)
   {
-    throw SmtException(
+    throw Exception(
         "MathSAT has no unsat assumptions unless the last query was a "
         "check_sat_assuming with assumptions");
   }
@@ -471,16 +471,15 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
       msat_get_unsat_assumptions(*env, &core_size));
   if (!mcore)
   {
-    throw InternalSolverException("MathSAT gave no unsat assumptions: "
-                                  + detail::last_error_message(*env));
+    throw SolverException("MathSAT gave no unsat assumptions: "
+                          + detail::last_error_message(*env));
   }
   for (size_t i = 0; i < core_size; ++i)
   {
     msat_term assumption = mcore.get()[i];
     if (MSAT_ERROR_TERM(assumption))
     {
-      throw InternalSolverException(
-          "MathSAT gave an error term in the unsat core");
+      throw SolverException("MathSAT gave an error term in the unsat core");
     }
     out.insert(std::make_shared<MsatTerm>(
         env, assumption_map_.at(msat_term_id(assumption))));
@@ -767,15 +766,15 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
   if (MSAT_ERROR_TYPE(msort->get_msat_type()))
   {
-    throw InternalSolverException("Got an error type from MathSAT");
+    throw SolverException("Got an error type from MathSAT");
   }
 
   decl = msat_declare_function(*env, name.c_str(), msort->get_msat_type());
 
   if (MSAT_ERROR_DECL(decl))
   {
-    throw SmtException("MathSAT refused to declare " + name + " of sort "
-                       + sort->to_string());
+    throw Exception("MathSAT refused to declare " + name + " of sort "
+                    + sort->to_string());
   }
 
   if (sort->get_sort_kind() == FUNCTION)
@@ -787,8 +786,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     msat_term res = msat_make_constant(*env, decl);
     if (MSAT_ERROR_TERM(res))
     {
-      throw InternalSolverException("MathSAT refused to make a constant for "
-                                    + name);
+      throw SolverException("MathSAT refused to make a constant for " + name);
     }
     return std::make_shared<MsatTerm>(env, res);
   }
@@ -897,7 +895,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       msg += separator + t->to_string();
       separator = ", ";
     }
-    throw InternalSolverException(msg);
+    throw SolverException(msg);
   }
   return make_shared<MsatTerm>(env, res);
 }
@@ -976,7 +974,7 @@ void MsatSolver::dump_smt2(std::string filename) const
       msat_get_asserted_formulas(*env, &num_asserted));
   if (!assertions)
   {
-    throw InternalSolverException("Failed to gather all assertions");
+    throw SolverException("Failed to gather all assertions");
   }
   msat_term all_asserts = msat_make_true(*env);
   for (size_t i = 0; i < num_asserted; ++i)
@@ -985,7 +983,7 @@ void MsatSolver::dump_smt2(std::string filename) const
   }
   if (MSAT_ERROR_TERM(all_asserts))
   {
-    throw InternalSolverException("Failed to gather all assertions");
+    throw SolverException("Failed to gather all assertions");
   }
   const std::string & logic = env_wrapper_.get_logic();
   const char * log = logic.empty() ? NULL : logic.c_str();
@@ -1035,7 +1033,7 @@ msat_result MsatSolver::solve(std::vector<msat_term> * labels, bool & timed_out)
   // solver, which owns the time limit
   if (limited && msat_set_termination_test(*env, reached_deadline, &deadline))
   {
-    throw InternalSolverException("MathSAT refused the time limit");
+    throw SolverException("MathSAT refused the time limit");
   }
   msat_result res =
       labels ? msat_solve_with_assumptions(*env, labels->data(), labels->size())

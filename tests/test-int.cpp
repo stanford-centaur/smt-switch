@@ -132,7 +132,7 @@ TEST_P(IntTests, BvToNatIsInt)
   {
     natx = s->make_term(BV_To_Nat, bvx);
   }
-  catch (const SmtException & e)
+  catch (const Exception & e)
   {
     GTEST_SKIP() << e.what();
   }
@@ -149,7 +149,7 @@ TEST_P(IntTests, Bv2Int)
   {
     intx = s->make_term(UBV_To_Int, bvx);
   }
-  catch (const SmtException & e)
+  catch (const Exception & e)
   {
     GTEST_SKIP() << e.what();
   }
@@ -168,7 +168,7 @@ TEST_P(IntTests, Bv2Int)
   {
     intz = s->make_term(SBV_To_Int, bvx);
   }
-  catch (const SmtException & e)
+  catch (const Exception & e)
   {
     GTEST_SKIP() << e.what();
   }

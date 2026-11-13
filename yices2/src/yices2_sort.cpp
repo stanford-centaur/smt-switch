@@ -121,8 +121,7 @@ std::string Yices2Sort::get_uninterpreted_name() const
     const char * res = yices_get_type_name(type);
     if (res == NULL)
     {
-      throw InternalSolverException(
-          "Failed to get the name of an uninterpreted sort");
+      throw SolverException("Failed to get the name of an uninterpreted sort");
     }
     return res;
   }

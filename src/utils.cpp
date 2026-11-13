@@ -1089,8 +1089,8 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term & formula,
     if (!r.is_unsat())
     {
       reducer_->pop();
-      throw InternalSolverException(
-          "reduce_assump_unsatcore expected unsat but got " + r.to_string());
+      throw SolverException("reduce_assump_unsatcore expected unsat but got "
+                            + r.to_string());
     }
 
     bool_assump.clear();
@@ -1190,7 +1190,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
   if (!r.is_unsat())
   {
     reducer_->pop();
-    throw InternalSolverException(
+    throw SolverException(
         "linear_reduce_assump_unsatcore expected unsat but got "
         + r.to_string());
   }
@@ -1216,7 +1216,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
     else if (!r.is_unsat())
     {
       reducer_->pop();
-      throw InternalSolverException(
+      throw SolverException(
           "linear_reduce_assump_unsatcore expected unsat but got "
           + r.to_string());
     }
