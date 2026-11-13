@@ -54,6 +54,25 @@ static string yices2_to_string(term_t term)
       yices_term_to_string(term, UINT32_MAX, 1, 0));
 }
 
+/** Returns the value of an arithmetic constant as GMP writes it, n or n/d
+ *  in decimal
+ */
+static string rational_const_text(term_t term)
+{
+  mpq_t value;
+  mpq_init(value);
+  yices_rational_const_value(term, value);
+  // room for both parts, a sign, the slash and the terminator, as
+  // mpq_get_str documents
+  string text(mpz_sizeinbase(mpq_numref(value), 10)
+                  + mpz_sizeinbase(mpq_denref(value), 10) + 3,
+              '\0');
+  mpq_get_str(&text[0], 10, value);
+  mpq_clear(value);
+  text.resize(text.find('\0'));
+  return text;
+}
+
 /* Yices has no extract constructor. It stores (_ extract high low) as an
  * array of the individual bits, so a BV_ARRAY whose children are the
  * consecutive bits of one bitvector, lowest first, is an extract of it.
@@ -132,7 +151,6 @@ static Op divisible_op(term_t term)
 Op Yices2Term::get_op() const
 {
   term_constructor_t tc = yices_term_constructor(term);
-  std::string sres;
   switch (tc)
   {
     // composite terms
@@ -178,14 +196,7 @@ Op Yices2Term::get_op() const
        * (* -1 b) is still of type YICES_ARITH_SUM. To transfer this
        * term, you need to construct the multiply.
        */
-      sres = yices2_to_string(term);
-      sres = sres.substr(sres.find("(") + 1, sres.length());
-      sres = sres.substr(0, sres.find(" "));
-      if (yices_term_num_children(term) == 1 && sres == "*")
-      {
-        return Op(Mult);
-      }
-      return Op(Plus);
+      return yices_term_num_children(term) == 1 ? Op(Mult) : Op(Plus);
     // products
     // a bit-vector power, which no op gives, reads as BVMul over the base
     // and the rest of the power
@@ -350,7 +361,7 @@ uint64_t Yices2Term::to_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_uint64(yices2_to_string(term));
+    return smtlib_int_to_uint64(rational_const_text(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -366,7 +377,7 @@ int64_t Yices2Term::to_signed_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_int64(yices2_to_string(term));
+    return smtlib_int_to_int64(rational_const_text(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "

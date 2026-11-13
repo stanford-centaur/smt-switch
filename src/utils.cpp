@@ -1512,19 +1512,12 @@ std::int64_t to_twos_complement(std::uint64_t value, std::uint64_t width)
   return -static_cast<std::int64_t>(magnitude);
 }
 
-void check_bv_width(std::uint64_t width, const std::string & s)
+void check_bit_string(const std::string & bits)
 {
-  if (width == 0)
+  if (bits.empty() || bits.find_first_not_of("01") != std::string::npos)
   {
-    throw IncorrectUsageException("Can't convert " + s
-                                  + " to an integer: it is not a bit-vector "
-                                    "value");
-  }
-  if (width > 64)
-  {
-    throw IncorrectUsageException(
-        "Can't convert " + s + " to an integer: a bit-vector of width "
-        + std::to_string(width) + " does not fit in 64 bits");
+    throw IncorrectUsageException("Can't convert " + bits
+                                  + " to an integer: it is not a bit string");
   }
 }
 
@@ -1532,6 +1525,47 @@ IncorrectUsageException not_a_bv_value(const std::string & s)
 {
   return IncorrectUsageException("Can't convert " + s
                                  + " to bits: it is not a bit-vector value");
+}
+
+/** The unsigned value of the bit-vector `bits`, a non-empty string of 0s and
+ *  1s, most significant first. Throws if a bit above the low 64 is set. `s`
+ *  is the text the bits were read from.
+ */
+std::uint64_t low_64_bits(const std::string & bits, const std::string & s)
+{
+  const std::string::size_type high = bits.size() > 64 ? bits.size() - 64 : 0;
+  if (bits.find('1') < high)
+  {
+    throw IncorrectUsageException(
+        "Can't convert " + s
+        + " to an unsigned integer: it does not fit in 64 bits");
+  }
+  std::uint64_t value = 0;
+  for (std::string::size_type i = high; i < bits.size(); ++i)
+  {
+    value = (value << 1) | static_cast<std::uint64_t>(bits[i] - '0');
+  }
+  return value;
+}
+
+/** Like low_64_bits, but in two's complement. Throws unless every bit above
+ *  the low 64 equals bit 63, extending its sign.
+ */
+std::int64_t low_64_bits_signed(const std::string & bits, const std::string & s)
+{
+  const std::string::size_type high = bits.size() > 64 ? bits.size() - 64 : 0;
+  if (bits.find_first_not_of(bits[high]) < high)
+  {
+    throw IncorrectUsageException(
+        "Can't convert " + s
+        + " to a signed integer: it does not fit in 64 bits");
+  }
+  std::uint64_t value = 0;
+  for (std::string::size_type i = high; i < bits.size(); ++i)
+  {
+    value = (value << 1) | static_cast<std::uint64_t>(bits[i] - '0');
+  }
+  return to_twos_complement(value, bits.size() - high);
 }
 
 }  // namespace
@@ -1575,23 +1609,14 @@ std::int64_t smtlib_int_to_int64(const std::string & s)
 
 std::uint64_t bits_to_uint64(const std::string & bits)
 {
-  if (bits.find_first_not_of("01") != std::string::npos)
-  {
-    throw IncorrectUsageException("Can't convert " + bits
-                                  + " to an integer: it is not a bit string");
-  }
-  check_bv_width(bits.size(), bits);
-  std::uint64_t value = 0;
-  for (char c : bits)
-  {
-    value = (value << 1) | static_cast<std::uint64_t>(c - '0');
-  }
-  return value;
+  check_bit_string(bits);
+  return low_64_bits(bits, bits);
 }
 
 std::int64_t bits_to_int64(const std::string & bits)
 {
-  return to_twos_complement(bits_to_uint64(bits), bits.size());
+  check_bit_string(bits);
+  return low_64_bits_signed(bits, bits);
 }
 
 std::string bv_value_to_bits(const std::string & val,
@@ -1689,12 +1714,12 @@ std::string smtlib_bv_to_bits(const std::string & s)
 
 std::uint64_t smtlib_bv_to_uint64(const std::string & s)
 {
-  return bits_to_uint64(smtlib_bv_to_bits(s));
+  return low_64_bits(smtlib_bv_to_bits(s), s);
 }
 
 std::int64_t smtlib_bv_to_int64(const std::string & s)
 {
-  return bits_to_int64(smtlib_bv_to_bits(s));
+  return low_64_bits_signed(smtlib_bv_to_bits(s), s);
 }
 
 // SMT-LIB 2.6 reserves these words (Section 3.1) and every command name

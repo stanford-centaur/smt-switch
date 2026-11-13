@@ -177,18 +177,65 @@ TEST_P(ToIntBVTests, MadeFromInt64)
   }
 }
 
-TEST_P(ToIntBVTests, WiderThan64Bits)
+TEST_P(ToIntBVTests, WideValueThatFits)
 {
-  // no bit-vector wider than 64 bits converts, whatever its value
-  for (uint64_t width : { 65, 128 })
+  for (uint64_t width : { 65, 128, 1024 })
   {
     Sort sort = s->make_sort(BV, width);
-    for (const Term & v : with_model_value(s->make_term(1, sort)))
+    for (const Term & v : with_model_value(s->make_term("2", sort, 10)))
+    {
+      SCOPED_TRACE(v->to_string());
+      EXPECT_EQ(v->to_int(), 2u);
+      EXPECT_EQ(v->to_signed_int(), 2);
+    }
+    for (const Term & v :
+         with_model_value(s->make_term("18446744073709551615", sort, 10)))
+    {
+      SCOPED_TRACE(v->to_string());
+      EXPECT_EQ(v->to_int(), uint64_max);
+      EXPECT_THROW(v->to_signed_int(), IncorrectUsageException);
+    }
+    for (const Term & v : with_model_value(s->make_term("-1", sort, 10)))
     {
       SCOPED_TRACE(v->to_string());
       EXPECT_THROW(v->to_int(), IncorrectUsageException);
-      EXPECT_THROW(v->to_signed_int(), IncorrectUsageException);
+      EXPECT_EQ(v->to_signed_int(), -1);
     }
+    for (const Term & v :
+         with_model_value(s->make_term("-9223372036854775808", sort, 10)))
+    {
+      SCOPED_TRACE(v->to_string());
+      EXPECT_THROW(v->to_int(), IncorrectUsageException);
+      EXPECT_EQ(v->to_signed_int(), int64_min);
+    }
+  }
+}
+
+TEST_P(ToIntBVTests, WideValueThatDoesNotFit)
+{
+  for (uint64_t width : { 65, 128, 1024 })
+  {
+    Sort sort = s->make_sort(BV, width);
+    const char * const values[] = { "18446744073709551616",
+                                    "-9223372036854775809" };
+    for (const char * value : values)
+    {
+      for (const Term & v : with_model_value(s->make_term(value, sort, 10)))
+      {
+        SCOPED_TRACE(v->to_string());
+        EXPECT_THROW(v->to_int(), IncorrectUsageException);
+        EXPECT_THROW(v->to_signed_int(), IncorrectUsageException);
+      }
+    }
+  }
+  // 2^63 is unsigned, but its top bit is not the sign bit of 65 bits
+  Sort bv65 = s->make_sort(BV, 65);
+  for (const Term & v :
+       with_model_value(s->make_term("9223372036854775808", bv65, 10)))
+  {
+    SCOPED_TRACE(v->to_string());
+    EXPECT_EQ(v->to_int(), uint64_t(1) << 63);
+    EXPECT_THROW(v->to_signed_int(), IncorrectUsageException);
   }
 }
 
@@ -411,6 +458,22 @@ TEST(ToIntParsing, BVToBits)
     SCOPED_TRACE(s);
     EXPECT_THROW(smtlib_bv_to_bits(s), IncorrectUsageException);
   }
+}
+
+TEST(ToIntParsing, WideBV)
+{
+  EXPECT_EQ(smtlib_bv_to_uint64("(_ bv2 1024)"), 2u);
+  EXPECT_EQ(smtlib_bv_to_int64("(_ bv2 1024)"), 2);
+  EXPECT_EQ(smtlib_bv_to_uint64("#x0ffffffffffffffff"), uint64_max);
+  EXPECT_THROW(smtlib_bv_to_int64("#x0ffffffffffffffff"),
+               IncorrectUsageException);
+  EXPECT_EQ(smtlib_bv_to_int64("#xfffffffffffffffff"), -1);
+  EXPECT_EQ(bits_to_int64(std::string(65, '1')), -1);
+  EXPECT_THROW(bits_to_uint64(std::string(65, '1')), IncorrectUsageException);
+  EXPECT_THROW(smtlib_bv_to_uint64("(_ bv18446744073709551616 65)"),
+               IncorrectUsageException);
+  // 2^65 - 1 is all ones in 65 bits
+  EXPECT_EQ(smtlib_bv_to_int64("(_ bv36893488147419103231 65)"), -1);
 }
 
 // AbsTerm::to_signed_int is the default for Term implementations outside

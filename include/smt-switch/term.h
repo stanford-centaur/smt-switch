@@ -105,13 +105,14 @@ class AbsTerm : public detail::SharedTermBase
    *  Integer values (and real values with an integral value) must be in
    *  [0, UINT64_MAX], so a negative one, which SMT-LIB writes as (- n),
    *  throws; read it with to_signed_int instead. Bit-vector values are read
-   *  as unsigned and must be at most 64 bits wide, whatever their value.
+   *  as unsigned and must be at most UINT64_MAX, whatever their width.
    */
   virtual std::uint64_t to_int() const = 0;
   /** like to_int, but signed
    *  Integer values (and real values with an integral value) must be in
    *  [INT64_MIN, INT64_MAX]; bit-vector values are read in two's
-   *  complement, e.g. #b1111 is -1, and must be at most 64 bits wide.
+   *  complement of their width, e.g. #b1111 is -1, and must be in
+   *  [INT64_MIN, INT64_MAX] too, whatever their width.
    *  Throws an IncorrectUsageException for anything else.
    *  The default implementation parses to_string().
    */

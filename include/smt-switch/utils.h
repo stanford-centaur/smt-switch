@@ -274,8 +274,8 @@ std::uint64_t smtlib_int_to_uint64(const std::string & s);
 std::int64_t smtlib_int_to_int64(const std::string & s);
 
 /** Interprets a string of 0s and 1s, most significant bit first, as a
- *  bit-vector of the string's length: unsigned, or in two's complement.
- *  Throws for bit-vectors wider than 64 bits, whatever their value.
+ *  bit-vector of the string's length, which may be any: unsigned, or in
+ *  two's complement.
  */
 std::uint64_t bits_to_uint64(const std::string & bits);
 std::int64_t bits_to_int64(const std::string & bits);
@@ -285,8 +285,8 @@ std::int64_t bits_to_int64(const std::string & bits);
  */
 std::string smtlib_bv_to_bits(const std::string & s);
 
-/** Like bits_to_uint64 and bits_to_int64, for an SMT-LIB bit-vector value:
- *  `#b...`, `#x...` or `(_ bvN W)`.
+/** Like bits_to_uint64 and bits_to_int64, for an SMT-LIB bit-vector value
+ *  of any width: `#b...`, `#x...` or `(_ bvN W)`.
  */
 std::uint64_t smtlib_bv_to_uint64(const std::string & s);
 std::int64_t smtlib_bv_to_int64(const std::string & s);
