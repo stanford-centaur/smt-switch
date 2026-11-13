@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <exception>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -115,10 +116,24 @@ Result BzlaInterpolator::compute_seq_interpolants(
   if (!dump_queries_prefix.empty())
   {
     // Note: the dumped query will only include the current assertions
-    std::ofstream out(dump_queries_prefix + "."
-                      + std::to_string(itp_query_count) + ".smt2");
-    bzla_solver->get_bitwuzla()->print_formula(out, "smt2");
-    out.close();
+    auto filename =
+        dump_queries_prefix + "." + std::to_string(itp_query_count) + ".smt2";
+    std::ofstream out(filename);
+    if (!out)
+    {
+      std::cerr << "Warning: cannot open " << filename
+                << " for writing, query not dumped" << std::endl;
+    }
+    else
+    {
+      bzla_solver->get_bitwuzla()->print_formula(out, "smt2");
+      out.close();
+      if (!out)
+      {
+        std::cerr << "Warning: cannot write " << filename
+                  << ", query dump incomplete" << std::endl;
+      }
+    }
   }
   itp_query_count++;
 
