@@ -210,8 +210,10 @@ Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl) const
 Term AbsSmtSolver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {
-  // cache starts with the substitutions
-  UnorderedTermMap cache(substitution_map);
+  // each term's result once it is known; a term is rebuilt the second time
+  // it comes off the stack, after its children
+  UnorderedTermMap cache;
+  UnorderedTermSet visited;
   TermVec to_visit{ term };
   TermVec cached_children;
   Term t;
@@ -219,31 +221,37 @@ Term AbsSmtSolver::substitute(const Term term,
   {
     t = to_visit.back();
     to_visit.pop_back();
-    if (cache.find(t) == cache.end())
+    if (cache.find(t) != cache.end())
     {
-      // doesn't get updated yet, just marking as visited
-      cache[t] = t;
+      continue;
+    }
+    // a key is replaced whole, whatever it is made of
+    auto it = substitution_map.find(t);
+    if (it != substitution_map.end())
+    {
+      cache[t] = it->second;
+      continue;
+    }
+    if (visited.insert(t).second)
+    {
       to_visit.push_back(t);
       for (auto c : t)
       {
         to_visit.push_back(c);
       }
+      continue;
     }
-    else
+    cached_children.clear();
+    for (auto c : t)
     {
-      cached_children.clear();
-      for (auto c : t)
-      {
-        cached_children.push_back(cache.at(c));
-      }
-
-      // const arrays have children but don't need to be rebuilt
-      // (they're constructed in a particular way anyway)
-      if (cached_children.size() && !t->is_value())
-      {
-        cache[t] = make_term(t->get_op(), cached_children);
-      }
+      cached_children.push_back(cache.at(c));
     }
+
+    // const arrays have children but don't need to be rebuilt
+    // (they're constructed in a particular way anyway)
+    cache[t] = cached_children.size() && !t->is_value()
+                   ? make_term(t->get_op(), cached_children)
+                   : t;
   }
 
   return cache.at(term);
