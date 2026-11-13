@@ -1143,14 +1143,17 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    // the last term is the body, bound by the rest
-    z3::expr_vector params(*ctx);
-    for (size_t i = 0; i + 1 < size; ++i)
-    {
-      params.push_back(to_expr(*ctx, zargs[i]));
-    }
+    // the last term is the body, bound by the rest one quantifier each, as a
+    // quantifier binds one param (see ops.cpp)
     z3::expr body = to_expr(*ctx, zargs.back());
-    res = op.prim_op == Forall ? forall(params, body) : exists(params, body);
+    for (size_t i = size - 1; i-- > 0;)
+    {
+      z3::expr_vector param(*ctx);
+      param.push_back(to_expr(*ctx, zargs[i]));
+      body = op.prim_op == Forall ? z3::forall(param, body)
+                                  : z3::exists(param, body);
+    }
+    return std::make_shared<Z3Term>(ctx, body);
   }
   else if (detail::z3_int_power_is_real && op.prim_op == Pow && size == 2
            && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[0])) == Z3_INT_SORT

@@ -116,11 +116,6 @@ TEST_P(UnitQuantifierIterTests, OpAndSort)
 
 TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
 {
-  if (!GetParam().is_logging_solver && s->get_solver_enum() == Z3)
-  {
-    // Z3 backend cannot traverse quantifier structure yet
-    return;
-  }
   Term b = s->make_param("b", boolsort);
   Term x = s->make_param("x", bvsort);
   Term f = s->make_symbol("f", funsort);
@@ -140,10 +135,6 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
 
 TEST_P(UnitQuantifierIterTests, BoundParamName)
 {
-  if (!GetParam().is_logging_solver && s->get_solver_enum() == Z3)
-  {
-    GTEST_SKIP() << "Z3 cannot list a quantifier's children";
-  }
   Term x = s->make_param("x y", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term forall = s->make_term(Forall, x, s->make_term(BVUlt, x, y));

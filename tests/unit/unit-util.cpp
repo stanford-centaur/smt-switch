@@ -1220,10 +1220,6 @@ class SmtLibBenchmarkQuantifiers : public SmtLibBenchmarkDeclarations
 
 TEST_P(SmtLibBenchmarkQuantifiers, LeavesBoundVariablesUndeclared)
 {
-  if (GetParam().solver_enum == Z3 && !GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
-  }
   Term x = s->make_symbol("x", intsort);
   Term i = s->make_param("i", intsort);
   Term forall = s->make_term(Forall, i, s->make_term(Le, i, x));
@@ -1252,10 +1248,6 @@ class SmtLibBenchmarkRenamedSorts : public SmtLibBenchmarkDeclarations
 // a renamed sort is written by its new name inside an assertion too
 TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
 {
-  if (GetParam().solver_enum == Z3 && !GetParam().is_logging_solver)
-  {
-    GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
-  }
   if (s->get_solver_enum() == GENERIC_SOLVER)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
