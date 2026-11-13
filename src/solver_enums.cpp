@@ -78,7 +78,7 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
                UNINTERP_SORT,   PARAM_UNINTERP_SORT,
                TIMELIMIT };
   }
-  throw NotImplementedException("Unknown SolverEnum: " + std::to_string(se));
+  throw InternalException("Unknown SolverEnum: " + std::to_string(se));
 }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
@@ -98,7 +98,7 @@ std::ostream & operator<<(std::ostream & o, SolverEnum e)
     case MSAT_INTERPOLATOR: return o << "MSAT_INTERPOLATOR";
     case YICES2_INTERPOLATOR: return o << "YICES2_INTERPOLATOR";
   }
-  throw NotImplementedException("Unknown SolverEnum: " + std::to_string(e));
+  throw InternalException("Unknown SolverEnum: " + std::to_string(e));
 }
 
 std::string to_string(SolverEnum e)
@@ -131,8 +131,7 @@ std::ostream & operator<<(std::ostream & o, SolverAttribute a)
     case BOOL_BV1_ALIASING: return o << "BOOL_BV1_ALIASING";
     case TIMELIMIT: return o << "TIMELIMIT";
   }
-  throw NotImplementedException("Unknown SolverAttribute: "
-                                + std::to_string(a));
+  throw InternalException("Unknown SolverAttribute: " + std::to_string(a));
 }
 
 std::string to_string(SolverAttribute a)

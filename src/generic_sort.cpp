@@ -219,8 +219,8 @@ bool GenericSort::compare(const Sort & s) const
       return false;
     }
   }
-  throw Exception("GenericSort comparison got an out-of-range SortKind "
-                  + std::to_string(static_cast<int>(sk)));
+  throw InternalException("GenericSort comparison got an out-of-range SortKind "
+                          + std::to_string(static_cast<int>(sk)));
 }
 
 std::uint64_t GenericSort::get_width() const
