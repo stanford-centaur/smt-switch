@@ -184,18 +184,6 @@ class AbsSmtSolver
    */
   virtual Sort make_sort(const std::string name, std::uint64_t arity) const = 0;
 
-  /* Apply a sort constructor to sorts
-   * SMTLIB: ( <identifier> <sort>+ ), for instance (List Int)
-   * Only reachable where the declaration above accepts a nonzero arity,
-   * which is the only source of a sort constructor, so this is not pure
-   * virtual: the default in solver.cpp throws for the rest.
-   * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
-   * nonzero arity)
-   * @param sorts a vector of sorts of size matching sort_con->get_arity()
-   * @return a Sort object
-   */
-  virtual Sort make_sort(const Sort & sort_con, const SortVec & sorts) const;
-
   /* Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
    * @return a Sort object
@@ -232,6 +220,16 @@ class AbsSmtSolver
   {
     return make_sort(sk, SortVec{ sort1, sorts... });
   }
+
+  /* Apply a sort constructor to sorts
+   * SMTLIB: ( <identifier> <sort>+ ), for instance (List Int)
+   * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
+   * nonzero arity)
+   * @param sorts a vector of sorts of size matching sort_con->get_arity()
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const Sort & sort_con,
+                         const SortVec & sorts) const = 0;
 
   /* Make a boolean value term
    * @param b boolean value
