@@ -238,7 +238,7 @@ bool check_sorts(SortCheck check, const SortVec & sorts)
     case SortCheck::TESTER: return check_tester_sorts(sorts);
     case SortCheck::CONSTRUCTOR: return check_constructor_sorts(sorts);
   }
-  throw Exception("check_sortedness got an out-of-range SortCheck");
+  throw InternalException("check_sortedness got an out-of-range SortCheck");
 }
 
 Sort compute(SortComputation computation,
@@ -268,7 +268,7 @@ Sort compute(SortComputation computation,
     case SortComputation::CONSTRUCTOR:
       return constructor_sort(op, solver, sorts);
   }
-  throw Exception("compute_sort got an out-of-range SortComputation");
+  throw InternalException("compute_sort got an out-of-range SortComputation");
 }
 
 }  // namespace

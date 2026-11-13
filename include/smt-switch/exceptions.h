@@ -99,6 +99,18 @@ class SolverException : public Exception
   ~SolverException() override;
 };
 
+/** Thrown when smt-switch reaches a state its own code should rule out,
+ *  such as an enumerator no switch handles. It reports a bug in
+ *  smt-switch, not in the caller or the solver.
+ */
+class InternalException : public Exception
+{
+ public:
+  using Exception::Exception;
+  // defined in the .cpp to anchor the vtable
+  ~InternalException() override;
+};
+
 }  // namespace smt
 
 #endif  // SMT_SWITCH_EXCEPTIONS_H

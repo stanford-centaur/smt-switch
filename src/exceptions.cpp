@@ -23,4 +23,6 @@ NotImplementedException::~NotImplementedException() = default;
 
 SolverException::~SolverException() = default;
 
+InternalException::~InternalException() = default;
+
 }  // namespace smt

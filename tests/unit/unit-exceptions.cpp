@@ -23,7 +23,8 @@ class UnitExceptions : public ::testing::Test
 using ExceptionTypes = ::testing::Types<smt::Exception,
                                         smt::IncorrectUsageException,
                                         smt::NotImplementedException,
-                                        smt::SolverException>;
+                                        smt::SolverException,
+                                        smt::InternalException>;
 // GTest takes the name generator as a variadic third parameter, and leaving
 // it out altogether is a C++20 extension. The trailing comma passes it empty
 // instead, which selects the same default generator.
