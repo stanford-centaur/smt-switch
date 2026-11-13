@@ -83,11 +83,6 @@ TEST_P(Misuse, SecondCheckSatIsHonouredOrNotImplemented)
 
 TEST_P(Misuse, IllSortedApplication)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == YICES2)
-  {
-    GTEST_SKIP() << "the backend does not translate the solver's refusal";
-  }
   Term b = s->make_symbol("b", s->make_sort(BOOL));
   Term v = s->make_symbol("v", s->make_sort(BV, 4));
   EXPECT_THROW(s->make_term(And, b, v), IncorrectUsageException);
@@ -114,10 +109,6 @@ TEST_P(Misuse, ZeroWidthBitVector)
   if (se == MSAT || se == GENERIC_SOLVER)
   {
     GTEST_SKIP() << "the backend makes a bit-vector sort of width 0";
-  }
-  if (se == YICES2)
-  {
-    GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }
   EXPECT_THROW(s->make_sort(BV, 0), IncorrectUsageException);
 }

@@ -242,12 +242,11 @@ Op Yices2Term::get_op() const
     case YICES_VARIABLE: return Op();
     case YICES_UNINTERPRETED_TERM: return Op();
     // reported for a term that is not valid, which this one is
-    case YICES_CONSTRUCTOR_ERROR:
-      throw SolverException(detail::get_yices2_error());
+    case YICES_CONSTRUCTOR_ERROR: detail::throw_yices2_error();
   }
   // unreachable, and here so that a constructor Yices adds is a -Wswitch
   // warning rather than a term silently without an op
-  throw SolverException(
+  throw InternalException(
       "smt-switch has no PrimOp for the Yices2 term constructor "
       + std::to_string(static_cast<int>(tc)));
 }
@@ -484,7 +483,7 @@ Term Yices2Term::get_child(std::size_t i) const
             term, one_component ? 0 : pos, coeff.data(), &component)
         < 0)
     {
-      throw SolverException(detail::get_yices2_error());
+      detail::throw_yices2_error();
     }
     term_t y_coeff = yices_bvconst_from_array(width, coeff.data());
     if (one_component)
@@ -508,7 +507,7 @@ Term Yices2Term::get_child(std::size_t i) const
       if (yices_sum_component(term, 0, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        throw SolverException(detail::get_yices2_error());
+        detail::throw_yices2_error();
       }
       ret_term = pos == 0 ? yices_mpq(coeff) : component;
     }
@@ -517,7 +516,7 @@ Term Yices2Term::get_child(std::size_t i) const
       if (yices_sum_component(term, pos, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        throw SolverException(detail::get_yices2_error());
+        detail::throw_yices2_error();
       }
       ret_term = component == NULL_TERM
                      ? yices_mpq(coeff)
@@ -534,7 +533,7 @@ Term Yices2Term::get_child(std::size_t i) const
             term, one_component ? 0 : pos, &component, &exponent)
         < 0)
     {
-      throw SolverException(detail::get_yices2_error());
+      detail::throw_yices2_error();
     }
     bool is_bv = yices_term_is_bitvector(term);
     if (one_component && is_bv)
@@ -621,7 +620,7 @@ Term Yices2Term::get_child(std::size_t i) const
 
   if (ret_term == NULL_TERM)
   {
-    throw SolverException(detail::get_yices2_error());
+    detail::throw_yices2_error();
   }
   return std::make_shared<Yices2Term>(ret_term);
 }

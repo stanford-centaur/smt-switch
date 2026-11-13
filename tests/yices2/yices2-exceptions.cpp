@@ -31,7 +31,7 @@ using namespace smt;
 TEST(Yices2Exceptions, LaterCallsDoNotReportAnEarlierError)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  EXPECT_THROW(s->make_sort(BV, 0), SolverException);
+  EXPECT_THROW(s->make_sort(BV, 0), IncorrectUsageException);
   EXPECT_NO_THROW(s->make_sort(BV, 4));
 
   SmtSolver fresh = Yices2SolverFactory::create(false);

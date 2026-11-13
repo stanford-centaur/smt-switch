@@ -46,12 +46,70 @@ string detail::get_yices2_error()
   return msg;
 }
 
+void detail::throw_yices2_error()
+{
+  error_code_t code = yices_error_code();
+  string msg = get_yices2_error();
+  // Yices reports most refusals under codes of their own, so only those
+  // that are not the caller's mistake are listed.
+  switch (code)
+  {
+    case CTX_LOGIC_NOT_SUPPORTED:
+    case CTX_UF_NOT_SUPPORTED:
+    case CTX_ARITH_NOT_SUPPORTED:
+    case CTX_BV_NOT_SUPPORTED:
+    case CTX_ARRAYS_NOT_SUPPORTED:
+    case CTX_QUANTIFIERS_NOT_SUPPORTED:
+    case CTX_LAMBDAS_NOT_SUPPORTED:
+    case CTX_NONLINEAR_ARITH_NOT_SUPPORTED:
+    case CTX_FORMULA_NOT_IDL:
+    case CTX_FORMULA_NOT_RDL:
+    case CTX_SCALAR_NOT_SUPPORTED:
+    case CTX_TUPLE_NOT_SUPPORTED:
+    case CTX_UTYPE_NOT_SUPPORTED:
+    case CTX_HIGH_ORDER_FUN_NOT_SUPPORTED:
+    case CTX_OPERATION_NOT_SUPPORTED:
+    case CTX_UNKNOWN_DELEGATE:
+    case CTX_DELEGATE_NOT_AVAILABLE:
+    case CTX_UNKNOWN_PARAMETER:
+    case EVAL_NOT_SUPPORTED:
+    case YVAL_NOT_SUPPORTED:
+    case MDL_GEN_TYPE_NOT_SUPPORTED:
+    case MDL_GEN_NONLINEAR:
+    case MDL_GEN_UNSUPPORTED_TERM:
+    case MCSAT_ERROR_UNSUPPORTED_THEORY:
+    case MCSAT_ERROR_ASSUMPTION_TERM_NOT_SUPPORTED:
+      throw NotImplementedException(msg);
+    case DEGREE_OVERFLOW:
+    case CTX_TOO_MANY_ARITH_VARS:
+    case CTX_TOO_MANY_ARITH_ATOMS:
+    case CTX_TOO_MANY_BV_VARS:
+    case CTX_TOO_MANY_BV_ATOMS:
+    case CTX_ARITH_SOLVER_EXCEPTION:
+    case CTX_BV_SOLVER_EXCEPTION:
+    case CTX_ARRAY_SOLVER_EXCEPTION:
+    case CTX_EF_INTERNAL_ERROR:
+    case EVAL_OVERFLOW:
+    case EVAL_FAILED:
+    case EVAL_CONVERSION_FAILED:
+    case MDL_CONSTRUCTION_FAILED:
+    case YVAL_OVERFLOW:
+    case MDL_GEN_FAILED:
+    case INTERNAL_EXCEPTION: throw SolverException(msg);
+    case OUTPUT_ERROR: throw SystemException(msg);
+    case YICES_NO_ERROR:
+    case BAD_TERM_DECREF:
+    case BAD_TYPE_DECREF: throw InternalException(msg);
+    default: throw IncorrectUsageException(msg);
+  }
+}
+
 string detail::get_yices2_string(char * s)
 {
   unique_ptr<char, YicesStringDeleter> owned(s);
   if (!owned)
   {
-    throw SolverException(get_yices2_error());
+    throw_yices2_error();
   }
   return owned.get();
 }
