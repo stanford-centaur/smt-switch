@@ -116,6 +116,12 @@ class AbsTerm : public detail::SharedTermBase
    *  The default implementation parses to_string().
    */
   virtual std::int64_t to_signed_int() const;
+  /** Returns the bits of a bit-vector value, most significant first, as
+   *  many as its width.
+   *  Throws an IncorrectUsageException for anything else.
+   *  The default implementation parses to_string().
+   */
+  virtual std::string to_bits() const;
   /** Returns the value of a Boolean value.
    *  On a solver with BOOL_BV1_ALIASING, a 1-bit bit-vector value is a
    *  Boolean value too, and #b1 is true.

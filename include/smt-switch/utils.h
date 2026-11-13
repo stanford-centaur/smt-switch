@@ -258,9 +258,9 @@ void smtlib_benchmark(std::ostream & out,
                       const std::string & logic,
                       const TermVec & assertions);
 
-// Helpers for implementing AbsTerm::to_int and AbsTerm::to_signed_int.
-// Each throws an IncorrectUsageException if its input is malformed or its
-// value does not fit in the result type.
+// Helpers for implementing AbsTerm::to_int, AbsTerm::to_signed_int and
+// AbsTerm::to_bits. Each throws an IncorrectUsageException if its input is
+// malformed or its value does not fit in the result type.
 
 /** Parses the text of an integer value: `n`, `-n` or `(- n)`, where `n` is
  *  a decimal numeral, optionally followed by a fractional part of zeros
@@ -279,6 +279,11 @@ std::int64_t smtlib_int_to_int64(const std::string & s);
  */
 std::uint64_t bits_to_uint64(const std::string & bits);
 std::int64_t bits_to_int64(const std::string & bits);
+
+/** The bits, most significant first, of an SMT-LIB bit-vector value:
+ *  `#b...`, `#x...` or `(_ bvN W)`, as many as its width.
+ */
+std::string smtlib_bv_to_bits(const std::string & s);
 
 /** Like bits_to_uint64 and bits_to_int64, for an SMT-LIB bit-vector value:
  *  `#b...`, `#x...` or `(_ bvN W)`.

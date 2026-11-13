@@ -247,16 +247,6 @@ bool BzlaTerm::is_value() const
 std::string BzlaTerm::to_string() const { return term.str(); }
 
 /** Returns the bits of a bit-vector value, most significant first */
-static std::string bv_value_to_bits(const bitwuzla::Term & term)
-{
-  if (!term.is_value() || !term.sort().is_bv())
-  {
-    throw IncorrectUsageException(
-        "Can't get a bitstring from a term that is not a bit-vector value");
-  }
-  return term.value<std::string>(2);
-}
-
 std::string BzlaTerm::get_constructor_name() const
 {
   throw IncorrectUsageException(
@@ -287,14 +277,21 @@ std::string BzlaTerm::get_symbol_name() const
   return term.symbol().value();
 }
 
-std::uint64_t BzlaTerm::to_int() const
-{
-  return bits_to_uint64(bv_value_to_bits(term));
-}
+std::uint64_t BzlaTerm::to_int() const { return bits_to_uint64(to_bits()); }
 
 std::int64_t BzlaTerm::to_signed_int() const
 {
-  return bits_to_int64(bv_value_to_bits(term));
+  return bits_to_int64(to_bits());
+}
+
+std::string BzlaTerm::to_bits() const
+{
+  if (!term.is_value() || !term.sort().is_bv())
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a bit-vector value");
+  }
+  return term.value<std::string>(2);
 }
 
 bool BzlaTerm::to_bool() const

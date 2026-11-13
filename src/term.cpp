@@ -37,7 +37,7 @@ std::int64_t AbsTerm::to_signed_int() const
   SortKind sk = get_sort()->get_sort_kind();
   if (sk == BV)
   {
-    return smtlib_bv_to_int64(repr);
+    return bits_to_int64(to_bits());
   }
   if (sk == INT || sk == REAL)
   {
@@ -46,6 +46,17 @@ std::int64_t AbsTerm::to_signed_int() const
   throw IncorrectUsageException("Can't convert " + repr
                                 + " to an integer: it has sort "
                                 + get_sort()->to_string());
+}
+
+std::string AbsTerm::to_bits() const
+{
+  const std::string repr = to_string();
+  if (!is_value() || get_sort()->get_sort_kind() != BV)
+  {
+    throw IncorrectUsageException("Can't convert " + repr
+                                  + " to bits: it is not a bit-vector value");
+  }
+  return smtlib_bv_to_bits(repr);
 }
 
 bool AbsTerm::to_bool() const

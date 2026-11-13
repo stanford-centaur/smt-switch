@@ -1937,37 +1937,22 @@ Term GenericSolver::value_from_string(const std::string & value,
 {
   const SortKind sk = sort->get_sort_kind();
   Term resulting_term;
-  // for bit-vectors, we distinguish between the solver's way of representing
-  // them. it can be either binary, hex, or decimal.
   if (sk == BV)
   {
-    if (value.substr(0, 2) == "#b")
+    std::string bits;
+    try
     {
-      // binary representation
-      resulting_term = make_value(value.substr(2, value.size() - 2), sort, 2);
+      bits = smtlib_bv_to_bits(value);
     }
-    else if (value.substr(0, 2) == "#x")
+    catch (const IncorrectUsageException &)
     {
-      // hex representation
-      resulting_term = make_value(value.substr(2, value.size() - 2), sort, 16);
+      throw InternalSolverException("Unexpected bit-vector value: " + value);
     }
-    else
+    if (bits.size() != sort->get_width())
     {
-      // decimal representation.
-      // parse strings of the form (_ bv<decimal> <bitwidth>)
-      const std::string prefix = "(_ bv";
-      std::size_t end_of_decimal =
-          value.find_first_not_of("0123456789", prefix.size());
-      if (value.compare(0, prefix.size(), prefix) != 0
-          || end_of_decimal == prefix.size()
-          || end_of_decimal == std::string::npos)
-      {
-        throw InternalSolverException("Unexpected bit-vector value: " + value);
-      }
-      std::string decimal =
-          value.substr(prefix.size(), end_of_decimal - prefix.size());
-      resulting_term = make_value(decimal, sort, 10);
+      throw InternalSolverException("Unexpected bit-vector value: " + value);
     }
+    resulting_term = make_value(bits, sort, 2);
   }
   else if (sk == BOOL)
   {

@@ -7,6 +7,8 @@
  */
 #include "smt-switch/msat_term.h"
 
+#include <gmp.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -445,33 +447,26 @@ string MsatTerm::to_string() const
   }
 }
 
-/** Returns the text of a MathSAT number term, and whether it is a
- *  bit-vector, or throws if the term is not a number.
- *  Bit-vectors are printed in SMT-LIB, as (_ bvN W). Other numbers are
- *  printed as, e.g., -5 or 1/2, because MathSAT's SMT-LIB printer writes
- *  the minimum int64_t as (- -9223372036854775808).
+/** Returns the text of a MathSAT arithmetic number term, or throws if the
+ *  term is not a number.
+ *  Numbers are printed as, e.g., -5 or 1/2, because MathSAT's SMT-LIB
+ *  printer writes the minimum int64_t as (- -9223372036854775808).
  */
-static string number_to_text(msat_env env,
-                             msat_term term,
-                             bool is_uf,
-                             bool & is_bv)
+static string number_to_text(msat_env env, msat_term term, bool is_uf)
 {
   if (is_uf)
   {
     throw IncorrectUsageException(
         "Can't convert a function symbol to an integer");
   }
-  is_bv = msat_is_bv_type(env, msat_term_get_type(term), nullptr);
-  const bool is_number = msat_term_is_number(env, term);
-  string val = detail::get_msat_string((is_bv || !is_number)
-                                           ? msat_to_smtlib2_term(env, term)
-                                           : msat_term_repr(term));
-  if (!is_number)
+  if (!msat_term_is_number(env, term))
   {
-    throw IncorrectUsageException("Can't convert " + val
-                                  + " to an integer: it is not a number");
+    throw IncorrectUsageException(
+        "Can't convert "
+        + detail::get_msat_string(msat_to_smtlib2_term(env, term))
+        + " to an integer: it is not a number");
   }
-  return val;
+  return detail::get_msat_string(msat_term_repr(term));
 }
 
 string MsatTerm::get_constructor_name() const
@@ -510,16 +505,44 @@ string MsatTerm::get_symbol_name() const
 
 uint64_t MsatTerm::to_int() const
 {
-  bool is_bv;
-  const string val = number_to_text(*env, term, is_uf, is_bv);
-  return is_bv ? smtlib_bv_to_uint64(val) : smtlib_int_to_uint64(val);
+  if (!is_uf && msat_is_bv_type(*env, msat_term_get_type(term), nullptr))
+  {
+    return bits_to_uint64(to_bits());
+  }
+  return smtlib_int_to_uint64(number_to_text(*env, term, is_uf));
 }
 
 int64_t MsatTerm::to_signed_int() const
 {
-  bool is_bv;
-  const string val = number_to_text(*env, term, is_uf, is_bv);
-  return is_bv ? smtlib_bv_to_int64(val) : smtlib_int_to_int64(val);
+  if (!is_uf && msat_is_bv_type(*env, msat_term_get_type(term), nullptr))
+  {
+    return bits_to_int64(to_bits());
+  }
+  return smtlib_int_to_int64(number_to_text(*env, term, is_uf));
+}
+
+string MsatTerm::to_bits() const
+{
+  size_t width = 0;
+  if (is_uf || !msat_is_bv_type(*env, msat_term_get_type(term), &width)
+      || !msat_term_is_number(*env, term))
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a bit-vector value");
+  }
+  mpq_t value;
+  mpq_init(value);
+  msat_term_to_number(*env, term, value);
+  string bits(width, '0');
+  for (size_t i = 0; i < width; ++i)
+  {
+    if (mpz_tstbit(mpq_numref(value), i))
+    {
+      bits[width - 1 - i] = '1';
+    }
+  }
+  mpq_clear(value);
+  return bits;
 }
 
 bool MsatTerm::to_bool() const

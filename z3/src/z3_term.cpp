@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "smt-switch/exceptions.h"
@@ -405,8 +406,7 @@ uint64_t Z3Term::to_int() const
   {
     if (term.is_bv())
     {
-      // printed as #b... or #x...
-      return smtlib_bv_to_uint64(term.to_string());
+      return bits_to_uint64(to_bits());
     }
     // succeeds for integer values and for real values with an integral
     // value, if they fit
@@ -427,8 +427,7 @@ int64_t Z3Term::to_signed_int() const
   {
     if (term.is_bv())
     {
-      // printed as #b... or #x...
-      return smtlib_bv_to_int64(term.to_string());
+      return bits_to_int64(to_bits());
     }
     // succeeds for integer values and for real values with an integral
     // value, if they fit
@@ -441,6 +440,18 @@ int64_t Z3Term::to_signed_int() const
   throw IncorrectUsageException(
       "Can't convert " + (is_function ? z_func.name().str() : term.to_string())
       + " to a signed integer: it is not a value that fits in 64 bits");
+}
+
+string Z3Term::to_bits() const
+{
+  if (is_function || !term.is_numeral() || !term.is_bv())
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a bit-vector value");
+  }
+  // without leading zeros
+  const string bits = Z3_get_numeral_binary_string(term.ctx(), term);
+  return string(term.get_sort().bv_size() - bits.size(), '0') + bits;
 }
 
 bool Z3Term::to_bool() const

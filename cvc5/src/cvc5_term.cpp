@@ -409,7 +409,7 @@ uint64_t Cvc5Term::to_int() const
 {
   if (term.isBitVectorValue())
   {
-    return bits_to_uint64(term.getBitVectorValue(2));
+    return bits_to_uint64(to_bits());
   }
   // true for integer values and for real values with an integral value
   if (term.isUInt64Value())
@@ -425,7 +425,7 @@ int64_t Cvc5Term::to_signed_int() const
 {
   if (term.isBitVectorValue())
   {
-    return bits_to_int64(term.getBitVectorValue(2));
+    return bits_to_int64(to_bits());
   }
   // true for integer values and for real values with an integral value
   if (term.isInt64Value())
@@ -435,6 +435,16 @@ int64_t Cvc5Term::to_signed_int() const
   throw IncorrectUsageException(
       "Can't convert " + term.toString()
       + " to a signed integer: it is not a value that fits in 64 bits");
+}
+
+std::string Cvc5Term::to_bits() const
+{
+  if (!term.isBitVectorValue())
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a bit-vector value");
+  }
+  return term.getBitVectorValue(2);
 }
 
 bool Cvc5Term::to_bool() const

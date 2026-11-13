@@ -346,7 +346,7 @@ uint64_t Yices2Term::to_int() const
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_BV_CONSTANT)
   {
-    return bits_to_uint64(bv_constant_to_bits(term));
+    return bits_to_uint64(to_bits());
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
@@ -362,7 +362,7 @@ int64_t Yices2Term::to_signed_int() const
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_BV_CONSTANT)
   {
-    return bits_to_int64(bv_constant_to_bits(term));
+    return bits_to_int64(to_bits());
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
@@ -371,6 +371,16 @@ int64_t Yices2Term::to_signed_int() const
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
       "to an integer");
+}
+
+string Yices2Term::to_bits() const
+{
+  if (yices_term_constructor(term) != YICES_BV_CONSTANT)
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a bit-vector constant");
+  }
+  return bv_constant_to_bits(term);
 }
 
 bool Yices2Term::to_bool() const

@@ -43,6 +43,7 @@ class MsatTerm : public AbsTerm
   std::string get_symbol_name() const override;
   uint64_t to_int() const override;
   int64_t to_signed_int() const override;
+  std::string to_bits() const override;
   bool to_bool() const override;
   std::string print_value_as(SortKind sk) const override;
 
