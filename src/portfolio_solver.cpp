@@ -291,7 +291,7 @@ Result PortfolioSolver::portfolio_solve()
   {
     message += "\n  " + failure(child);
   }
-  throw Exception(message);
+  throw SolverException(message);
 }
 
 }  // namespace smt
