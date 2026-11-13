@@ -1,6 +1,6 @@
 # These include backend headers, which need the Z3 headers that
 # test-solvers does not pass on, so they link the backend directly.
-set(z3_direct_tests z3-handle z3_test)
+set(z3_direct_tests z3-handle z3-quantifier z3_test)
 
 macro(switch_add_z3_test name)
   add_executable(${name} "${PROJECT_SOURCE_DIR}/tests/z3/${name}.cpp")
@@ -18,4 +18,5 @@ switch_add_z3_test(z3-exceptions)
 switch_add_z3_test(z3-foreign-sort)
 switch_add_z3_test(z3-foreign-term)
 switch_add_z3_test(z3-handle)
+switch_add_z3_test(z3-quantifier)
 switch_add_z3_test(z3_test)

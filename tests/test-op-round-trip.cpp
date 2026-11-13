@@ -178,10 +178,6 @@ class QuantifierRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    if (GetParam().solver_enum == Z3 && !GetParam().is_logging_solver)
-    {
-      GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
-    }
     bvsort = s->make_sort(BV, 4);
     x = s->make_symbol("x", bvsort);
     i = s->make_param("i", bvsort);

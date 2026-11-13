@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
@@ -471,16 +472,8 @@ std::size_t Z3Term::get_num_children() const
     return 0;
   }
 
-  if (term.is_quantifier())
-  {
-    // there is a way to get the quantifier body
-    // but it's not clear how to get the parameters from a quantified expr
-    throw NotImplementedException(
-        "Getting the children of a quantifier is not implemented for Z3, but "
-        "a logging solver keeps them");
-  }
   const PrimOp po = get_op().prim_op;
-  if (po == Pow)
+  if (po == Forall || po == Exists || po == Pow)
   {
     return 2;
   }
@@ -492,8 +485,58 @@ Term Z3Term::get_child(std::size_t i) const
 {
   // the index as Z3 takes an argument index
   const unsigned pos = detail::narrow<unsigned>(i, "a child position");
+  const PrimOp po = get_op().prim_op;
+  // smt-switch lists the first bound variable and then the body, which
+  // binds the rest; Z3 binds them all in one quantifier, as de Bruijn
+  // indices, and keeps their names
+  if (po == Forall || po == Exists)
+  {
+    if (pos > 1)
+    {
+      throw IncorrectUsageException("A quantifier has only two children");
+    }
+    const unsigned num_bound = Z3_get_quantifier_num_bound(*ctx, term);
+    // a bound variable's name and sort make the param it was made from
+    z3::expr_vector bound(*ctx);
+    for (unsigned k = 0; k < num_bound; ++k)
+    {
+      bound.push_back(
+          z3::expr(*ctx,
+                   Z3_mk_const(*ctx,
+                               Z3_get_quantifier_bound_name(*ctx, term, k),
+                               Z3_get_quantifier_bound_sort(*ctx, term, k))));
+    }
+    if (pos == 0)
+    {
+      return std::make_shared<Z3Term>(ctx, bound[0]);
+    }
+    // index 0 is the last bound variable
+    std::vector<Z3_ast> by_index(num_bound);
+    for (unsigned k = 0; k < num_bound; ++k)
+    {
+      by_index[k] = bound[num_bound - 1 - k];
+    }
+    z3::expr body(*ctx,
+                  Z3_substitute_vars(*ctx,
+                                     Z3_get_quantifier_body(*ctx, term),
+                                     num_bound,
+                                     by_index.data()));
+    ctx->check_error();
+    if (num_bound == 1)
+    {
+      return std::make_shared<Z3Term>(ctx, body);
+    }
+    z3::expr_vector rest(*ctx);
+    for (unsigned k = 1; k < num_bound; ++k)
+    {
+      rest.push_back(bound[k]);
+    }
+    return std::make_shared<Z3Term>(
+        ctx,
+        term.is_forall() ? z3::forall(rest, body) : z3::exists(rest, body));
+  }
   // the base and exponent of the power smtlib_int_power makes
-  if (detail::z3_int_power_is_real && pos < 2 && get_op().prim_op == Pow
+  if (detail::z3_int_power_is_real && pos < 2 && po == Pow
       && term.decl().decl_kind() == Z3_OP_ITE)
   {
     return std::make_shared<Z3Term>(
@@ -501,7 +544,7 @@ Term Z3Term::get_child(std::size_t i) const
   }
   // smt-switch lists the function, constructor, selector or tester applied
   // as the first child, which Z3 keeps as the decl
-  if (is_apply(get_op().prim_op))
+  if (is_apply(po))
   {
     return pos == 0 ? std::make_shared<Z3Term>(ctx, term.decl())
                     : std::make_shared<Z3Term>(ctx, term.arg(pos - 1));

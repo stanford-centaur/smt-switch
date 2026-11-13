@@ -954,11 +954,6 @@ TEST_P(SortConstructorTranslationTests, ArityClash)
 
 TEST_P(QuantifierTranslationTests, Forall)
 {
-  if (get<0>(GetParam()).solver_enum == Z3
-      && !get<0>(GetParam()).is_logging_solver)
-  {
-    GTEST_SKIP() << "Z3 cannot iterate over a quantifier's children";
-  }
   // x is the largest value only if every i is at most x
   Term i = s1->make_param("i", bvsort8);
   Term forall = s1->make_term(Forall, i, s1->make_term(BVUle, i, x));
