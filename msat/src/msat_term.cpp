@@ -433,13 +433,7 @@ string MsatTerm::to_string() const
     {
       throw SmtException("Can't print a MathSAT error declaration");
     }
-    string repr = detail::get_msat_string(msat_decl_repr(decl));
-    size_t idx = repr.find(":");
-    if (idx != string::npos)
-    {
-      repr = repr.substr(0, idx);
-    }
-    return repr;
+    return smtlib_quote_symbol(get_symbol_name());
   }
   else
   {

@@ -347,11 +347,11 @@ std::string BoolectorTerm::to_string() const
     // has a symbol
     if (is_negated())
     {
-      sres = std::string("(bvnot ") + sym + ")";
+      sres = "(bvnot " + smtlib_quote_symbol(sym) + ")";
     }
     else
     {
-      sres = sym;
+      sres = smtlib_quote_symbol(sym);
     }
     return sres;
   }

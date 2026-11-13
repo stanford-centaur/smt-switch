@@ -94,7 +94,8 @@ TEST_P(UnitSymbolTests, SymbolName)
   EXPECT_EQ(a->get_symbol_name(), "a");
 }
 
-// Names SMT-LIB prints in bars come back without them.
+// Names SMT-LIB prints in bars are printed in them, and come back without
+// them.
 TEST_P(UnitSymbolTests, QuotedSymbolName)
 {
   Term spaced = s->make_symbol("a b", boolsort);
@@ -106,6 +107,8 @@ TEST_P(UnitSymbolTests, QuotedSymbolName)
   EXPECT_EQ(reserved->get_symbol_name(), "let");
   EXPECT_EQ(digit->get_symbol_name(), "1x");
   EXPECT_EQ(fun->get_symbol_name(), "strange Fun _ name$");
+  EXPECT_EQ(spaced->to_string(), "|a b|");
+  EXPECT_EQ(fun->to_string(), "|strange Fun _ name$|");
 }
 
 // Symbols made after a push keep their names. By default, Boolector's API
