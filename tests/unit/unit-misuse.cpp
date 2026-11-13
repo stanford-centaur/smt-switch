@@ -84,7 +84,7 @@ TEST_P(Misuse, SecondCheckSatIsHonouredOrNotImplemented)
 TEST_P(Misuse, IllSortedApplication)
 {
   SolverEnum se = GetParam().solver_enum;
-  if (se == MSAT || se == YICES2)
+  if (se == YICES2)
   {
     GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }
@@ -100,10 +100,6 @@ TEST_P(Misuse, UnsatAssumptionsAfterPlainCheckSat)
       || se == GENERIC_SOLVER)
   {
     GTEST_SKIP() << "the backend answers without a check_sat_assuming";
-  }
-  if (se == MSAT)
-  {
-    GTEST_SKIP() << "the backend refuses with the base exception class";
   }
   s->set_opt("produce-unsat-assumptions", "true");
   s->assert_formula(s->make_term(false));

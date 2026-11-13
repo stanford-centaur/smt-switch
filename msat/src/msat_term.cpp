@@ -433,7 +433,7 @@ string MsatTerm::to_string() const
   {
     if (MSAT_ERROR_DECL(decl))
     {
-      throw Exception("Can't print a MathSAT error declaration");
+      throw IncorrectUsageException("Can't print a MathSAT error declaration");
     }
     return smtlib_quote_symbol(get_symbol_name());
   }
@@ -441,7 +441,7 @@ string MsatTerm::to_string() const
   {
     if (MSAT_ERROR_TERM(term))
     {
-      throw Exception("Can't print a MathSAT error term");
+      throw IncorrectUsageException("Can't print a MathSAT error term");
     }
     return detail::get_msat_string(msat_to_smtlib2_term(*env, term));
   }
