@@ -92,6 +92,9 @@ class BoolectorTerm : public AbsTerm
   mutable bool children_cached_ = false;
 
   // helpers
+  // Returns the node the term simplifies to now, keeping any inversion, or
+  // the node itself for a symbol.
+  BtorNode * simplified_node() const;
   bool is_const_array() const;
   bool is_negated() const;
   void collect_children() const;
