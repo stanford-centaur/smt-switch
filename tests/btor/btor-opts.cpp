@@ -64,7 +64,7 @@ TEST(BtorOpts, ModelsTurnedOffAgain)
   Term x = s->make_symbol("x", bv8);
   s->assert_formula(s->make_term(Equal, x, s->make_term(1, bv8)));
   ASSERT_TRUE(s->check_sat().is_sat());
-  EXPECT_THROW(s->get_value(x), SmtException);
+  EXPECT_THROW(s->get_value(x), Exception);
 }
 
 TEST(BtorOpts, IncrementalTurnedOffAgain)
@@ -73,7 +73,7 @@ TEST(BtorOpts, IncrementalTurnedOffAgain)
   s->set_opt("incremental", "true");
   s->set_opt("incremental", "false");
   ASSERT_TRUE(s->check_sat().is_sat());
-  EXPECT_THROW(s->check_sat(), SmtException);
+  EXPECT_THROW(s->check_sat(), Exception);
 }
 
 TEST(BtorOpts, UnsatAssumptionsTurnedOffAgain)

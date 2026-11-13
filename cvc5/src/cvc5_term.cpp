@@ -491,7 +491,7 @@ Term Cvc5Term::get_child(std::size_t i) const
       // smt-switch cvc5 backend should only allow binding one parameter
       // otherwise, we need to flatten arbitrary nestings of quantifiers and
       // VARIABLE_LISTs for term iteration
-      throw InternalSolverException(
+      throw SolverException(
           "Expected exactly one bound variable in cvc5 VARIABLE_LIST");
     }
     return std::make_shared<Cvc5Term>(t[0]);

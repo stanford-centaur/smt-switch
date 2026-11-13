@@ -79,7 +79,7 @@ Result Cvc5Interpolator::compute_interpolant(const Term & A,
   catch (::cvc5::CVC5ApiException & e)
   {
     solver->pop();
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
   catch (...)
   {

@@ -304,7 +304,7 @@ class GenericSolver : public AbsSmtSolver
 
   /** replace the binary with a new one given every command the old one
    * accepted. The model is lost, so sat or unsat mode becomes assert mode.
-   * Throws InternalSolverException if the new binary does not accept them
+   * Throws SolverException if the new binary does not accept them
    * all.
    */
   void restart_binary() const;
@@ -361,7 +361,7 @@ class GenericSolver : public AbsSmtSolver
    * @param kind what the command does to the mode
    * @return the binary's reply, `success` for any kind but CHECK and GET
    * @throws IncorrectUsageException if the binary answers anything but
-   * `success` to a kind other than CHECK and GET, SmtException if it
+   * `success` to a kind other than CHECK and GET, Exception if it
    * answers a GET with an error, and NotImplementedException if it answers
    * a CHECK with anything but sat, unsat or unknown
    *

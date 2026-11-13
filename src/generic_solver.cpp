@@ -323,7 +323,7 @@ GenericSolver::GenericSolver(std::string solver_path,
   catch (...)
   {
     // a throwing constructor gets no destructor, so clean up here; catch
-    // everything, as a slow solver leaves by InternalSolverException
+    // everything, as a slow solver leaves by SolverException
     close_solver();
     throw;
   }
@@ -360,17 +360,15 @@ void GenericSolver::launch_binary() const
   // second solver's binary, cannot hold this solver's pipes open.
   if (int pipe_errno = detail::make_cloexec_pipe(inpipefd); pipe_errno != 0)
   {
-    throw InternalSolverException(
-        "Failed to create a pipe from the solver binary at " + path + ": "
-        + strerror(pipe_errno));
+    throw SolverException("Failed to create a pipe from the solver binary at "
+                          + path + ": " + strerror(pipe_errno));
   }
   if (int pipe_errno = detail::make_cloexec_pipe(outpipefd); pipe_errno != 0)
   {
     close_fd(inpipefd[0]);
     close_fd(inpipefd[1]);
-    throw InternalSolverException(
-        "Failed to create a pipe to the solver binary at " + path + ": "
-        + strerror(pipe_errno));
+    throw SolverException("Failed to create a pipe to the solver binary at "
+                          + path + ": " + strerror(pipe_errno));
   }
   // a third pipe tells the parent how execv() went: a successful exec
   // closes the write end, so end-of-file means started, an errno means not
@@ -381,7 +379,7 @@ void GenericSolver::launch_binary() const
     close_fd(inpipefd[1]);
     close_fd(outpipefd[0]);
     close_fd(outpipefd[1]);
-    throw InternalSolverException(
+    throw SolverException(
         "Failed to create a startup pipe for the solver binary at " + path
         + ": " + strerror(pipe_errno));
   }
@@ -395,8 +393,8 @@ void GenericSolver::launch_binary() const
     close_fd(outpipefd[1]);
     close_fd(execpipefd[0]);
     close_fd(execpipefd[1]);
-    throw InternalSolverException("Failed to start the solver binary at " + path
-                                  + ": " + strerror(fork_errno));
+    throw SolverException("Failed to start the solver binary at " + path + ": "
+                          + strerror(fork_errno));
   }
   if (pid == 0)
   {
@@ -552,9 +550,8 @@ void GenericSolver::write_internal(std::string str) const
   }
   if (write_errno != 0)
   {
-    throw InternalSolverException(
-        "Failed to send a command to the solver binary at " + path + ": "
-        + strerror(write_errno));
+    throw SolverException("Failed to send a command to the solver binary at "
+                          + path + ": " + strerror(write_errno));
   }
 }
 
@@ -585,10 +582,10 @@ void GenericSolver::await_response(
                       .count();
       if (left <= 0)
       {
-        throw InternalSolverException("The solver binary at " + path
-                                      + " did not respond within "
-                                      + std::to_string(response_timeout.count())
-                                      + " ms to the command: " + cmd);
+        throw SolverException("The solver binary at " + path
+                              + " did not respond within "
+                              + std::to_string(response_timeout.count())
+                              + " ms to the command: " + cmd);
       }
       // poll() takes an int, so a distant deadline is waited out in slices
       timeout_ms = detail::fits_in<int>(left) ? static_cast<int>(left)
@@ -607,9 +604,8 @@ void GenericSolver::await_response(
     if (ready < 0 && errno != EINTR)
     {
       int poll_errno = errno;
-      throw InternalSolverException("Failed to wait for the solver binary at "
-                                    + path
-                                    + " to respond: " + strerror(poll_errno));
+      throw SolverException("Failed to wait for the solver binary at " + path
+                            + " to respond: " + strerror(poll_errno));
     }
   }
 }
@@ -642,7 +638,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
         continue;
       }
       int read_errno = errno;
-      throw InternalSolverException(
+      throw SolverException(
           "Failed to read a response from the solver binary at " + path + ": "
           + strerror(read_errno));
     }
@@ -652,9 +648,9 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
       binary_exited_ = true;
       if (response_buffer.empty())
       {
-        throw InternalSolverException(
-            "The solver binary at " + path
-            + " exited without responding to the command: " + cmd);
+        throw SolverException("The solver binary at " + path
+                              + " exited without responding to the command: "
+                              + cmd);
       }
       result = response_buffer;
       response_buffer.clear();
@@ -691,7 +687,7 @@ std::string GenericSolver::send_command(const std::string & cmd) const
   {
     result = exchange(cmd);
   }
-  catch (InternalSolverException &)
+  catch (SolverException &)
   {
     // a binary that died of the command took the solver's state with it,
     // and one still busy past the deadline would answer it in place of the
@@ -720,7 +716,7 @@ void GenericSolver::restore_binary() const
         return;
       }
     }
-    catch (InternalSolverException &)
+    catch (SolverException &)
     {
     }
   }
@@ -742,14 +738,14 @@ void GenericSolver::restart_binary() const
       std::string result = exchange(cmd);
       if (result != "success")
       {
-        throw InternalSolverException("it answered " + result + " to " + cmd);
+        throw SolverException("it answered " + result + " to " + cmd);
       }
     }
   }
-  catch (SmtException & e)
+  catch (Exception & e)
   {
-    throw InternalSolverException("Could not restart the solver binary at "
-                                  + path + ": " + e.what());
+    throw SolverException("Could not restart the solver binary at " + path
+                          + ": " + e.what());
   }
   if (mode_ == SmtLibMode::SAT || mode_ == SmtLibMode::UNSAT)
   {
@@ -813,7 +809,7 @@ std::string GenericSolver::run_command(const std::string & cmd,
       run_command(CommandKind::LOGIC, SET_LOGIC_STR, "ALL");
       all_set = true;
     }
-    catch (SmtException &)
+    catch (Exception &)
     {
       // the command's own error is the one to report
     }
@@ -853,7 +849,7 @@ std::string GenericSolver::run_command(const std::string & cmd,
       // print-success does not cover a command that answers with a result
       if (is_error_response(reply))
       {
-        throw SmtException("Exception from the solver: " + reply);
+        throw Exception("Exception from the solver: " + reply);
       }
       break;
   }
@@ -898,7 +894,7 @@ void GenericSolver::send_pending_commands() const
     {
       run_command(cmd, CommandKind::ASSERTION);
     }
-    catch (SmtException &)
+    catch (Exception &)
     {
       if (!first_failure)
       {
@@ -1946,11 +1942,11 @@ Term GenericSolver::value_from_string(const std::string & value,
     }
     catch (const IncorrectUsageException &)
     {
-      throw InternalSolverException("Unexpected bit-vector value: " + value);
+      throw SolverException("Unexpected bit-vector value: " + value);
     }
     if (bits.size() != sort->get_width())
     {
-      throw InternalSolverException("Unexpected bit-vector value: " + value);
+      throw SolverException("Unexpected bit-vector value: " + value);
     }
     resulting_term = make_value(bits, sort, 2);
   }
@@ -1958,7 +1954,7 @@ Term GenericSolver::value_from_string(const std::string & value,
   {
     if (value != "true" && value != "false")
     {
-      throw InternalSolverException("Unexpected Boolean value: " + value);
+      throw SolverException("Unexpected Boolean value: " + value);
     }
     bool b = (value == "true");
     resulting_term = make_value(b);
@@ -1990,7 +1986,7 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
   {
     if (inner.size() < 2 || inner.front() != '(' || inner.back() != ')')
     {
-      throw InternalSolverException(unexpected);
+      throw SolverException(unexpected);
     }
     inner = inner.substr(1, inner.size() - 2);
     trim(inner);
@@ -2000,19 +1996,19 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
   // s-expression: a symbol, quoted or not, or a term printed in full
   if (inner.empty())
   {
-    throw InternalSolverException(unexpected);
+    throw SolverException(unexpected);
   }
   std::string::size_type end_of_name = sexpr_end(inner, 0);
   if (end_of_name == std::string::npos)
   {
-    throw InternalSolverException(unexpected);
+    throw SolverException(unexpected);
   }
 
   std::string value = inner.substr(end_of_name);
   trim(value);
   if (value.empty())
   {
-    throw InternalSolverException(unexpected);
+    throw SolverException(unexpected);
   }
   return value;
 }
@@ -2043,8 +2039,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
   const auto literal_list = split_sexpr(trim(result));
   if (!literal_list)
   {
-    throw InternalSolverException("Unexpected get-unsat-assumptions response: "
-                                  + result);
+    throw SolverException("Unexpected get-unsat-assumptions response: "
+                          + result);
   }
 
   UnorderedTermSet literals;
@@ -2056,8 +2052,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
     {
       if (parts->size() != 2 || (*parts)[0] != "not")
       {
-        throw InternalSolverException(
-            "Unexpected get-unsat-assumptions response: " + result);
+        throw SolverException("Unexpected get-unsat-assumptions response: "
+                              + result);
       }
       name = (*parts)[1];
       positive = false;
@@ -2069,7 +2065,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
     auto it = name_term_map.find(smtlib_quote_symbol(name));
     if (it == name_term_map.end())
     {
-      throw InternalSolverException(
+      throw SolverException(
           "The get-unsat-assumptions response names an unknown term " + name
           + ": " + result);
     }

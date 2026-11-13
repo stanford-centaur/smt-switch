@@ -51,7 +51,7 @@ string detail::get_yices2_string(char * s)
   unique_ptr<char, YicesStringDeleter> owned(s);
   if (!owned)
   {
-    throw InternalSolverException(get_yices2_error());
+    throw SolverException(get_yices2_error());
   }
   return owned.get();
 }

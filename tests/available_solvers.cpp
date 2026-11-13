@@ -119,7 +119,7 @@ SmtSolver create_solver(SolverConfiguration sc)
     }
 #endif
     default: {
-      throw SmtException("Unhandled solver enum");
+      throw Exception("Unhandled solver enum");
     }
   }
 }
@@ -153,7 +153,7 @@ SmtInterpolator create_interpolator(SolverConfiguration sc)
     }
 #endif
     default: {
-      throw SmtException("Unhandled solver enum");
+      throw Exception("Unhandled solver enum");
     }
   }
 }
@@ -305,7 +305,7 @@ SolverEnum interpolator_base_solver(SolverEnum se)
     case MSAT_INTERPOLATOR: return MSAT;
     case YICES2_INTERPOLATOR: return YICES2;
     default: {
-      throw SmtException("Unhandled interpolator solver enum");
+      throw Exception("Unhandled interpolator solver enum");
     }
   }
 }

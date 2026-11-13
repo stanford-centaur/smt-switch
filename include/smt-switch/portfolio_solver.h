@@ -28,7 +28,7 @@ class PortfolioSolver
    *  another has answered. So the solvers passed in are left as they were:
    *  the term is asserted in the children's copies of them. A solver that
    *  throws or crashes only drops out. Should all of them, this throws an
-   *  SmtException that says why each one failed.
+   *  Exception that says why each one failed.
    *
    *  The children are forked from the calling thread alone. Do not call this
    *  while another thread is using a solver, as a lock that thread holds

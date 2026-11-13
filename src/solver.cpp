@@ -200,9 +200,9 @@ Sort AbsSmtSolver::make_datatype_sort(const DatatypeDecl & decl) const
   SortVec datatype_sorts = make_datatype_sorts({ decl });
   if (datatype_sorts.size() != 1)
   {
-    throw InternalSolverException("make_datatype_sorts gave "
-                                  + std::to_string(datatype_sorts.size())
-                                  + " sorts for one datatype declaration");
+    throw SolverException("make_datatype_sorts gave "
+                          + std::to_string(datatype_sorts.size())
+                          + " sorts for one datatype declaration");
   }
   return datatype_sorts[0];
 }

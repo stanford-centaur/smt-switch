@@ -76,7 +76,7 @@ SmtSolver Yices2Interpolator::new_solver() const
   // smt-switch has no option for the solver type
   if (yices_set_config(solver->get_config(), "solver-type", "mcsat") < 0)
   {
-    throw InternalSolverException(detail::get_yices2_error());
+    throw SolverException(detail::get_yices2_error());
   }
   solver->set_opt("incremental", "true");
   solver->set_opt("produce-unsat-model-interpolants", "true");
@@ -116,7 +116,7 @@ Result Yices2Interpolator::compute_interpolant(const Term & A,
                            model_interpolants.data());
       if (I == NULL_TERM)
       {
-        throw InternalSolverException(detail::get_yices2_error());
+        throw SolverException(detail::get_yices2_error());
       }
       out_I = std::make_shared<Yices2Term>(I);
       return r;
@@ -187,7 +187,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
   detail::Yices2ModelPtr model_b(yices_get_model(ctx_b, 1));
   if (!model_b)
   {
-    throw InternalSolverException(detail::get_yices2_error());
+    throw SolverException(detail::get_yices2_error());
   }
   for (std::size_t i = 0; i < shared.size(); ++i)
   {
@@ -210,7 +210,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
   }
   if (status_a == YICES_STATUS_ERROR)
   {
-    throw InternalSolverException(detail::get_yices2_error());
+    throw SolverException(detail::get_yices2_error());
   }
   if (status_a != YICES_STATUS_UNSAT)
   {
@@ -220,7 +220,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
   term_t refutation = yices_get_model_interpolant(ctx_a);
   if (refutation == NULL_TERM)
   {
-    throw InternalSolverException(detail::get_yices2_error());
+    throw SolverException(detail::get_yices2_error());
   }
   model_interpolant = std::make_shared<Yices2Term>(refutation);
   solver_b->assert_formula(model_interpolant);

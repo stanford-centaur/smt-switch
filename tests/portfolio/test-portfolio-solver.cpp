@@ -196,7 +196,7 @@ TEST(PortfolioSolver, ThrowsWhenNoSolverAnswers)
     GTEST_SKIP() << "needs backends both with and without integers";
   }
   PortfolioSolver p(members, make_int_term());
-  EXPECT_THROW(p.portfolio_solve(), SmtException);
+  EXPECT_THROW(p.portfolio_solve(), Exception);
 }
 
 TEST(PortfolioSolver, CanBeUsedAgain)

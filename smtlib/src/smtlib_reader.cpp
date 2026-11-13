@@ -32,8 +32,6 @@
 #include "smtlib_parser.h"
 #include "smtlib_scanner.h"
 
-SmtLibParseException::~SmtLibParseException() = default;
-
 namespace smt {
 
 namespace {
@@ -149,20 +147,20 @@ void SmtLibReader::parse(const std::string & f)
   {
     std::ostringstream message;
     message << e.location << ": " << e.what();
-    throw SmtLibParseException(message.str());
+    throw ParseException(message.str());
   }
   // the reader or the solver refusing something the input asks for
   catch (const IncorrectUsageException & e)
   {
     std::ostringstream message;
     message << location << ": " << e.what();
-    throw SmtLibParseException(message.str());
+    throw ParseException(message.str());
   }
-  catch (const InternalSolverException & e)
+  catch (const SolverException & e)
   {
     std::ostringstream message;
     message << e.what() << " (" << location << ")";
-    throw InternalSolverException(message.str());
+    throw SolverException(message.str());
   }
 }
 

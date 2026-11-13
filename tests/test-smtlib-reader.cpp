@@ -533,18 +533,18 @@ class Input : public ::testing::Test,
   }
 
   /** Parses an input from errors/ and returns the message of the
-   *  SmtLibParseException it throws, failing the test if it throws none */
+   *  ParseException it throws, failing the test if it throws none */
   string parse_error(const string & name)
   {
     try
     {
       reader->parse(error_input(name));
     }
-    catch (const SmtLibParseException & e)
+    catch (const ParseException & e)
     {
       return e.what();
     }
-    ADD_FAILURE() << name << " parsed without an SmtLibParseException";
+    ADD_FAILURE() << name << " parsed without a ParseException";
     return "";
   }
 
@@ -604,7 +604,7 @@ TEST_P(Input, FailedParseClosesScopes)
 {
   // the error comes inside the define-fun, with its argument b in scope
   EXPECT_THROW(reader->parse(error_input("failed-define-fun.smt2")),
-               SmtLibParseException);
+               ParseException);
   EXPECT_EQ(reader->current_scope(), 0u);
   const string message = parse_error("stale-argument.smt2");
   EXPECT_NE(message.find("Unrecognized symbol: b"), string::npos) << message;
@@ -622,19 +622,19 @@ TEST_P(Input, ArrayLogic)
 TEST_P(Input, EmptyApplication)
 {
   EXPECT_THROW(reader->parse(error_input("empty-application.smt2")),
-               SmtLibParseException);
+               ParseException);
 }
 
 TEST_P(Input, UnknownSymbol)
 {
   EXPECT_THROW(reader->parse(error_input("unknown-symbol.smt2")),
-               SmtLibParseException);
+               ParseException);
 }
 
 TEST_P(Input, UnknownCharacter)
 {
   EXPECT_THROW(reader->parse(error_input("unknown-character.smt2")),
-               SmtLibParseException);
+               ParseException);
 }
 
 INSTANTIATE_TEST_SUITE_P(

@@ -7,14 +7,20 @@
  */
 #include "smt-switch/exceptions.h"
 
-SmtException::SmtException(const char * message) : msg(message) {}
+namespace smt {
 
-SmtException::SmtException(const std::string & message) : msg(message) {}
+Exception::Exception(const char * message) : msg(message) {}
 
-const char * SmtException::what() const noexcept { return msg.c_str(); }
+Exception::Exception(const std::string & message) : msg(message) {}
+
+const char * Exception::what() const noexcept { return msg.c_str(); }
 
 IncorrectUsageException::~IncorrectUsageException() = default;
 
+ParseException::~ParseException() = default;
+
 NotImplementedException::~NotImplementedException() = default;
 
-InternalSolverException::~InternalSolverException() = default;
+SolverException::~SolverException() = default;
+
+}  // namespace smt

@@ -69,7 +69,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
   EXPECT_TRUE(r.is_sat());
   // unsat core is only available after a call to check-sat-assuming, not
   // check-sat
-  EXPECT_THROW(s->get_unsat_assumptions(core), SmtException);
+  EXPECT_THROW(s->get_unsat_assumptions(core), Exception);
 }
 
 TEST_P(UnsatCoreTests, ApplicationInCore)

@@ -102,7 +102,7 @@ void GenericDatatypeConstructorDecl::add_new_selector(
     // Checks if the selector has already been added
     if (selector_vector[i].name == (newSelector).name)
     {
-      throw InternalSolverException(
+      throw SolverException(
           "Can't add selector. It already exists in this datatype!");
     }
   }
@@ -236,8 +236,7 @@ void GenericDatatype::add_constructor(
                     return c->get_name() == dt_cons_decl->get_name();
                   }))
   {
-    throw InternalSolverException(
-        "Can't add constructor. It already has been added!");
+    throw SolverException("Can't add constructor. It already has been added!");
   }
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
       backend_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
@@ -267,7 +266,7 @@ void GenericDatatype::add_selector(const DatatypeConstructorDecl & dt_cons_decl,
   }
   if (!success)
   {
-    throw InternalSolverException(
+    throw SolverException(
         "Can't add selector. The constructor is not a member of the datatype!");
   }
 }

@@ -39,8 +39,8 @@ std::string to_string(SortKind sk)
     case TESTER: return "Tester";
     case NUM_SORT_KINDS: return "null";
   }
-  throw SmtException("to_string got an out-of-range SortKind "
-                     + std::to_string(static_cast<int>(sk)));
+  throw Exception("to_string got an out-of-range SortKind "
+                  + std::to_string(static_cast<int>(sk)));
 }
 
 // A null sort equals only another null sort

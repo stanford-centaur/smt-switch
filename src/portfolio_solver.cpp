@@ -202,8 +202,8 @@ Result PortfolioSolver::portfolio_solve()
     int fds[2];
     if (int pipe_errno = detail::make_cloexec_pipe(fds); pipe_errno != 0)
     {
-      throw SmtException(std::string("Could not create a pipe for a solver: ")
-                         + std::strerror(pipe_errno));
+      throw Exception(std::string("Could not create a pipe for a solver: ")
+                      + std::strerror(pipe_errno));
     }
     pid_t pid = fork();
     if (pid < 0)
@@ -211,8 +211,8 @@ Result PortfolioSolver::portfolio_solve()
       const int error = errno;
       close(fds[0]);
       close(fds[1]);
-      throw SmtException(std::string("Could not start a solver process: ")
-                         + std::strerror(error));
+      throw Exception(std::string("Could not start a solver process: ")
+                      + std::strerror(error));
     }
     if (pid == 0)
     {
@@ -250,8 +250,8 @@ Result PortfolioSolver::portfolio_solve()
         continue;
       }
       const int error = errno;
-      throw SmtException(std::string("Could not wait for the solvers: ")
-                         + std::strerror(error));
+      throw Exception(std::string("Could not wait for the solvers: ")
+                      + std::strerror(error));
     }
     for (std::size_t i = 0; i < polled.size(); ++i)
     {
@@ -290,7 +290,7 @@ Result PortfolioSolver::portfolio_solve()
   {
     message += "\n  " + failure(child);
   }
-  throw SmtException(message);
+  throw Exception(message);
 }
 
 }  // namespace smt

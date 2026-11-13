@@ -144,7 +144,7 @@ Term Cvc5Solver::make_term(bool b) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -298,7 +298,7 @@ void Cvc5Solver::do_assert(const Term & t)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -329,7 +329,7 @@ Result Cvc5Solver::check_sat()
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -367,7 +367,7 @@ Result Cvc5Solver::do_check_sat_assuming(const TermVec & assumptions)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -379,7 +379,7 @@ void Cvc5Solver::do_push(uint64_t num)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -391,7 +391,7 @@ void Cvc5Solver::do_pop(uint64_t num)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -404,7 +404,7 @@ Term Cvc5Solver::get_value(const Term & t) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -436,7 +436,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
   }
   catch (cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -453,7 +453,7 @@ void Cvc5Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   // this function seems to return a different exception type
   catch (std::exception & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -466,7 +466,7 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -498,7 +498,7 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -519,7 +519,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -565,7 +565,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -602,7 +602,7 @@ Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -624,7 +624,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -647,7 +647,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -664,7 +664,7 @@ DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -678,7 +678,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -696,7 +696,7 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -714,7 +714,7 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -730,7 +730,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -753,7 +753,7 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -776,7 +776,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -809,7 +809,7 @@ Term Cvc5Solver::get_selector(const Sort & s,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -872,7 +872,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 
@@ -968,7 +968,7 @@ void Cvc5Solver::do_reset_assertions()
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw InternalSolverException(e.what());
+    throw SolverException(e.what());
   }
 }
 

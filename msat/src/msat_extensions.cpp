@@ -29,7 +29,7 @@ string detail::get_msat_string(char * s)
   unique_ptr<char, MsatFreeDeleter> owned(s);
   if (!owned)
   {
-    throw InternalSolverException("MathSAT failed to print a term or sort");
+    throw SolverException("MathSAT failed to print a term or sort");
   }
   return owned.get();
 }
@@ -350,7 +350,7 @@ msat_term ext_msat_make_uf(msat_env e,
   msat_term res = msat_make_uf(e, func, converted_args.data());
   if (MSAT_ERROR_TERM(res))
   {
-    throw InternalSolverException("Got an error term in function application");
+    throw SolverException("Got an error term in function application");
   }
   return res;
 }

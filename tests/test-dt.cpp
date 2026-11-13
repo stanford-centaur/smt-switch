@@ -194,7 +194,7 @@ TEST_P(Datatypes, DatatypeDecl)
   shared_ptr<GenericDatatype> nonAddDT =
       make_shared<GenericDatatype>(consListSpec);
   EXPECT_THROW(nonAddDT->add_selector(nonAddCons, *newSelector),
-               InternalSolverException);
+               SolverException);
 
   Sort countersort = s->make_sort(counterdecl);
 
