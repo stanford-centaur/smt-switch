@@ -9,7 +9,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <iterator>
 #include <string>
 #include <unordered_set>
@@ -150,12 +149,9 @@ TEST_P(IntTests, Bv2Int)
   {
     intx = s->make_term(UBV_To_Int, bvx);
   }
-  catch (SmtException & e)
+  catch (const SmtException & e)
   {
-    std::cout << "Got exception when trying to apply UBV_To_Int: " << e.what()
-              << std::endl;
-    // it's fine if this op is not supported, just end the test
-    return;
+    GTEST_SKIP() << e.what();
   }
 
   ASSERT_TRUE(intx);
@@ -172,23 +168,15 @@ TEST_P(IntTests, Bv2Int)
   {
     intz = s->make_term(SBV_To_Int, bvx);
   }
-  catch (SmtException & e)
+  catch (const SmtException & e)
   {
-    std::cout << "Got exception when trying to apply SBV_To_Int: " << e.what()
-              << std::endl;
-    // it's fine if this op is not supported, just end the test
-    return;
+    GTEST_SKIP() << e.what();
   }
 
   ASSERT_TRUE(intz);
   EXPECT_EQ(intz->get_sort(), intsort);
-  if (intz->get_op() != SBV_To_Int)
-  {
-    // Some solvers (e.g., Z3) have different implementations that predate
-    // SMT-LIB support for this operation.
-    std::cout << "Got " << intz->get_op().to_string()
-              << " when checking SBV_To_Int" << std::endl;
-  }
+  // The op is not checked: some solvers (e.g., Z3) have different
+  // implementations that predate SMT-LIB support for this operation.
 }
 
 INSTANTIATE_TEST_SUITE_P(

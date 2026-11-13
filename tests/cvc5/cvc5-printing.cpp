@@ -7,8 +7,8 @@
  */
 #include <gtest/gtest.h>
 
-#include <iostream>
 #include <memory>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -76,15 +76,10 @@ TEST_F(Cvc5PrintingTest, Interpolation)
   Term I1;
   s->get_interpolant(A1, B1, I1);
 
-  try
-  {
-    // x=0
-    s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort)));
-  }
-  catch (IncorrectUsageException & e)
-  {
-    std::cout << e.what() << std::endl;
-  }
+  // x=0
+  EXPECT_THROW(
+      s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort))),
+      IncorrectUsageException);
 
   check_result(
       {
