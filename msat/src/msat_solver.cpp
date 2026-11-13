@@ -461,7 +461,7 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   }
   if (!last_query_assuming)
   {
-    throw Exception(
+    throw IncorrectUsageException(
         "MathSAT has no unsat assumptions unless the last query was a "
         "check_sat_assuming with assumptions");
   }
@@ -471,8 +471,8 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
       msat_get_unsat_assumptions(*env, &core_size));
   if (!mcore)
   {
-    throw SolverException("MathSAT gave no unsat assumptions: "
-                          + detail::last_error_message(*env));
+    throw IncorrectUsageException("MathSAT gave no unsat assumptions: "
+                                  + detail::last_error_message(*env));
   }
   for (size_t i = 0; i < core_size; ++i)
   {
@@ -766,15 +766,15 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
   shared_ptr<MsatSort> msort = get_msat_sort(sort);
   if (MSAT_ERROR_TYPE(msort->get_msat_type()))
   {
-    throw SolverException("Got an error type from MathSAT");
+    throw IncorrectUsageException("Got an error type from MathSAT");
   }
 
   decl = msat_declare_function(*env, name.c_str(), msort->get_msat_type());
 
   if (MSAT_ERROR_DECL(decl))
   {
-    throw Exception("MathSAT refused to declare " + name + " of sort "
-                    + sort->to_string());
+    throw IncorrectUsageException("MathSAT refused to declare " + name
+                                  + " of sort " + sort->to_string());
   }
 
   if (sort->get_sort_kind() == FUNCTION)
@@ -786,7 +786,8 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     msat_term res = msat_make_constant(*env, decl);
     if (MSAT_ERROR_TERM(res))
     {
-      throw SolverException("MathSAT refused to make a constant for " + name);
+      throw IncorrectUsageException("MathSAT refused to make a constant for "
+                                    + name);
     }
     return std::make_shared<MsatTerm>(env, res);
   }
@@ -895,7 +896,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
       msg += separator + t->to_string();
       separator = ", ";
     }
-    throw SolverException(msg);
+    throw IncorrectUsageException(msg);
   }
   return make_shared<MsatTerm>(env, res);
 }
