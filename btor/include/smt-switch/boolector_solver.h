@@ -110,6 +110,12 @@ class BoolectorSolver : public AbsSmtSolver
   ///< reset_assertions yet
   ///< set this flag with set_opt("base-context-1", "true")
 
+  // Boolector gives unsat assumptions exactly when it is incremental, so
+  // these record what the caller asked for: set_opt refuses the two
+  // together, and get_unsat_assumptions refuses without the first
+  bool unsat_assumptions = false;  ///< produce-unsat-assumptions is on
+  bool incremental_off = false;    ///< incremental set false
+
   // Boolector dumps only the assertions at context 0, so dump_smt2 writes
   // these: the formulas asserted and not popped, and how many of them came
   // before each pushed scope
