@@ -3,6 +3,7 @@ from .cppapi cimport (
     c_Result,
     c_SmtInterpolator,
     c_SmtSolver,
+    c_SmtTermBuilder,
     c_Sort,
     c_SortingNetwork,
     c_Term,
@@ -16,18 +17,23 @@ cdef class Result:
     cdef c_Result cr
 
 
-cdef class SmtSolver:
+cdef class SmtTermBuilder:
+    cdef c_SmtTermBuilder ctb
+
+
+cdef class SmtSolver(SmtTermBuilder):
     cdef c_SmtSolver css
+    cdef void set_solver(self, c_SmtSolver css)
 
 
-cdef class SmtInterpolator(SmtSolver):
+cdef class SmtInterpolator(SmtTermBuilder):
     cdef c_SmtInterpolator csi
     cdef void set_interpolator(self, c_SmtInterpolator csi)
 
 
 cdef class Sort:
     cdef c_Sort cs
-    cdef SmtSolver solver
+    cdef SmtTermBuilder solver
 
 
 cdef class SortingNetwork:
@@ -37,4 +43,4 @@ cdef class SortingNetwork:
 
 cdef class Term:
     cdef c_Term ct
-    cdef SmtSolver solver
+    cdef SmtTermBuilder solver

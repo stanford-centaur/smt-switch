@@ -103,7 +103,7 @@ TEST_P(UnsatCoreTests, CoreOfADroppedAssumption)
 
 TEST_P(UnsatCoreTests, CoreNamesTheSymbolNotAParamOfItsName)
 {
-  if (!solver_has_attribute(GetParam().solver_enum, QUANTIFIERS))
+  if (!solver_has_attribute(GetParam().solver_kind, QUANTIFIERS))
   {
     GTEST_SKIP() << "a solver without quantifiers has no params";
   }

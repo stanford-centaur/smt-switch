@@ -38,21 +38,17 @@ namespace {
 /** The flags that have a solver's executable read a printed session given
  *  as a file
  */
-string replay_flags(SolverEnum se)
+string replay_flags(SolverKind se)
 {
   switch (se)
   {
-    case BTOR: return "--incremental";
-    case BZLA: return "";
-    case CVC5: return "--incremental";
-    case MSAT: return "";
-    case YICES2: return "--incremental";
-    case Z3: return "-smt2";
-    case GENERIC_SOLVER:
-    case BZLA_INTERPOLATOR:
-    case CVC5_INTERPOLATOR:
-    case MSAT_INTERPOLATOR:
-    case YICES2_INTERPOLATOR: break;
+    case SolverKind::BTOR: return "--incremental";
+    case SolverKind::BZLA: return "";
+    case SolverKind::CVC5: return "--incremental";
+    case SolverKind::MSAT: return "";
+    case SolverKind::YICES2: return "--incremental";
+    case SolverKind::Z3: return "-smt2";
+    case SolverKind::GENERIC: break;
   }
   throw NotImplementedException("No executable for " + to_string(se));
 }
@@ -66,7 +62,7 @@ vector<SolverConfiguration> replayable(
   vector<SolverConfiguration> result;
   for (SolverConfiguration sc : filter_solver_configurations(attributes))
   {
-    if (!solver_binary(sc.solver_enum).empty())
+    if (!solver_binary(sc.solver_kind).empty())
     {
       result.push_back(sc);
     }
@@ -94,7 +90,7 @@ class PrintingTests : public ::testing::Test,
    */
   void expect_replay(const vector<unordered_set<string>> & expected)
   {
-    SolverEnum se = GetParam().solver_enum;
+    SolverKind se = GetParam().solver_kind;
     dump_and_run(solver_binary(se), strbuf, expected, replay_flags(se));
   }
 

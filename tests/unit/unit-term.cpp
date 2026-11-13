@@ -134,7 +134,7 @@ TEST_P(UnitTermTests, ToBoolOfOneBitValue)
   Term zero = s->make_term(0, bvsort1);
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
   // solver keeps apart
-  if (solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+  if (solver_has_attribute(GetParam().solver_kind, BOOL_BV1_ALIASING)
       && !GetParam().is_logging_solver)
   {
     EXPECT_TRUE(one->to_bool());
@@ -494,7 +494,7 @@ TEST_P(NegativeBVTests, UnsignedStringsAtTheEndsOfTheRange)
 
 TEST_P(NegativeBVTests, SignedStringsAtTheEndsOfTheRange)
 {
-  if (GetParam().solver_enum == BZLA)
+  if (GetParam().solver_kind == SolverKind::BZLA)
   {
     GTEST_SKIP() << "Bitwuzla rejects negative base 2 and 16 strings";
   }

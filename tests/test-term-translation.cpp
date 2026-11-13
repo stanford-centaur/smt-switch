@@ -626,8 +626,8 @@ TEST_P(IntTranslationTests, SymbolOfAnotherSort)
 
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
-  if (get<0>(GetParam()).solver_enum == YICES2
-      || get<1>(GetParam()).solver_enum == YICES2)
+  if (get<0>(GetParam()).solver_kind == SolverKind::YICES2
+      || get<1>(GetParam()).solver_kind == SolverKind::YICES2)
   {
     GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
                     "constant array";

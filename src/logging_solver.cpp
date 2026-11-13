@@ -59,7 +59,7 @@ std::shared_ptr<T> non_null_cast(const std::shared_ptr<Base> & h,
 // implementations
 
 LoggingSolver::LoggingSolver(SmtSolver s)
-    : AbsSmtSolver(s->get_solver_enum()),
+    : AbsSmtSolver(s->get_kind()),
       wrapped_solver(std::move(s)),
       hashtable(new TermHashTable()),
       assumption_cache(new UnorderedTermMap())

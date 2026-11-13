@@ -84,7 +84,7 @@ TEST_P(RealArithmeticTests, ProductAndSum)
 // for: Yices2 cannot turn the algebraic number it finds into a term
 TEST_P(RealArithmeticTests, IrrationalSolution)
 {
-  if (GetParam().solver_enum == MSAT)
+  if (GetParam().solver_kind == SolverKind::MSAT)
   {
     GTEST_SKIP() << "MathSAT does not answer x * x = 2 within minutes";
   }

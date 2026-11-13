@@ -142,7 +142,7 @@ class UnknownAssumingSolver : public LoggingSolver
 
 TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
 {
-  SolverConfiguration sc(GetParam().solver_enum, false);
+  SolverConfiguration sc(GetParam().solver_kind, false);
   UnsatCoreReducer uscr(make_shared<UnknownAssumingSolver>(create_solver(sc)));
 
   Term a = s->make_symbol("a", boolsort);

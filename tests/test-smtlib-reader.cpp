@@ -123,13 +123,13 @@ class Benchmark : public ::testing::TestWithParam<ReaderInput>
 TEST_P(Benchmark, Answers)
 {
   const auto & [config, input, strict] = GetParam();
-  if (config.solver_enum == YICES2
+  if (config.solver_kind == SolverKind::YICES2
       && filesystem::path(input).filename() == "test-array.smt2")
   {
     GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
                     "constant array, which test-array.smt2 does";
   }
-  if (config.solver_enum == BZLA
+  if (config.solver_kind == SolverKind::BZLA
       && filesystem::path(input).filename()
              == "test-uninterp-sort-zero-arity.smt2")
   {
@@ -313,7 +313,7 @@ TEST_P(Dump, LeavesOutPoppedAssertions)
 
 TEST_P(Dump, LeavesOutResetAssertions)
 {
-  if (GetParam().solver_enum == BTOR)
+  if (GetParam().solver_kind == SolverKind::BTOR)
   {
     // Boolector resets assertions only with this option
     s->set_opt("base-context-1", "true");
@@ -340,13 +340,13 @@ class DumpRenamedSorts : public Dump
   void SetUp() override
   {
     Dump::SetUp();
-    if (GetParam().solver_enum == GENERIC_SOLVER)
+    if (GetParam().solver_kind == SolverKind::GENERIC)
     {
       GTEST_SKIP()
           << "the generic solver refuses to declare a second sort with "
              "the same name";
     }
-    if (GetParam().solver_enum == BZLA)
+    if (GetParam().solver_kind == SolverKind::BZLA)
     {
       GTEST_SKIP() << "Bitwuzla answers unknown to distinct over an "
                       "uninterpreted sort";
@@ -612,7 +612,7 @@ TEST_P(Input, FailedParseClosesScopes)
 
 TEST_P(Input, ArrayLogic)
 {
-  if (GetParam().solver_enum == BTOR)
+  if (GetParam().solver_kind == SolverKind::BTOR)
   {
     GTEST_SKIP() << "Boolector refuses the logic QF_AX";
   }

@@ -39,12 +39,12 @@ class UnitResetAssertionsTests
   void SetUp() override
   {
     SolverConfiguration sc = GetParam();
-    SolverEnum se = sc.solver_enum;
+    SolverKind se = sc.solver_kind;
     s = create_solver(sc);
     s->set_opt("produce-models", "true");
     s->set_opt("incremental", "true");
 
-    if (se == BTOR)
+    if (se == SolverKind::BTOR)
     {
       // special option for boolector
       // not enabled by default because it can affect performance
@@ -142,7 +142,7 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
   // Underlying solver boolector does not have reset_assertions
   // but we can approximate it using solving contexts, but this
   // might impact performance
-  SolverConfiguration sc(BTOR, false);
+  SolverConfiguration sc(SolverKind::BTOR, false);
   SmtSolver s = create_solver(sc);
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");

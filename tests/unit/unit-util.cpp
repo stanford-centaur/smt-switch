@@ -56,12 +56,12 @@ class UnitUtilTests : public ::testing::Test,
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilDimacsTests);
 class UnitUtilDimacsTests : public ::testing::Test,
-                            public ::testing::WithParamInterface<SolverEnum>
+                            public ::testing::WithParamInterface<SolverKind>
 {
  protected:
   void SetUp() override
   {
-    SolverEnum se = GetParam();
+    SolverKind se = GetParam();
     SolverConfiguration sc(se, true);
     // using only logging solvers for this test because we don't want the
     // original formula to change, otherwise it might no longer be in cnf
@@ -127,7 +127,7 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
 
 TEST_P(UnitUtilTests, DisjunctivePartition)
 {
-  if (s->get_solver_enum() == BTOR)
+  if (s->get_kind() == SolverKind::BTOR)
   {
     // Boolector rewrites Ors as Not And; it is equivalent, but disjunctive
     // partition cannot see through it
@@ -223,7 +223,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
   ASSERT_TRUE(ret == expected) << ret << " " << expected << endl
                                << cnf << endl
-                               << s->get_solver_enum() << endl;
+                               << s->get_kind() << endl;
 
   // Test 2
   Term clause4 = a;
@@ -651,7 +651,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
                          UnitUtilDimacsTests,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(available_solver_kinds()));
 
 TEST(BvValueToBits, DecimalAcrossLimbs)
 {
@@ -999,7 +999,7 @@ TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
 
 TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver declares a sort's name to the binary "
                     "without SMT-LIB quoting";
@@ -1022,7 +1022,7 @@ TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
 // SMT-LIB cannot declare two sorts with the same name, so one is renamed
 TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";
@@ -1110,7 +1110,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
 // renamed
 TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";
@@ -1248,7 +1248,7 @@ class SmtLibBenchmarkRenamedSorts : public SmtLibBenchmarkDeclarations
 // a renamed sort is written by its new name inside an assertion too
 TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";

@@ -129,7 +129,7 @@ TEST_P(UnitSymbolTests, SymbolNameAfterPush)
 
 TEST_P(UnitSymbolTests, EmptySymbolName)
 {
-  if (GetParam().solver_enum == MSAT)
+  if (GetParam().solver_kind == SolverKind::MSAT)
   {
     EXPECT_THROW(s->make_symbol("", boolsort), NotImplementedException);
     return;
@@ -142,12 +142,12 @@ TEST_P(UnitSymbolTests, EmptySymbolName)
 
 TEST_P(UnitSymbolTests, AtSignSymbolName)
 {
-  if (GetParam().solver_enum == MSAT)
+  if (GetParam().solver_kind == SolverKind::MSAT)
   {
     EXPECT_THROW(s->make_symbol("@x", bvsort), NotImplementedException);
     return;
   }
-  if (GetParam().solver_enum == GENERIC_SOLVER)
+  if (GetParam().solver_kind == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "The generic solver's binary may refuse names that "
                     "SMT-LIB reserves for the solver";
@@ -161,8 +161,9 @@ TEST_P(UnitSymbolTests, AtSignSymbolName)
 TEST_P(UnitSymbolTests, InternalSymbolName)
 {
   std::string name = internal_name("assump", 1);
-  SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == GENERIC_SOLVER || se == MSAT || se == Z3)
+  SolverKind se = GetParam().solver_kind;
+  if (se == SolverKind::BTOR || se == SolverKind::GENERIC
+      || se == SolverKind::MSAT || se == SolverKind::Z3)
   {
     EXPECT_THROW(s->make_symbol(name, boolsort), IncorrectUsageException);
     return;

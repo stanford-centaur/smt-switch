@@ -298,7 +298,7 @@ GenericSolver::GenericSolver(std::string solver_path,
                              std::vector<std::string> args,
                              std::chrono::milliseconds timeout,
                              unsigned int buffer_size)
-    : AbsSmtSolver(SolverEnum::GENERIC_SOLVER),
+    : AbsSmtSolver(SolverKind::GENERIC),
       path(std::move(solver_path)),
       cmd_line_args(std::move(args)),
       read_buf_size(buffer_size),

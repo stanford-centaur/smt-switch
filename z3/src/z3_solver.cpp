@@ -292,7 +292,9 @@ struct Z3Solver::Instance
 };
 
 Z3Solver::Z3Solver()
-    : AbsSmtSolver(Z3), ctx(std::make_shared<Z3Context>()), solver_params(*ctx)
+    : AbsSmtSolver(SolverKind::Z3),
+      ctx(std::make_shared<Z3Context>()),
+      solver_params(*ctx)
 {
 }
 

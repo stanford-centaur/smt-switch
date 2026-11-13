@@ -108,7 +108,7 @@ TEST_P(ConstArrUnitTests, ConstArr)
 
 TEST_P(ConstArrUnitTests, IdentityWalker)
 {
-  if (GetParam().solver_enum == YICES2)
+  if (GetParam().solver_kind == SolverKind::YICES2)
   {
     GTEST_SKIP() << "Yices2 cannot read a constant array through a store at "
                     "a symbolic index";

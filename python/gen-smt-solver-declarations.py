@@ -13,7 +13,7 @@ from pathlib import Path
 CREATE_BTOR = """
 def create_btor_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_btor_solver(logging)
+    solver.set_solver(cpp_create_btor_solver(logging))
     return solver
 solvers["btor"] = create_btor_solver
 """
@@ -22,7 +22,7 @@ solvers["btor"] = create_btor_solver
 CREATE_BITWUZLA = """
 def create_bitwuzla_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_bitwuzla_solver(logging)
+    solver.set_solver(cpp_create_bitwuzla_solver(logging))
     return solver
 solvers["bitwuzla"] = create_bitwuzla_solver
 
@@ -36,7 +36,7 @@ def create_bitwuzla_interpolator():
 CREATE_CVC5 = """
 def create_cvc5_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_cvc5_solver(logging)
+    solver.set_solver(cpp_create_cvc5_solver(logging))
     return solver
 solvers["cvc5"] = create_cvc5_solver
 
@@ -50,7 +50,7 @@ def create_cvc5_interpolator():
 CREATE_MSAT = """
 def create_msat_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_msat_solver(logging)
+    solver.set_solver(cpp_create_msat_solver(logging))
     return solver
 solvers["msat"] = create_msat_solver
 
@@ -63,7 +63,7 @@ def create_msat_interpolator():
 CREATE_YICES2 = """
 def create_yices2_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_yices2_solver(logging)
+    solver.set_solver(cpp_create_yices2_solver(logging))
     return solver
 solvers["yices2"] = create_yices2_solver
 
@@ -76,7 +76,7 @@ def create_yices2_interpolator():
 CREATE_Z3 = """
 def create_z3_solver(logging):
     cdef SmtSolver solver = SmtSolver()
-    solver.css = cpp_create_z3_solver(logging)
+    solver.set_solver(cpp_create_z3_solver(logging))
     return solver
 solvers["z3"] = create_z3_solver
 """

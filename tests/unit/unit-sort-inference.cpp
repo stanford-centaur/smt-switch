@@ -103,7 +103,7 @@ TEST_P(UnitSortInferenceTests, HelperTests)
   EXPECT_FALSE(check_ite_sorts({ boolsort, bvsort4, bvsort5 }));
 
   // if solver aliases booleans and bitvectors of width 1, this test fails
-  if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
+  if (!solver_has_attribute(s->get_kind(), BOOL_BV1_ALIASING))
   {
     EXPECT_TRUE(check_ite_sorts({ boolsort, bvsort4, bvsort4 }));
     EXPECT_TRUE(bool_sorts({ boolsort }));
@@ -143,7 +143,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
 
   // wrong operator
   // if solver aliases booleans and bitvectors of width 1, this test fails
-  if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
+  if (!solver_has_attribute(s->get_kind(), BOOL_BV1_ALIASING))
   {
     EXPECT_TRUE(check_sortedness(And, { b1, b2 }));
     EXPECT_TRUE(check_sortedness(Xor, { b1, b2 }));
@@ -177,7 +177,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_FALSE(check_sortedness(Store, { arr, w, p }));
 
   // BTOR doesn't support getting the sort of a function yet
-  if (s->get_solver_enum() != BTOR)
+  if (s->get_kind() != SolverKind::BTOR)
   {
     /********* Functions ********/
     EXPECT_TRUE(check_sortedness(Apply, { f, p, q }));
@@ -191,14 +191,14 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   }
 
   /************** Quantifiers (if supported) ******************/
-  if (solver_has_attribute(s->get_solver_enum(), QUANTIFIERS))
+  if (solver_has_attribute(s->get_kind(), QUANTIFIERS))
   {
     Term param = s->make_param("param", bvsort4);
     EXPECT_TRUE(param->is_param());
     Term body = s->make_term(Equal, param, s->make_term(0, bvsort4));
     // if bool and bv1 aliased, then body won't necessarily have type bool
     // e.g. BTOR also returns the type as BV1
-    if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
+    if (!solver_has_attribute(s->get_kind(), BOOL_BV1_ALIASING))
     {
       EXPECT_TRUE(check_sortedness(Exists, { param, body }));
     }
@@ -233,7 +233,7 @@ TEST_P(UnitSortInferenceTests, SortComputationWidthOverflow)
                IncorrectUsageException);
   EXPECT_THROW(compute_sort(Op(Repeat, max / 4 + 1), s, { bvsort4 }),
                IncorrectUsageException);
-  if (GetParam().solver_enum == GENERIC_SOLVER)
+  if (GetParam().solver_kind == SolverKind::GENERIC)
   {
     // its sorts are smt-switch's own, so they can be this wide
     Sort wide = s->make_sort(BV, max - 3);
@@ -276,7 +276,7 @@ TEST_P(UnitSortInferenceTests, SortComputation)
   EXPECT_EQ(arrsort, compute_sort(Store, s, { arr, p, q }));
 
   // BTOR doesn't support getting the sort of a function yet
-  if (s->get_solver_enum() != BTOR)
+  if (s->get_kind() != SolverKind::BTOR)
   {
     /********* Functions ********/
     EXPECT_EQ(boolsort, compute_sort(Apply, s, { f, p, q }));

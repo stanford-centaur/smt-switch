@@ -84,7 +84,8 @@ struct ContextDeleter
 
 /* Yices2Solver implementation */
 
-Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2), config(yices_new_config())
+Yices2Solver::Yices2Solver()
+    : AbsSmtSolver(SolverKind::YICES2), config(yices_new_config())
 {
 }
 

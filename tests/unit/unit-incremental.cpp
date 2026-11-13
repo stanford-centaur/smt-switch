@@ -111,8 +111,9 @@ TEST_P(UnitIncrementalTests, PopPastThePushesIsRefused)
 
 TEST_P(UnitIncrementalTests, PushMoreLevelsThanTheSolverTakes)
 {
-  const SolverEnum se = GetParam().solver_enum;
-  if (se != BTOR && se != BZLA && se != CVC5)
+  const SolverKind se = GetParam().solver_kind;
+  if (se != SolverKind::BTOR && se != SolverKind::BZLA
+      && se != SolverKind::CVC5)
   {
     GTEST_SKIP() << "This backend pushes one level at a time, so it takes "
                     "any number of levels, and pushing this many would not end";

@@ -145,7 +145,7 @@ static std::vector<SolverConfiguration> working_reset_configurations()
   for (const SolverConfiguration & sc : available_solver_configurations())
   {
     // reset() times out on the generic solver
-    if (sc.solver_enum != GENERIC_SOLVER)
+    if (sc.solver_kind != SolverKind::GENERIC)
     {
       result.push_back(sc);
     }

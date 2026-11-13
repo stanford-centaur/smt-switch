@@ -193,7 +193,7 @@ TEST_P(UnitSolveTests, RefusesNonBooleanAndNullAssertions)
 
 TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
 {
-  SolverEnum se = GetParam().solver_enum;
+  SolverKind se = GetParam().solver_kind;
   string prefix = testing::TempDir() + to_string(se);
   string plain = dump_equality(create_solver(SolverConfiguration(se, false)),
                                prefix + "-plain.smt2");

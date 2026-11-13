@@ -19,31 +19,22 @@
 
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
+#include "smt-switch/term_builder.h"
 
 namespace smt {
 
 using TermsPairVec = std::vector<std::pair<Term, Term>>;
 
 /**
-   Abstract interpolating solver, to be implemented by each backend that
-   supports interpolation. It answers interpolation queries only, and
-   builds its terms and sorts with a regular solver of the same backend,
-   which it holds and forwards those calls to.
+   Abstract interpolator, to be implemented by each backend that supports
+   interpolation. It answers interpolation queries, and builds its terms
+   and sorts with a regular solver of the same backend, which it holds and
+   forwards those calls to.
 
    The contract:
-   - Forbidden: push, pop, assert_formula, check_sat, check_sat_assuming,
-     get_value, get_array_values and get_unsat_assumptions throw
-     IncorrectUsageException, and are final so that no interpolator can
-     re-enable solving; for assert_formula, check_sat_assuming, push and
-     pop, it is their hooks do_assert, do_check_sat_assuming, do_push and
-     do_pop that throw and are final.
-     dump_smt2 throws it and is final as well, since an interpolator holds
-     no assertions to dump. get_context_level is final too, and returns 0,
-     since no context can be pushed.
    - Required: the hooks compute_interpolant, compute_seq_interpolants
      and do_set_opt. A backend usually computes only one of the first two
      natively, and implements the other with interpolant_from_sequence or
@@ -52,37 +43,35 @@ using TermsPairVec = std::vector<std::pair<Term, Term>>;
    - Handled here: set_opt takes incremental, which decides whether a query
      may reuse what it shares with the one before (on by default, and read
      from incremental_mode), and hands every other option to do_set_opt.
-     An interpolating solver holds no assertions of the caller's, so
+     An interpolator holds no assertions of the caller's, so
      reset_assertions discards what it keeps between queries instead, and
      the next query starts afresh; it never changes what a query answers.
-     do_reset and do_reset_assertions are final: both forget the queries
+     reset and reset_assertions both forget the queries
      sequence_from_interpolants keeps for reuse, call forget_queries and
-     then reset the regular solver, and do_reset also turns incremental
-     back on and calls initialize. A backend overrides forget_queries if
-     it keeps anything else between queries, and initialize if the regular
-     solver needs setting up for interpolation, which its constructor then
-     calls too.
+     then reset the regular solver through reset_backend and
+     reset_backend_assertions, and reset also turns incremental back on and
+     calls initialize. A backend overrides forget_queries if it keeps
+     anything else between queries, and initialize if the regular solver
+     needs setting up for interpolation, which its constructor then calls
+     too.
    - Optional: refute_model, one round of a backend that interpolates by
      refuting models of B.
    - Everything else is forwarded to the regular solver.
  */
-class AbsSmtInterpolator : public AbsSmtSolver
+class AbsSmtInterpolator : public AbsSmtTermBuilder
 {
  public:
-  /** @param se the interpolator's SolverEnum
+  /** @param itp_kind the interpolator's kind
    *  @param backend a fresh regular solver of the same backend, which
    *         builds the interpolator's terms and sorts
    */
-  AbsSmtInterpolator(SolverEnum se, SmtSolver backend);
+  AbsSmtInterpolator(InterpolatorKind itp_kind, SmtSolver backend);
 
-  // ------------------------- Forbidden ------------------------------------
-  Result check_sat() final;
-  Term get_value(const Term & t) const final;
-  UnorderedTermMap get_array_values(const Term & arr,
-                                    Term & out_const_base) const final;
-  void get_unsat_assumptions(UnorderedTermSet & out) const final;
-  void dump_smt2(std::string filename) const final;
-  std::uint64_t get_context_level() const final;
+  /** @return the interpolator's kind */
+  InterpolatorKind get_kind() const;
+
+  /** @return an enum identifying the interpolator */
+  [[deprecated("use get_kind")]] SolverEnum get_solver_enum() const;
 
   // ------------------------- Interpolation --------------------------------
   /* Compute a Craig interpolant given A and B such that A ^ B is unsat
@@ -122,25 +111,42 @@ class AbsSmtInterpolator : public AbsSmtSolver
                                    TermVec & out_I) const;
 
   /** Takes incremental, and hands every other option to do_set_opt
+   *  SMTLIB: (set-option :<option> <value>)
    *  @throws IncorrectUsageException if incremental is neither true nor false
    */
-  void set_opt(const std::string option, const std::string value) override;
+  virtual void set_opt(const std::string option, const std::string value);
+
+  /** Sets the logic of the regular solver
+   *  SMTLIB: (set-logic <logic>)
+   */
+  virtual void set_logic(const std::string logic);
+
+  /** Forgets the queries and drops the regular solver's assertions; see the
+   *  contract
+   *  SMTLIB: (reset-assertions)
+   */
+  void reset_assertions();
+
+  /** As reset_assertions, but returns the regular solver to its startup
+   *  state, which destroys all created terms and sorts, turns incremental
+   *  back on and calls initialize
+   *  SMTLIB: (reset)
+   */
+  void reset();
 
   // ------------------------- Forwarded ------------------------------------
-  void set_logic(const std::string logic) override;
-
-  // Declaring make_sort here hides the AbsSmtSolver template that takes
+  // Declaring make_sort here hides the AbsSmtTermBuilder template that takes
   // the sorts as separate arguments, so name it back in.
-  using AbsSmtSolver::make_sort;
+  using AbsSmtTermBuilder::make_sort;
   Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
 
-  // Declaring make_term here hides the AbsSmtSolver template that takes
+  // Declaring make_term here hides the AbsSmtTermBuilder template that takes
   // the children as separate arguments, so name it back in.
-  using AbsSmtSolver::make_term;
+  using AbsSmtTermBuilder::make_term;
   Term make_term(bool b) const override;
   Term make_term(std::int64_t i, const Sort & sort) const override;
   Term make_term(const std::string val,
@@ -183,12 +189,6 @@ class AbsSmtInterpolator : public AbsSmtSolver
       const UnorderedTermMap & substitution_map) const override;
 
  protected:
-  // ------------------------- Forbidden ------------------------------------
-  void do_assert(const Term & t) final;
-  Result do_check_sat_assuming(const TermVec & assumptions) final;
-  void do_push(std::uint64_t num) final;
-  void do_pop(std::uint64_t num) final;
-
   // ------------------------- Required -------------------------------------
   /** Computes an interpolant of boolean A and B; see get_interpolant */
   virtual Result compute_interpolant(const Term & A,
@@ -206,13 +206,11 @@ class AbsSmtInterpolator : public AbsSmtSolver
                           const std::string & value) = 0;
 
   // ------------------------- Handled here ---------------------------------
-  /** Forgets the queries and resets the regular solver; see the contract */
-  void do_reset_assertions() final;
+  /** Drops the regular solver's assertions; see reset_assertions */
+  virtual void reset_backend_assertions();
 
-  /** As do_reset_assertions, but resets the regular solver to its startup
-   *  state, turns incremental back on and calls initialize
-   */
-  void do_reset() final;
+  /** Returns the regular solver to its startup state; see reset */
+  virtual void reset_backend();
 
   /** Drops what the interpolator keeps between queries, before the regular
    *  solver is reset; does nothing unless overridden
@@ -283,6 +281,9 @@ class AbsSmtInterpolator : public AbsSmtSolver
 
   // to run the rounds of refute_model on the interpolator it wraps
   friend class PrintingInterpolator;
+
+ private:
+  InterpolatorKind interpolator_kind;
 };
 
 }  // namespace smt

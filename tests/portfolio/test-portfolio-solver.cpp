@@ -33,13 +33,13 @@ namespace {
  *  portfolio. The generic solver cannot: a portfolio hands each member its
  *  term through a TermTranslator, which refuses the generic solver.
  */
-vector<SolverEnum> backends_with(
+vector<SolverKind> backends_with(
     const unordered_set<SolverAttribute> & attributes)
 {
-  vector<SolverEnum> backends;
-  for (SolverEnum se : filter_solver_enums(attributes))
+  vector<SolverKind> backends;
+  for (SolverKind se : filter_solver_kinds(attributes))
   {
-    if (se != GENERIC_SOLVER)
+    if (se != SolverKind::GENERIC)
     {
       backends.push_back(se);
     }
@@ -52,7 +52,7 @@ vector<SmtSolver> members_with(
     const unordered_set<SolverAttribute> & attributes)
 {
   vector<SmtSolver> members;
-  for (SolverEnum se : backends_with(attributes))
+  for (SolverKind se : backends_with(attributes))
   {
     members.push_back(create_solver(SolverConfiguration(se, false)));
   }
@@ -66,7 +66,7 @@ vector<SmtSolver> members_with(
 vector<SmtSolver> two_members_each_with(
     const unordered_set<SolverAttribute> & attributes)
 {
-  vector<SolverEnum> backends = backends_with(attributes);
+  vector<SolverKind> backends = backends_with(attributes);
   vector<SmtSolver> members;
   for (auto it = backends.begin(); it != backends.end(); ++it)
   {
@@ -83,7 +83,7 @@ vector<SmtSolver> two_members_each_with(
 vector<SmtSolver> members_without(SolverAttribute attribute)
 {
   vector<SmtSolver> members;
-  for (SolverEnum se : backends_with({}))
+  for (SolverKind se : backends_with({}))
   {
     if (!solver_has_attribute(se, attribute))
     {

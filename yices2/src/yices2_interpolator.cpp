@@ -31,7 +31,8 @@
 namespace smt {
 
 Yices2Interpolator::Yices2Interpolator()
-    : AbsSmtInterpolator(YICES2_INTERPOLATOR, std::make_shared<Yices2Solver>())
+    : AbsSmtInterpolator(InterpolatorKind::YICES2,
+                         std::make_shared<Yices2Solver>())
 {
 }
 

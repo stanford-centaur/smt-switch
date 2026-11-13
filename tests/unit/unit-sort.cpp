@@ -131,7 +131,7 @@ TEST_P(UnitSortTests, SortSet)
   };
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
   // solver keeps apart
-  bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+  bool aliased = solver_has_attribute(GetParam().solver_kind, BOOL_BV1_ALIASING)
                  && !GetParam().is_logging_solver;
   EXPECT_EQ(sset.size(), aliased ? 3 : 4);
 }
@@ -218,7 +218,7 @@ TEST_P(UnitSortTests, FunctionSortDomainAndCodomain)
 
 TEST_P(UnitSortTests, FunctionSortArrayDomain)
 {
-  if (s->get_solver_enum() == BTOR)
+  if (s->get_kind() == SolverKind::BTOR)
   {
     GTEST_SKIP() << "Boolector takes only Bool and bit-vector arguments";
   }
@@ -240,8 +240,9 @@ TEST_P(UnitSortTests, SortParams)
 TEST_P(UnitSortTests, WidthAbove32Bits)
 {
   constexpr std::uint64_t width = std::uint64_t{ 1 } << 32;
-  SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == CVC5 || se == YICES2 || se == Z3)
+  SolverKind se = GetParam().solver_kind;
+  if (se == SolverKind::BTOR || se == SolverKind::CVC5
+      || se == SolverKind::YICES2 || se == SolverKind::Z3)
   {
     // their APIs take 32-bit widths
     EXPECT_THROW(s->make_sort(BV, width), IncorrectUsageException);
@@ -256,7 +257,7 @@ TEST_P(UnitSortTests, SortKinds)
 {
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
   // solver keeps apart
-  bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+  bool aliased = solver_has_attribute(GetParam().solver_kind, BOOL_BV1_ALIASING)
                  && !GetParam().is_logging_solver;
   EXPECT_EQ(boolsort->get_sort_kind(), aliased ? BV : BOOL);
   EXPECT_EQ(bvsort->get_sort_kind(), BV);
@@ -266,7 +267,7 @@ TEST_P(UnitSortTests, SortKinds)
 
 TEST_P(UnitSortTests, SortVecArgs)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "The generic solver takes the last sort of a FUNCTION "
                     "SortVec as the return sort without checking that any "
@@ -390,7 +391,7 @@ TEST_P(UninterpretedSorts, NullarySort)
 
 TEST_P(UninterpretedSorts, EqualTermsHaveEqualValues)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "The generic solver cannot get the value of a term whose "
                     "sort kind is Uninterpreted";
@@ -450,7 +451,7 @@ TEST_P(UninterpretedSorts, AssertedEqualityIsUsed)
 
 TEST_P(UninterpretedSorts, NameAsMadePrintedInBars)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver declares a sort's name to the binary "
                     "without SMT-LIB quoting";
@@ -542,7 +543,7 @@ TEST_P(SortConstructors, FunctionOverAppliedSortIsCongruent)
 
 TEST_P(SortConstructors, ConstructorIsNotATermSort)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver accepts a sort constructor as the "
                     "sort of a param, in an array or function sort, and as a "
@@ -561,7 +562,7 @@ TEST_P(SortConstructors, ConstructorIsNotATermSort)
 
 TEST_P(SortConstructors, SameNamedConstructorsDiffer)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";
@@ -583,7 +584,8 @@ class QuantifiedSortConstructors : public SortConstructors
 
 TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
 {
-  if (!GetParam().is_logging_solver && GetParam().solver_enum == GENERIC_SOLVER)
+  if (!GetParam().is_logging_solver
+      && GetParam().solver_kind == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver prints a quantifier without its "
                     "binders' sorts";
@@ -602,7 +604,8 @@ TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
 
 TEST_P(QuantifiedSortConstructors, BarredSymbolPrintsAsNamed)
 {
-  if (!GetParam().is_logging_solver && GetParam().solver_enum == GENERIC_SOLVER)
+  if (!GetParam().is_logging_solver
+      && GetParam().solver_kind == SolverKind::GENERIC)
   {
     GTEST_SKIP() << "the generic solver prints a quantifier without its "
                     "binders' sorts";
