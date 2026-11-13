@@ -331,6 +331,10 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 
 void BoolectorSolver::set_logic(const std::string logic)
 {
+  if (!is_smtlib_logic(logic))
+  {
+    throw IncorrectUsageException(logic + " is not an SMT-LIB logic");
+  }
   // ALL, BV, and QF_ followed by A and UF, in that order, where present, and
   // then BV, as the boolector binary accepts
   if (logic == "ALL" || logic == "BV")

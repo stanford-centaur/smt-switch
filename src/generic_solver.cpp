@@ -828,8 +828,10 @@ std::string GenericSolver::run_command(const std::string & cmd,
     case CommandKind::RESET:
     case CommandKind::RESET_ASSERTIONS:
     case CommandKind::ASSERTION:
-      // SMT-LIB has a binary answer this to an option it does not know.
-      if (kind == CommandKind::OPTION && reply == "unsupported")
+      // SMT-LIB has a binary answer this to an option or a logic it does not
+      // support.
+      if ((kind == CommandKind::OPTION || kind == CommandKind::LOGIC)
+          && reply == "unsupported")
       {
         throw NotImplementedException(
             "The solver does not support the "
@@ -2177,7 +2179,27 @@ void GenericSolver::set_logic(const std::string logic)
   // Binaries differ on whether a set-logic may follow a declaration, an
   // assertion or another set-logic, so that is left to the binary. The
   // commands held back come first, in the order they were made.
-  run_command(CommandKind::LOGIC, SET_LOGIC_STR, logic);
+  // An empty name, or a prefix such as QF_ with no theory after it, is
+  // never a logic, though the cvc5 executable reads it as propositional
+  // logic.
+  if (logic.empty() || logic.back() == '_')
+  {
+    throw IncorrectUsageException(logic + " is not a logic");
+  }
+  try
+  {
+    run_command(CommandKind::LOGIC, SET_LOGIC_STR, logic);
+  }
+  catch (NotImplementedException &)
+  {
+    // A binary may know names of its own beyond SMT-LIB's, so only an
+    // SMT-LIB name it does not support is one it lacks.
+    if (!is_smtlib_logic(logic))
+    {
+      throw IncorrectUsageException(logic + " is not a logic");
+    }
+    throw;
+  }
 }
 
 void GenericSolver::do_assert(const Term & t)

@@ -165,6 +165,10 @@ void Yices2Solver::set_logic(const std::string logic)
         "Yices2 can only set the logic before the first assertion, check or "
         "push");
   }
+  if (!is_smtlib_logic(logic))
+  {
+    throw IncorrectUsageException(logic + " is not an SMT-LIB logic");
+  }
   // Yices cannot copy a configuration, so try the logic on a scratch one
   // first; a logic Yices rejects, such as one this build does not support,
   // then leaves the configuration as it was
@@ -177,7 +181,7 @@ void Yices2Solver::set_logic(const std::string logic)
   yices_free_config(scratch_config);
   if (!scratch_ctx)
   {
-    throw IncorrectUsageException("Yices2 cannot use logic " + logic + ": "
+    throw NotImplementedException("Yices2 cannot use logic " + logic + ": "
                                   + detail::get_yices2_error());
   }
   yices_free_context(scratch_ctx);

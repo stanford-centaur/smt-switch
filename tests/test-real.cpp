@@ -46,6 +46,10 @@ class RealArithmeticTests
     {
       GTEST_SKIP() << e.what();
     }
+    catch (const NotImplementedException & e)
+    {
+      GTEST_SKIP() << e.what();
+    }
     realsort = s->make_sort(REAL);
     x = s->make_symbol("x", realsort);
     y = s->make_symbol("y", realsort);

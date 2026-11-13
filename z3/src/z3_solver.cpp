@@ -352,7 +352,18 @@ void Z3Solver::set_logic(const std::string logic)
   }
   catch (z3::exception & e)
   {
-    throw IncorrectUsageException(e.msg());
+    // Z3 reports a logic it does not recognize as an invalid argument. It
+    // also knows names of its own beyond SMT-LIB's, such as HORN, so only
+    // an SMT-LIB name it refuses is one it lacks.
+    if (Z3_get_error_code(*ctx) == Z3_INVALID_ARG)
+    {
+      if (!is_smtlib_logic(logic))
+      {
+        throw IncorrectUsageException(logic + " is not a logic");
+      }
+      throw NotImplementedException("Z3 does not support the logic " + logic);
+    }
+    throw InternalSolverException(e.msg());
   }
   instance->slv.set(solver_params);
 }
