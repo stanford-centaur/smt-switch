@@ -39,7 +39,7 @@ TEST_P(Misuse, GetValueWithoutProduceModels)
   {
     GTEST_SKIP() << "the backend gives a model without produce-models";
   }
-  if (se == BTOR || se == BZLA)
+  if (se == BTOR)
   {
     GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }
@@ -52,7 +52,7 @@ TEST_P(Misuse, GetValueWithoutProduceModels)
 TEST_P(Misuse, GetValueAfterUnsat)
 {
   SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == BZLA)
+  if (se == BTOR)
   {
     GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }
@@ -136,7 +136,7 @@ TEST_P(Misuse, ZeroWidthBitVector)
   {
     GTEST_SKIP() << "the backend makes a bit-vector sort of width 0";
   }
-  if (se == BTOR || se == BZLA || se == YICES2)
+  if (se == BTOR || se == YICES2)
   {
     GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }

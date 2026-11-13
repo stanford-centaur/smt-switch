@@ -135,7 +135,12 @@ constexpr KindTables kind_tables;
 
 bitwuzla::Kind to_bitwuzla_kind(PrimOp po)
 {
-  if (po >= NUM_OPS_AND_NULL || kind_tables.rows[po] < 0)
+  if (po >= NUM_OPS_AND_NULL)
+  {
+    throw IncorrectUsageException("Can't make a term with the operator "
+                                  + to_string(po));
+  }
+  if (kind_tables.rows[po] < 0)
   {
     throw NotImplementedException("Bitwuzla does not support the operator "
                                   + to_string(po));

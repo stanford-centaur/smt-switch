@@ -215,8 +215,13 @@ void BzlaSolver::set_logic(const std::string logic)
 }
 
 void BzlaSolver::do_assert(const Term & t)
+try
 {
   get_bitwuzla()->assert_formula(bzla_term(t));
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 Result BzlaSolver::check_sat()
@@ -225,6 +230,11 @@ Result BzlaSolver::check_sat()
   try
   {
     r = get_bitwuzla()->check_sat();
+  }
+  // Bitwuzla raises its own exception for a call its API does not allow
+  catch (const bitwuzla::Exception & e)
+  {
+    throw IncorrectUsageException(e.what());
   }
   catch (std::exception & e)
   {
@@ -259,6 +269,10 @@ Result BzlaSolver::do_check_sat_assuming(const TermVec & assumptions)
   {
     res = get_bitwuzla()->check_sat(bzla_assumptions);
   }
+  catch (const bitwuzla::Exception & e)
+  {
+    throw IncorrectUsageException(e.what());
+  }
   catch (std::exception & e)
   {
     throw SolverException(e.what());
@@ -279,16 +293,27 @@ Result BzlaSolver::do_check_sat_assuming(const TermVec & assumptions)
 }
 
 void BzlaSolver::do_push(std::uint64_t num)
+try
 {
   get_bitwuzla()->push(narrow_levels(num));
 }
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
+}
 
 void BzlaSolver::do_pop(std::uint64_t num)
+try
 {
   get_bitwuzla()->pop(narrow_levels(num));
 }
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
+}
 
 Term BzlaSolver::get_value(const Term & t) const
+try
 {
   if (!instance)
   {
@@ -296,9 +321,14 @@ Term BzlaSolver::get_value(const Term & t) const
   }
   return std::make_shared<BzlaTerm>(instance->bzla.get_value(bzla_term(t)), tm);
 }
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
+}
 
 UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
                                               Term & out_const_base) const
+try
 {
   out_const_base = nullptr;
   if (!instance)
@@ -330,6 +360,10 @@ UnorderedTermMap BzlaSolver::get_array_values(const Term & arr,
 
   return store_chain_values(stores);
 }
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
+}
 
 void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
@@ -342,6 +376,10 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   try
   {
     bcore = instance->bzla.get_unsat_assumptions();
+  }
+  catch (const bitwuzla::Exception & e)
+  {
+    throw IncorrectUsageException(e.what());
   }
   catch (std::exception & e)
   {
@@ -371,7 +409,7 @@ Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
   }
   catch (bitwuzla::Exception & e)
   {
-    throw SolverException(e.what());
+    throw IncorrectUsageException(e.what());
   }
 }
 
@@ -417,14 +455,20 @@ Sort BzlaSolver::make_sort(SortKind sk) const
   {
     return std::make_shared<BzlaSort>(tm->mk_bool_sort(), tm);
   }
-  else
+  else if (sk == INT || sk == REAL || sk == STRING)
   {
     throw NotImplementedException("Bitwuzla does not support sort "
                                   + to_string(sk));
   }
+  else
+  {
+    throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
+                                  + " without arguments");
+  }
 }
 
 Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
+try
 {
   if (sk == BV)
   {
@@ -435,6 +479,10 @@ Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
     throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
                                   + " from an integer");
   }
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
@@ -486,16 +534,26 @@ Term BzlaSolver::make_term(bool b) const
 }
 
 Term BzlaSolver::make_term(std::int64_t i, const Sort & sort) const
+try
 {
   SortKind sk = sort->get_sort_kind();
-  if (sk != BV)
+  if (sk == INT || sk == REAL)
   {
     throw NotImplementedException(
         "Bitwuzla does not support values of sort kind " + to_string(sk));
   }
+  if (sk != BV)
+  {
+    throw IncorrectUsageException("Can't create value " + std::to_string(i)
+                                  + " with sort " + sort->to_string());
+  }
 
   return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bzla_sort(sort), i),
                                     tm);
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 Term BzlaSolver::make_term(const std::string val,
@@ -503,10 +561,15 @@ Term BzlaSolver::make_term(const std::string val,
                            std::uint64_t base) const
 {
   SortKind sk = sort->get_sort_kind();
-  if (sk != BV)
+  if (sk == INT || sk == REAL)
   {
     throw NotImplementedException(
         "Bitwuzla does not support values of sort kind " + to_string(sk));
+  }
+  if (sk != BV)
+  {
+    throw IncorrectUsageException("Can't create value " + val + " with sort "
+                                  + sort->to_string());
   }
 
   bitwuzla::Sort bsort = bzla_sort(sort);
@@ -533,7 +596,7 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
   SortKind sk = sort->get_sort_kind();
   if (sk != ARRAY)
   {
-    throw NotImplementedException("Can't make a constant array of sort "
+    throw IncorrectUsageException("Can't make a constant array of sort "
                                   + sort->to_string()
                                   + ", which is not an array sort");
   }
@@ -547,6 +610,7 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
 }
 
 Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
+try
 {
   if (symbol_table.find(name) != symbol_table.end())
   {
@@ -556,6 +620,10 @@ Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
       std::make_shared<BzlaTerm>(tm->mk_const(bzla_sort(sort), name), tm);
   symbol_table[name] = sym;
   return sym;
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 Term BzlaSolver::get_symbol(const std::string & name) const
@@ -569,8 +637,13 @@ Term BzlaSolver::get_symbol(const std::string & name) const
 }
 
 Term BzlaSolver::make_param(const std::string name, const Sort & sort) const
+try
 {
   return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
@@ -619,6 +692,7 @@ void BzlaSolver::do_reset_assertions()
 
 Term BzlaSolver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
+try
 {
   bitwuzla::Term bterm = bzla_term(term);
   std::unordered_map<bitwuzla::Term, bitwuzla::Term> substitution_bterms_map;
@@ -637,9 +711,14 @@ Term BzlaSolver::substitute(const Term term,
   return std::make_shared<BzlaTerm>(
       tm->substitute_term(bterm, substitution_bterms_map), tm);
 }
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
+}
 
 TermVec BzlaSolver::substitute_terms(
     const TermVec & terms, const UnorderedTermMap & substitution_map) const
+try
 {
   std::vector<bitwuzla::Term> bterms;
   std::size_t terms_size = terms.size();
@@ -670,6 +749,10 @@ TermVec BzlaSolver::substitute_terms(
     res.push_back(std::make_shared<BzlaTerm>(t, tm));
   }
   return res;
+}
+catch (const bitwuzla::Exception & e)
+{
+  throw IncorrectUsageException(e.what());
 }
 
 void BzlaSolver::dump_smt2(std::string filename) const
