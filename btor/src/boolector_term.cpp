@@ -319,6 +319,17 @@ std::string BoolectorTerm::to_string() const
   // don't pointer chase!
   char * sym =
       btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
+  // Boolector dumps a declaration for a node that simplifies to a symbol, so
+  // the symbol is printed instead.
+  if (!sym)
+  {
+    BtorNode * simplified =
+        btor_node_get_simplified(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
+    if (btor_node_is_bv_var(simplified) || btor_node_is_uf(simplified))
+    {
+      sym = btor_node_get_symbol(btor.get(), simplified);
+    }
+  }
 
   if (sym)
   {

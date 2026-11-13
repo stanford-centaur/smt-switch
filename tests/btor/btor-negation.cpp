@@ -1,6 +1,7 @@
 /*!
  * \file btor-negation.cpp
- * \brief Tests how negated Boolector terms report their op and children
+ * \brief Tests how negated Boolector terms report their op, children and
+ *        string
  * \author Makai Mann
  * \date 2019
  * \copyright See the LICENSE file in the top-level source directory.
@@ -64,7 +65,9 @@ TEST(BtorNegation, InversionFromSubstitution)
   TermVec children(bvxor->begin(), bvxor->end());
   ASSERT_EQ(children.size(), 1);
   EXPECT_EQ(children[0], y);
+  EXPECT_EQ(bvxor->to_string(), "(bvnot y)");
   EXPECT_NE(bvxnor->get_op(), BVNot);
+  EXPECT_EQ(bvxnor->to_string(), "y");
 }
 
 TEST(BtorNegation, LoggingSolver)
