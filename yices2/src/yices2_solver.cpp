@@ -422,17 +422,26 @@ Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
 
 void Yices2Solver::do_push(uint64_t num)
 {
-  scope_starts.insert(scope_starts.end(), num, assertions.size());
   if (yices_context_status(get_context().get()) == YICES_STATUS_UNSAT)
   {
+    scope_starts.insert(scope_starts.end(), num, assertions.size());
     pushes_after_unsat += num;
     return;
   }
 
   for (size_t i = 0; i < num; ++i)
   {
-    yices_push(get_context().get());
+    if (yices_push(get_context().get()) < 0)
+    {
+      // undo the levels this call pushed before the refused one
+      for (size_t j = 0; j < i; ++j)
+      {
+        yices_pop(get_context().get());
+      }
+      detail::throw_yices2_error();
+    }
   }
+  scope_starts.insert(scope_starts.end(), num, assertions.size());
 }
 
 void Yices2Solver::do_pop(uint64_t num)
@@ -444,7 +453,10 @@ void Yices2Solver::do_pop(uint64_t num)
       pushes_after_unsat--;
       continue;
     }
-    yices_pop(get_context().get());
+    if (yices_pop(get_context().get()) < 0)
+    {
+      detail::throw_yices2_error();
+    }
   }
   assertions.resize(scope_starts[scope_starts.size() - num]);
   scope_starts.resize(scope_starts.size() - num);
@@ -653,6 +665,7 @@ void Yices2Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   if (err_code == -1)
   {
     yices_delete_term_vector(&ycore);
+    yices_clear_error();
     throw IncorrectUsageException(
         "Last call to check_sat was not unsat, cannot get unsat core");
   }

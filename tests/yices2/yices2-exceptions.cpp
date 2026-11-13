@@ -38,6 +38,15 @@ TEST(Yices2Exceptions, LaterCallsDoNotReportAnEarlierError)
   EXPECT_NO_THROW(fresh->make_sort(BV, 4));
 }
 
+TEST(Yices2Exceptions, RefusedPushLeavesNoError)
+{
+  SmtSolver s = Yices2SolverFactory::create(false);
+  s->set_opt("incremental", "false");
+  EXPECT_THROW(s->push(), NotImplementedException);
+  EXPECT_EQ(s->get_context_level(), 0u);
+  EXPECT_NO_THROW(s->make_sort(BV, 4));
+}
+
 TEST(Yices2Exceptions, MissingOperatorsAreNotImplemented)
 {
   SmtSolver s = Yices2SolverFactory::create(false);

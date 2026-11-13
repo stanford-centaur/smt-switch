@@ -193,6 +193,12 @@ Result Yices2Interpolator::refute_model(const Term & A,
   {
     // an algebraic number has no term
     term_t value = yices_get_value_as_term(model_b.get(), shared[i]);
+    if (value == NULL_TERM)
+    {
+      // the value is left out, so the error it set must not reach a later
+      // call
+      yices_clear_error();
+    }
     model.emplace_back(
         shared_symbols[i],
         value == NULL_TERM ? Term() : std::make_shared<Yices2Term>(value));
