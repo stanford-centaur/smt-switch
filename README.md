@@ -314,31 +314,59 @@ the Python test suites.
 
 ## Current Limitations
 
-While we try to guarantee that all solver backends are fully compliant with the
-abstract interface, and exhibit the exact same behavior given the same API
-calls, we are not able to do this in every case (yet). Below are some known,
-current limitations along with recommended usage.
+Every backend implements the same interface, but not every solver supports every
+theory or feature. A backend refuses what its solver cannot do with
+`NotImplementedException`, and a misuse with `IncorrectUsageException`.
 
-- **Undefined behavior.** Sharing terms between different solver instances will
-  result in undefined behavior. This is because we use a static cast to recover
-  the backend solver implementation from an abstract object. To move terms
-  between solver instances, a `TermTranslator` can be used. This will rebuild
-  the term in another solver. A given `TermTranslator` object can only translate
-  terms from **one** solver to **one** new one. If some symbols have already
-  been created in the new solver, the `TermTranslator`'s cache needs to be
-  populated, so that it knows which symbols correspond to each other
-- Boolector's `substitute` implementation does not work for formulas containing
-  uninterpreted functions. To get around this, a LoggingSolver can be used, see
-  below.
-- Boolector does not support `reset_assertions`. Smt-switch can simulate this
-  when the option "base-context-1" is set to "true". Under the hood, this will
-  do all solving starting at context 1 instead of 0. This will enable calling
-  `reset_assertions` just like for any other solver. The hidden context is not
-  counted: `get_context_level` still starts at 0.
-- The Z3 backend does not support term iteration over quantified expressions,
-  though it does for every other kind of term.
-- Datatypes are supported only by cvc5 and Z3
-- The MathSAT and Yices2 backends do not support quantifiers
+### Supported features
+
+A dash marks a feature the solver lacks; "not yet" marks one the solver has but
+smt-switch does not support yet.
+
+<!-- A table row cannot wrap, so the line length limit is off here. -->
+
+<!-- markdownlint-disable MD013 -->
+
+| Feature                        | Boolector | Bitwuzla | cvc5    | MathSAT | Yices2  | Z3      |
+| ------------------------------ | --------- | -------- | ------- | ------- | ------- | ------- |
+| Bit-vectors, arrays            | yes       | yes      | yes     | yes     | yes     | yes     |
+| Bit-vector overflow predicates | not yet   | not yet  | not yet | not yet | not yet | not yet |
+| Ints and Reals                 | —         | —        | yes     | yes     | yes     | yes     |
+| Floating point                 | —         | not yet  | not yet | not yet | —       | not yet |
+| Strings                        | —         | —        | yes     | —       | —       | not yet |
+| Datatypes                      | —         | —        | yes     | —       | —       | yes     |
+| Quantifiers                    | yes       | yes      | yes     | —       | —       | yes     |
+| Uninterpreted sorts            | —         | yes (1)  | yes     | yes     | yes     | yes     |
+| Unsat cores                    | yes       | yes      | yes     | yes     | yes     | yes     |
+| Interpolation                  | —         | yes (2)  | yes     | yes     | yes (3) | —       |
+| Time limits                    | yes       | yes      | yes     | yes     | yes     | yes     |
+
+<!-- markdownlint-enable MD013 -->
+
+- (1) Bitwuzla answers `unknown` to an equality between two terms of an
+  uninterpreted sort that its preprocessing cannot remove.
+- (2) From Bitwuzla 0.9.0.
+- (3) With Yices2 built with MCSAT.
+
+The generic solver drives a solver executable over SMT-LIB, and supports what
+that executable does, except interpolation.
+
+### Differences between backends
+
+- **Terms belong to their solver.** A solver refuses terms and sorts made by
+  another one with `IncorrectUsageException`; only Yices2, which keeps one term
+  table per process, accepts another Yices2 solver's. A `TermTranslator`
+  rebuilds terms in another solver. Each one translates from **one** solver to
+  **one** other, and if some symbols already exist in the target solver, its
+  cache must be populated so that it knows which symbols correspond.
+- **Powers.** `Pow` is SMT-LIB's `**`. cvc5, MathSAT and Yices2 accept only a
+  constant exponent from 0 (Yices2 up to 2^32 − 1); Z3 accepts any. The generic
+  solver sends a power to a constant exponent as products and comparisons, which
+  every executable reads, and any other as `**`, which only Z3 5.4 and newer
+  read.
+- **Boolector's `reset_assertions`** needs the option `base-context-1` set to
+  `true`, which does all solving at context 1 instead of 0. The hidden context
+  is not counted: `get_context_level` still starts at 0.
 
 ### Recommended usage
 
@@ -352,16 +380,14 @@ not guaranteed for all solvers. This is because some solvers perform on-the-fly
 rewriting and/or alias sorts (e.g. treat `BOOL` and `BV` of size one
 equivalently). Below, we give some recommendations for when to use a
 `LoggingSolver` for different backends. To use a `LoggingSolver`, pass `true` to
-the `create` function when instantiating a solver. Bitwuzla, cvc5, and Z3 should
-never necessitate the use of a `LoggingSolver`.
+the `create` function when instantiating a solver. Bitwuzla, cvc5 and Z3 never
+need one.
 
 - Boolector
   - Use a `LoggingSolver` to avoid issues with sort aliasing between booleans
     and bit-vectors of size one and to ensure that a term's children are exactly
     what were used to create it. Boolector performs very smart on-the-fly
-    rewriting. Additionally, using the `substitute` method on formulas that
-    contain uninterpreted functions is only supported when using a
-    `LoggingSolver`.
+    rewriting.
 - MathSAT
   - Use a `LoggingSolver` to guarantee that a term's Op and children are always
     exactly what were used to create it. Without a `LoggingSolver`, MathSAT will
