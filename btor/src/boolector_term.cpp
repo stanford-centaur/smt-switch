@@ -357,7 +357,7 @@ std::string BoolectorTerm::to_string() const
     FILE * stream = open_memstream(&cres, &size);
     if (!stream)
     {
-      throw InternalSolverException(
+      throw IncorrectUsageException(
           "Failed to open a stream for Boolector's to_string");
     }
     try
@@ -376,7 +376,7 @@ std::string BoolectorTerm::to_string() const
     std::unique_ptr<char, MallocDeleter> buffer(cres);
     if (status != 0)
     {
-      throw InternalSolverException(
+      throw IncorrectUsageException(
           "Failed to close the stream for Boolector's to_string");
     }
     return buffer.get();
