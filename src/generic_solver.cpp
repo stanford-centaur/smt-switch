@@ -37,6 +37,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -1269,29 +1270,48 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 }
 
 SortVec GenericSolver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & /* decls */) const
+    const std::vector<DatatypeDecl> & decls) const
 {
-  throw NotImplementedException(
-      "The generic solver cannot declare a datatype sort before the "
-      "constructors that use it, so datatypes referring to one another are "
-      "not supported; one referring only to itself can use add_selector_self");
-}
-
-Sort GenericSolver::make_sort(const DatatypeDecl & d) const
-{
-  auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(d);
-  auto dt_it = decl_datatype_map.find(gdt_decl);
-  if (dt_it == decl_datatype_map.end())
+  // Every declaration is checked before any is used, so that a refused
+  // list declares none of its datatypes.
+  std::vector<std::shared_ptr<GenericDatatype>> datatypes;
+  std::vector<std::string> dt_names;
+  std::unordered_set<std::string> seen_names;
+  datatypes.reserve(decls.size());
+  dt_names.reserve(decls.size());
+  for (const DatatypeDecl & d : decls)
   {
-    detail::throw_foreign_handle(d);
+    auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(d);
+    auto dt_it = decl_datatype_map.find(gdt_decl);
+    if (dt_it == decl_datatype_map.end())
+    {
+      detail::throw_foreign_handle(d);
+    }
+    auto name = gdt_decl->get_name();
+    if (name_sort_map.find(name) != name_sort_map.end()
+        || !seen_names.insert(name).second)
+    {
+      throw IncorrectUsageException("sort name: " + name + " already taken");
+    }
+    datatypes.push_back(dt_it->second);
+    dt_names.push_back(name);
   }
-  auto dt_decl_name = gdt_decl->get_name();
-  if (name_sort_map.find(dt_decl_name) == name_sort_map.end())
+
+  SortVec dt_sorts;
+  // SMT-LIB declares at least one datatype per command
+  if (datatypes.empty())
   {
+    return dt_sorts;
+  }
+  dt_sorts.reserve(datatypes.size());
+  std::string names_text;
+  std::string bodies_text;
+  for (size_t i = 0; i < datatypes.size(); ++i)
+  {
+    auto curr_dt = datatypes[i];
     // The sort keeps copies of the constructors, so that a constructor
     // declaration changed or added to another datatype later does not
     // change it.
-    auto curr_dt = dt_it->second;
     for (DatatypeConstructorDecl & con : curr_dt->cons_decl_vector)
     {
       auto orig = std::static_pointer_cast<GenericDatatypeConstructorDecl>(con);
@@ -1305,60 +1325,40 @@ Sort GenericSolver::make_sort(const DatatypeDecl & d) const
     // Replaces the sort of any selectors with a false finalized field
     // with dt_sort and sets finalized to true.
     curr_dt->change_sort_of_selector(dt_sort);
+    dt_sorts.push_back(dt_sort);
 
-    std::string to_solver = "(";
-    to_solver += DECLARE_DATATYPE_STR;
-    to_solver += " ((";
-    to_solver += dt_decl_name;
-    to_solver += " 0)) (\n";
-    to_solver += "(";
-    // build string for each constructor
-    for (unsigned long i = 0; i < curr_dt->get_cons_vector().size(); ++i)
+    names_text += (i == 0 ? "(" : " (") + dt_names[i] + " 0)";
+    bodies_text += "(";
+    for (const DatatypeConstructorDecl & con : curr_dt->get_cons_vector())
     {
-      DatatypeConstructorDecl curr_dt_cons_decl = curr_dt->get_cons_vector()[i];
-      to_solver += " ("
-                   + std::static_pointer_cast<GenericDatatypeConstructorDecl>(
-                         curr_dt_cons_decl)
-                         ->get_name();
-      // Adjust string for each selector
-      for (unsigned long f = 0;
-           f < std::static_pointer_cast<GenericDatatypeConstructorDecl>(
-                   curr_dt_cons_decl)
-                   ->get_selector_vector()
-                   .size();
-           ++f)
+      auto gcon = std::static_pointer_cast<GenericDatatypeConstructorDecl>(con);
+      bodies_text += " (" + gcon->get_name();
+      for (const auto & sel : gcon->get_selector_vector())
       {
-        to_solver += " ( "
-                     + std::static_pointer_cast<GenericDatatypeConstructorDecl>(
-                           curr_dt_cons_decl)
-                           ->get_selector_vector()[f]
-                           .name;
-        to_solver +=
-            " "
-            + (std::static_pointer_cast<GenericDatatypeConstructorDecl>(
-                   curr_dt_cons_decl)
-                   ->get_selector_vector()[f]
-                   .sort)
-                  ->to_string()
-            + " )";
+        bodies_text += " ( " + sel.name + " " + sel.sort->to_string() + " )";
       }
-
-      to_solver += ")";
+      bodies_text += ")";
     }
-    to_solver += ")\n))";
-    name_sort_map[dt_decl_name] = dt_sort;
-    if (send_or_hold(to_solver))
-    {
-      pending_sort_names_.insert(dt_decl_name);
-    }
-
-    return dt_sort;
+    bodies_text += ")\n";
   }
-  else
+
+  std::string to_solver = "(";
+  to_solver += DECLARE_DATATYPE_STR;
+  to_solver += " (" + names_text + ") (\n" + bodies_text + "))";
+  for (size_t i = 0; i < dt_sorts.size(); ++i)
   {
-    throw IncorrectUsageException("sort name: " + dt_decl_name
-                                  + " already taken");
+    name_sort_map[dt_names[i]] = dt_sorts[i];
   }
+  if (send_or_hold(to_solver))
+  {
+    pending_sort_names_.insert(dt_names.begin(), dt_names.end());
+  }
+  return dt_sorts;
+}
+
+Sort GenericSolver::make_sort(const DatatypeDecl & d) const
+{
+  return make_datatype_sorts({ d })[0];
 }
 
 DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const

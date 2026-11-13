@@ -8,10 +8,8 @@
  *
  * The current implementation of the generic solver has the following
  * limitations:
- * 1. Some AbsSmtSolver methods are not implemented. make_datatype_sorts is
- *    declared first, under a comment saying so, and the string-value make_term
- *    overloads keep AbsSmtSolver's default, which throws
- *    NotImplementedException.
+ * 1. The string-value make_term overloads keep AbsSmtSolver's default, which
+ *    throws NotImplementedException.
  * 2. The buffer size used to read the output of the solver binary
  *    is limited to values between 2 and 256.
  * 3. Generic solvers cannot be used in term transfer/translation.
@@ -98,15 +96,6 @@ class GenericSolver : public AbsSmtSolver
   ~GenericSolver() override;
 
   /***************************************************************/
-  /* methods from AbsSmtSolver that are currently not implemented*/
-  /***************************************************************/
-  // A datatype whose declarations refer to one another needs its sorts
-  // before the constructors that use them, which this solver cannot
-  // declare. One referring only to itself goes through add_selector_self.
-  SortVec make_datatype_sorts(
-      const std::vector<DatatypeDecl> & decls) const override;
-
-  /***************************************************************/
   /* methods from AbsSmtSolver that are implemented              */
   /***************************************************************/
   // Declaring make_sort here at all would hide AbsSmtSolver's own overloads
@@ -134,6 +123,8 @@ class GenericSolver : public AbsSmtSolver
   Term get_selector(const Sort & s,
                     std::string con,
                     std::string name) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
 
   // AbsSmtSolver's string-value overloads are not declared here, and a
   // declaration of the name would otherwise hide them from lookup on a

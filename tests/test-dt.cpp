@@ -416,10 +416,6 @@ TEST_P(Datatypes, SecondMakeSortRefused)
 
 TEST_P(Datatypes, MakeDatatypeSortsMakesEach)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the generic solver refuses every make_datatype_sorts";
-  }
   std::vector<DatatypeDecl> decls;
   for (const string name : { "a", "b", "c" })
   {
@@ -728,10 +724,6 @@ TEST_P(Datatypes, SecondDatatypeOfANameIsRefusedOrSeparate)
 
 TEST_P(Datatypes, SecondDatatypeOfANameInOneCallIsRefusedOrSeparate)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the generic solver refuses every make_datatype_sorts";
-  }
   if (s->get_solver_enum() == CVC5)
   {
     GTEST_SKIP() << "cvc5 reports two datatypes of one name in one call as "
