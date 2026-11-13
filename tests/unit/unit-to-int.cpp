@@ -1,7 +1,7 @@
 /*!
  * \file unit-to-int.cpp
- * \brief Tests for Term::to_int and Term::to_signed_int, on constants and on
- *        model values, which some solvers print differently
+ * \brief Tests for Term::to_int, Term::to_signed_int and Term::to_bits, on
+ *        constants and on model values, which some solvers print differently
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -102,6 +102,11 @@ class ToIntIntTests : public ToIntTests
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ToIntRealTests);
 class ToIntRealTests : public ToIntTests
+{
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ToBits);
+class ToBits : public ToIntTests
 {
 };
 
@@ -305,6 +310,39 @@ TEST_P(ToIntRealTests, NonIntegralValue)
   EXPECT_THROW(v->to_signed_int(), IncorrectUsageException);
 }
 
+TEST_P(ToBits, Values)
+{
+  const std::pair<Term, std::string> cases[] = {
+    { s->make_term(1, s->make_sort(BV, 1)), "1" },
+    { s->make_term(5, s->make_sort(BV, 4)), "0101" },
+    { s->make_term(-2, s->make_sort(BV, 8)), "11111110" },
+    { s->make_term(0, s->make_sort(BV, 64)), std::string(64, '0') },
+    { s->make_term("-1", s->make_sort(BV, 65), 10), std::string(65, '1') },
+    { s->make_term("2", s->make_sort(BV, 1024), 10),
+      std::string(1022, '0') + "10" },
+  };
+  for (const auto & c : cases)
+  {
+    for (const Term & v : with_model_value(c.first))
+    {
+      SCOPED_TRACE(v->to_string());
+      EXPECT_EQ(v->to_bits(), c.second);
+    }
+  }
+}
+
+TEST_P(ToBits, NotAValue)
+{
+  Term x = s->make_symbol("y", s->make_sort(BV, 8));
+  EXPECT_THROW(x->to_bits(), IncorrectUsageException);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitToInt,
+    ToBits,
+    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    ConfigName());
+
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntBVTests,
     ToIntBVTests,
@@ -353,6 +391,26 @@ TEST(ToIntParsing, IndexedBVOutOfRange)
   EXPECT_EQ(smtlib_bv_to_int64("(_ bv15 4)"), -1);
   EXPECT_THROW(smtlib_bv_to_uint64("(_ bv16 4)"), IncorrectUsageException);
   EXPECT_THROW(smtlib_bv_to_int64("(_ bv16 4)"), IncorrectUsageException);
+}
+
+TEST(ToIntParsing, BVToBits)
+{
+  EXPECT_EQ(smtlib_bv_to_bits("#b0101"), "0101");
+  EXPECT_EQ(smtlib_bv_to_bits("#x0a"), "00001010");
+  EXPECT_EQ(smtlib_bv_to_bits("(_ bv5 8)"), "00000101");
+  EXPECT_EQ(smtlib_bv_to_bits("(_ bv2 1024)"), std::string(1022, '0') + "10");
+  for (const char * s : { "#b",
+                          "#x",
+                          "#b012",
+                          "#xg",
+                          "(_ bv16 4)",
+                          "(_ bv1 0)",
+                          "(_ bv 4)",
+                          "5" })
+  {
+    SCOPED_TRACE(s);
+    EXPECT_THROW(smtlib_bv_to_bits(s), IncorrectUsageException);
+  }
 }
 
 // AbsTerm::to_signed_int is the default for Term implementations outside

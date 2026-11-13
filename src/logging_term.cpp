@@ -280,6 +280,8 @@ std::int64_t LoggingTerm::to_signed_int() const
   return wrapped_term->to_signed_int();
 }
 
+std::string LoggingTerm::to_bits() const { return wrapped_term->to_bits(); }
+
 bool LoggingTerm::to_bool() const
 {
   // the logged sort tells Booleans from 1-bit bit-vectors where the

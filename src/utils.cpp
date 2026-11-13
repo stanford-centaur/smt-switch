@@ -1528,56 +1528,10 @@ void check_bv_width(std::uint64_t width, const std::string & s)
   }
 }
 
-/** Parses an SMT-LIB bit-vector value into its value and width. */
-void parse_smtlib_bv(const std::string & s,
-                     std::uint64_t & value,
-                     std::uint64_t & width)
+IncorrectUsageException not_a_bv_value(const std::string & s)
 {
-  const std::string text = trim_spaces(s);
-  const std::string not_bv =
-      "Can't convert " + s + " to an integer: it is not a bit-vector value";
-  if (text.substr(0, 2) == "#b")
-  {
-    const std::string bits = text.substr(2);
-    width = bits.size();
-    value = bits_to_uint64(bits);
-  }
-  else if (text.substr(0, 2) == "#x")
-  {
-    const std::string hex = text.substr(2);
-    width = 4 * hex.size();
-    check_bv_width(width, s);
-    value = 0;
-    for (char c : hex)
-    {
-      const unsigned d = detail::numeral_digit(c);
-      if (d >= 16)
-      {
-        throw IncorrectUsageException(not_bv);
-      }
-      value = (value << 4) | d;
-    }
-  }
-  else if (text.substr(0, 5) == "(_ bv" && text.back() == ')')
-  {
-    const std::string body = text.substr(5, text.size() - 6);
-    const std::string::size_type space = body.find(' ');
-    if (space == std::string::npos
-        || !decimal_to_uint64(trim_spaces(body.substr(space + 1)), width))
-    {
-      throw IncorrectUsageException(not_bv);
-    }
-    check_bv_width(width, s);
-    if (!decimal_to_uint64(body.substr(0, space), value)
-        || (width < 64 && (value >> width) != 0))
-    {
-      throw IncorrectUsageException(not_bv);
-    }
-  }
-  else
-  {
-    throw IncorrectUsageException(not_bv);
-  }
+  return IncorrectUsageException("Can't convert " + s
+                                 + " to bits: it is not a bit-vector value");
 }
 
 }  // namespace
@@ -1664,20 +1618,83 @@ std::string bv_value_to_bits(const std::string & val,
   return bits;
 }
 
+std::string smtlib_bv_to_bits(const std::string & s)
+{
+  const std::string text = trim_spaces(s);
+  std::string bits;
+  if (text.substr(0, 2) == "#b")
+  {
+    bits = text.substr(2);
+    if (bits.find_first_not_of("01") != std::string::npos)
+    {
+      throw not_a_bv_value(s);
+    }
+  }
+  else if (text.substr(0, 2) == "#x")
+  {
+    for (char c : text.substr(2))
+    {
+      const unsigned d = detail::numeral_digit(c);
+      if (d >= 16)
+      {
+        throw not_a_bv_value(s);
+      }
+      for (unsigned i = 4; i-- > 0;)
+      {
+        bits.push_back((d >> i) & 1 ? '1' : '0');
+      }
+    }
+  }
+  else if (text.substr(0, 5) == "(_ bv" && text.back() == ')')
+  {
+    const std::string body = text.substr(5, text.size() - 6);
+    const std::string::size_type space = body.find(' ');
+    std::uint64_t width = 0;
+    if (space == std::string::npos
+        || !decimal_to_uint64(trim_spaces(body.substr(space + 1)), width))
+    {
+      throw not_a_bv_value(s);
+    }
+    const std::string numeral = body.substr(0, space);
+    if (numeral.empty()
+        || numeral.find_first_not_of("0123456789") != std::string::npos)
+    {
+      throw not_a_bv_value(s);
+    }
+    std::vector<std::uint32_t> words;
+    try
+    {
+      words = detail::bv_value_to_words(numeral, 10, width);
+    }
+    catch (const IncorrectUsageException &)
+    {
+      // the numeral is at least 2^W
+      throw not_a_bv_value(s);
+    }
+    bits.assign(width, '0');
+    for (std::uint64_t i = 0; i < width; ++i)
+    {
+      if ((words[i / 32] >> (i % 32)) & 1)
+      {
+        bits[width - 1 - i] = '1';
+      }
+    }
+  }
+  if (bits.empty())
+  {
+    throw not_a_bv_value(s);
+  }
+  return bits;
+}
+
 std::uint64_t smtlib_bv_to_uint64(const std::string & s)
 {
-  std::uint64_t value;
-  std::uint64_t width;
-  parse_smtlib_bv(s, value, width);
-  return value;
+  return bits_to_uint64(smtlib_bv_to_bits(s));
 }
 
 std::int64_t smtlib_bv_to_int64(const std::string & s)
 {
-  std::uint64_t value;
-  std::uint64_t width;
-  parse_smtlib_bv(s, value, width);
-  return to_twos_complement(value, width);
+  return bits_to_int64(smtlib_bv_to_bits(s));
 }
 
 // SMT-LIB 2.6 reserves these words (Section 3.1) and every command name

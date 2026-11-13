@@ -376,6 +376,10 @@ Term TermTranslator::transfer_term(const Term & term)
           }
           cache[t] = solver->make_term(val, s);
         }
+        else if (sk == BV)
+        {
+          cache[t] = solver->make_term(t->to_bits(), s, 2);
+        }
         else
         {
           // pass the original sort here

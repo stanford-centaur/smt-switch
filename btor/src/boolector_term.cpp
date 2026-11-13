@@ -431,14 +431,16 @@ std::string BoolectorTerm::get_symbol_name() const
   return btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
 }
 
-uint64_t BoolectorTerm::to_int() const
-{
-  return bits_to_uint64(const_to_bits(btor.get(), simplified_node()));
-}
+uint64_t BoolectorTerm::to_int() const { return bits_to_uint64(to_bits()); }
 
 int64_t BoolectorTerm::to_signed_int() const
 {
-  return bits_to_int64(const_to_bits(btor.get(), simplified_node()));
+  return bits_to_int64(to_bits());
+}
+
+std::string BoolectorTerm::to_bits() const
+{
+  return const_to_bits(btor.get(), simplified_node());
 }
 
 bool BoolectorTerm::to_bool() const
