@@ -62,6 +62,10 @@ class Z3Context : public z3::context
   bool has_datatype_name(const std::string & name) const;
   /** `term` in Z3's SMT-LIB */
   std::string print_term(const z3::expr & term) const;
+  /** Throws the smt-switch exception for `e`, which a call on this context
+   *  raised, chosen by the error code the call left
+   */
+  [[noreturn]] void rethrow(const z3::exception & e) const;
 
  private:
   /** A param and the name it was made with, which Z3 does not keep */

@@ -435,9 +435,9 @@ Sort Z3Solver::make_sort(const DatatypeDecl & d) const
     ctx->add_datatype_name(cd->name);
     return std::make_shared<Z3Sort>(ctx, sort);
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -497,9 +497,9 @@ DatatypeDecl Z3Solver::make_datatype_decl(const std::string & s) const
   {
     return std::make_shared<Z3DatatypeDecl>(s);
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -510,9 +510,9 @@ DatatypeConstructorDecl Z3Solver::make_datatype_constructor_decl(
   {
     return std::make_shared<Z3DatatypeConstructorDecl>(ctx, s);
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -525,9 +525,9 @@ void Z3Solver::add_constructor(DatatypeDecl & dt,
     z3dt->consvec.push_back(
         backend_pointer_cast<Z3DatatypeConstructorDecl>(cons));
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -540,9 +540,9 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
     auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
     cdt->selectors.emplace_back(name, get_z3_sort(s)->get_z3_type());
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -554,9 +554,9 @@ void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
     auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
     cdt->selectors.emplace_back(name, z3::sort(*ctx));
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -573,9 +573,9 @@ Term Z3Solver::get_constructor(const Sort & s, std::string name) const
     }
     throw IncorrectUsageException("Constructor " + name + " not found");
   }
-  catch (z3::exception & e)
+  catch (const z3::exception & e)
   {
-    throw SolverException(e.what());
+    ctx->rethrow(e);
   }
 }
 
@@ -728,11 +728,17 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
 }
 
 void Z3Solver::do_assert(const Term & t)
+try
 {
   get_z3_solver()->add(get_z3_term(t)->term);
 }
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
+}
 
 Result Z3Solver::check_sat()
+try
 {
   last_query_assuming = false;
   z3::check_result r = get_z3_solver()->check();
@@ -750,11 +756,17 @@ Result Z3Solver::check_sat()
   }
   else
   {
-    throw NotImplementedException("Unimplemented result type from Z3");
+    throw InternalException("Unimplemented result type from Z3");
   }
+}
+catch (const z3::exception & e)
+{
+  // a check that fails is the solver failing, whatever code it leaves
+  throw SolverException(e.msg());
 }
 
 Result Z3Solver::do_check_sat_assuming(const TermVec & assumptions)
+try
 {
   z3::expr_vector z3assumps(*ctx);
 
@@ -779,24 +791,39 @@ Result Z3Solver::do_check_sat_assuming(const TermVec & assumptions)
   }
   else
   {
-    throw NotImplementedException("Unimplemented result type from Z3");
+    throw InternalException("Unimplemented result type from Z3");
   }
+}
+catch (const z3::exception & e)
+{
+  throw SolverException(e.msg());
 }
 
 void Z3Solver::do_push(uint64_t num)
+try
 {
   for (uint64_t i = 0; i < num; i++)
   {
     get_z3_solver()->push();
   }
 }
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
+}
 
 void Z3Solver::do_pop(uint64_t num)
+try
 {
   get_z3_solver()->pop(narrow_levels(num));
 }
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
+}
 
 Term Z3Solver::get_value(const Term & t) const
+try
 {
   shared_ptr<Z3Term> zterm = get_z3_term(t);
   if (zterm->is_function)
@@ -812,9 +839,14 @@ Term Z3Solver::get_value(const Term & t) const
   z3::expr eval = model.eval(zterm->term, true);
   return std::make_shared<Z3Term>(ctx, eval);
 }
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
+}
 
 UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
                                             Term & out_const_base) const
+try
 {
   out_const_base = nullptr;
   shared_ptr<Z3Term> zarr = get_z3_term(arr);
@@ -851,14 +883,19 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
 
   return store_chain_values(stores);
 }
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
+}
 
 void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
+try
 {
   // in smt-switch, should throw exception if last query
   // was check_sat instead of check_sat_assuming
   if (!last_query_assuming || !instance)
   {
-    throw Exception(
+    throw IncorrectUsageException(
         "Can only call get_unsat_assumptions after check_sat_assuming");
   }
   z3::expr_vector core = instance->slv.unsat_core();
@@ -866,6 +903,10 @@ void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
   {
     out.insert(std::make_shared<Z3Term>(ctx, c));
   }
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
@@ -941,6 +982,7 @@ Sort Z3Solver::make_sort(SortKind sk) const
 }
 
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
+try
 {
   if (sk == BV)
   {
@@ -951,6 +993,10 @@ Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
     throw IncorrectUsageException("Can't make a sort of kind " + to_string(sk)
                                   + " from an integer");
   }
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
@@ -1060,6 +1106,7 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
 }
 
 Term Z3Solver::make_term(Op op, const TermVec & terms) const
+try
 {
   size_t size = terms.size();
   Z3_ast res;
@@ -1173,6 +1220,10 @@ Term Z3Solver::make_term(Op op, const TermVec & terms) const
 
   return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
+}
 
 void Z3Solver::do_reset()
 {
@@ -1192,6 +1243,7 @@ void Z3Solver::do_reset_assertions()
 
 Term Z3Solver::substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const
+try
 {
   // z3 expression vectors that represent the
   // substitution map, i.e.:
@@ -1216,6 +1268,10 @@ Term Z3Solver::substitute(const Term term,
   // perform the substitution and return the result
   z3::expr result = z3expr.substitute(z3sources, z3destinations);
   return std::make_shared<Z3Term>(ctx, result);
+}
+catch (const z3::exception & e)
+{
+  ctx->rethrow(e);
 }
 
 void Z3Solver::dump_smt2(std::string filename) const
