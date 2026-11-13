@@ -997,9 +997,14 @@ void MsatSolver::dump_smt2(std::string filename) const
   {
     throw IncorrectUsageException("Cannot open " + filename + " for writing");
   }
-  msat_to_smtlib2_ext_file(*env, all_asserts, log, true, file);
-  fprintf(file, "\n(check-sat)\n");
-  fclose(file);
+  bool write_failed =
+      msat_to_smtlib2_ext_file(*env, all_asserts, log, true, file) != 0
+      || fprintf(file, "\n(check-sat)\n") < 0 || ferror(file) != 0;
+  // closing flushes the rest, which can fail as well
+  if (fclose(file) != 0 || write_failed)
+  {
+    throw IncorrectUsageException("Cannot write " + filename);
+  }
 }
 
 // helpers
