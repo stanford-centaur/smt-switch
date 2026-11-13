@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "smt-switch/exceptions.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -148,6 +149,33 @@ std::string Z3Context::print_term(const z3::expr & term) const
     }
   }
   return res;
+}
+
+void Z3Context::rethrow(const z3::exception & e) const
+{
+  // Z3 reports misuse, such as an ill-sorted term or a model asked for
+  // after unsat, under Z3_EXCEPTION as well as under the codes named for
+  // it, and its own failures under codes of their own. z3++ raises its
+  // own checks with no code set.
+  Z3_error_code code = Z3_get_error_code(*this);
+  switch (code)
+  {
+    case Z3_OK:
+    case Z3_SORT_ERROR:
+    case Z3_IOB:
+    case Z3_INVALID_ARG:
+    case Z3_PARSER_ERROR:
+    case Z3_NO_PARSER:
+    case Z3_INVALID_PATTERN:
+    case Z3_INVALID_USAGE:
+    case Z3_EXCEPTION: throw IncorrectUsageException(e.msg());
+    case Z3_MEMOUT_FAIL:
+    case Z3_INTERNAL_FATAL: throw SolverException(e.msg());
+    case Z3_FILE_ACCESS_ERROR: throw SystemException(e.msg());
+    case Z3_DEC_REF_ERROR: throw InternalException(e.msg());
+  }
+  throw InternalException("Z3 reported an unknown error code "
+                          + std::to_string(code) + ": " + e.msg());
 }
 
 }  // namespace smt
