@@ -260,7 +260,8 @@ bool BoolectorTerm::is_symbolic_const() const
 
 bool BoolectorTerm::is_value() const
 {
-  if (bn->kind == BTOR_UPDATE_NODE)
+  BtorNode * simplified = simplified_node();
+  if (btor_node_real_addr(simplified)->kind == BTOR_UPDATE_NODE)
   {
     // SMT-LIB's ArraysEx makes a store of a value into an array value a value
     for (const Term & c : *this)
@@ -272,34 +273,45 @@ bool BoolectorTerm::is_value() const
     }
     return true;
   }
-  bool res = boolector_is_const(btor.get(), node);
+  bool res = btor_node_is_bv_const(simplified);
   // constant arrays are considered values
   res |= is_const_array();
   return res;
 }
 
 /** Returns the bits of a constant, most significant first */
-static std::string const_to_bits(Btor * btor, BoolectorNode * node)
+static std::string const_to_bits(Btor * btor, BtorNode * exp)
 {
-  if (!boolector_is_const(btor, node))
+  if (!btor_node_is_bv_const(exp))
   {
     throw IncorrectUsageException(
         "Can't get a bitstring from a term that is not a constant");
   }
+  // boolector_get_bits accepts only a node with an external reference, which
+  // the node a term simplified to can lack, so one is held while reading
+  BtorNode * held = btor_node_copy(btor, exp);
+  btor_node_inc_ext_ref_counter(btor, held);
+  BoolectorNode * held_node = BTOR_EXPORT_BOOLECTOR_NODE(held);
   // the bits of the constant itself, which need no model, unlike its
   // assignment
-  const char * bits = boolector_get_bits(btor, node);
+  const char * bits = nullptr;
   std::string s;
   try
   {
+    bits = boolector_get_bits(btor, held_node);
     s = bits;
   }
   catch (...)
   {
-    boolector_free_bits(btor, bits);
+    if (bits)
+    {
+      boolector_free_bits(btor, bits);
+    }
+    boolector_release(btor, held_node);
     throw;
   }
   boolector_free_bits(btor, bits);
+  boolector_release(btor, held_node);
   return s;
 }
 
@@ -321,10 +333,9 @@ std::string BoolectorTerm::to_string() const
       btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
   // Boolector dumps a declaration for a node that simplifies to a symbol, so
   // the symbol is printed instead.
+  BtorNode * simplified = simplified_node();
   if (!sym)
   {
-    BtorNode * simplified =
-        btor_node_get_simplified(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
     if (btor_node_is_bv_var(simplified) || btor_node_is_uf(simplified))
     {
       sym = btor_node_get_symbol(btor.get(), simplified);
@@ -344,9 +355,9 @@ std::string BoolectorTerm::to_string() const
     }
     return sres;
   }
-  else if (boolector_is_const(btor.get(), node))
+  else if (btor_node_is_bv_const(simplified))
   {
-    return "#b" + const_to_bits(btor.get(), node);
+    return "#b" + const_to_bits(btor.get(), simplified);
   }
   else
   {
@@ -422,26 +433,27 @@ std::string BoolectorTerm::get_symbol_name() const
 
 uint64_t BoolectorTerm::to_int() const
 {
-  return bits_to_uint64(const_to_bits(btor.get(), node));
+  return bits_to_uint64(const_to_bits(btor.get(), simplified_node()));
 }
 
 int64_t BoolectorTerm::to_signed_int() const
 {
-  return bits_to_int64(const_to_bits(btor.get(), node));
+  return bits_to_int64(const_to_bits(btor.get(), simplified_node()));
 }
 
 bool BoolectorTerm::to_bool() const
 {
   // Boolector makes Booleans 1-bit bit-vectors
   BoolectorSort s = boolector_get_sort(btor.get(), node);
-  if (!boolector_is_const(btor.get(), node)
+  BtorNode * simplified = simplified_node();
+  if (!btor_node_is_bv_const(simplified)
       || !boolector_is_bitvec_sort(btor.get(), s)
       || boolector_get_width(btor.get(), node) != 1)
   {
     throw IncorrectUsageException("Can't convert " + to_string()
                                   + " to a Boolean: it is not a Boolean value");
   }
-  return const_to_bits(btor.get(), node) == "1";
+  return const_to_bits(btor.get(), simplified) == "1";
 }
 
 std::size_t BoolectorTerm::get_num_children() const
@@ -488,7 +500,7 @@ std::string BoolectorTerm::print_value_as(SortKind sk) const
     uint64_t width = boolector_get_width(btor.get(), node);
     if (width == 1 && sk == BOOL)
     {
-      if (const_to_bits(btor.get(), node) == "1")
+      if (const_to_bits(btor.get(), simplified_node()) == "1")
       {
         return "true";
       }
@@ -512,9 +524,21 @@ BoolectorNode * BoolectorTerm::get_btor_node() const { return node; }
 
 // helpers
 
+BtorNode * BoolectorTerm::simplified_node() const
+{
+  BtorNode * exp = BTOR_IMPORT_BOOLECTOR_NODE(node);
+  // a substituted symbol is still a symbol, so its proxy is not followed
+  if (symbol)
+  {
+    return exp;
+  }
+  return btor_node_get_simplified(btor.get(), exp);
+}
+
 bool BoolectorTerm::is_const_array() const
 {
-  return ((bn->kind == BTOR_LAMBDA_NODE) && (bn->is_array));
+  BtorNode * real = btor_node_real_addr(simplified_node());
+  return ((real->kind == BTOR_LAMBDA_NODE) && (real->is_array));
 }
 
 void BoolectorTerm::collect_children() const
