@@ -202,6 +202,20 @@ bool is_cvc5_value(const cvc5::Term & term)
          || k == cvc5::Kind::CONST_STRING || k == cvc5::Kind::CONST_SEQUENCE;
 }
 
+/** Index i of an indexed cvc5 op, which an smt-switch Op holds only if it
+ *  is a natural number that fits in 64 bits
+ */
+std::uint64_t op_index(cvc5::Op op, std::size_t i)
+{
+  const cvc5::Term index = op[i];
+  if (!index.isUInt64Value())
+  {
+    throw NotImplementedException("smt-switch has no op for the cvc5 op "
+                                  + op.toString());
+  }
+  return index.getUInt64Value();
+}
+
 }  // namespace
 
 cvc5::Kind to_cvc5_kind(PrimOp po)
@@ -276,15 +290,11 @@ Op Cvc5Term::get_op() const
     }
     if (num_indices == 1)
     {
-      uint64_t idx0 = std::stoull(cvc5_op[0].toString());
-      return Op(po, idx0);
+      return Op(po, op_index(cvc5_op, 0));
     }
     else
     {
-      std::pair<uint64_t, uint64_t> indices = {
-        std::stoull(cvc5_op[0].toString()), std::stoull(cvc5_op[1].toString())
-      };
-      return Op(po, indices.first, indices.second);
+      return Op(po, op_index(cvc5_op, 0), op_index(cvc5_op, 1));
     }
   }
   else
