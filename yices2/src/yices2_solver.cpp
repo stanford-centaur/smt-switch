@@ -20,7 +20,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -92,13 +91,11 @@ Yices2Solver::~Yices2Solver() { yices_free_config(config); }
 
 void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
-  if (option == "produce-models")
+  if (option == "produce-models" || option == "produce-unsat-assumptions")
   {
     if (!bool_option_value(option, value))
     {
-      std::cout << "Warning: Yices2 backend always produces models -- it "
-                   "can't be disabled."
-                << std::endl;
+      throw NotImplementedException("Yices2 cannot turn off " + option);
     }
   }
   else if (option == "incremental")
@@ -117,11 +114,6 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   else if (option == "time-limit")
   {
     time_limit = time_limit_seconds(value);
-  }
-  else if (option == "produce-unsat-assumptions")
-  {
-    // Yices2 can always give unsat assumptions, so only the value is checked.
-    bool_option_value(option, value);
   }
   else if (option == "produce-unsat-model-interpolants")
   {

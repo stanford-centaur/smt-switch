@@ -114,8 +114,10 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    // Bitwuzla is always incremental, so only the value is checked.
-    bool_option_value(option, value);
+    if (!bool_option_value(option, value))
+    {
+      throw NotImplementedException("Bitwuzla cannot turn off " + option);
+    }
     return;
   }
   if (is_initialized())

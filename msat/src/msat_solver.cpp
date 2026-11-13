@@ -14,7 +14,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <string>
@@ -238,9 +237,7 @@ void MsatSolver::set_opt(const string option, const string value)
   {
     if (!bool_option_value(option, value))
     {
-      cout << "Warning: Option " << option
-           << " is always enabled in MathSAT backend -- cannot be disabled"
-           << endl;
+      throw NotImplementedException("MathSAT cannot turn off " + option);
     }
     return;
   }

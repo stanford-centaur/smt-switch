@@ -50,7 +50,9 @@ class AbsSmtSolver
    * SMTLIB: (set-option :<option> <value>)
    * @param option name of the option
    * @param value string value
-   * @throws NotImplementedException for an option the solver does not know
+   * @throws NotImplementedException for an option the solver does not know,
+   *         or a value it cannot honour, such as false for an option it
+   *         always keeps on
    * @throws IncorrectUsageException for a value the solver does not allow,
    *         or an option it no longer accepts at this point
    */

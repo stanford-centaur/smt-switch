@@ -6,7 +6,8 @@
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * An option the solver does not know is refused with
- * NotImplementedException. The Boolean options smt-switch interprets
+ * NotImplementedException, as is false for an option the solver always
+ * keeps on. The Boolean options smt-switch interprets
  * itself take true or false, as SMT-LIB writes them, and any other value
  * is refused with IncorrectUsageException, even where the solver would
  * read it.
@@ -47,6 +48,22 @@ TEST_P(SetOpt, BooleanOptionTakesTrueOrFalse)
     {
       EXPECT_THROW(s->set_opt(option, value), IncorrectUsageException)
           << option << " " << value;
+    }
+  }
+}
+
+TEST_P(SetOpt, TurningOffIsHonouredOrNotImplemented)
+{
+  for (const char * option :
+       { "produce-models", "incremental", "produce-unsat-assumptions" })
+  {
+    // any other exception escapes and fails the test
+    try
+    {
+      s->set_opt(option, "false");
+    }
+    catch (const NotImplementedException &)
+    {
     }
   }
 }
