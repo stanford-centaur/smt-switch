@@ -214,6 +214,13 @@ BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
     {
       text.pop_back();
     }
+    // An abort names the source file it comes from: the API's argument
+    // checks are in boolector.c, Boolector's own failures, such as running
+    // out of memory, elsewhere.
+    if (text.rfind("[boolector] ", 0) == 0)
+    {
+      throw IncorrectUsageException(text);
+    }
     throw SolverException(text);
   };
   boolector_set_abort(throw_exception);
@@ -475,6 +482,12 @@ Result BoolectorSolver::do_check_sat_assuming(const TermVec & assumptions)
   {
     nodes.push_back(backend_pointer_cast<BoolectorTerm>(a)->node);
   }
+  // SMT-LIB allows one check_sat_assuming without incremental
+  if (!boolector_get_opt(btor.get(), BTOR_OPT_INCREMENTAL))
+  {
+    throw NotImplementedException(
+        "Boolector can only check under assumptions when incremental");
+  }
   last_assumptions = assumptions;
   for (BoolectorNode * node : nodes)
   {
@@ -495,6 +508,13 @@ Result BoolectorSolver::solve()
     // Boolector latches termination and has no API to clear it, so without
     // this every query after the first timeout would answer unknown.
     btor->cbs.term.done = 0;
+  }
+  // SMT-LIB allows any number of checks without incremental
+  if (!boolector_get_opt(btor.get(), BTOR_OPT_INCREMENTAL)
+      && btor->btor_sat_btor_called > 0)
+  {
+    throw NotImplementedException(
+        "Boolector can only check more than once when incremental");
   }
 
   int32_t res = boolector_sat(btor.get());
@@ -518,6 +538,11 @@ Result BoolectorSolver::solve()
 
 void BoolectorSolver::do_push(uint64_t num)
 {
+  // SMT-LIB allows push without incremental
+  if (!boolector_get_opt(btor.get(), BTOR_OPT_INCREMENTAL))
+  {
+    throw NotImplementedException("Boolector can only push when incremental");
+  }
   boolector_push(btor.get(), narrow_levels(num));
   scope_starts.insert(scope_starts.end(), num, assertions.size());
 }

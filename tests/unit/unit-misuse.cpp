@@ -39,10 +39,6 @@ TEST_P(Misuse, GetValueWithoutProduceModels)
   {
     GTEST_SKIP() << "the backend gives a model without produce-models";
   }
-  if (se == BTOR)
-  {
-    GTEST_SKIP() << "the backend does not translate the solver's refusal";
-  }
   Term x = s->make_symbol("x", s->make_sort(BOOL));
   s->assert_formula(x);
   s->check_sat();
@@ -51,11 +47,6 @@ TEST_P(Misuse, GetValueWithoutProduceModels)
 
 TEST_P(Misuse, GetValueAfterUnsat)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR)
-  {
-    GTEST_SKIP() << "the backend does not translate the solver's refusal";
-  }
   s->set_opt("produce-models", "true");
   Term x = s->make_symbol("x", s->make_sort(BOOL));
   s->assert_formula(s->make_term(false));
@@ -67,10 +58,6 @@ TEST_P(Misuse, GetValueAfterUnsat)
 // cannot do what was asked
 TEST_P(Misuse, PushIsHonouredOrNotImplemented)
 {
-  if (GetParam().solver_enum == BTOR)
-  {
-    GTEST_SKIP() << "the backend does not translate the solver's refusal";
-  }
   try
   {
     s->push();
@@ -83,10 +70,6 @@ TEST_P(Misuse, PushIsHonouredOrNotImplemented)
 
 TEST_P(Misuse, SecondCheckSatIsHonouredOrNotImplemented)
 {
-  if (GetParam().solver_enum == BTOR)
-  {
-    GTEST_SKIP() << "the backend does not translate the solver's refusal";
-  }
   s->check_sat();
   try
   {
@@ -101,7 +84,7 @@ TEST_P(Misuse, SecondCheckSatIsHonouredOrNotImplemented)
 TEST_P(Misuse, IllSortedApplication)
 {
   SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == MSAT || se == YICES2)
+  if (se == MSAT || se == YICES2)
   {
     GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }
@@ -136,7 +119,7 @@ TEST_P(Misuse, ZeroWidthBitVector)
   {
     GTEST_SKIP() << "the backend makes a bit-vector sort of width 0";
   }
-  if (se == BTOR || se == YICES2)
+  if (se == YICES2)
   {
     GTEST_SKIP() << "the backend does not translate the solver's refusal";
   }
