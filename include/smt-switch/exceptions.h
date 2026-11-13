@@ -99,6 +99,18 @@ class SolverException : public Exception
   ~SolverException() override;
 };
 
+/** Thrown when the operating system refuses a call smt-switch makes on the
+ *  caller's behalf, such as opening or writing a file, or starting a
+ *  process.
+ */
+class SystemException : public Exception
+{
+ public:
+  using Exception::Exception;
+  // defined in the .cpp to anchor the vtable
+  ~SystemException() override;
+};
+
 /** Thrown when smt-switch reaches a state its own code should rule out,
  *  such as an enumerator no switch handles. It reports a bug in
  *  smt-switch, not in the caller or the solver.

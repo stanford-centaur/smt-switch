@@ -1238,7 +1238,7 @@ void Z3Solver::dump_smt2(std::string filename) const
   std::ofstream out(filename);
   if (!out)
   {
-    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+    throw SystemException("Cannot open " + filename + " for writing");
   }
   out << Z3_benchmark_to_smtlib_string(
       *ctx,
@@ -1252,7 +1252,7 @@ void Z3Solver::dump_smt2(std::string filename) const
   out.close();
   if (!out)
   {
-    throw IncorrectUsageException("Cannot write " + filename);
+    throw SystemException("Cannot write " + filename);
   }
 }
 

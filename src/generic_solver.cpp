@@ -360,14 +360,14 @@ void GenericSolver::launch_binary() const
   // second solver's binary, cannot hold this solver's pipes open.
   if (int pipe_errno = detail::make_cloexec_pipe(inpipefd); pipe_errno != 0)
   {
-    throw SolverException("Failed to create a pipe from the solver binary at "
+    throw SystemException("Failed to create a pipe from the solver binary at "
                           + path + ": " + strerror(pipe_errno));
   }
   if (int pipe_errno = detail::make_cloexec_pipe(outpipefd); pipe_errno != 0)
   {
     close_fd(inpipefd[0]);
     close_fd(inpipefd[1]);
-    throw SolverException("Failed to create a pipe to the solver binary at "
+    throw SystemException("Failed to create a pipe to the solver binary at "
                           + path + ": " + strerror(pipe_errno));
   }
   // a third pipe tells the parent how execv() went: a successful exec
@@ -379,7 +379,7 @@ void GenericSolver::launch_binary() const
     close_fd(inpipefd[1]);
     close_fd(outpipefd[0]);
     close_fd(outpipefd[1]);
-    throw SolverException(
+    throw SystemException(
         "Failed to create a startup pipe for the solver binary at " + path
         + ": " + strerror(pipe_errno));
   }
@@ -393,7 +393,7 @@ void GenericSolver::launch_binary() const
     close_fd(outpipefd[1]);
     close_fd(execpipefd[0]);
     close_fd(execpipefd[1]);
-    throw SolverException("Failed to start the solver binary at " + path + ": "
+    throw SystemException("Failed to start the solver binary at " + path + ": "
                           + strerror(fork_errno));
   }
   if (pid == 0)
@@ -547,10 +547,12 @@ void GenericSolver::write_internal(std::string str) const
   if (write_errno == EPIPE)
   {
     binary_exited_ = true;
+    throw SolverException("Failed to send a command to the solver binary at "
+                          + path + ": " + strerror(write_errno));
   }
   if (write_errno != 0)
   {
-    throw SolverException("Failed to send a command to the solver binary at "
+    throw SystemException("Failed to send a command to the solver binary at "
                           + path + ": " + strerror(write_errno));
   }
 }
@@ -604,7 +606,7 @@ void GenericSolver::await_response(
     if (ready < 0 && errno != EINTR)
     {
       int poll_errno = errno;
-      throw SolverException("Failed to wait for the solver binary at " + path
+      throw SystemException("Failed to wait for the solver binary at " + path
                             + " to respond: " + strerror(poll_errno));
     }
   }
@@ -638,7 +640,7 @@ std::string GenericSolver::read_internal(const std::string & cmd) const
         continue;
       }
       int read_errno = errno;
-      throw SolverException(
+      throw SystemException(
           "Failed to read a response from the solver binary at " + path + ": "
           + strerror(read_errno));
     }
@@ -695,6 +697,12 @@ std::string GenericSolver::send_command(const std::string & cmd) const
     restart_binary();
     throw;
   }
+  catch (SystemException &)
+  {
+    // a failed write or read leaves part of a command or answer on the pipe
+    restart_binary();
+    throw;
+  }
   if (binary_exited_ || is_error_response(result))
   {
     restore_binary();
@@ -719,6 +727,9 @@ void GenericSolver::restore_binary() const
     catch (SolverException &)
     {
     }
+    catch (SystemException &)
+    {
+    }
   }
   restart_binary();
 }
@@ -741,6 +752,11 @@ void GenericSolver::restart_binary() const
         throw SolverException("it answered " + result + " to " + cmd);
       }
     }
+  }
+  catch (SystemException & e)
+  {
+    throw SystemException("Could not restart the solver binary at " + path
+                          + ": " + e.what());
   }
   catch (Exception & e)
   {

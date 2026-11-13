@@ -70,8 +70,8 @@ inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
 %{
 #include <cstring>
 #include <new>
-#include <stdexcept>
 
+#include "smt-switch/exceptions.h"
 #include "smt-switch/utils.h"
 
 // The length of the token, as the location counts it. Some flex versions
@@ -84,7 +84,7 @@ inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
 
 // Errors flex cannot recover from, such as a failed read or allocation,
 // which it would otherwise print before exiting.
-#define YY_FATAL_ERROR(msg) throw std::runtime_error(msg)
+#define YY_FATAL_ERROR(msg) throw smt::SystemException(msg)
 %}
 
 simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*

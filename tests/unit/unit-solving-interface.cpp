@@ -215,7 +215,7 @@ TEST_P(UnitSolveTests, DumpRefusesUnopenableFile)
     GTEST_SKIP() << "the generic solver does not check its dump file yet";
   }
   EXPECT_THROW(s->dump_smt2(testing::TempDir() + "no-such-dir/dump.smt2"),
-               IncorrectUsageException);
+               SystemException);
 }
 
 TEST_P(UnitSolveTests, DumpReportsFailedWrite)
@@ -228,7 +228,7 @@ TEST_P(UnitSolveTests, DumpReportsFailedWrite)
   {
     GTEST_SKIP() << "this system has no /dev/full to fail writes";
   }
-  EXPECT_THROW(s->dump_smt2("/dev/full"), IncorrectUsageException);
+  EXPECT_THROW(s->dump_smt2("/dev/full"), SystemException);
 }
 
 INSTANTIATE_TEST_SUITE_P(

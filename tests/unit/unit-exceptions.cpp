@@ -24,6 +24,7 @@ using ExceptionTypes = ::testing::Types<smt::Exception,
                                         smt::IncorrectUsageException,
                                         smt::NotImplementedException,
                                         smt::SolverException,
+                                        smt::SystemException,
                                         smt::InternalException>;
 // GTest takes the name generator as a variadic third parameter, and leaving
 // it out altogether is a C++20 extension. The trailing comma passes it empty
