@@ -302,8 +302,7 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   {
     if (!bool_option_value(option, value))
     {
-      throw IncorrectUsageException(
-          "Z3 does not support turning off incremental solving");
+      throw NotImplementedException("Z3 cannot turn off " + option);
     }
   }
   else if (option == "produce-models")
