@@ -2399,6 +2399,10 @@ void GenericSolver::dump_smt2(std::string filename) const
   }
 
   std::ofstream out(filename);
+  if (!out)
+  {
+    throw SystemException("Cannot open " + filename + " for writing");
+  }
   // SMT-LIB declares nothing before set-logic, so where the binary was left
   // to its default logic the dump sets ALL
   bool logic_set = false;
@@ -2420,6 +2424,11 @@ void GenericSolver::dump_smt2(std::string filename) const
     out << "(" << SET_LOGIC_STR << " ALL)\n";
   }
   out << "(" << CHECK_SAT_STR << ")\n";
+  out.close();
+  if (!out)
+  {
+    throw SystemException("Cannot write " + filename);
+  }
 }
 
 void GenericSolver::do_reset_assertions()
