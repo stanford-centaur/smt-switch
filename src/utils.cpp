@@ -1302,10 +1302,6 @@ Term UnsatCoreReducer::label(const Term & t)
     {
       ++i;
     }
-    catch (SmtException & e)
-    {
-      throw e;
-    }
   }
 
   labels_[t] = l;
