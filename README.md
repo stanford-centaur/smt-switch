@@ -312,11 +312,32 @@ Please refer to the pySMT docs for further information.
 When pySMT is installed, tests specific to the front end are also included in
 the Python test suites.
 
+## Exceptions
+
+Every exception smt-switch throws derives from `smt::Exception`, which derives
+from `std::exception`. Each subclass names a cause, the same on every backend:
+
+- `smt::IncorrectUsageException`: the caller asked for something SMT-LIB, or the
+  solver's documented contract for an extension, does not allow, such as a term
+  of the wrong sort or a model after an unsat check.
+- `smt::ParseException`, an `IncorrectUsageException`: the SMT-LIB reader cannot
+  parse its input. The message starts with the location.
+- `smt::NotImplementedException`: the request is allowed, but the solver or its
+  backend cannot carry it out, such as an option it does not know or a theory it
+  lacks.
+- `smt::SolverException`: the solver itself failed, for instance at an internal
+  limit.
+- `smt::SystemException`: the operating system refused a call, such as opening a
+  file or starting a process.
+- `smt::InternalException`: smt-switch reached a state its own code should rule
+  out, which is a bug to report.
+
 ## Current Limitations
 
 Every backend implements the same interface, but not every solver supports every
 theory or feature. A backend refuses what its solver cannot do with
-`NotImplementedException`, and a misuse with `IncorrectUsageException`.
+`NotImplementedException`, and a misuse with `IncorrectUsageException`, as
+[Exceptions](#exceptions) describes.
 
 ### Supported features
 
