@@ -13,7 +13,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
@@ -27,8 +29,13 @@ class Z3Sort : public AbsSort
   // Non-functions
   Z3Sort(const std::shared_ptr<Z3Context> & c, z3::sort z3sort);
 
-  // Functions
+  // Functions, by the signature and kind of a declaration
   Z3Sort(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc);
+
+  // Function sorts, by their domain and codomain
+  Z3Sort(const std::shared_ptr<Z3Context> & c,
+         std::vector<z3::sort> domain_sorts,
+         z3::sort codomain);
 
   // Sort constructors, which Z3's API lacks, by their name and arity
   Z3Sort(const std::shared_ptr<Z3Context> & c,
@@ -58,11 +65,13 @@ class Z3Sort : public AbsSort
 
  protected:
   // shared with the solver, so the context lives as long as this sort, and
-  // declared first, so that type and z_func are released while it does
+  // declared first, so that the Z3 sorts are released while it does
   std::shared_ptr<Z3Context> ctx;
   z3::sort type;
-  z3::func_decl z_func;
-  bool is_function = false;
+  // a function sort's kind and signature, when the sort is one
+  std::optional<SortKind> function_kind = std::nullopt;
+  std::vector<z3::sort> domain = {};
+  z3::sort range;
   // a sort constructor's name and arity, when the sort is one
   bool is_constructor = false;
   std::string constructor_name = "";

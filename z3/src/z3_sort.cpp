@@ -23,12 +23,41 @@ namespace smt {
 // Z3Sort implementation
 
 Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::sort z3sort)
-    : ctx(c), type(z3sort), z_func(*c)
+    : ctx(c), type(z3sort), range(*c)
 {
 }
 
 Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc)
-    : ctx(c), type(*c), z_func(zfunc), is_function(true)
+    : ctx(c), type(*c), function_kind(FUNCTION), range(zfunc.range())
+{
+  domain.reserve(zfunc.arity());
+  for (unsigned i = 0; i < zfunc.arity(); i++)
+  {
+    domain.push_back(zfunc.domain(i));
+  }
+  Z3_decl_kind kind = zfunc.decl_kind();
+  if (kind == Z3_OP_DT_CONSTRUCTOR)
+  {
+    function_kind = CONSTRUCTOR;
+  }
+  else if (kind == Z3_OP_DT_ACCESSOR)
+  {
+    function_kind = SELECTOR;
+  }
+  else if (kind == Z3_OP_DT_IS)
+  {
+    function_kind = TESTER;
+  }
+}
+
+Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c,
+               std::vector<z3::sort> domain_sorts,
+               z3::sort codomain)
+    : ctx(c),
+      type(*c),
+      function_kind(FUNCTION),
+      domain(std::move(domain_sorts)),
+      range(std::move(codomain))
 {
 }
 
@@ -37,7 +66,7 @@ Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c,
                std::uint64_t arity)
     : ctx(c),
       type(*c),
-      z_func(*c),
+      range(*c),
       is_constructor(true),
       constructor_name(std::move(name)),
       constructor_arity(arity)
@@ -54,14 +83,13 @@ std::size_t Z3Sort::hash() const
     detail::hash_combine(h, std::hash<std::string>{}(constructor_name));
     detail::hash_combine(h, constructor_arity);
   }
-  else if (is_function)
+  else if (function_kind.has_value())
   {
-    // a function sort is held as a func_decl, but its name is not part of
-    // the sort, so hash only the signature, to agree with compare
-    detail::hash_combine(h, z_func.range().id());
-    for (unsigned i = 0; i < z_func.arity(); i++)
+    // hash only the signature, to agree with compare
+    detail::hash_combine(h, range.id());
+    for (const z3::sort & d : domain)
     {
-      detail::hash_combine(h, z_func.domain(i).id());
+      detail::hash_combine(h, d.id());
     }
   }
   else
@@ -106,35 +134,30 @@ Sort Z3Sort::get_elemsort() const
 
 SortVec Z3Sort::get_domain_sorts() const
 {
-  if (!is_function)
+  if (!function_kind.has_value())
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
                                   + " has no domain sorts");
   }
-  unsigned s_arity = z_func.arity();
   SortVec sorts;
-  sorts.reserve(s_arity);
-  Sort s;
-
-  for (unsigned i = 0; i < s_arity; i++)
+  sorts.reserve(domain.size());
+  for (const z3::sort & d : domain)
   {
-    s.reset(new Z3Sort(ctx, z_func.domain(i)));
-    sorts.push_back(s);
+    sorts.push_back(std::make_shared<Z3Sort>(ctx, d));
   }
-
   return sorts;
 }
 
 Sort Z3Sort::get_codomain_sort() const
 {
-  if (!is_function)
+  if (!function_kind.has_value())
   {
     throw IncorrectUsageException("Sort of kind "
                                   + smt::to_string(get_sort_kind())
                                   + " has no codomain sort");
   }
-  return std::make_shared<Z3Sort>(ctx, z_func.range());
+  return std::make_shared<Z3Sort>(ctx, range);
 }
 
 std::string Z3Sort::get_uninterpreted_name() const
@@ -218,7 +241,7 @@ z3::sort Z3Sort::get_z3_datatype() const
 bool Z3Sort::compare(const Sort & s) const
 {
   std::shared_ptr<Z3Sort> zs = std::dynamic_pointer_cast<Z3Sort>(s);
-  if (!zs || is_function != zs->is_function
+  if (!zs || function_kind.has_value() != zs->function_kind.has_value()
       || is_constructor != zs->is_constructor)
   {
     return false;
@@ -230,21 +253,19 @@ bool Z3Sort::compare(const Sort & s) const
     return ctx == zs->ctx && constructor_name == zs->constructor_name
            && constructor_arity == zs->constructor_arity;
   }
-  if (!is_function)
+  if (!function_kind.has_value())
   {
     return z3::eq(type, zs->type);
   }
 
-  // compare function sorts by signature: the func_decls have different
-  // names when one comes from make_sort and the other from a symbol
-  const z3::func_decl & other = zs->z_func;
-  if (z_func.arity() != other.arity() || !z3::eq(z_func.range(), other.range()))
+  // compare function sorts by signature
+  if (domain.size() != zs->domain.size() || !z3::eq(range, zs->range))
   {
     return false;
   }
-  for (unsigned i = 0; i < z_func.arity(); i++)
+  for (std::size_t i = 0; i < domain.size(); i++)
   {
-    if (!z3::eq(z_func.domain(i), other.domain(i)))
+    if (!z3::eq(domain[i], zs->domain[i]))
     {
       return false;
     }
@@ -286,22 +307,9 @@ SortKind Z3Sort::get_sort_kind() const
   {
     return UNINTERPRETED;
   }
-  else if (is_function)
+  else if (function_kind.has_value())
   {
-    Z3_decl_kind kind = z_func.decl_kind();
-    if (kind == Z3_OP_DT_CONSTRUCTOR)
-    {
-      return CONSTRUCTOR;
-    }
-    else if (kind == Z3_OP_DT_ACCESSOR)
-    {
-      return SELECTOR;
-    }
-    else if (kind == Z3_OP_DT_IS)
-    {
-      return TESTER;
-    }
-    return FUNCTION;
+    return *function_kind;
   }
   else
   {
@@ -312,7 +320,7 @@ SortKind Z3Sort::get_sort_kind() const
 
 z3::sort Z3Sort::get_z3_type() const
 {
-  if (is_function)
+  if (function_kind.has_value())
   {
     throw IncorrectUsageException("Can't get a Z3 sort from a function sort");
   }

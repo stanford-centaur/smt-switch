@@ -702,7 +702,7 @@ Term Z3Solver::make_term(const Term & val, const Sort & sort) const
   std::shared_ptr<Z3Term> zterm = get_z3_term(val);
   std::shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
 
-  if (zsort->is_function || zterm->is_function)
+  if (zsort->function_kind.has_value() || zterm->is_function)
   {
     throw IncorrectUsageException(
         "Can't make a constant array of a function sort or with a function "
@@ -978,12 +978,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
     Sort sort = sorts.back();
     z_sort = get_z3_sort(sort)->get_z3_type();
 
-    const char * c = "throwaway name";
-    z3::symbol func_name = ctx->str_symbol(c);
-    z3::func_decl z_func =
-        ctx->function(func_name, arity, zsorts.data(), z_sort);
-
-    return std::make_shared<Z3Sort>(ctx, z_func);
+    return std::make_shared<Z3Sort>(ctx, std::move(zsorts), z_sort);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
@@ -1024,15 +1019,10 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   if (zsort->get_sort_kind() == FUNCTION)
   {
     // nb this is creating a func_decl
-    z3::func_decl sort_func = zsort->z_func;
-
-    z3::sort_vector domain(*ctx);
-    for (unsigned i = 0; i < sort_func.arity(); i++)
-    {
-      domain.push_back(sort_func.domain(i));
-    }
-
-    z3::func_decl z_func = ctx->function(c, domain, sort_func.range());
+    z3::func_decl z_func = ctx->function(c,
+                                         narrow_num_args(zsort->domain.size()),
+                                         zsort->domain.data(),
+                                         zsort->range);
     sym = std::make_shared<Z3Term>(ctx, z_func);
   }
   else
@@ -1060,7 +1050,7 @@ Term Z3Solver::make_param(const std::string name, const Sort & sort) const
 {
   shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
 
-  if (zsort->is_function)
+  if (zsort->function_kind.has_value())
   {
     throw IncorrectUsageException("Can't make a parameter of a function sort");
   }
