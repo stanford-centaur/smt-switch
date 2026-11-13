@@ -202,7 +202,7 @@ ones may work too. What is built automatically is pinned in
 | Bitwuzla  | 0.4.0  | 0.9.1         |
 | Boolector | 3.2.2  | 3.2.4         |
 | cvc5      | 1.4.0  | 1.4.2         |
-| MathSAT   | 5.6.12 | 5.6.19        |
+| MathSAT   | 5.6.12 | 5.6.20        |
 | Yices2    | 2.7.0  | 2.7.0         |
 | Z3        | 4.12.2 | 5.4.1         |
 
