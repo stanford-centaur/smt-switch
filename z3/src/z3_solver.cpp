@@ -1247,6 +1247,10 @@ void Z3Solver::dump_smt2(std::string filename) const
     }
   }
   std::ofstream out(filename);
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+  }
   out << Z3_benchmark_to_smtlib_string(
       *ctx,
       /* name */ "",
@@ -1256,6 +1260,11 @@ void Z3Solver::dump_smt2(std::string filename) const
       static_cast<unsigned>(assumptions.size()),
       assumptions.data(),
       formula);
+  out.close();
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot write " + filename);
+  }
 }
 
 std::shared_ptr<z3::context> Z3Solver::get_z3_context() { return ctx; }

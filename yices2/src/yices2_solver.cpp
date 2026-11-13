@@ -1247,7 +1247,16 @@ void Yices2Solver::do_reset_assertions()
 void Yices2Solver::dump_smt2(std::string filename) const
 {
   std::ofstream out(filename);
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+  }
   smtlib_benchmark(out, logic_, assertions);
+  out.close();
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot write " + filename);
+  }
 }
 
 Term Yices2Solver::substitute(const Term term,

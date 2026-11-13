@@ -998,10 +998,19 @@ void Cvc5Solver::dump_smt2(std::string filename) const
     assertions.push_back(std::make_shared<Cvc5Term>(a));
   }
   std::ofstream out(filename);
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+  }
   smtlib_benchmark(
       out,
       instance->solver.isLogicSet() ? instance->solver.getLogic() : "ALL",
       assertions);
+  out.close();
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot write " + filename);
+  }
 }
 
 /**

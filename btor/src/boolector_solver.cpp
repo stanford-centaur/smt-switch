@@ -933,7 +933,12 @@ void BoolectorSolver::dump_smt2(std::string filename) const
     fclose(file);
     throw;
   }
-  fclose(file);
+  // closing flushes the rest, which can fail as well
+  bool write_failed = ferror(file) != 0;
+  if (fclose(file) != 0 || write_failed)
+  {
+    throw IncorrectUsageException("Cannot write " + filename);
+  }
 }
 
 /* end BoolectorSolver implementation */

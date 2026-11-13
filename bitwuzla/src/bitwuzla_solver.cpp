@@ -682,7 +682,16 @@ void BzlaSolver::dump_smt2(std::string filename) const
     }
   }
   std::ofstream out(filename);
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+  }
   smtlib_benchmark(out, logic_, assertions);
+  out.close();
+  if (!out)
+  {
+    throw IncorrectUsageException("Cannot write " + filename);
+  }
 }
 
 }  // namespace smt

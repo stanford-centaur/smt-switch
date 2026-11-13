@@ -8,6 +8,7 @@
  */
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
 #include <list>
 #include <memory>
@@ -205,6 +206,29 @@ TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
       dump_equality(create_printing_solver(create_solver(GetParam()), &printed),
                     prefix + "-printing.smt2"),
       plain);
+}
+
+TEST_P(UnitSolveTests, DumpRefusesUnopenableFile)
+{
+  if (GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver does not check its dump file yet";
+  }
+  EXPECT_THROW(s->dump_smt2(testing::TempDir() + "no-such-dir/dump.smt2"),
+               IncorrectUsageException);
+}
+
+TEST_P(UnitSolveTests, DumpReportsFailedWrite)
+{
+  if (GetParam().solver_enum == GENERIC_SOLVER)
+  {
+    GTEST_SKIP() << "the generic solver does not check its dump file yet";
+  }
+  if (!filesystem::exists("/dev/full"))
+  {
+    GTEST_SKIP() << "this system has no /dev/full to fail writes";
+  }
+  EXPECT_THROW(s->dump_smt2("/dev/full"), IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(
