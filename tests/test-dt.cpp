@@ -727,11 +727,6 @@ TEST_P(Datatypes, SecondDatatypeOfANameIsRefusedOrSeparate)
 
 TEST_P(Datatypes, SecondDatatypeOfANameInOneCallIsRefusedOrSeparate)
 {
-  if (s->get_solver_enum() == CVC5)
-  {
-    GTEST_SKIP() << "cvc5 reports two datatypes of one name in one call as "
-                    "an internal solver error";
-  }
   auto firstdecl = s->make_datatype_decl("list");
   s->add_constructor(firstdecl, s->make_datatype_constructor_decl("one"));
   SortVec sorts;
