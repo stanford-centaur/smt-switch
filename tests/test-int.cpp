@@ -269,6 +269,28 @@ TEST_P(IntArithmeticTests, PowerOfSymbol)
   EXPECT_EQ(s->get_value(u)->to_signed_int(), 3);
 }
 
+TEST_P(IntArithmeticTests, PowerBySymbol)
+{
+  if (GetParam().solver_enum == MSAT)
+  {
+    GTEST_SKIP() << "MathSAT finds no exponent n with 2^n = 8";
+  }
+  Term n = s->make_symbol("n", intsort);
+  Term power;
+  try
+  {
+    power = s->make_term(Pow, s->make_term(2, intsort), n);
+  }
+  catch (const NotImplementedException & e)
+  {
+    GTEST_SKIP() << e.what();
+  }
+  s->assert_formula(s->make_term(Equal, power, s->make_term(8, intsort)));
+
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_EQ(s->get_value(n)->to_signed_int(), 3);
+}
+
 TEST_P(IntArithmeticTests, DivAndModBySymbol)
 {
   // a solver of its own, as MathSAT takes a logic only before the first sort;
