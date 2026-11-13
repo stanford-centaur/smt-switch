@@ -68,10 +68,10 @@ class IncorrectUsageException : public Exception
  *  solver refuses, such as a redeclaration. The message starts with where,
  *  as file:line.column.
  */
-class ParseException : public Exception
+class ParseException : public IncorrectUsageException
 {
  public:
-  using Exception::Exception;
+  using IncorrectUsageException::IncorrectUsageException;
   // defined in the .cpp to anchor the vtable
   ~ParseException() override;
 };

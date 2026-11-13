@@ -149,6 +149,11 @@ void SmtLibReader::parse(const std::string & f)
     message << e.location << ": " << e.what();
     throw ParseException(message.str());
   }
+  // already located, so not wrapped again by the catch below
+  catch (const ParseException &)
+  {
+    throw;
+  }
   // the reader or the solver refusing something the input asks for
   catch (const IncorrectUsageException & e)
   {
