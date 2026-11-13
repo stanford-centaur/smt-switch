@@ -254,25 +254,39 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {
-    if (bool_option_value(option, value))
-    {
-      set_btor_opt(btor.get(), BTOR_OPT_MODEL_GEN, 1);
-    }
+    set_btor_opt(
+        btor.get(), BTOR_OPT_MODEL_GEN, bool_option_value(option, value));
   }
   else if (option == "incremental")
   {
-    if (bool_option_value(option, value))
+    bool on = bool_option_value(option, value);
+    if (!on && unsat_assumptions)
     {
-      set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
+      throw NotImplementedException(
+          "Boolector gives unsat assumptions only when incremental, so it "
+          "cannot turn off incremental while produce-unsat-assumptions is on");
     }
+    set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, on);
+    incremental_off = !on;
   }
   else if (option == "produce-unsat-assumptions")
   {
-    if (bool_option_value(option, value))
+    // Boolector gives unsat assumptions whenever it is incremental, so
+    // turning them off leaves Boolector as it is and get_unsat_assumptions
+    // refuses instead.
+    if (!bool_option_value(option, value))
     {
-      // needs to be incremental for getting unsat assumptions
-      set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
+      unsat_assumptions = false;
+      return;
     }
+    if (incremental_off)
+    {
+      throw NotImplementedException(
+          "Boolector gives unsat assumptions only when incremental, which was "
+          "turned off");
+    }
+    set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
+    unsat_assumptions = true;
   }
   else if (option == "base-context-1")
   {
@@ -596,6 +610,11 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
 
 void BoolectorSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
+  if (!unsat_assumptions)
+  {
+    throw IncorrectUsageException(
+        "get_unsat_assumptions needs produce-unsat-assumptions");
+  }
   BoolectorNode ** bcore = boolector_get_failed_assumptions(btor.get());
   while (*bcore)
   {
@@ -883,6 +902,8 @@ void BoolectorSolver::do_reset()
   // the new instance starts at context 0 with default options, so the
   // bookkeeping for the old one goes too
   base_context_1 = false;
+  unsat_assumptions = false;
+  incremental_off = false;
   time_limit = std::chrono::duration<double>::zero();
   assertions.clear();
   scope_starts.clear();
