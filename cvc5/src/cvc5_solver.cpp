@@ -31,6 +31,17 @@
 
 namespace smt {
 
+// cvc5 raises CVC5ApiException for a call its API does not allow, and its
+// subclass CVC5ApiUnsupportedException for one it does not support.
+[[noreturn]] static void rethrow_cvc5_error(const ::cvc5::CVC5ApiException & e)
+{
+  if (dynamic_cast<const ::cvc5::CVC5ApiUnsupportedException *>(&e))
+  {
+    throw NotImplementedException(e.what());
+  }
+  throw IncorrectUsageException(e.what());
+}
+
 // The cvc5 sort of a term of sort s. cvc5 accepts a sort constructor there
 // and goes on with it, so it is refused here.
 static ::cvc5::Sort term_sort(const Sort & s)
@@ -144,7 +155,7 @@ Term Cvc5Solver::make_term(bool b) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -298,7 +309,7 @@ void Cvc5Solver::do_assert(const Term & t)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -323,13 +334,13 @@ Result Cvc5Solver::check_sat()
     }
     else
     {
-      throw NotImplementedException(
+      throw InternalException(
           "cvc5 gave a result that is not sat, unsat or unknown");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -361,13 +372,13 @@ Result Cvc5Solver::do_check_sat_assuming(const TermVec & assumptions)
     }
     else
     {
-      throw NotImplementedException(
+      throw InternalException(
           "cvc5 gave a result that is not sat, unsat or unknown");
     }
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -379,7 +390,7 @@ void Cvc5Solver::do_push(uint64_t num)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -391,7 +402,7 @@ void Cvc5Solver::do_pop(uint64_t num)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -404,7 +415,7 @@ Term Cvc5Solver::get_value(const Term & t) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -436,7 +447,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
   }
   catch (cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -449,6 +460,10 @@ void Cvc5Solver::get_unsat_assumptions(UnorderedTermSet & out) const
     {
       out.insert(std::make_shared<Cvc5Term>(cterm));
     }
+  }
+  catch (const ::cvc5::CVC5ApiException & e)
+  {
+    rethrow_cvc5_error(e);
   }
   // this function seems to return a different exception type
   catch (std::exception & e)
@@ -466,7 +481,7 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -498,7 +513,7 @@ Sort Cvc5Solver::make_sort(SortKind sk) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -519,7 +534,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -565,7 +580,7 @@ Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -602,7 +617,7 @@ Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -624,7 +639,7 @@ Term Cvc5Solver::make_symbol(const std::string name, const Sort & sort)
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -647,7 +662,7 @@ Term Cvc5Solver::make_param(const std::string name, const Sort & sort) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -664,7 +679,7 @@ DatatypeDecl Cvc5Solver::make_datatype_decl(const std::string & s) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -678,7 +693,7 @@ DatatypeConstructorDecl Cvc5Solver::make_datatype_constructor_decl(
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -696,7 +711,7 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -714,7 +729,7 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -730,7 +745,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -753,7 +768,7 @@ Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -776,7 +791,7 @@ Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -809,7 +824,7 @@ Term Cvc5Solver::get_selector(const Sort & s,
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -872,7 +887,7 @@ SortVec Cvc5Solver::make_datatype_sorts(
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
@@ -968,12 +983,13 @@ void Cvc5Solver::do_reset_assertions()
   }
   catch (::cvc5::CVC5ApiException & e)
   {
-    throw SolverException(e.what());
+    rethrow_cvc5_error(e);
   }
 }
 
 Term Cvc5Solver::substitute(const Term term,
                             const UnorderedTermMap & substitution_map) const
+try
 {
   std::vector<::cvc5::Term> keys;
   std::vector<::cvc5::Term> values;
@@ -988,6 +1004,10 @@ Term Cvc5Solver::substitute(const Term term,
 
   ::cvc5::Term cterm = backend_pointer_cast<Cvc5Term>(term)->term;
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
+}
+catch (const ::cvc5::CVC5ApiException & e)
+{
+  rethrow_cvc5_error(e);
 }
 
 void Cvc5Solver::dump_smt2(std::string filename) const
