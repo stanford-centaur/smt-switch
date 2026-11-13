@@ -73,7 +73,7 @@ constexpr PrimOpInfo primop_info[] = {
   { Ge, ">=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
   { Mod, "mod", Theory::INTS, 0, 2, 2, Assoc::NONE },
   { Abs, "abs", Theory::INTS, 0, 1, 1, Assoc::NONE },
-  { Pow, "pow", Theory::INTS, 0, 2, 2, Assoc::NONE },
+  { Pow, "**", Theory::INTS, 0, 2, 2, Assoc::NONE },
   { IntDiv, "div", Theory::INTS, 0, 2, INT_MAX, Assoc::LEFT },
   { Divisible, "divisible", Theory::INTS, 1, 1, 1, Assoc::NONE },
   { To_Real, "to_real", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },

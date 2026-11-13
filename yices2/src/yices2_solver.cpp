@@ -181,6 +181,13 @@ void Yices2Solver::set_logic(const std::string logic)
   yices_free_config(scratch_config);
   if (!scratch_ctx)
   {
+    // A Yices2 without QF_EIA still solves the ** Pow is under QF_NIA, as
+    // far as it can.
+    if (logic == "QF_EIA")
+    {
+      set_logic("QF_NIA");
+      return;
+    }
     throw NotImplementedException("Yices2 cannot use logic " + logic + ": "
                                   + detail::get_yices2_error());
   }

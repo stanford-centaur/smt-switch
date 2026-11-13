@@ -675,23 +675,32 @@ TEST_P(Logics, AllAfterTerm)
   EXPECT_NO_THROW(reader->set_logic("ALL"));
 }
 
-TEST_P(Logics, BVIntConversionsAreStandard)
+TEST_P(Logics, StandardSpellings)
 {
+  // SMT-LIB's spellings in both modes, older ones only outside strict mode
   SmtSolver fresh = create_solver(GetParam());
   SmtLibReader strict_reader(fresh, true);
   strict_reader.set_logic("ALL");
+  reader->set_logic("ALL");
   EXPECT_EQ(strict_reader.lookup_primop("ubv_to_int"), UBV_To_Int);
   EXPECT_EQ(strict_reader.lookup_primop("sbv_to_int"), SBV_To_Int);
   EXPECT_EQ(strict_reader.lookup_primop("int_to_bv"), Int_To_BV);
+  EXPECT_EQ(strict_reader.lookup_primop("**"), Pow);
   EXPECT_EQ(strict_reader.lookup_primop("bv2nat"), NUM_OPS_AND_NULL);
   EXPECT_EQ(strict_reader.lookup_primop("int2bv"), NUM_OPS_AND_NULL);
+  EXPECT_EQ(strict_reader.lookup_primop("pow"), NUM_OPS_AND_NULL);
+  EXPECT_EQ(strict_reader.lookup_primop("^"), NUM_OPS_AND_NULL);
+  EXPECT_EQ(reader->lookup_primop("**"), Pow);
+  EXPECT_EQ(reader->lookup_primop("bv2nat"), UBV_To_Int);
+  EXPECT_EQ(reader->lookup_primop("int2bv"), Int_To_BV);
+  EXPECT_EQ(reader->lookup_primop("pow"), Pow);
+  EXPECT_EQ(reader->lookup_primop("^"), Pow);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    SmtLibReader,
-    Logics,
-    testing::ValuesIn(available_non_generic_solver_configurations()),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(SmtLibReader,
+                         Logics,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
 
 /** Records the values of the set-info commands it reads */
 class InfoRecorder : public SmtLibReader

@@ -205,12 +205,14 @@ void SmtLibReader::set_logic(const std::string & logic)
   }
 
   // the abbreviations of the theories, none a prefix of another, with
-  // linear (L) and nonlinear (N) arithmetic declaring nothing of their own
+  // linear (L), nonlinear (N) and exponential (E) arithmetic declaring
+  // nothing of their own
   static constexpr std::pair<std::string_view, LogicTheory> abbreviations[] = {
     { "A", LogicTheory::A },    { "BV", LogicTheory::BV },
     { "UF", LogicTheory::UF },  { "S", LogicTheory::S },
     { "I", LogicTheory::IA },   { "R", LogicTheory::RA },
     { "L", LogicTheory::CORE }, { "N", LogicTheory::CORE },
+    { "E", LogicTheory::CORE },
   };
   while (!rest.empty())
   {
@@ -264,10 +266,13 @@ void SmtLibReader::add_theory(LogicTheory theory)
     case LogicTheory::IA:
       sort = INT;
       // - with one argument is Negate, which apply_primop picks
-      ops = { Plus, Minus, Lt, Le, Gt, Ge, Mult, IntDiv, Mod, Divisible, Abs };
+      ops = { Plus, Minus,  Lt,  Le,        Gt,  Ge,
+              Mult, IntDiv, Mod, Divisible, Abs, Pow };
       if (!strict_)
       {
-        ops.push_back(Pow);
+        // spellings of ** from before SMT-LIB standardized it
+        primops_.emplace("pow", Pow);
+        primops_.emplace("^", Pow);
       }
       break;
     case LogicTheory::RA:
