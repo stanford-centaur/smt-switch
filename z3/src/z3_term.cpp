@@ -339,7 +339,7 @@ string Z3Term::to_string() const
     {
       return "(_ is " + smtlib_quote_symbol(get_constructor_name()) + ")";
     }
-    return z_func.name().str();
+    return smtlib_quote_symbol(z_func.name().str());
   }
   else
   {

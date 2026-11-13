@@ -346,6 +346,9 @@ TEST_P(Datatypes, QuotedConstructorAndSelectorNames)
   EXPECT_EQ(
       s->get_selector(listsort, "my cons", "my head")->get_selector_name(),
       "my head");
+  EXPECT_EQ(s->get_constructor(listsort, "my cons")->to_string(), "|my cons|");
+  EXPECT_EQ(s->get_selector(listsort, "my cons", "my head")->to_string(),
+            "|my head|");
 }
 
 TEST_P(Datatypes, ConstructorAndSelectorNamesOfOtherTerms)
