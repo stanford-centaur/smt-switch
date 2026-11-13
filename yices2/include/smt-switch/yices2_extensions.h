@@ -30,9 +30,14 @@ using Yices2ModelPtr = std::unique_ptr<model_t, Yices2ModelDeleter>;
  */
 std::string get_yices2_error();
 
+/** Throws the smt-switch exception for Yices' last error, chosen by its
+ *  error code, and clears the error
+ */
+[[noreturn]] void throw_yices2_error();
+
 /** Copies and frees a string a Yices call returned
  *  @param s the string, or null if the call failed
- *  @throws SolverException with Yices' error if s is null
+ *  @throws Exception for Yices' error if s is null
  */
 std::string get_yices2_string(char * s);
 
