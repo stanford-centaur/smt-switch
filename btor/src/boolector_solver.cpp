@@ -56,24 +56,6 @@ namespace smt {
                                 + to_string(po));
 }
 
-/** Sets a Boolector option
- *  @throws IncorrectUsageException where Boolector refuses the value, or
- *          the option at this point
- */
-static void set_btor_opt(Btor * btor, BtorOption opt, std::uint32_t value)
-{
-  try
-  {
-    boolector_set_opt(btor, opt, value);
-  }
-  catch (SolverException & e)
-  {
-    // Boolector aborts only on what the caller asked for: a value out of
-    // range, or an option that can no longer change.
-    throw IncorrectUsageException(e.what());
-  }
-}
-
 /** The node of op applied to one argument in a single Boolector call
  *  @throws as throw_unsupported where Boolector has none
  */
@@ -261,7 +243,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {
-    set_btor_opt(
+    boolector_set_opt(
         btor.get(), BTOR_OPT_MODEL_GEN, bool_option_value(option, value));
   }
   else if (option == "incremental")
@@ -273,7 +255,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
           "Boolector gives unsat assumptions only when incremental, so it "
           "cannot turn off incremental while produce-unsat-assumptions is on");
     }
-    set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, on);
+    boolector_set_opt(btor.get(), BTOR_OPT_INCREMENTAL, on);
     incremental_off = !on;
   }
   else if (option == "produce-unsat-assumptions")
@@ -292,7 +274,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
           "Boolector gives unsat assumptions only when incremental, which was "
           "turned off");
     }
-    set_btor_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
+    boolector_set_opt(btor.get(), BTOR_OPT_INCREMENTAL, 1);
     unsat_assumptions = true;
   }
   else if (option == "base-context-1")
@@ -346,7 +328,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
           "the option "
           + option + ", not " + value);
     }
-    set_btor_opt(btor.get(), opt, static_cast<std::uint32_t>(number));
+    boolector_set_opt(btor.get(), opt, static_cast<std::uint32_t>(number));
   }
 }
 
@@ -398,52 +380,36 @@ Term BoolectorSolver::make_term(bool b) const
 
 Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 {
-  try
+  BoolectorSort bs = btor_sort(sort);
+  // note: give the constant value a null PrimOp
+  if (detail::fits_in<int32_t>(i))
   {
-    BoolectorSort bs = btor_sort(sort);
-    // note: give the constant value a null PrimOp
-    if (detail::fits_in<int32_t>(i))
-    {
-      return std::make_shared<BoolectorTerm>(
-          btor, boolector_int(btor.get(), static_cast<int32_t>(i), bs));
-    }
-    // boolector_int takes an int32_t, so write out the bits it would give a
-    // wider value: truncated to the width, or sign-extended to it
-    uint64_t width = sort->get_width();
-    std::string bits(width, '0');
-    for (uint64_t k = 0; k < width; ++k)
-    {
-      bool bit = k < 64 ? (static_cast<uint64_t>(i) >> k) & 1 : i < 0;
-      bits[width - 1 - k] = bit ? '1' : '0';
-    }
     return std::make_shared<BoolectorTerm>(
-        btor, boolector_const(btor.get(), bits.c_str()));
+        btor, boolector_int(btor.get(), static_cast<int32_t>(i), bs));
   }
-  catch (SolverException & e)
+  // boolector_int takes an int32_t, so write out the bits it would give a
+  // wider value: truncated to the width, or sign-extended to it
+  uint64_t width = sort->get_width();
+  std::string bits(width, '0');
+  for (uint64_t k = 0; k < width; ++k)
   {
-    // pretty safe to assume that an error here is due to incorrect usage
-    throw IncorrectUsageException(e.what());
+    bool bit = k < 64 ? (static_cast<uint64_t>(i) >> k) & 1 : i < 0;
+    bits[width - 1 - k] = bit ? '1' : '0';
   }
+  return std::make_shared<BoolectorTerm>(
+      btor, boolector_const(btor.get(), bits.c_str()));
 }
 
 Term BoolectorSolver::make_term(std::string val,
                                 const Sort & sort,
                                 uint64_t base) const
 {
-  try
-  {
-    // Boolector's own string constructors ignore the sort in base 2, read a
-    // minus differently in base 16 and accept malformed numerals, so write
-    // out the bits of the value and build that
-    std::string bits = bv_value_to_bits(val, base, sort);
-    return std::make_shared<BoolectorTerm>(
-        btor, boolector_const(btor.get(), bits.c_str()));
-  }
-  catch (SolverException & e)
-  {
-    // pretty safe to assume that an error here is due to incorrect usage
-    throw IncorrectUsageException(e.what());
-  }
+  // Boolector's own string constructors ignore the sort in base 2, read a
+  // minus differently in base 16 and accept malformed numerals, so write
+  // out the bits of the value and build that
+  std::string bits = bv_value_to_bits(val, base, sort);
+  return std::make_shared<BoolectorTerm>(
+      btor, boolector_const(btor.get(), bits.c_str()));
 }
 
 Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
