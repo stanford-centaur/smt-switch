@@ -16,7 +16,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -555,13 +554,13 @@ class Input : public ::testing::Test,
 TEST_P(Input, MissingFile)
 {
   EXPECT_THROW(reader->parse("no-such-directory/no-such-file.smt2"),
-               IncorrectUsageException);
+               SystemException);
 }
 
 TEST_P(Input, UnreadableFile)
 {
   EXPECT_THROW(reader->parse(string(smt_tests::smtlib_resource_dir)),
-               std::runtime_error);
+               SystemException);
 }
 
 TEST_P(Input, SyntaxError)

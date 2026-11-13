@@ -1000,7 +1000,7 @@ void Cvc5Solver::dump_smt2(std::string filename) const
   std::ofstream out(filename);
   if (!out)
   {
-    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+    throw SystemException("Cannot open " + filename + " for writing");
   }
   smtlib_benchmark(
       out,
@@ -1009,7 +1009,7 @@ void Cvc5Solver::dump_smt2(std::string filename) const
   out.close();
   if (!out)
   {
-    throw IncorrectUsageException("Cannot write " + filename);
+    throw SystemException("Cannot write " + filename);
   }
 }
 

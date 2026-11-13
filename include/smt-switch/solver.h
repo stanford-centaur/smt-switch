@@ -464,7 +464,7 @@ class AbsSmtSolver
   /**
    * Dumps full smt-lib representation of current context to a file
    * @param filename the file to write
-   * @throws IncorrectUsageException if the file cannot be opened or written
+   * @throws SystemException if the file cannot be opened or written
    */
   virtual void dump_smt2(std::string filename) const;
 

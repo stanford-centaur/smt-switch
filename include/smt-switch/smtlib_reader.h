@@ -91,10 +91,9 @@ class SmtLibReader
 
   /** Parses an SMT-LIB file, running its commands
    *  @param f the file's path, or "-" or the empty string for stdin
-   *  @throws IncorrectUsageException if the file cannot be opened
+   *  @throws SystemException if the file cannot be opened, or the scanner
+   *          fails, as when reading the input or allocating memory
    *  @throws ParseException if the input cannot be parsed
-   *  @throws std::runtime_error if the scanner fails, as when reading the
-   *          input or allocating memory
    */
   void parse(const std::string & f);
   // The name of the file being parsed.

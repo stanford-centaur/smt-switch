@@ -943,7 +943,7 @@ void BoolectorSolver::dump_smt2(std::string filename) const
   FILE * file = fopen(filename.c_str(), "w");
   if (!file)
   {
-    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+    throw SystemException("Cannot open " + filename + " for writing");
   }
   try
   {
@@ -958,7 +958,7 @@ void BoolectorSolver::dump_smt2(std::string filename) const
   bool write_failed = ferror(file) != 0;
   if (fclose(file) != 0 || write_failed)
   {
-    throw IncorrectUsageException("Cannot write " + filename);
+    throw SystemException("Cannot write " + filename);
   }
 }
 

@@ -368,7 +368,7 @@ std::string BoolectorTerm::to_string() const
     FILE * stream = open_memstream(&cres, &size);
     if (!stream)
     {
-      throw IncorrectUsageException(
+      throw SystemException(
           "Failed to open a stream for Boolector's to_string");
     }
     try

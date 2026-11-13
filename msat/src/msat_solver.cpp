@@ -990,7 +990,7 @@ void MsatSolver::dump_smt2(std::string filename) const
   FILE * file = fopen(filename.c_str(), "w");
   if (!file)
   {
-    throw IncorrectUsageException("Cannot open " + filename + " for writing");
+    throw SystemException("Cannot open " + filename + " for writing");
   }
   bool write_failed =
       msat_to_smtlib2_ext_file(*env, all_asserts, log, true, file) != 0
@@ -998,7 +998,7 @@ void MsatSolver::dump_smt2(std::string filename) const
   // closing flushes the rest, which can fail as well
   if (fclose(file) != 0 || write_failed)
   {
-    throw IncorrectUsageException("Cannot write " + filename);
+    throw SystemException("Cannot write " + filename);
   }
 }
 
