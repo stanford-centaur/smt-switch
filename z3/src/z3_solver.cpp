@@ -307,7 +307,9 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "produce-models")
   {
-    solver_params.set("model", bool_option_value(option, value));
+    bool on = bool_option_value(option, value);
+    solver_params.set("model", on);
+    models_off = !on;
   }
   else if (option == "time-limit")
   {
@@ -824,6 +826,13 @@ try
     throw IncorrectUsageException(
         "Can't get a model before the first call to check_sat");
   }
+  // Z3 then keeps no model, and evaluating in what it gives back makes up
+  // a value
+  if (models_off)
+  {
+    throw IncorrectUsageException(
+        "Can't get a value with produce-models set to false");
+  }
   z3::model model = instance->slv.get_model();
   z3::expr eval = model.eval(zterm->term, true);
   return std::make_shared<Z3Term>(ctx, eval);
@@ -843,6 +852,11 @@ try
   {
     throw IncorrectUsageException(
         "Can't get a model before the first call to check_sat");
+  }
+  if (models_off)
+  {
+    throw IncorrectUsageException(
+        "Can't get a value with produce-models set to false");
   }
   z3::model model = instance->slv.get_model();
   // Z3 gives an array model as a chain of stores over a constant base,
@@ -1223,6 +1237,7 @@ void Z3Solver::do_reset()
   symbol_table.clear();
   solver_params = z3::params(*ctx);
   last_unsat = false;
+  models_off = false;
 }
 
 void Z3Solver::do_reset_assertions()

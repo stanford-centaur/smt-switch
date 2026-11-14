@@ -143,6 +143,8 @@ class Z3Solver : public AbsSmtSolver
                                      ///< check_sat_assuming (vs just check_sat)
   bool last_unsat = false;  ///< whether the last check answered unsat, the
                             ///< only answer unsat assumptions follow
+  bool models_off = false;  ///< whether produce-models was set to false,
+                            ///< after which Z3 keeps no model
 
   // helper function
   void add_constructor(z3::sort,
