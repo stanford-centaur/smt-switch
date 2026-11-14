@@ -697,12 +697,6 @@ try
   substitution_bterms_map.reserve(substitution_map.size());
   for (auto && elem : substitution_map)
   {
-    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
-    {
-      throw Exception(
-          "Bitwuzla does not support substituting a term that is neither a "
-          "symbol nor a param");
-    }
     substitution_bterms_map.insert(
         { bzla_term(elem.first), bzla_term(elem.second) });
   }
@@ -729,12 +723,6 @@ try
   substitution_bterms_map.reserve(substitution_map.size());
   for (auto && elem : substitution_map)
   {
-    if (!elem.first->is_symbolic_const() && !elem.first->is_param())
-    {
-      throw Exception(
-          "Bitwuzla does not support substituting a term that is neither a "
-          "symbol nor a param");
-    }
     substitution_bterms_map.insert(
         { bzla_term(elem.first), bzla_term(elem.second) });
   }

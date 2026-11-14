@@ -1277,6 +1277,15 @@ Term Yices2Solver::substitute(const Term term,
   for (auto elem : substitution_map)
   {
     tmp_key = backend_pointer_cast<Yices2Term>(elem.first);
+    // Yices2 keeps arithmetic as normalised polynomials, so another key need
+    // not occur in the term even where it was used to build it
+    term_constructor_t tc = yices_term_constructor(tmp_key->term);
+    if (tc != YICES_VARIABLE && tc != YICES_UNINTERPRETED_TERM)
+    {
+      throw NotImplementedException(
+          "Yices2 can only substitute symbols and params, not "
+          + elem.first->to_string());
+    }
 
     to_subst.push_back(tmp_key->term);
     tmp_val = backend_pointer_cast<Yices2Term>(elem.second);

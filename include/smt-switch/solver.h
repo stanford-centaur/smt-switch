@@ -447,15 +447,21 @@ class AbsSmtSolver
   // Note: These can be overloaded in the specific solver implementation for
   //       performance improvements
 
-  /* Substitute all symbolic constants with terms in all subterms
-   *   using the provided mapping
+  /** Replaces each key of substitution_map in term with its value. A key
+   *  can be any term, and is replaced whole wherever it occurs; the values
+   *  are not substituted in turn.
    * @param term the term to apply substitution map to
    * @param substitution_map the map to use for substitution
    * @return the term with the substitution map applied
+   * @throws NotImplementedException for a key other than a symbol or param
+   *         where the solver's terms need not contain it as built
    */
   virtual Term substitute(const Term term,
                           const UnorderedTermMap & substitution_map) const;
 
+  /** substitute applied to each of terms
+   * @return the results, in the order of terms
+   */
   virtual TermVec substitute_terms(
       const TermVec & terms, const UnorderedTermMap & substitution_map) const;
 
