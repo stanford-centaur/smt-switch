@@ -726,7 +726,9 @@ Result Z3Solver::check_sat()
 try
 {
   last_query_assuming = false;
+  last_unsat = false;
   z3::check_result r = get_z3_solver()->check();
+  last_unsat = r == z3::unsat;
   if (r == z3::unsat)
   {
     return Result(UNSAT);
@@ -761,7 +763,9 @@ try
   }
 
   last_query_assuming = true;
+  last_unsat = false;
   z3::check_result r = get_z3_solver()->check(z3assumps);
+  last_unsat = r == z3::unsat;
   if (r == z3::unsat)
   {
     return Result(UNSAT);
@@ -876,12 +880,15 @@ catch (const z3::exception & e)
 void Z3Solver::get_unsat_assumptions(UnorderedTermSet & out) const
 try
 {
-  // in smt-switch, should throw exception if last query
-  // was check_sat instead of check_sat_assuming
-  if (!last_query_assuming || !instance)
+  if (!instance || !last_unsat)
   {
     throw IncorrectUsageException(
-        "Can only call get_unsat_assumptions after check_sat_assuming");
+        "Z3 has no unsat assumptions unless the last check was unsat");
+  }
+  // a check without assumptions needed none of them
+  if (!last_query_assuming)
+  {
+    return;
   }
   z3::expr_vector core = instance->slv.unsat_core();
   for (const auto & c : core)
@@ -1215,6 +1222,7 @@ void Z3Solver::do_reset()
   instance.reset();
   symbol_table.clear();
   solver_params = z3::params(*ctx);
+  last_unsat = false;
 }
 
 void Z3Solver::do_reset_assertions()
@@ -1224,6 +1232,7 @@ void Z3Solver::do_reset_assertions()
   {
     instance->slv.reset();
   }
+  last_unsat = false;
 }
 
 Term Z3Solver::substitute(const Term term,

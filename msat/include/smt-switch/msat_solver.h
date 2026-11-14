@@ -129,11 +129,10 @@ class MsatSolver : public AbsSmtSolver
                                        ///< clearing them
   bool last_query_assuming = true;     ///< set to true if last query was
                                        ///< check-sat-assuming (as opposed to
-                                       ///< just check-sat).
-                                       ///< This boolean is used to respect the
-                                       ///< get_unsat_assumptions interface
-                                       ///< (will complain if not called after
-                                       ///< check-sat-assuming).
+                                       ///< just check-sat), whose labels the
+                                       ///< unsat assumptions are read from
+  bool last_unsat = false;  ///< whether the last check answered unsat, the
+                            ///< only answer unsat assumptions follow
 
   // clears assumption clauses
   // needed to simulate the same check_sat_assuming interface as other solvers
