@@ -16,6 +16,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/term.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -88,18 +89,15 @@ TEST_P(Misuse, IllSortedApplication)
   EXPECT_THROW(s->make_term(And, b, v), IncorrectUsageException);
 }
 
-TEST_P(Misuse, UnsatAssumptionsAfterPlainCheckSat)
+TEST_P(Misuse, UnsatAssumptionsAfterSatCheck)
 {
-  SolverEnum se = GetParam().solver_enum;
-  if (se == BTOR || se == BZLA || se == CVC5 || se == YICES2
-      || se == GENERIC_SOLVER)
-  {
-    GTEST_SKIP() << "the backend answers without a check_sat_assuming";
-  }
+  s->set_opt("incremental", "true");
   s->set_opt("produce-unsat-assumptions", "true");
-  s->assert_formula(s->make_term(false));
-  s->check_sat();
+  Term b = s->make_symbol("b", s->make_sort(BOOL));
   UnorderedTermSet core;
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_THROW(s->get_unsat_assumptions(core), IncorrectUsageException);
+  ASSERT_TRUE(s->check_sat_assuming(TermVec{ b }).is_sat());
   EXPECT_THROW(s->get_unsat_assumptions(core), IncorrectUsageException);
 }
 

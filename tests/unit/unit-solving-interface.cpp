@@ -145,6 +145,16 @@ TEST_P(UnitSolveTests, NoAssumptions)
   EXPECT_TRUE(s->check_sat_assuming(TermVec{}).is_unsat());
 }
 
+TEST_P(UnitSolveTests, PlainUnsatCheckHasNoUnsatAssumptions)
+{
+  s->set_opt("produce-unsat-assumptions", "true");
+  s->assert_formula(s->make_term(false));
+  ASSERT_TRUE(s->check_sat().is_unsat());
+  UnorderedTermSet core;
+  s->get_unsat_assumptions(core);
+  EXPECT_TRUE(core.empty());
+}
+
 TEST_P(UnitSolveTests, SatisfiableAssumption)
 {
   Term b = s->make_symbol("b", boolsort);

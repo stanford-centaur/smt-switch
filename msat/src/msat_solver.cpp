@@ -454,16 +454,15 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
 
 void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
-  if (!env_wrapper_.is_initialized())
+  if (!env_wrapper_.is_initialized() || !last_unsat)
   {
     throw IncorrectUsageException(
-        "MathSAT has no unsat assumptions before a check_sat_assuming");
+        "MathSAT has no unsat assumptions unless the last check was unsat");
   }
+  // a check without assumptions needed none of them
   if (!last_query_assuming)
   {
-    throw IncorrectUsageException(
-        "MathSAT has no unsat assumptions unless the last query was a "
-        "check_sat_assuming with assumptions");
+    return;
   }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   size_t core_size;
@@ -908,6 +907,7 @@ void MsatSolver::do_reset()
   env_wrapper_.reset();
   base_assertions_.clear();
   time_limit = std::chrono::duration<double>::zero();
+  last_unsat = false;
 }
 
 void MsatSolver::do_reset_assertions()
@@ -918,6 +918,7 @@ void MsatSolver::do_reset_assertions()
     msat_reset_env(*env_wrapper_.get_env());
   }
   base_assertions_.clear();
+  last_unsat = false;
 }
 
 Term MsatSolver::substitute(const Term term,
@@ -1044,6 +1045,7 @@ msat_result MsatSolver::solve(std::vector<msat_term> * labels, bool & timed_out)
     msat_set_termination_test(*env, nullptr, nullptr);
   }
   timed_out = deadline.reached;
+  last_unsat = res == MSAT_UNSAT;
   return res;
 }
 
