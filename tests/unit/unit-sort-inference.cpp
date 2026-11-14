@@ -406,19 +406,22 @@ TEST_P(DatatypeSortedness, ComponentApplicationSorts)
             bvsort4);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortInference,
-                         UnitSortInferenceTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitSortInference,
+    UnitSortInferenceTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArithmeticSortInference,
-                         UnitArithmeticSortInferenceTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_REAL })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitArithmeticSortInference,
+    UnitArithmeticSortInferenceTests,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { THEORY_INT, THEORY_REAL })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSortInference,
     DatatypeSortedness,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_DATATYPE })),
     ConfigName());
 
 }  // namespace

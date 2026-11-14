@@ -255,11 +255,12 @@ TEST_P(UnitTests, MoveIter)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnit,
     UnitTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedConstArrUnit,
     ConstArrUnitTests,
-    testing::ValuesIn(filter_solver_configurations({ CONSTARR, TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ CONSTARR,
+                                                                  TERMITER })));
 
 }  // namespace

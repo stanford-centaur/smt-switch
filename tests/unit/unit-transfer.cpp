@@ -90,10 +90,9 @@ TEST_P(UnitTransferTests, MonotonicUF)
   // EXPECT_NO_THROW(tr.transfer_term(fx_le_fy));
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedTransferUnit,
-    UnitTransferTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations(
-        { FULL_TRANSFER, QUANTIFIERS })));
+INSTANTIATE_TEST_SUITE_P(ParameterizedTransferUnit,
+                         UnitTransferTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { FULL_TRANSFER, QUANTIFIERS })));
 
 }  // namespace

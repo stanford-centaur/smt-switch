@@ -135,9 +135,10 @@ TEST_P(Misuse, ZeroWidthBitVector)
   EXPECT_THROW(s->make_sort(BV, 0), IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         Misuse,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    Misuse,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 }  // namespace

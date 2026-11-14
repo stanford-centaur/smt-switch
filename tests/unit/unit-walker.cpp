@@ -961,6 +961,6 @@ TEST_P(UnitWalkerTests, FreshVars)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitWalker,
     UnitWalkerTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace

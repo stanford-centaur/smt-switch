@@ -119,9 +119,10 @@ TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
   EXPECT_EQ(entries.count(one) ? entries[one] : base, zero) << value;
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitArray,
-                         UnitArrayTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { CONSTARR, ARRAY_MODELS })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitArray,
+    UnitArrayTests,
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ CONSTARR, ARRAY_MODELS })));
 
 }  // namespace

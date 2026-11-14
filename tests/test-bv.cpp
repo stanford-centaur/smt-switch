@@ -230,12 +230,13 @@ TEST_P(IndexedOpTests, RepeatWiderThan64Bits)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverBVTests,
     BVTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_BV })));
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IndexedOpTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
     ConfigName());
 
 }  // namespace

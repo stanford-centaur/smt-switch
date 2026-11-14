@@ -17,6 +17,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_factory.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -41,9 +42,10 @@ TEST_P(UnitSolverEnumTests, SolverEnumMatch)
   ASSERT_EQ(se, s->get_solver_enum());
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSolverEnum,
-                         UnitSolverEnumTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitSolverEnum,
+    UnitSolverEnumTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
 TEST(UnitSolverEnumNames, EverySolverEnumPrints)
 {
@@ -97,7 +99,7 @@ TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
 {
   // a backend that breaks this has to say so here, rather than let the
   // attributes drift apart
-  for (SolverEnum se : available_non_generic_solver_enums())
+  for (SolverEnum se : available_solver_enums())
   {
     EXPECT_EQ(solver_has_attribute(se, FULL_TRANSFER),
               solver_has_attribute(se, TERMITER)

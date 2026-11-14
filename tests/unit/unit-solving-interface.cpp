@@ -236,7 +236,7 @@ TEST_P(UnitSolveTests, DumpReportsFailedWrite)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitSolveTests,
     UnitSolveTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 TEST(Result, ComparesByResultType)
 {

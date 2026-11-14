@@ -158,8 +158,9 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
 }
 #endif
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitResetAssertions,
-                         UnitResetAssertionsTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverUnitResetAssertions,
+    UnitResetAssertionsTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
 }  // namespace

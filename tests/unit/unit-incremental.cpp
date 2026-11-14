@@ -125,6 +125,6 @@ TEST_P(UnitIncrementalTests, PushMoreLevelsThanTheSolverTakes)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitIncrementalTests,
     UnitIncrementalTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace

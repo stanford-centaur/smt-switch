@@ -18,33 +18,10 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/logging_solver.h"
-#include "test_paths.h"
-
-#ifdef BUILD_BTOR
-#include "smt-switch/boolector_factory.h"
-#endif
-
-#ifdef BUILD_BITWUZLA
-#include "smt-switch/bitwuzla_factory.h"
-#endif
-
-#ifdef BUILD_CVC5
-#include "smt-switch/cvc5_factory.h"
 #include "smt-switch/generic_solver.h"
-#endif
-
-#ifdef BUILD_MSAT
-#include "smt-switch/msat_factory.h"
-#endif
-
-#ifdef BUILD_YICES2
-#include "smt-switch/yices2_factory.h"
-#endif
-
-#ifdef BUILD_Z3
-#include "smt-switch/z3_factory.h"
-#endif
+#include "smt-switch/logging_solver.h"
+#include "smt-switch/solver_factory.h"
+#include "test_paths.h"
 
 using namespace smt;
 
@@ -57,130 +34,32 @@ SolverConfiguration::SolverConfiguration(smt::SolverEnum se, bool ils)
 
 SmtSolver create_solver(SolverConfiguration sc)
 {
-  switch (sc.solver_enum)
+  if (sc.solver_enum != GENERIC_SOLVER)
   {
-#ifdef BUILD_BTOR
-    case BTOR: {
-      return BoolectorSolverFactory::create(sc.is_logging_solver);
-      break;
-    }
-#endif
-#ifdef BUILD_BITWUZLA
-    case BZLA: {
-      return BitwuzlaSolverFactory::create(sc.is_logging_solver);
-      break;
-    }
-#endif
-#ifdef BUILD_CVC5
-    case CVC5: {
-      return Cvc5SolverFactory::create(sc.is_logging_solver);
-      break;
-    }
-    case GENERIC_SOLVER: {
-      std::string path(solver_binary(CVC5));
-      std::vector<std::string> args = {
-        "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
-      };
-      // The queries the tests put to this solver are small enough that
-      // cvc5 answers each one, start-up included, in single-digit
-      // milliseconds. The library default is a deadlock backstop sized
-      // for genuine solving, which would leave a wedged test sitting in
-      // CI for an hour; this is still hundreds of times the slack needed.
-      const std::chrono::seconds response_timeout(2);
-      SmtSolver generic_solver =
-          std::make_shared<GenericSolver>(path, args, response_timeout, 5);
-      if (sc.is_logging_solver)
-      {
-        return std::make_shared<LoggingSolver>(generic_solver);
-      }
-      else
-      {
-        return std::make_shared<GenericSolver>(path, args, response_timeout, 5);
-      }
-      break;
-    }
-#endif
-#ifdef BUILD_MSAT
-    case MSAT: {
-      return MsatSolverFactory::create(sc.is_logging_solver);
-      break;
-    }
-#endif
-#ifdef BUILD_YICES2
-    case YICES2: {
-      return Yices2SolverFactory::create(sc.is_logging_solver);
-      break;
-    }
-#endif
-#ifdef BUILD_Z3
-    case Z3: {
-      return Z3SolverFactory::create(sc.is_logging_solver);
-      break;
-    }
-#endif
-    default: {
-      throw Exception("Unhandled solver enum");
-    }
+    return smt::create_solver(sc.solver_enum, sc.is_logging_solver);
   }
-}
-
-SmtInterpolator create_interpolator(SolverConfiguration sc)
-{
-  switch (sc.solver_enum)
-  {
-#ifdef BUILD_BITWUZLA
-    case BZLA_INTERPOLATOR: {
-      return BitwuzlaSolverFactory::create_interpolator();
-      break;
-    }
-#endif
-#ifdef BUILD_CVC5
-    case CVC5_INTERPOLATOR: {
-      return Cvc5SolverFactory::create_interpolator();
-      break;
-    }
-#endif
-#ifdef BUILD_MSAT
-    case MSAT_INTERPOLATOR: {
-      return MsatSolverFactory::create_interpolator();
-      break;
-    }
-#endif
-#ifdef BUILD_YICES2
-    case YICES2_INTERPOLATOR: {
-      return Yices2SolverFactory::create_interpolator();
-      break;
-    }
-#endif
-    default: {
-      throw Exception("Unhandled solver enum");
-    }
-  }
-}
-
-std::vector<SolverEnum> available_solver_enums()
-{
-  // the regular (non-interpolator) solvers
-  std::vector<SolverEnum> enums = {
-#ifdef BUILD_BTOR
-    BTOR,
-#endif
-#ifdef BUILD_BITWUZLA
-    BZLA,
-#endif
-#ifdef BUILD_CVC5
-    CVC5,
-#endif
-#ifdef BUILD_MSAT
-    MSAT,
-#endif
-#ifdef BUILD_YICES2
-    YICES2,
-#endif
-#ifdef BUILD_Z3
-    Z3,
-#endif
+  std::string path(solver_binary(CVC5));
+  std::vector<std::string> args = {
+    "--lang=smt2", "--incremental", "--dag-thresh=0", "-q"
   };
+  // The queries the tests put to this solver are small enough that
+  // cvc5 answers each one, start-up included, in single-digit
+  // milliseconds. The library default is a deadlock backstop sized
+  // for genuine solving, which would leave a wedged test sitting in
+  // CI for an hour; this is still hundreds of times the slack needed.
+  const std::chrono::seconds response_timeout(2);
+  SmtSolver generic_solver =
+      std::make_shared<GenericSolver>(path, args, response_timeout, 5);
+  if (sc.is_logging_solver)
+  {
+    return std::make_shared<LoggingSolver>(generic_solver);
+  }
+  return generic_solver;
+}
+
+std::vector<SolverEnum> available_solver_enums_with_generic()
+{
+  std::vector<SolverEnum> enums = smt::available_solver_enums();
   // the generic solver drives the cvc5 executable
   if (!solver_binary(CVC5).empty())
   {
@@ -203,23 +82,10 @@ std::string_view solver_binary(SolverEnum se)
   }
 }
 
-std::vector<SolverEnum> available_non_generic_solver_enums()
-{
-  std::vector<SolverEnum> result;
-  for (SolverEnum se : available_solver_enums())
-  {
-    if (se != SolverEnum::GENERIC_SOLVER)
-    {
-      result.push_back(se);
-    }
-  }
-  return result;
-}
-
-std::vector<SolverConfiguration> available_solver_configurations()
+std::vector<SolverConfiguration> available_solver_configurations_with_generic()
 {
   std::vector<SolverConfiguration> configs;
-  for (SolverEnum e : available_solver_enums())
+  for (SolverEnum e : available_solver_enums_with_generic())
   {
     SolverConfiguration sct(e, true);
     SolverConfiguration scf(e, false);
@@ -229,9 +95,10 @@ std::vector<SolverConfiguration> available_solver_configurations()
   return configs;
 }
 
-std::vector<SolverConfiguration> available_non_generic_solver_configurations()
+std::vector<SolverConfiguration> available_solver_configurations()
 {
-  std::vector<SolverConfiguration> original = available_solver_configurations();
+  std::vector<SolverConfiguration> original =
+      available_solver_configurations_with_generic();
   std::vector<SolverConfiguration> result;
   for (SolverConfiguration sc : original)
   {
@@ -243,36 +110,10 @@ std::vector<SolverConfiguration> available_non_generic_solver_configurations()
   return result;
 }
 
-std::vector<SolverEnum> available_interpolator_enums()
-{
-  std::vector<SolverEnum> result;
-#ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
-  result.push_back(BZLA_INTERPOLATOR);
-#endif
-#ifdef BUILD_CVC5
-  result.push_back(CVC5_INTERPOLATOR);
-#endif
-#ifdef BUILD_MSAT
-  result.push_back(MSAT_INTERPOLATOR);
-#endif
-#ifdef BUILD_YICES2
-  // a Yices2 without MCSAT refuses to create an interpolator
-  try
-  {
-    Yices2SolverFactory::create_interpolator();
-    result.push_back(YICES2_INTERPOLATOR);
-  }
-  catch (const NotImplementedException &)
-  {
-  }
-#endif
-  return result;
-}
-
 std::vector<SolverConfiguration> available_interpolator_configurations()
 {
   std::vector<SolverConfiguration> result;
-  for (SolverEnum e : available_interpolator_enums())
+  for (SolverEnum e : smt::available_interpolator_enums())
   {
     SolverConfiguration sc(e, false);
     result.push_back(sc);
@@ -324,11 +165,11 @@ std::vector<SolverConfiguration> filter_interpolator_configurations(
   return result;
 }
 
-std::vector<SolverEnum> filter_solver_enums(
+std::vector<SolverEnum> filter_solver_enums_with_generic(
     const std::unordered_set<SolverAttribute> attributes)
 {
   std::vector<SolverEnum> filtered_enums;
-  for (auto se : available_solver_enums())
+  for (auto se : available_solver_enums_with_generic())
   {
     if (has_all_attributes(se, attributes))
     {
@@ -338,11 +179,12 @@ std::vector<SolverEnum> filter_solver_enums(
   return filtered_enums;
 }
 
-std::vector<SolverConfiguration> filter_solver_configurations(
+std::vector<SolverConfiguration> filter_solver_configurations_with_generic(
     const std::unordered_set<SolverAttribute> attributes)
 {
   // first get the enums
-  std::vector<SolverEnum> filtered_enums = filter_solver_enums(attributes);
+  std::vector<SolverEnum> filtered_enums =
+      filter_solver_enums_with_generic(attributes);
 
   // compute result
   std::vector<SolverConfiguration> result;
@@ -364,7 +206,7 @@ std::vector<SolverConfiguration> filter_solver_configurations(
     reduced_attributes.erase(FULL_TRANSFER);
     // get filtered enums for the rest of the attributes
     std::vector<SolverEnum> reduced_filtered_enums =
-        filter_solver_enums(reduced_attributes);
+        filter_solver_enums_with_generic(reduced_attributes);
     std::unordered_set<SolverEnum> filtered_enums_set(filtered_enums.begin(),
                                                       filtered_enums.end());
     for (auto se : reduced_filtered_enums)
@@ -378,11 +220,11 @@ std::vector<SolverConfiguration> filter_solver_configurations(
   return result;
 }
 
-std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
+std::vector<SolverConfiguration> filter_solver_configurations(
     const std::unordered_set<SolverAttribute> attributes)
 {
   std::vector<SolverConfiguration> original_result =
-      filter_solver_configurations(attributes);
+      filter_solver_configurations_with_generic(attributes);
   std::vector<SolverConfiguration> result;
   for (SolverConfiguration sc : original_result)
   {

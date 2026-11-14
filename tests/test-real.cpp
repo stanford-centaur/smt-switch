@@ -103,7 +103,8 @@ TEST_P(RealArithmeticTests, NoSolution)
 INSTANTIATE_TEST_SUITE_P(
     ,
     RealArithmeticTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_REAL })),
     ConfigName());
 
 }  // namespace

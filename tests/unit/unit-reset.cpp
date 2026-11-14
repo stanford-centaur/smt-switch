@@ -142,7 +142,8 @@ TEST_P(UnitResetTests, FunctionNameReusedByNextSolver)
 static std::vector<SolverConfiguration> working_reset_configurations()
 {
   std::vector<SolverConfiguration> result;
-  for (const SolverConfiguration & sc : available_solver_configurations())
+  for (const SolverConfiguration & sc :
+       available_solver_configurations_with_generic())
   {
     // reset() times out on the generic solver
     if (sc.solver_enum != GENERIC_SOLVER)

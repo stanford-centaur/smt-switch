@@ -617,31 +617,36 @@ TEST_P(QuantifiedSortConstructors, BarredSymbolPrintsAsNamed)
                              testing::HasSubstr("|" + name + "|")));
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortTests,
-                         UnitSortTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitSortTests,
+    UnitSortTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitSortArithTests,
-                         UnitSortArithTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_REAL })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitSortArithTests,
+    UnitSortArithTests,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { THEORY_INT, THEORY_REAL })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSort,
     UninterpretedSorts,
-    testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ UNINTERP_SORT })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSort,
     SortConstructors,
-    testing::ValuesIn(filter_solver_configurations({ PARAM_UNINTERP_SORT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ PARAM_UNINTERP_SORT })),
     ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(UnitSort,
-                         QuantifiedSortConstructors,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { PARAM_UNINTERP_SORT, QUANTIFIERS })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitSort,
+    QuantifiedSortConstructors,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { PARAM_UNINTERP_SORT, QUANTIFIERS })),
+    ConfigName());
 
 }  // namespace

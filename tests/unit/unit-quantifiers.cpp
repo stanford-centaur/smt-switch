@@ -256,12 +256,14 @@ TEST_P(Binders, SymbolAsBinder)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedQuantifierIterTests,
     UnitQuantifierIterTests,
-    testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS, TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ QUANTIFIERS,
+                                                                  TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitQuantifiers,
     Binders,
-    testing::ValuesIn(filter_solver_configurations({ QUANTIFIERS })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ QUANTIFIERS })),
     ConfigName());
 
 }  // namespace
