@@ -363,7 +363,16 @@ void MsatSolver::do_push(uint64_t num)
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   for (uint64_t i = 0; i < num; i++)
   {
-    msat_push_backtrack_point(*env);
+    if (msat_push_backtrack_point(*env))
+    {
+      std::string error = detail::last_error_message(*env);
+      // undo the levels this call pushed before the refused one
+      for (uint64_t j = 0; j < i; j++)
+      {
+        msat_pop_backtrack_point(*env);
+      }
+      throw SolverException("MathSAT refused to push: " + error);
+    }
   }
 }
 
@@ -372,7 +381,11 @@ void MsatSolver::do_pop(uint64_t num)
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   for (uint64_t i = 0; i < num; i++)
   {
-    msat_pop_backtrack_point(*env);
+    if (msat_pop_backtrack_point(*env))
+    {
+      throw SolverException("MathSAT refused to pop: "
+                            + detail::last_error_message(*env));
+    }
   }
 }
 
