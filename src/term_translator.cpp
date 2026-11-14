@@ -18,7 +18,6 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "smt-switch/datatype.h"
@@ -30,16 +29,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
+#include "smt-switch/utils.h"
 
 namespace smt {
-
-// boolean ops and the bit-vector ops that mean the same, looked up from
-// either side to swap one for the other
-constexpr std::pair<PrimOp, PrimOp> bool_bv_ops[] = { { And, BVAnd },
-                                                      { Or, BVOr },
-                                                      { Xor, BVXor },
-                                                      { Not, BVNot },
-                                                      { Equal, BVComp } };
 
 // Whether a sort is or contains an uninterpreted sort
 bool uses_uninterp_sort(const Sort & sort)
@@ -337,7 +329,7 @@ Term TermTranslator::transfer_term(const Term & term)
           Sort cast_sort;
           try
           {
-            cast_sort = cast_term(sym, s)->get_sort();
+            cast_sort = cast_term(solver, sym, s)->get_sort();
           }
           catch (NotImplementedException & e)
           {
@@ -418,7 +410,7 @@ Term TermTranslator::transfer_term(const Term & term)
              but the cast won't actually do anything for BTOR
              in other words, check_sortedness is not guaranteed
              to hold after casting */
-          cache[t] = cast_op(op, cached_children);
+          cache[t] = cast_op(solver, op, cached_children);
         }
         else
         {
@@ -458,27 +450,27 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   if (transferred_sk == BV && transferred_sort->get_width() == 1 && sk == BOOL)
   {
     Sort sort = solver->make_sort(BOOL);
-    return cast_term(transferred_term, sort);
+    return cast_term(solver, transferred_term, sort);
   }
   else if (transferred_sk == BOOL && sk == BV)
   {
     Sort sort = solver->make_sort(BV, 1);
-    return cast_term(transferred_term, sort);
+    return cast_term(solver, transferred_term, sort);
   }
   else if (transferred_sk == INT && sk == REAL)
   {
     Sort sort = solver->make_sort(REAL);
-    return cast_term(transferred_term, sort);
+    return cast_term(solver, transferred_term, sort);
   }
   else if (transferred_sk == REAL && sk == INT)
   {
     Sort sort = solver->make_sort(INT);
-    return cast_term(transferred_term, sort);
+    return cast_term(solver, transferred_term, sort);
   }
   else if (transferred_sk == STRING)
   {
     Sort sort = solver->make_sort(STRING);
-    return cast_term(transferred_term, sort);
+    return cast_term(solver, transferred_term, sort);
   }
   else
   {
@@ -663,172 +655,6 @@ Term TermTranslator::value_from_smt2(const std::string val,
   }
 }
 
-Term TermTranslator::cast_op(Op op, const TermVec & terms) const
-{
-  PrimOp po = op.prim_op;
-
-  // priority is turning bitvector operations to boolean operations
-  // Heuristic, because boolector represents everything with bit-vector
-  // operators, the most common scenario is turning bitvector ops to
-  // boolean
-
-  const auto * bool_bv_begin = std::begin(bool_bv_ops);
-  const auto * bool_bv_end = std::end(bool_bv_ops);
-  auto bool_is_po = [po](const auto & ops) { return ops.first == po; };
-  auto bv_is_po = [po](const auto & ops) { return ops.second == po; };
-  const auto * as_bool = std::find_if(bool_bv_begin, bool_bv_end, bv_is_po);
-  const auto * as_bv = std::find_if(bool_bv_begin, bool_bv_end, bool_is_po);
-
-  // case 1 -- bitvector to boolean op
-  if (as_bool != bool_bv_end)
-  {
-    TermVec casted_children;
-    casted_children.reserve(terms.size());
-    Sort boolsort = solver->make_sort(BOOL);
-    for (auto t : terms)
-    {
-      casted_children.push_back(cast_term(t, boolsort));
-    }
-    return solver->make_term(as_bool->first, casted_children);
-  }
-  // case 2 -- boolean to bitvector op
-  else if (as_bv != bool_bv_end)
-  {
-    TermVec casted_children;
-    casted_children.reserve(terms.size());
-    Sort bv1sort = solver->make_sort(BV, 1);
-    for (auto t : terms)
-    {
-      casted_children.push_back(cast_term(t, bv1sort));
-    }
-    return solver->make_term(as_bv->second, casted_children);
-  }
-  // case 3 -- cast all bit-vectors to booleans
-  // a boolean operator that can't be converted to a bit-vector operator easily
-  // (easily meaning by just switching the PrimOp)
-  else if (po == Implies)
-  {
-    TermVec casted_children;
-    casted_children.reserve(terms.size());
-    Sort boolsort = solver->make_sort(BOOL);
-    for (auto t : terms)
-    {
-      casted_children.push_back(cast_term(t, boolsort));
-    }
-    return solver->make_term(po, casted_children);
-  }
-  // case 4 -- cast all booleans to bitvectors
-  else if (get_theory(po) == Theory::BITVECTORS)
-  {
-    TermVec casted_children;
-    casted_children.reserve(terms.size());
-    Sort bv1sort = solver->make_sort(BV, 1);
-    for (auto t : terms)
-    {
-      if (t->get_sort()->get_sort_kind() == BOOL)
-      {
-        casted_children.push_back(cast_term(t, bv1sort));
-      }
-      else
-      {
-        // expecting a bit-vector
-        casted_children.push_back(t);
-      }
-    }
-    return solver->make_term(op, casted_children);
-  }
-  // case 5 -- special case for Ite
-  else if (po == Ite)
-  {
-    Sort boolsort = solver->make_sort(BOOL);
-    Term cond = cast_term(terms[0], boolsort);
-
-    Term ifbranch = terms[1];
-    Term elsebranch = terms[2];
-
-    SortKind ifsk = ifbranch->get_sort()->get_sort_kind();
-    SortKind elsesk = elsebranch->get_sort()->get_sort_kind();
-    if (ifsk == INT && elsesk == REAL)
-    {
-      // MathSAT and Yices2 make an integer-valued Real an Int, so an Ite
-      // over Reals can have one branch of each; widen rather than truncate
-      ifbranch = cast_term(ifbranch, elsebranch->get_sort());
-    }
-    else if (ifbranch->get_sort() != elsebranch->get_sort())
-    {
-      // arbitrarily deciding to cast to the ifbranch sort
-      elsebranch = cast_term(elsebranch, ifbranch->get_sort());
-    }
-
-    return solver->make_term(Ite, cond, ifbranch, elsebranch);
-  }
-  // case 7 -- special case for ARRAY select
-  else if (po == Select)
-  {
-    // assuming the array itself doesn't need to be casted
-    // only the index
-    // we have no support for or issue with that
-    return solver->make_term(
-        Select,
-        terms[0],
-        cast_term(terms[1], terms[0]->get_sort()->get_indexsort()));
-  }
-  // case 8 -- special case for ARRAY store
-  else if (po == Store)
-  {
-    // assuming the array itself doesn't need to be casted
-    // only the index
-    // we have no support for or issue with that
-    Sort arrsort = terms[0]->get_sort();
-    return solver->make_term(Store,
-                             terms[0],
-                             cast_term(terms[1], arrsort->get_indexsort()),
-                             cast_term(terms[2], arrsort->get_elemsort()));
-  }
-  // case 9 -- special case for FUNCTION
-  else if (po == Apply)
-  {
-    Sort funsort = terms[0]->get_sort();
-    // assuming the function itself does not need to be cast
-    TermVec casted_children;
-    casted_children.reserve(terms.size());
-    casted_children.push_back(terms[0]);
-    SortVec domain_sorts = funsort->get_domain_sorts();
-    if (terms.size() != domain_sorts.size() + 1)
-    {
-      throw IncorrectUsageException("Can't apply " + terms[0]->to_string()
-                                    + " of sort " + funsort->to_string()
-                                    + " to " + std::to_string(terms.size() - 1)
-                                    + " arguments");
-    }
-    for (size_t i = 1; i < terms.size(); ++i)
-    {
-      casted_children.push_back(cast_term(terms[i], domain_sorts[i - 1]));
-    }
-    return solver->make_term(Apply, casted_children);
-  }
-  // case 10 -- a quantifier, whose body is a bit-vector of width one in a
-  // solver that aliases the two
-  else if (po == Forall || po == Exists)
-  {
-    TermVec casted_children(terms.begin(), terms.end() - 1);
-    casted_children.push_back(cast_term(terms.back(), solver->make_sort(BOOL)));
-    return solver->make_term(op, casted_children);
-  }
-  // default case
-  else
-  {
-    std::string msg("Cannot cast this operation: (");
-    msg += op.to_string();
-    for (auto t : terms)
-    {
-      msg += " " + t->to_string();
-    }
-    msg += ")";
-    throw NotImplementedException(msg);
-  }
-}
-
 void TermTranslator::widen_ints(TermVec & terms) const
 {
   if (std::any_of(terms.begin(), terms.end(), [](const Term & t) {
@@ -840,99 +666,9 @@ void TermTranslator::widen_ints(TermVec & terms) const
     {
       if (t->get_sort()->get_sort_kind() == INT)
       {
-        t = cast_term(t, realsort);
+        t = cast_term(solver, t, realsort);
       }
     }
-  }
-}
-
-Term TermTranslator::cast_term(const Term & term, const Sort & sort) const
-{
-  Sort cur_sort = term->get_sort();
-  if (cur_sort == sort)
-  {
-    // nothing to do
-    return term;
-  }
-  else if (term->is_value())
-  {
-    return cast_value(term, sort);
-  }
-
-  SortKind sk = sort->get_sort_kind();
-  SortKind cur_sk = cur_sort->get_sort_kind();
-
-  if (sk == BV && cur_sk == BOOL)
-  {
-    return solver->make_term(
-        Ite, term, solver->make_term(1, sort), solver->make_term(0, sort));
-  }
-  else if (sk == BOOL && cur_sk == BV)
-  {
-    return solver->make_term(Equal, term, solver->make_term(1, cur_sort));
-  }
-  else if (sk == INT && cur_sk == REAL)
-  {
-    return solver->make_term(To_Int, term);
-  }
-  else if (sk == REAL && cur_sk == INT)
-  {
-    return solver->make_term(To_Real, term);
-  }
-  else
-  {
-    throw NotImplementedException("Cannot interpret " + term->to_string()
-                                  + " as " + sort->to_string());
-  }
-}
-
-Term TermTranslator::cast_value(const Term & term, const Sort & sort) const
-{
-  SortKind sk = sort->get_sort_kind();
-  Sort cur_sort = term->get_sort();
-  SortKind cur_sk = cur_sort->get_sort_kind();
-
-  if (sk == BOOL && cur_sk == BV)
-  {
-    if (term->is_value() && cur_sort->get_width() == 1)
-    {
-      return solver->make_term(term->to_int() == 1);
-    }
-    throw NotImplementedException("Cannot interpret " + term->to_string()
-                                  + " as a bool.");
-  }
-  else if (sk == BV && cur_sk == BOOL)
-  {
-    if (sort->get_width() != 1)
-    {
-      throw NotImplementedException("Cannot interpret " + term->to_string()
-                                    + " as " + sort->to_string());
-    }
-
-    if (term->is_value())
-    {
-      return solver->make_term(term->to_bool() ? 1 : 0, sort);
-    }
-    throw NotImplementedException("Cannot interpret " + term->to_string()
-                                  + " as " + sort->to_string());
-  }
-  else if (sk == REAL && cur_sk == INT)
-  {
-    return solver->make_term(To_Real, term);
-  }
-  else if (sk == ARRAY)
-  {
-    // this is a constant array
-    // the only value that has SortKind ARRAY
-    // make constant array by recursing on the element value
-    return solver->make_term(cast_value(*(term->begin()), sort->get_elemsort()),
-                             sort);
-  }
-  else
-  {
-    throw NotImplementedException("Interpreting " + term->to_string() + " as "
-                                  + sort->to_string()
-                                  + " is not yet implemented.");
   }
 }
 

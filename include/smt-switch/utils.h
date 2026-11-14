@@ -133,6 +133,31 @@ Term to_cnf(Term formula, SmtSolver s);
 // Returns true if the formula is in cnf form, else false
 bool is_cnf(Term formula);
 
+/** A term as another sort, between Bool and bit-vectors or between Int and
+ *  Real. A bit-vector is true when it equals 1; a value cast between Bool
+ *  and a bit-vector must have width one.
+ *  @param solver the solver the term and the sort belong to
+ *  @param term the term to cast
+ *  @param sort the sort to cast it to
+ *  @return term itself if it has that sort already, else a term of sort
+ *  @throws NotImplementedException for any other pair of sorts
+ */
+Term cast_term(const SmtSolver & solver, const Term & term, const Sort & sort);
+
+/** An operator applied to terms, cast where the operator does not accept
+ *  them as they are: the terms are cast as cast_term does, or the operator
+ *  is swapped for its Boolean or bit-vector counterpart, such as And for
+ *  BVAnd
+ *  @param solver the solver the terms belong to
+ *  @param op the operator
+ *  @param terms the terms to apply it to
+ *  @return a well-sorted application of op or its counterpart
+ *  @throws NotImplementedException if no such cast makes it well sorted
+ *  @throws IncorrectUsageException for a function applied to the wrong
+ *          number of arguments
+ */
+Term cast_op(const SmtSolver & solver, const Op & op, const TermVec & terms);
+
 /* string constants for the SMT-LIB commands */
 inline constexpr std::string_view SET_OPTION_STR = "set-option";
 inline constexpr std::string_view SET_LOGIC_STR = "set-logic";
