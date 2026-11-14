@@ -98,8 +98,9 @@ TEST_P(UnitPrintTests, PrintValueAs)
   ASSERT_THROW(x->print_value_as(BV), IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverPringUnit,
-                         UnitPrintTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverPringUnit,
+    UnitPrintTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
 }  // namespace

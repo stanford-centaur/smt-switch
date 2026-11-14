@@ -387,23 +387,26 @@ TEST_P(ToBits, NotAValue)
 INSTANTIATE_TEST_SUITE_P(
     UnitToInt,
     ToBits,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntBVTests,
     ToIntBVTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_BV })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntIntTests,
     ToIntIntTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntRealTests,
     ToIntRealTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_REAL })));
 
 // SMT-LIB numerals are never negative: a negative integer value is (- n)
 TEST(ToIntParsing, SmtlibNegativeInt)

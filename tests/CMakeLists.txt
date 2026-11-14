@@ -178,7 +178,6 @@ switch_add_test(test-op-definitions)
 switch_add_test(test-op-round-trip)
 switch_add_test(test-printing)
 switch_add_test(test-real)
-switch_add_test(test-solver-factory)
 switch_add_test(test-sorting-network)
 switch_add_test(test-str)
 switch_add_test(test-term-translation)
@@ -192,13 +191,16 @@ target_link_libraries(test-generic-sort PRIVATE GTest::gmock)
 target_link_libraries(test-printing PRIVATE exec-utils)
 target_link_libraries(test-term-translation PRIVATE term-utils)
 
-# Linked to libsmt-switch alone, so that every backend it reaches is one
-# that create_solver loaded. A static libsmt-switch loads none.
-if(NOT _smt_switch_type STREQUAL "STATIC_LIBRARY")
-  add_executable(test-backend-loading "${PROJECT_SOURCE_DIR}/tests/test-backend-loading.cpp")
-  target_link_libraries(test-backend-loading PRIVATE smt-switch GTest::gtest_main)
-  add_test(NAME test-backend-loading_test COMMAND test-backend-loading)
+# Linked to a shared libsmt-switch alone, so that every backend it reaches
+# is one that create_solver loaded. A static one is linked with them all.
+add_executable(test-solver-factory "${PROJECT_SOURCE_DIR}/tests/test-solver-factory.cpp")
+if(_smt_switch_type STREQUAL "STATIC_LIBRARY")
+  target_link_libraries(test-solver-factory PRIVATE test-solvers)
+else()
+  target_link_libraries(test-solver-factory PRIVATE smt-switch)
 endif()
+target_link_libraries(test-solver-factory PRIVATE GTest::gtest_main)
+add_test(NAME test-solver-factory_test COMMAND test-solver-factory)
 
 if(BUILD_SMTLIB_READER)
   switch_add_test(test-smtlib-reader)

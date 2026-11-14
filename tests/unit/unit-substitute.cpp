@@ -189,13 +189,14 @@ TEST_P(UnitSubstituteTests, BadSubstitution)
                IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParametrizedUnitSubstitute,
-                         UnitSubstituteTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParametrizedUnitSubstitute,
+    UnitSubstituteTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitSubstitute,
     UnitSubstituteIterTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace

@@ -634,24 +634,27 @@ TEST_P(ToCnf, TopLevelAtomIsReturned)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         ToCnf,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    ToCnf,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilTests,
     UnitUtilTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilIntTests,
     UnitUtilIntTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ TERMITER, THEORY_INT })));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitUtilDimacsTests,
-                         UnitUtilDimacsTests,
-                         testing::ValuesIn(available_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitUtilDimacsTests,
+    UnitUtilDimacsTests,
+    testing::ValuesIn(available_solver_enums_with_generic()));
 
 TEST(BvValueToBits, DecimalAcrossLimbs)
 {
@@ -852,11 +855,12 @@ TEST_P(SmtLibApplication, PowerWithoutAProduct)
   EXPECT_EQ(smtlib_application(Op(Pow), { x, x }), "(** x x)");
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         SmtLibApplication,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, QUANTIFIERS })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibApplication,
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT, QUANTIFIERS })),
+    ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareFun);
 class SmtLibDeclareFun
@@ -890,7 +894,8 @@ TEST_P(SmtLibDeclareFun, FunctionListsItsDomain)
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibDeclareFun,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT })),
     ConfigName());
 
 TEST(SmtLibDeclareDatatypes, NoDatatypeIsRefused)
@@ -945,11 +950,12 @@ TEST_P(SmtLibDeclareDatatypes, NonDatatypeIsRefused)
                IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         SmtLibDeclareDatatypes,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_DATATYPE })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibDeclareDatatypes,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { THEORY_INT, THEORY_DATATYPE })),
+    ConfigName());
 
 TEST(SmtLibBenchmark, NothingToDeclare)
 {
@@ -1055,11 +1061,12 @@ TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
                 + ")\n(check-sat)\n");
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         SmtLibBenchmarkDeclarations,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_INT, UNINTERP_SORT })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibBenchmarkDeclarations,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_INT, UNINTERP_SORT })),
+    ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkParamSorts);
 class SmtLibBenchmarkParamSorts : public SmtLibBenchmarkDeclarations
@@ -1143,11 +1150,12 @@ TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
                 + ")\n(check-sat)\n");
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         SmtLibBenchmarkParamSorts,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_INT, PARAM_UNINTERP_SORT })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibBenchmarkParamSorts,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_INT, PARAM_UNINTERP_SORT })),
+    ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkDatatypes);
 class SmtLibBenchmarkDatatypes : public SmtLibBenchmarkDeclarations
@@ -1207,11 +1215,12 @@ TEST_P(SmtLibBenchmarkDatatypes, RefusesTwoDatatypesWithTheSameName)
                NotImplementedException);
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         SmtLibBenchmarkDatatypes,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_INT, THEORY_DATATYPE })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibBenchmarkDatatypes,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_INT, THEORY_DATATYPE })),
+    ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkQuantifiers);
 class SmtLibBenchmarkQuantifiers : public SmtLibBenchmarkDeclarations
@@ -1234,11 +1243,12 @@ TEST_P(SmtLibBenchmarkQuantifiers, LeavesBoundVariablesUndeclared)
                   "(check-sat)\n");
 }
 
-INSTANTIATE_TEST_SUITE_P(UnitUtil,
-                         SmtLibBenchmarkQuantifiers,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_INT, QUANTIFIERS })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    SmtLibBenchmarkQuantifiers,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_INT, QUANTIFIERS })),
+    ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkRenamedSorts);
 class SmtLibBenchmarkRenamedSorts : public SmtLibBenchmarkDeclarations
@@ -1283,7 +1293,7 @@ TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibBenchmarkRenamedSorts,
-    testing::ValuesIn(filter_solver_configurations(
+    testing::ValuesIn(filter_solver_configurations_with_generic(
         { TERMITER, THEORY_INT, QUANTIFIERS, UNINTERP_SORT })),
     ConfigName());
 

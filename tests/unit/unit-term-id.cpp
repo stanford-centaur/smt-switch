@@ -83,8 +83,9 @@ TEST_P(UnitTermIdTests, BasicTest)
   EXPECT_EQ(yp1->get_id(), yp1->get_id());
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedUnitTermIdTests,
-                         UnitTermIdTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedUnitTermIdTests,
+    UnitTermIdTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
 }  // namespace

@@ -302,6 +302,6 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedPrimOp,
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverUnit,
     UnitTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace

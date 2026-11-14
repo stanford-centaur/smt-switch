@@ -542,49 +542,56 @@ TEST_P(QuantifierRoundTripTests, ForallTwoParams)
 INSTANTIATE_TEST_SUITE_P(
     ,
     BoolRoundTripTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     BVRoundTripTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER,
+                                                                  THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntRoundTripTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_INT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ TERMITER, THEORY_INT })),
     ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         RealRoundTripTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_INT, THEORY_REAL })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    RealRoundTripTests,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_INT, THEORY_REAL })),
+    ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         IntBVRoundTripTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_INT, THEORY_BV })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    IntBVRoundTripTests,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_INT, THEORY_BV })),
+    ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     ArrayRoundTripTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER,
+                                                                  THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     FunRoundTripTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER, THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER,
+                                                                  THEORY_BV })),
     ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         QuantifierRoundTripTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { TERMITER, THEORY_BV, QUANTIFIERS })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    QuantifierRoundTripTests,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { TERMITER, THEORY_BV, QUANTIFIERS })),
+    ConfigName());
 
 }  // namespace

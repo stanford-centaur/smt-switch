@@ -159,10 +159,9 @@ TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
 // The unsat cores reducer module requires the
 // underlying solver to support both unsat cores
 // and term translation.
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverUnsatCoreReducerTests,
-    UnsatCoreReducerTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations(
-        { UNSAT_CORE, FULL_TRANSFER })));
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreReducerTests,
+                         UnsatCoreReducerTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { UNSAT_CORE, FULL_TRANSFER })));
 
 }  // namespace

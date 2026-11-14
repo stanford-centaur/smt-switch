@@ -182,7 +182,8 @@ TEST_P(IntTests, Bv2Int)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverIntTests,
     IntTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT })));
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntArithmeticTests);
 class IntArithmeticTests
@@ -307,7 +308,8 @@ TEST_P(IntArithmeticTests, DivAndModBySymbol)
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntArithmeticTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntBVArithmeticTests);
@@ -386,7 +388,8 @@ TEST_P(IntBVArithmeticTests, PolynomialConstraints)
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntBVArithmeticTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT, THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_INT,
+                                                                  THEORY_BV })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IntRealArithmeticTests);
@@ -482,10 +485,11 @@ TEST_P(IntRealArithmeticTests, ValueInOtherBase)
   EXPECT_THROW(s->make_term("0", intsort, 37), IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         IntRealArithmeticTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_REAL })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    IntRealArithmeticTests,
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_REAL })),
+    ConfigName());
 
 }  // namespace

@@ -427,14 +427,16 @@ TEST_P(UnitTermArithTests, IteOverIntegerValuedReal)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTerm,
-                         UnitTermTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverUnitTerm,
+    UnitTermTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitTermArith,
-                         UnitTermArithTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_REAL })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverUnitTermArith,
+    UnitTermArithTests,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { THEORY_INT, THEORY_REAL })));
 
 class NegativeValueTests
     : public ::testing::Test,
@@ -534,13 +536,14 @@ TEST_P(NegativeIntTests, CancelsItsPositive)
 INSTANTIATE_TEST_SUITE_P(
     ,
     NegativeBVTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     NegativeIntTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT })),
     ConfigName());
 
 }  // namespace

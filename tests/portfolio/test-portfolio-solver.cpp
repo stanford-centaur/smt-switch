@@ -37,7 +37,7 @@ vector<SolverEnum> backends_with(
     const unordered_set<SolverAttribute> & attributes)
 {
   vector<SolverEnum> backends;
-  for (SolverEnum se : filter_solver_enums(attributes))
+  for (SolverEnum se : filter_solver_enums_with_generic(attributes))
   {
     if (se != GENERIC_SOLVER)
     {

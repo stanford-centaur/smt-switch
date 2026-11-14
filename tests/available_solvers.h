@@ -34,29 +34,24 @@ struct SolverConfiguration
 /** Creates an SmtSolver of the provided type */
 smt::SmtSolver create_solver(SolverConfiguration sc);
 
-/** Creates an interpolating SmtSolver of the provided type */
-smt::SmtInterpolator create_interpolator(SolverConfiguration sc);
-
 /** The regular solver an interpolator is built on, whose theories it shares */
 smt::SolverEnum interpolator_base_solver(smt::SolverEnum se);
 
-// collect all the available solvers
-std::vector<smt::SolverEnum> available_solver_enums();
+/** The solvers create_solver can make, with GENERIC_SOLVER if the cvc5
+ *  binary was found
+ */
+std::vector<smt::SolverEnum> available_solver_enums_with_generic();
 
 /** The solver's own executable, or empty if configure found none */
 std::string_view solver_binary(smt::SolverEnum se);
 
-// collect all the available solvers non generic
-std::vector<smt::SolverEnum> available_non_generic_solver_enums();
+/** The available solvers, with and without logging, and GENERIC_SOLVER if
+ *  the cvc5 binary was found
+ */
+std::vector<SolverConfiguration> available_solver_configurations_with_generic();
 
-// collect all the available solvers
+/** The available solvers, with and without logging */
 std::vector<SolverConfiguration> available_solver_configurations();
-
-// collect all the available solvers without generics
-std::vector<SolverConfiguration> available_non_generic_solver_configurations();
-
-// collect all the available interpolating solvers
-std::vector<smt::SolverEnum> available_interpolator_enums();
 
 // collect all the available interpolating solvers
 std::vector<SolverConfiguration> available_interpolator_configurations();
@@ -68,18 +63,21 @@ std::vector<SolverConfiguration> filter_interpolator_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 /** Filter the available solvers by a set of attributes
- * @return all available solvers that have *all* the attributes
+ * @return the available solvers, GENERIC_SOLVER included, that have *all*
+ *         the attributes
  */
-std::vector<smt::SolverEnum> filter_solver_enums(
+std::vector<smt::SolverEnum> filter_solver_enums_with_generic(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 /** Filter the available solvers by a set of attributes
- * @return all available solvers that have *all* the attributes
+ * @return the available solver configurations, GENERIC_SOLVER included,
+ *         that have *all* the attributes
  */
-std::vector<SolverConfiguration> filter_solver_configurations(
+std::vector<SolverConfiguration> filter_solver_configurations_with_generic(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
-std::vector<SolverConfiguration> filter_non_generic_solver_configurations(
+/** As filter_solver_configurations_with_generic, without GENERIC_SOLVER */
+std::vector<SolverConfiguration> filter_solver_configurations(
     const std::unordered_set<smt::SolverAttribute> attributes);
 
 std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);

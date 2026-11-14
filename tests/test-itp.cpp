@@ -26,6 +26,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
@@ -57,7 +58,7 @@ class ItpTests : public ::testing::Test,
  protected:
   void SetUp() override
   {
-    itp = create_interpolator(GetParam().config);
+    itp = create_interpolator(GetParam().config.solver_enum);
 
     // the queries order the symbols, so unsigned bit-vector comparisons
     // keep them unsatisfiable
@@ -188,7 +189,7 @@ TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
   int max_k = cvc5_bv ? 3 : 5;
   for (int k = 2; k <= max_k; ++k)
   {
-    SmtInterpolator s = create_interpolator(GetParam().config);
+    SmtInterpolator s = create_interpolator(GetParam().config.solver_enum);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
                                                : s->make_sort(BV, 8);
     Term one = s->make_term(1, srt);
@@ -300,7 +301,7 @@ TEST_P(ItpTests, ReuseKeepsResults)
 {
   for (const char * incremental : { "true", "false" })
   {
-    SmtInterpolator s = create_interpolator(GetParam().config);
+    SmtInterpolator s = create_interpolator(GetParam().config.solver_enum);
     s->set_opt("incremental", incremental);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
                                                : s->make_sort(BV, 8);
@@ -375,7 +376,7 @@ TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
   auto log_after_reset = [this](bool turn_off) {
     std::ostringstream out;
     SmtInterpolator s = create_printing_interpolator(
-        create_interpolator(GetParam().config), &out);
+        create_interpolator(GetParam().config.solver_enum), &out);
     if (turn_off)
     {
       s->set_opt("incremental", "false");
@@ -469,7 +470,7 @@ TEST_P(ItpTests, PrintingWritesNoRefusedQuery)
 {
   std::ostringstream out;
   SmtInterpolator s = create_printing_interpolator(
-      create_interpolator(GetParam().config), &out);
+      create_interpolator(GetParam().config.solver_enum), &out);
   Sort srt =
       GetParam().theory == THEORY_INT ? s->make_sort(INT) : s->make_sort(BV, 8);
   Term a = s->make_symbol("a", srt);

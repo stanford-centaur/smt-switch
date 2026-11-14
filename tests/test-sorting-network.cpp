@@ -105,8 +105,7 @@ TEST_P(SortingNetworkTests, OutlivesSolverHandle)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverSortingNetworkTests,
     SortingNetworkTests,
-    testing::Combine(
-        testing::ValuesIn(available_non_generic_solver_configurations()),
-        testing::Values(3, 6, 8)));
+    testing::Combine(testing::ValuesIn(available_solver_configurations()),
+                     testing::Values(3, 6, 8)));
 
 }  // namespace

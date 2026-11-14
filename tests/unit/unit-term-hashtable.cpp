@@ -16,6 +16,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term_hashtable.h"
 
@@ -75,9 +76,8 @@ TEST_P(UnitTestsHashTable, HashTable)
 // similarly to logging solvers, generic solvers
 // increase the usage count and so we ignore
 // them in this test
-INSTANTIATE_TEST_SUITE_P(
-    ParametrizedUnitHashTable,
-    UnitTestsHashTable,
-    testing::ValuesIn(available_non_generic_solver_enums()));
+INSTANTIATE_TEST_SUITE_P(ParametrizedUnitHashTable,
+                         UnitTestsHashTable,
+                         testing::ValuesIn(available_solver_enums()));
 
 }  // namespace

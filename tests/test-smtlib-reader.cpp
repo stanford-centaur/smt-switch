@@ -149,25 +149,25 @@ TEST_P(Benchmark, Answers)
 INSTANTIATE_TEST_SUITE_P(
     QF_UFLIA,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { THEORY_INT })),
-                     testing::ValuesIn(inputs_in("qf_uflia")),
-                     testing::Values(true)),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+        testing::ValuesIn(inputs_in("qf_uflia")),
+        testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_LRA,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { THEORY_REAL })),
-                     testing::ValuesIn(inputs_in("qf_lra")),
-                     testing::Values(true)),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })),
+        testing::ValuesIn(inputs_in("qf_lra")),
+        testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_S,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
                          { THEORY_INT, THEORY_STR })),
                      testing::ValuesIn(inputs_in("qf_s")),
                      testing::Values(true)),
@@ -176,16 +176,15 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     QF_UFBV,
     Benchmark,
-    testing::Combine(
-        testing::ValuesIn(available_non_generic_solver_configurations()),
-        testing::ValuesIn(inputs_in("qf_ufbv")),
-        testing::Values(true)),
+    testing::Combine(testing::ValuesIn(available_solver_configurations()),
+                     testing::ValuesIn(inputs_in("qf_ufbv")),
+                     testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_ALIA,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
                          { THEORY_INT, ARRAY_MODELS, CONSTARR })),
                      testing::ValuesIn(inputs_in("qf_alia")),
                      testing::Values(true)),
@@ -194,25 +193,26 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     QF_UF,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
-                         { UNINTERP_SORT })),
-                     testing::ValuesIn(inputs_in("qf_uf")),
-                     testing::Values(true)),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+        testing::ValuesIn(inputs_in("qf_uf")),
+        testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_UF_PARAM_SORTS,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { PARAM_UNINTERP_SORT, THEORY_INT })),
-                     testing::ValuesIn(inputs_in("qf_uf_param_sorts")),
-                     testing::Values(true)),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations_with_generic(
+            { PARAM_UNINTERP_SORT, THEORY_INT })),
+        testing::ValuesIn(inputs_in("qf_uf_param_sorts")),
+        testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_LIRA,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
                          { THEORY_INT, THEORY_REAL })),
                      testing::ValuesIn(inputs_in("qf_lira")),
                      testing::Values(true)),
@@ -221,7 +221,7 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     QF_LIRA_NONSTRICT,
     Benchmark,
-    testing::Combine(testing::ValuesIn(filter_non_generic_solver_configurations(
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
                          { THEORY_INT, THEORY_REAL })),
                      testing::ValuesIn(inputs_in("qf_lira_nonstrict")),
                      testing::Values(false)),
@@ -324,10 +324,11 @@ TEST_P(Dump, LeavesOutResetAssertions)
   EXPECT_TRUE(reread("reset").is_sat());
 }
 
-INSTANTIATE_TEST_SUITE_P(SmtLibReader,
-                         Dump,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    Dump,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 // Two distinct sorts named S, so that the dump renames one. The other
 // assertions check that renaming does not change how the rest of the dump
@@ -408,7 +409,8 @@ TEST_P(DumpRenamedSorts, KeepsAnUnsatisfiableQuery)
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     DumpRenamedSorts,
-    testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ UNINTERP_SORT })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DumpUninterpretedSort);
@@ -433,7 +435,8 @@ TEST_P(DumpUninterpretedSort, DeclaresTheSort)
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     DumpUninterpretedSort,
-    testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ UNINTERP_SORT })),
     ConfigName());
 
 TEST(UnorderedScopedSymbolMap, PopOutermostScope)
@@ -509,11 +512,10 @@ TEST_P(Scopes, DefineOverOuterSymbol)
                IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    SmtLibReader,
-    Scopes,
-    testing::ValuesIn(available_non_generic_solver_configurations()),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(SmtLibReader,
+                         Scopes,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Input);
 class Input : public ::testing::Test,
@@ -636,11 +638,10 @@ TEST_P(Input, UnknownCharacter)
                ParseException);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    SmtLibReader,
-    Input,
-    testing::ValuesIn(available_non_generic_solver_configurations()),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(SmtLibReader,
+                         Input,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Logics);
 class Logics : public ::testing::Test,
@@ -696,10 +697,11 @@ TEST_P(Logics, StandardSpellings)
   EXPECT_EQ(reader->lookup_primop("^"), Pow);
 }
 
-INSTANTIATE_TEST_SUITE_P(SmtLibReader,
-                         Logics,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    SmtLibReader,
+    Logics,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 /** Records the values of the set-info commands it reads */
 class InfoRecorder : public SmtLibReader
@@ -787,11 +789,10 @@ TEST_P(AttributeValues, ReservedWordsInLists)
   EXPECT_EQ(reserved["indexed"], "((_ bv5 8) (! x :named y))");
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    SmtLibReader,
-    AttributeValues,
-    testing::ValuesIn(available_non_generic_solver_configurations()),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(SmtLibReader,
+                         AttributeValues,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
 
 /** Records the overridable commands it reads that declare, define or
  *  print, each as its name followed by its arguments */
@@ -879,10 +880,9 @@ TEST_P(Commands, OverridesReceiveEachCommand)
                 { "echo", "x y" } }));
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    SmtLibReader,
-    Commands,
-    testing::ValuesIn(available_non_generic_solver_configurations()),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(SmtLibReader,
+                         Commands,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
 
 }  // namespace

@@ -201,8 +201,9 @@ TEST_P(UnitSymbolTests, GetSymbolOnFreshSolver)
   EXPECT_THROW(fresh->get_symbol("x"), IncorrectUsageException);
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitSymbol,
-                         UnitSymbolTests,
-                         testing::ValuesIn(available_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverUnitSymbol,
+    UnitSymbolTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()));
 
 }  // namespace

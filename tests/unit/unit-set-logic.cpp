@@ -156,7 +156,7 @@ TEST_P(SetLogic, LogicNames)
 INSTANTIATE_TEST_SUITE_P(
     ,
     SetLogic,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
     ConfigName());
 
 }  // namespace

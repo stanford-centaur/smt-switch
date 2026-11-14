@@ -51,10 +51,9 @@ TEST_P(VariadicOpsTests, NoArguments)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverVariadicOpsTests,
-    VariadicOpsTests,
-    testing::ValuesIn(available_non_generic_solver_configurations()));
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
+                         VariadicOpsTests,
+                         testing::ValuesIn(available_solver_configurations()));
 
 /** Checks a backend's applications of an operator to more than two arguments
  *  against make_nary_term, which builds them from applications to two as
@@ -235,35 +234,33 @@ TEST_P(StrNaryTests, MakeNaryTerm)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverVariadicOpsTests,
-    BoolNaryTests,
-    testing::ValuesIn(available_non_generic_solver_configurations()),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
+                         BoolNaryTests,
+                         testing::ValuesIn(available_solver_configurations()),
+                         ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverVariadicOpsTests,
     IntNaryTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations({ THEORY_INT })),
+    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverVariadicOpsTests,
     RealNaryTests,
-    testing::ValuesIn(
-        filter_non_generic_solver_configurations({ THEORY_REAL })),
+    testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverVariadicOpsTests,
     BVNaryTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverVariadicOpsTests,
     StrNaryTests,
-    testing::ValuesIn(filter_non_generic_solver_configurations({ THEORY_STR })),
+    testing::ValuesIn(filter_solver_configurations({ THEORY_STR })),
     ConfigName());
 
 }  // namespace

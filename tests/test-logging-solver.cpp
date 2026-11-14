@@ -276,15 +276,17 @@ TEST_P(LoggingUninterpretedArrays, ValuesHoldAssertedEntry)
   EXPECT_EQ(it != values.end() ? it->second : base, one8);
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         Logging,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    Logging,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         LoggingUninterpretedArrays,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { UNINTERP_SORT, ARRAY_MODELS })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    LoggingUninterpretedArrays,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { UNINTERP_SORT, ARRAY_MODELS })),
+    ConfigName());
 
 }  // namespace

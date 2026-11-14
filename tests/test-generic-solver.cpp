@@ -29,6 +29,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
@@ -152,7 +153,7 @@ vector<GenericSolverParam> params_where(
     const function<bool(SolverEnum)> & filter)
 {
   vector<GenericSolverParam> params;
-  for (SolverEnum b : available_non_generic_solver_enums())
+  for (SolverEnum b : available_solver_enums())
   {
     if (solver_binary(b).empty() || !filter(b))
     {
@@ -173,7 +174,7 @@ vector<GenericSolverParam> params_with(SolverAttribute a)
 vector<GenericSolverParam> params_one_buffer_size()
 {
   vector<GenericSolverParam> params;
-  for (SolverEnum b : available_non_generic_solver_enums())
+  for (SolverEnum b : available_solver_enums())
   {
     if (!solver_binary(b).empty())
     {

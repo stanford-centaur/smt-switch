@@ -83,10 +83,11 @@ TEST_P(ForeignHandle, ForeignSortOrderedApart)
   EXPECT_NE(boolsort < other_boolsort, other_boolsort < boolsort);
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         ForeignHandle,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    ForeignHandle,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ForeignDatatypeHandle);
 class ForeignDatatypeHandle : public ForeignHandle
@@ -135,7 +136,8 @@ TEST_P(ForeignDatatypeHandle, ForeignDatatypeNotEqual)
 INSTANTIATE_TEST_SUITE_P(
     ,
     ForeignDatatypeHandle,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_DATATYPE })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_DATATYPE })),
     ConfigName());
 
 }  // namespace

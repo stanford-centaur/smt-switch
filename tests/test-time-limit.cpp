@@ -178,6 +178,7 @@ TEST_P(TimeLimitTests, RefusesValueOtherThanNonnegativeNumber)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTimeLimitTests,
     TimeLimitTests,
-    testing::ValuesIn(filter_solver_configurations({ TIMELIMIT })));
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ TIMELIMIT })));
 
 }  // namespace

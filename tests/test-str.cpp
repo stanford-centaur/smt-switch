@@ -273,9 +273,10 @@ TEST_P(StrTests, StringOperators)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedSolverStrTests,
-                         StrTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_STR })));
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedSolverStrTests,
+    StrTests,
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_STR })));
 
 }  // namespace

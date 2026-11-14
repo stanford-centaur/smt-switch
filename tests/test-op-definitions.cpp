@@ -349,27 +349,30 @@ TEST_P(RealOpDefinitionTests, IsInt)
   expect_valid(s->make_term(Not, s->make_term(Is_Int, one_point_three)));
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         BoolOpDefinitionTests,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    BoolOpDefinitionTests,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     BVOpDefinitionTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntOpDefinitionTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT })),
     ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         RealOpDefinitionTests,
-                         testing::ValuesIn(filter_solver_configurations(
-                             { THEORY_INT, THEORY_REAL })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    RealOpDefinitionTests,
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_REAL })),
+    ConfigName());
 
 }  // namespace

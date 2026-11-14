@@ -68,9 +68,10 @@ TEST_P(SetOpt, TurningOffIsHonouredOrNotImplemented)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(,
-                         SetOpt,
-                         testing::ValuesIn(available_solver_configurations()),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    SetOpt,
+    testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
 
 }  // namespace

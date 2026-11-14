@@ -64,7 +64,8 @@ vector<SolverConfiguration> replayable(
     const unordered_set<SolverAttribute> & attributes)
 {
   vector<SolverConfiguration> result;
-  for (SolverConfiguration sc : filter_solver_configurations(attributes))
+  for (SolverConfiguration sc :
+       filter_solver_configurations_with_generic(attributes))
   {
     if (!solver_binary(sc.solver_enum).empty())
     {
