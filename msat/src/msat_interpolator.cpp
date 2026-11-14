@@ -33,6 +33,20 @@ static string with_error(const string & text, const string & error)
   return error.empty() ? text : text + ": " + error;
 }
 
+// After MathSAT refuses a push or pop, the assertions kept for reuse no
+// longer match its backtrack points, so the next query starts afresh.
+[[noreturn]] static void throw_and_forget_query(const string & what,
+                                                msat_env env,
+                                                TermVec & assertions,
+                                                vector<int> & groups)
+{
+  string error = detail::last_error_message(env);
+  msat_reset_env(env);
+  assertions.clear();
+  groups.clear();
+  throw SolverException(with_error("MathSAT refused to " + what, error));
+}
+
 MsatInterpolator::MsatInterpolator()
     : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>()),
       msat_solver_(std::static_pointer_cast<MsatSolver>(backend_solver))
@@ -121,7 +135,11 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
   {
     for (size_t i = num_reused; i < last_itp_query_assertions_.size(); ++i)
     {
-      msat_pop_backtrack_point(*env);
+      if (msat_pop_backtrack_point(*env))
+      {
+        throw_and_forget_query(
+            "pop", *env, last_itp_query_assertions_, itp_grps_);
+      }
     }
   }
 
@@ -138,7 +156,11 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
     // then push the formula.
     int grp = msat_create_itp_group(*env);
     msat_set_itp_group(*env, grp);
-    msat_push_backtrack_point(*env);
+    if (msat_push_backtrack_point(*env))
+    {
+      throw_and_forget_query(
+          "push", *env, last_itp_query_assertions_, itp_grps_);
+    }
     msat_assert_formula(*env, mformulae.at(k));
     itp_grps_.push_back(grp);
     last_itp_query_assertions_.push_back(formulae.at(k));
