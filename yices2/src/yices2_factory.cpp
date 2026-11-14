@@ -14,6 +14,7 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/logging_solver.h"
+#include "smt-switch/solver_factory.h"
 #include "smt-switch/yices2_interpolator.h"
 #include "smt-switch/yices2_solver.h"
 
@@ -50,5 +51,9 @@ SmtInterpolator Yices2SolverFactory::create_interpolating_solver()
 {
   return create_interpolator();
 }
+
+const detail::BackendFactory detail::smt_switch_backend_yices2 = {
+  &Yices2SolverFactory::create, &Yices2SolverFactory::create_interpolator
+};
 
 }  // namespace smt

@@ -60,7 +60,19 @@ include("${CMAKE_CURRENT_LIST_DIR}/SmtSwitchTargets.cmake")
 # Each backend is a separate export set, loaded only when asked for. A build
 # with every backend enabled would otherwise oblige a consumer who wants one
 # solver to have all six installed.
-foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
+# A static libsmt-switch refers to every backend it was built with, for
+# create_solver, so those are loaded whether asked for or not.
+set(_smt_switch_static_backends "")
+if("@SMT_SWITCH_LIB_TYPE@" STREQUAL "STATIC")
+  set(_smt_switch_static_backends ${SmtSwitch_AVAILABLE_COMPONENTS})
+  list(REMOVE_ITEM _smt_switch_static_backends smtlib)
+endif()
+set(_smt_switch_components ${SmtSwitch_FIND_COMPONENTS} ${_smt_switch_static_backends})
+if(_smt_switch_components)
+  list(REMOVE_DUPLICATES _smt_switch_components)
+endif()
+
+foreach(_smt_switch_component IN LISTS _smt_switch_components)
   if(NOT _smt_switch_component IN_LIST SmtSwitch_AVAILABLE_COMPONENTS)
     set(SmtSwitch_${_smt_switch_component}_FOUND FALSE)
     continue()
@@ -128,6 +140,25 @@ foreach(_smt_switch_component IN LISTS SmtSwitch_FIND_COMPONENTS)
 
   set(SmtSwitch_${_smt_switch_component}_FOUND TRUE)
 endforeach()
+
+# The core library's own export cannot name another export set's targets,
+# since each would then require the other to be loaded first.
+get_target_property(_smt_switch_links SmtSwitch::smt-switch INTERFACE_LINK_LIBRARIES)
+foreach(_smt_switch_component IN LISTS _smt_switch_static_backends)
+  # Not $<LINK_ONLY:...>, which would drop where Bitwuzla's libraries are
+  set(_smt_switch_link "SmtSwitch::smt-switch-${_smt_switch_component}")
+  if(NOT _smt_switch_link IN_LIST _smt_switch_links)
+    set_property(
+      TARGET SmtSwitch::smt-switch
+      APPEND
+      PROPERTY INTERFACE_LINK_LIBRARIES "${_smt_switch_link}"
+    )
+  endif()
+endforeach()
+unset(_smt_switch_links)
+unset(_smt_switch_link)
+unset(_smt_switch_static_backends)
+unset(_smt_switch_components)
 unset(_smt_switch_component)
 unset(_smt_switch_package)
 unset(_smt_switch_root)

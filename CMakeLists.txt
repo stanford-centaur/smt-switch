@@ -152,6 +152,7 @@ set(
   "${PROJECT_SOURCE_DIR}/src/result.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver_enums.cpp"
+  "${PROJECT_SOURCE_DIR}/src/solver_factory.cpp"
   "${PROJECT_SOURCE_DIR}/src/solver_utils.cpp"
   "${PROJECT_SOURCE_DIR}/src/sort_inference.cpp"
   "${PROJECT_SOURCE_DIR}/src/sort.cpp"
@@ -280,6 +281,38 @@ if(BUILD_CVC5 AND BUILD_YICES2 AND Yices2_POLY_LIBRARY)
     HEADER poly/version.h
     VERSION_MACRO LIBPOLY_VERSION
   )
+endif()
+
+# create_solver. The backends link libsmt-switch, so a shared one loads
+# them when asked, looking beside itself first; the build tree keeps them
+# there as an installation does. A static one refers to the backends this
+# build has directly, and is linked with them only here: the installed
+# package adds them itself, because its export cannot name another export
+# set's targets.
+if(SMT_SWITCH_LIB_TYPE STREQUAL "SHARED")
+  target_compile_definitions(
+    smt-switch
+    PRIVATE
+      SMT_SWITCH_LOAD_BACKENDS
+      SMT_SWITCH_LIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
+      SMT_SWITCH_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}"
+  )
+  target_link_libraries(smt-switch PRIVATE ${CMAKE_DL_LIBS})
+  if(SOLVER_BACKEND_LIBS)
+    set_target_properties(
+      ${SOLVER_BACKEND_LIBS}
+      PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+  endif()
+else()
+  foreach(lib IN LISTS SOLVER_BACKEND_LIBS)
+    string(REPLACE "smt-switch-" "" backend "${lib}")
+    string(TOUPPER "${backend}" backend)
+    target_compile_definitions(smt-switch PRIVATE SMT_SWITCH_STATIC_BACKEND_${backend})
+  endforeach()
+  # PUBLIC, because a private dependency of a static library passes on its
+  # libraries but not where to find them, which Bitwuzla needs
+  target_link_libraries(smt-switch PUBLIC "$<BUILD_INTERFACE:${SOLVER_BACKEND_LIBS}>")
 endif()
 
 if(BUILD_SMTLIB_READER)
