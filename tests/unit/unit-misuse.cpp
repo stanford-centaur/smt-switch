@@ -46,6 +46,30 @@ TEST_P(Misuse, GetValueWithoutProduceModels)
   EXPECT_THROW(s->get_value(x), IncorrectUsageException);
 }
 
+TEST_P(Misuse, GetValueWithProduceModelsOff)
+{
+  try
+  {
+    s->set_opt("produce-models", "false");
+  }
+  catch (const NotImplementedException &)
+  {
+    // a solver that cannot turn models off; any other exception escapes
+    // and fails the test
+    return;
+  }
+  Sort bvsort = s->make_sort(BV, 8);
+  Term v = s->make_symbol("v", bvsort);
+  Term arr = s->make_symbol("arr", s->make_sort(ARRAY, bvsort, bvsort));
+  s->assert_formula(s->make_term(Equal, v, s->make_term(37, bvsort)));
+  s->assert_formula(s->make_term(
+      Equal, s->make_term(Select, arr, v), s->make_term(9, bvsort)));
+  ASSERT_TRUE(s->check_sat().is_sat());
+  EXPECT_THROW(s->get_value(v), IncorrectUsageException);
+  Term base;
+  EXPECT_THROW(s->get_array_values(arr, base), IncorrectUsageException);
+}
+
 TEST_P(Misuse, GetValueAfterUnsat)
 {
   s->set_opt("produce-models", "true");
