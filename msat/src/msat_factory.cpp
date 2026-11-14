@@ -12,6 +12,7 @@
 #include "smt-switch/logging_solver.h"
 #include "smt-switch/msat_interpolator.h"
 #include "smt-switch/msat_solver.h"
+#include "smt-switch/solver_factory.h"
 
 namespace smt {
 
@@ -41,5 +42,9 @@ SmtInterpolator MsatSolverFactory::create_interpolating_solver()
 }
 
 /* end MsatSolverFactory implementation */
+
+const detail::BackendFactory detail::smt_switch_backend_msat = {
+  &MsatSolverFactory::create, &MsatSolverFactory::create_interpolator
+};
 
 }  // namespace smt

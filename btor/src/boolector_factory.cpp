@@ -11,6 +11,7 @@
 
 #include "smt-switch/boolector_solver.h"
 #include "smt-switch/logging_solver.h"
+#include "smt-switch/solver_factory.h"
 
 namespace smt {
 
@@ -26,5 +27,9 @@ SmtSolver BoolectorSolverFactory::create(bool logging)
 }
 
 /* end BoolectorSolverFactory implementation */
+
+const detail::BackendFactory detail::smt_switch_backend_btor = {
+  &BoolectorSolverFactory::create, nullptr
+};
 
 }  // namespace smt

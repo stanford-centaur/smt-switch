@@ -92,6 +92,25 @@ int main()
 
 ```
 
+To choose the solver at run time instead, `smt-switch/solver_factory.h` creates
+one from its `SolverEnum`. It reaches any backend the program links, or one
+installed beside `libsmt-switch`, so linking `SmtSwitch::smt-switch` alone is
+enough:
+
+```cpp
+#include <smt-switch/solver_factory.h>
+
+int main()
+{
+  for (smt::SolverEnum se : smt::available_solver_enums())
+  {
+    smt::SmtSolver s = smt::create_solver(se, /* logging */ false);
+  }
+  return 0;
+}
+
+```
+
 ## Dependencies
 
 - CMake >= 3.16

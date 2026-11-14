@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "smt-switch/logging_solver.h"
+#include "smt-switch/solver_factory.h"
 #include "smt-switch/z3_solver.h"
 
 namespace smt {
@@ -25,5 +26,9 @@ SmtSolver Z3SolverFactory::create(bool logging)
   return solver;
 }
 /* end Z3SolverFactory implementation */
+
+const detail::BackendFactory detail::smt_switch_backend_z3 = {
+  &Z3SolverFactory::create, nullptr
+};
 
 }  // namespace smt

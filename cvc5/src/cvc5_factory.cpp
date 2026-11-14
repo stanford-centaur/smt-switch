@@ -12,6 +12,7 @@
 #include "smt-switch/cvc5_interpolator.h"
 #include "smt-switch/cvc5_solver.h"
 #include "smt-switch/logging_solver.h"
+#include "smt-switch/solver_factory.h"
 
 namespace smt {
 
@@ -36,5 +37,9 @@ SmtInterpolator Cvc5SolverFactory::create_interpolating_solver()
   return create_interpolator();
 }
 /* end Cvc5SolverFactory implementation */
+
+const detail::BackendFactory detail::smt_switch_backend_cvc5 = {
+  &Cvc5SolverFactory::create, &Cvc5SolverFactory::create_interpolator
+};
 
 }  // namespace smt

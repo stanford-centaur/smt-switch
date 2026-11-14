@@ -13,6 +13,7 @@
 #include "smt-switch/bitwuzla_solver.h"
 #include "smt-switch/logging_solver.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_factory.h"
 
 namespace smt {
 
@@ -38,5 +39,14 @@ SmtInterpolator BitwuzlaSolverFactory::create_interpolating_solver()
 }
 
 /* end BitwuzlaSolverFactory implementation */
+
+const detail::BackendFactory detail::smt_switch_backend_bitwuzla = {
+  &BitwuzlaSolverFactory::create,
+#ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
+  &BitwuzlaSolverFactory::create_interpolator
+#else
+  nullptr
+#endif
+};
 
 }  // namespace smt
