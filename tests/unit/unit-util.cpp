@@ -634,10 +634,141 @@ TEST_P(ToCnf, TopLevelAtomIsReturned)
   }
 }
 
+/** Expects a and b to be equal in every model of a solver with no
+ *  assertions yet
+ */
+void expect_equivalent(const SmtSolver & s, const Term & a, const Term & b)
+{
+  s->assert_formula(s->make_term(Not, s->make_term(Equal, a, b)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastTerm);
+class CastTerm : public ::testing::TestWithParam<SolverConfiguration>
+{
+ protected:
+  void SetUp() override
+  {
+    s = create_solver(GetParam());
+    boolsort = s->make_sort(BOOL);
+    bv1sort = s->make_sort(BV, 1);
+    x = s->make_symbol("x", boolsort);
+  }
+  SmtSolver s;
+  Sort boolsort;
+  Sort bv1sort;
+  Term x;
+};
+
+TEST_P(CastTerm, BoolToBitAndBack)
+{
+  Term bit = cast_term(s, x, bv1sort);
+  EXPECT_EQ(bit->get_sort(), bv1sort);
+  Term back = cast_term(s, bit, boolsort);
+  EXPECT_EQ(back->get_sort(), boolsort);
+  expect_equivalent(s, back, x);
+}
+
+TEST_P(CastTerm, Values)
+{
+  Term bit = cast_term(s, s->make_term(true), bv1sort);
+  EXPECT_EQ(bit->get_sort(), bv1sort);
+  EXPECT_TRUE(bit->is_value());
+  EXPECT_EQ(bit->to_int(), 1);
+  Term b = cast_term(s, s->make_term(0, bv1sort), boolsort);
+  EXPECT_EQ(b->get_sort(), boolsort);
+  EXPECT_TRUE(b->is_value());
+  EXPECT_FALSE(b->to_bool());
+}
+
+TEST_P(CastTerm, RefusesOtherSorts)
+{
+  Sort bv8sort = s->make_sort(BV, 8);
+  Term a = s->make_symbol("a", s->make_sort(ARRAY, bv8sort, bv8sort));
+  EXPECT_THROW(cast_term(s, a, boolsort), NotImplementedException);
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastTermArithmetic);
+class CastTermArithmetic : public ::testing::TestWithParam<SolverConfiguration>
+{
+};
+
+TEST_P(CastTermArithmetic, IntToReal)
+{
+  SmtSolver s = create_solver(GetParam());
+  Sort realsort = s->make_sort(REAL);
+  Term n = s->make_symbol("n", s->make_sort(INT));
+  Term r = cast_term(s, n, realsort);
+  // only a logging solver keeps the sort it built: MathSAT and Yices2 give
+  // an integer-valued Real the sort Int
+  if (GetParam().is_logging_solver)
+  {
+    EXPECT_EQ(r->get_sort(), realsort);
+  }
+  expect_equivalent(s, r, s->make_term(To_Real, n));
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastOp);
+class CastOp : public CastTerm
+{
+ protected:
+  void SetUp() override
+  {
+    CastTerm::SetUp();
+    y = s->make_symbol("y", boolsort);
+  }
+  Term y;
+};
+
+TEST_P(CastOp, BitVectorOpOverBooleans)
+{
+  Term t = cast_op(s, BVAnd, { x, y });
+  EXPECT_EQ(t->get_sort(), boolsort);
+  expect_equivalent(s, t, s->make_term(And, x, y));
+}
+
+TEST_P(CastOp, BooleansUnderBitVectorOp)
+{
+  Term z = s->make_symbol("z", bv1sort);
+  Term t = cast_op(s, BVAdd, { x, z });
+  EXPECT_EQ(t->get_sort(), bv1sort);
+  expect_equivalent(s, t, s->make_term(BVAdd, cast_term(s, x, bv1sort), z));
+}
+
+TEST_P(CastOp, LeavesAWellSortedApplicationAlone)
+{
+  Term t = cast_op(s, And, { x, y });
+  EXPECT_EQ(t->get_sort(), boolsort);
+  // only a logging solver keeps the operator it was given
+  if (GetParam().is_logging_solver)
+  {
+    EXPECT_EQ(t->get_op(), Op(And));
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     ToCnf,
     testing::ValuesIn(available_solver_configurations_with_generic()),
+    ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    CastTerm,
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    CastTermArithmetic,
+    testing::ValuesIn(
+        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_REAL })),
+    ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitUtil,
+    CastOp,
+    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(

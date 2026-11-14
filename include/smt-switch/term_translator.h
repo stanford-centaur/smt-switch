@@ -20,7 +20,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
@@ -112,42 +111,6 @@ class TermTranslator
    * @throws IncorrectUsageException if smtlib is a malformed fraction
    */
   std::string infixize_rational(const std::string smtlib) const;
-
-  /** identifies relevant casts to perform an operation
-   *  assumes the operation is currently not well-sorted
-   *  e.g. check_sortedness returns false
-   *  could be more general in the future, for now focusing on
-   *  Bool / BV1 case
-   *  It can either change the operator or cast the terms
-   *  @param op the operator that should be applied
-   *  @param terms the terms to apply it to
-   *  @return a well-sorted term with an operator applied to casted terms
-   *  Note: the operator can change, e.g. BVAnd -> And
-   *  This method uses cast_term
-   */
-  Term cast_op(Op op, const TermVec & terms) const;
-
-  /** casts a term to a different sort
-   *  could be more general in future, for now just does a few common
-   * conversions such as: Bool <-> BV1 Int  <-> Real
-   *  @param term the term to cast
-   *  @param the sort to cast it to
-   *  @return the new term
-   *  throws a NotImplementedException if it cannot interpret the cast
-   *  the term and sort MUST belong to the same solver
-   */
-  Term cast_term(const Term & term, const Sort & sort) const;
-
-  /** casts a value term to a different sort
-   *  could be more general in future, for now just does
-   * conversions such as: Bool <-> BV1
-   *  @param val the value term to cast
-   *  @param the sort to cast it to
-   *  @return the new term
-   *  throws a NotImplementedException if it cannot interpret the cast
-   *  the term and sort MUST belong to the same solver
-   */
-  Term cast_value(const Term & term, const Sort & sort) const;
 
   /** widens the Int terms among terms that also hold a Real
    *  @param terms the terms, which are widened in place
