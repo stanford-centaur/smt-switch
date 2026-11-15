@@ -16,8 +16,8 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -41,7 +41,7 @@ std::int64_t AbsTerm::to_signed_int() const
   }
   if (sk == INT || sk == REAL)
   {
-    return smtlib_int_to_int64(repr);
+    return smtlib::int_to_int64(repr);
   }
   throw IncorrectUsageException("Can't convert " + repr
                                 + " to an integer: it has sort "
@@ -56,7 +56,7 @@ std::string AbsTerm::to_bits() const
     throw IncorrectUsageException("Can't convert " + repr
                                   + " to bits: it is not a bit-vector value");
   }
-  return smtlib_bv_to_bits(repr);
+  return smtlib::bv_to_bits(repr);
 }
 
 bool AbsTerm::to_bool() const

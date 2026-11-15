@@ -46,6 +46,7 @@
 #include "smt-switch/generic_datatype.h"
 #include "smt-switch/generic_sort.h"
 #include "smt-switch/generic_term.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_enums.h"
@@ -53,6 +54,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -874,7 +876,7 @@ std::string GenericSolver::run_command(const std::string & cmd,
     bool all_set = false;
     try
     {
-      run_command(CommandKind::LOGIC, SET_LOGIC_STR, "ALL");
+      run_command(CommandKind::LOGIC, smtlib::SET_LOGIC_STR, "ALL");
       all_set = true;
     }
     catch (Exception &)
@@ -1145,7 +1147,7 @@ void GenericSolver::define_fun(std::string name,
         "The generic solver can only define functions without parameters");
   }
   // send a define-fun to the binary
-  if (send_or_hold(DEFINE_FUN_STR,
+  if (send_or_hold(smtlib::DEFINE_FUN_STR,
                    name,
                    "()",
                    sort_name(res_sort),
@@ -1189,9 +1191,9 @@ std::string GenericSolver::to_smtlib_def(Term term) const
     return gt->to_string();
   }
   // the children by the names the binary knows them by
-  return smtlib_application(gt->get_op(),
-                            gt->get_children(),
-                            [this](const Term & t) { return term_name(t); });
+  return smtlib::application(gt->get_op(),
+                             gt->get_children(),
+                             [this](const Term & t) { return term_name(t); });
 }
 
 Sort GenericSolver::make_sort(const Sort & sort_con,
@@ -1224,7 +1226,7 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
     // store the sort and the name in the maps
     name_sort_map[name] = sort;
     // declare the sort to the binary of the solver
-    if (send_or_hold(DECLARE_SORT_STR, name, std::to_string(arity)))
+    if (send_or_hold(smtlib::DECLARE_SORT_STR, name, std::to_string(arity)))
     {
       pending_sort_names_.insert(name);
     }
@@ -1407,7 +1409,7 @@ SortVec GenericSolver::make_datatype_sorts(
   }
 
   std::string to_solver = "(";
-  to_solver += DECLARE_DATATYPE_STR;
+  to_solver += smtlib::DECLARE_DATATYPE_STR;
   to_solver += " (" + names_text + ") (\n" + bodies_text + "))";
   for (size_t i = 0; i < dt_sorts.size(); ++i)
   {
@@ -1547,7 +1549,7 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
 
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
   // SMT-LIB writes a tester as an indexed identifier
-  std::string tester = "(_ is " + smtlib_quote_symbol(name) + ")";
+  std::string tester = "(_ is " + smtlib::quote_symbol(name) + ")";
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, tester);
   term_name_map[new_term] = tester;
@@ -1693,7 +1695,7 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
   check_value_sort_kind(sk);
   if (sk == INT || sk == REAL)
   {
-    std::string repr = smtlib_arith_value(sk, std::to_string(i));
+    std::string repr = smtlib::arith_value(sk, std::to_string(i));
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1742,7 +1744,7 @@ Term GenericSolver::make_value(const std::string val,
     {
       throw IncorrectUsageException("Value " + val + " divides by zero");
     }
-    repr = smtlib_arith_value(sk, number);
+    repr = smtlib::arith_value(sk, number);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1769,7 +1771,7 @@ Term GenericSolver::make_term(const Term & val, const Sort & sort) const
         "Can't make a constant array of sort " + sort->to_string() + " from "
         + val->to_string() + " of sort " + val->get_sort()->to_string());
   }
-  std::string repr = smtlib_const_array(sort_name(sort), term_name(val));
+  std::string repr = smtlib::const_array(sort_name(sort), term_name(val));
   Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{ val }, repr);
   return store_term(term);
 }
@@ -1778,7 +1780,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
 {
   refuse_internal_name(name, "symbol");
   // Bars only where SMT-LIB needs them, as they do not change the symbol
-  std::string quoted_name = smtlib_quote_symbol(name);
+  std::string quoted_name = smtlib::quote_symbol(name);
   if (name_term_map.find(quoted_name) != name_term_map.end())
   {
     throw IncorrectUsageException("symbol name: " + name + " already taken");
@@ -1797,8 +1799,8 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   // When the sort is not a function, we specify an empty domain.
   // Otherwise, the name of the sort includes the domain.
   if (sort->get_sort_kind() == FUNCTION
-          ? send_or_hold(DECLARE_FUN_STR, quoted_name, sort_str)
-          : send_or_hold(DECLARE_FUN_STR, quoted_name, "()", sort_str))
+          ? send_or_hold(smtlib::DECLARE_FUN_STR, quoted_name, sort_str)
+          : send_or_hold(smtlib::DECLARE_FUN_STR, quoted_name, "()", sort_str))
   {
     pending_symbols_.insert(term);
   }
@@ -1811,7 +1813,7 @@ Term GenericSolver::get_symbol(const std::string & name) const
   // The map holds the binary's own names too, which no symbol can have.
   auto it = is_internal_name(name)
                 ? name_term_map.end()
-                : name_term_map.find(smtlib_quote_symbol(name));
+                : name_term_map.find(smtlib::quote_symbol(name));
   if (it == name_term_map.end())
   {
     throw IncorrectUsageException("Symbol named " + name + " does not exist.");
@@ -1832,7 +1834,7 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort) const
   // binder of x would capture it: the binary sees the param under a name
   // no symbol can have.
   Term term = std::make_shared<GenericTerm>(
-      sort, Op(), TermVec{}, smtlib_quote_symbol(name), false);
+      sort, Op(), TermVec{}, smtlib::quote_symbol(name), false);
   term_counter++;
   term_name_map[term] = internal_name("param", term_counter);
   return term;
@@ -1938,7 +1940,7 @@ Term GenericSolver::get_value(const Term & t) const
   // ask the binary for the value and parse it
   std::string result =
       run_command(CommandKind::GET,
-                  GET_VALUE_STR,
+                  smtlib::GET_VALUE_STR,
                   "(" + query_text(name_it->first, "get_value") + ")");
 
   std::string value = strip_value_from_result(result);
@@ -1956,7 +1958,7 @@ Term GenericSolver::value_from_string(const std::string & value,
     std::string bits;
     try
     {
-      bits = smtlib_bv_to_bits(value);
+      bits = smtlib::bv_to_bits(value);
     }
     catch (const IncorrectUsageException &)
     {
@@ -2036,7 +2038,8 @@ void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   require_mode(SmtLibMode::UNSAT,
                "get_unsat_assumptions",
                "the last check must have answered unsat");
-  std::string result = run_command(CommandKind::GET, GET_UNSAT_ASSUMPTIONS_STR);
+  std::string result =
+      run_command(CommandKind::GET, smtlib::GET_UNSAT_ASSUMPTIONS_STR);
 
   // parse the result -- get the assumptions
   UnorderedTermSet assumptions = get_assumptions_from_string(result);
@@ -2079,8 +2082,8 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
 
     // A binary may write a name in bars or without, which SMT-LIB reads as
     // the same symbol, so the name is looked up as this solver writes it.
-    name = smtlib_unquote_symbol(name);
-    auto it = name_term_map.find(smtlib_quote_symbol(name));
+    name = smtlib::unquote_symbol(name);
+    auto it = name_term_map.find(smtlib::quote_symbol(name));
     if (it == name_term_map.end())
     {
       throw SolverException(
@@ -2118,7 +2121,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 
   std::string result =
       run_command(CommandKind::GET,
-                  GET_VALUE_STR,
+                  smtlib::GET_VALUE_STR,
                   "(" + query_text(name_it->first, "get_array_values") + ")");
   std::string value = strip_value_from_result(result);
 
@@ -2158,7 +2161,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
 
 void GenericSolver::do_reset()
 {
-  run_command(CommandKind::RESET, RESET_STR);
+  run_command(CommandKind::RESET, smtlib::RESET_STR);
   // the binary has forgotten the labels' declarations
   assumption_labels.clear();
   labelled_assumptions.clear();
@@ -2186,12 +2189,12 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
       || option == "incremental")
   {
     run_command(CommandKind::OPTION,
-                SET_OPTION_STR,
+                smtlib::SET_OPTION_STR,
                 ":" + option,
                 bool_option_value(option, value) ? "true" : "false");
     return;
   }
-  run_command(CommandKind::OPTION, SET_OPTION_STR, ":" + option, value);
+  run_command(CommandKind::OPTION, smtlib::SET_OPTION_STR, ":" + option, value);
 }
 
 void GenericSolver::set_logic(const std::string logic)
@@ -2208,14 +2211,14 @@ void GenericSolver::set_logic(const std::string logic)
   }
   try
   {
-    run_command(CommandKind::LOGIC, SET_LOGIC_STR, logic);
+    run_command(CommandKind::LOGIC, smtlib::SET_LOGIC_STR, logic);
     return;
   }
   catch (NotImplementedException &)
   {
     // A binary may know names of its own beyond SMT-LIB's, so only an
     // SMT-LIB name it does not support is one it lacks.
-    if (!is_smtlib_logic(logic))
+    if (!smtlib::is_logic(logic))
     {
       throw IncorrectUsageException(logic + " is not a logic");
     }
@@ -2245,7 +2248,7 @@ void GenericSolver::do_assert(const Term & t)
   std::string name = term_name(lt);
 
   // communicate the assertion to the binary of the solver
-  run_command(CommandKind::ASSERTION, ASSERT_STR, name);
+  run_command(CommandKind::ASSERTION, smtlib::ASSERT_STR, name);
 }
 
 Result GenericSolver::str_to_result(std::string result) const
@@ -2272,7 +2275,7 @@ Result GenericSolver::str_to_result(std::string result) const
 
 Result GenericSolver::check_sat()
 {
-  return str_to_result(run_command(CommandKind::CHECK, CHECK_SAT_STR));
+  return str_to_result(run_command(CommandKind::CHECK, smtlib::CHECK_SAT_STR));
 }
 
 Result GenericSolver::do_check_sat_assuming(const TermVec & assumptions)
@@ -2290,7 +2293,7 @@ Result GenericSolver::do_check_sat_assuming(const TermVec & assumptions)
 
   // send command to the solver and parse it
   return str_to_result(run_command(
-      CommandKind::CHECK, CHECK_SAT_ASSUMING_STR, "(" + names + ")"));
+      CommandKind::CHECK, smtlib::CHECK_SAT_ASSUMING_STR, "(" + names + ")"));
 }
 
 std::string GenericSolver::assumption_name(const Term & assumption)
@@ -2324,7 +2327,7 @@ std::string GenericSolver::assumption_name(const Term & assumption)
     term_name_map[label] = label_name;
     // global-declarations keeps the label once its scope is popped
     run_command(CommandKind::ASSERTION,
-                DECLARE_FUN_STR,
+                smtlib::DECLARE_FUN_STR,
                 label_name,
                 "()",
                 sort_name(assumption->get_sort()));
@@ -2334,19 +2337,19 @@ std::string GenericSolver::assumption_name(const Term & assumption)
   std::string label_name = term_name(it->second);
   // a pop takes the implication with it, so it goes in again every time
   run_command(CommandKind::ASSERTION,
-              ASSERT_STR,
+              smtlib::ASSERT_STR,
               "(=> " + label_name + " " + name + ")");
   return label_name;
 }
 
 void GenericSolver::do_push(std::uint64_t num)
 {
-  run_command(CommandKind::ASSERTION, PUSH_STR, std::to_string(num));
+  run_command(CommandKind::ASSERTION, smtlib::PUSH_STR, std::to_string(num));
 }
 
 void GenericSolver::do_pop(std::uint64_t num)
 {
-  run_command(CommandKind::ASSERTION, POP_STR, std::to_string(num));
+  run_command(CommandKind::ASSERTION, smtlib::POP_STR, std::to_string(num));
 }
 
 void GenericSolver::dump_smt2(std::string filename) const
@@ -2361,20 +2364,20 @@ void GenericSolver::dump_smt2(std::string filename) const
   for (const std::string & cmd : accepted_commands_)
   {
     std::string name = cmd.substr(1, cmd.find_first_of(" )") - 1);
-    if (name == RESET_STR)
+    if (name == smtlib::RESET_STR)
     {
       kept.clear();
       scope_starts.clear();
     }
-    else if (name == PUSH_STR)
+    else if (name == smtlib::PUSH_STR)
     {
       std::size_t num = std::stoull(cmd.substr(name.size() + 2));
       scope_starts.insert(scope_starts.end(), num, kept.size());
     }
-    else if (name == POP_STR || name == RESET_ASSERTIONS_STR)
+    else if (name == smtlib::POP_STR || name == smtlib::RESET_ASSERTIONS_STR)
     {
       std::size_t from = 0;
-      if (name == POP_STR)
+      if (name == smtlib::POP_STR)
       {
         std::size_t num = std::stoull(cmd.substr(name.size() + 2));
         from = scope_starts[scope_starts.size() - num];
@@ -2387,7 +2390,7 @@ void GenericSolver::dump_smt2(std::string filename) const
       std::size_t end = from;
       for (std::size_t i = from; i < kept.size(); ++i)
       {
-        if (kept[i].first != ASSERT_STR)
+        if (kept[i].first != smtlib::ASSERT_STR)
         {
           kept[end++] = kept[i];
         }
@@ -2410,22 +2413,22 @@ void GenericSolver::dump_smt2(std::string filename) const
   bool logic_set = false;
   for (const auto & [name, cmd] : kept)
   {
-    if (name == SET_LOGIC_STR)
+    if (name == smtlib::SET_LOGIC_STR)
     {
       logic_set = true;
     }
-    else if (!logic_set && name != SET_OPTION_STR)
+    else if (!logic_set && name != smtlib::SET_OPTION_STR)
     {
-      out << "(" << SET_LOGIC_STR << " ALL)\n";
+      out << "(" << smtlib::SET_LOGIC_STR << " ALL)\n";
       logic_set = true;
     }
     out << *cmd << "\n";
   }
   if (!logic_set)
   {
-    out << "(" << SET_LOGIC_STR << " ALL)\n";
+    out << "(" << smtlib::SET_LOGIC_STR << " ALL)\n";
   }
-  out << "(" << CHECK_SAT_STR << ")\n";
+  out << "(" << smtlib::CHECK_SAT_STR << ")\n";
   out.close();
   if (!out)
   {
@@ -2437,7 +2440,7 @@ void GenericSolver::do_reset_assertions()
 {
   // global-declarations keeps declarations and definitions through it, so
   // the ones held back go in first
-  run_command(CommandKind::RESET_ASSERTIONS, RESET_ASSERTIONS_STR);
+  run_command(CommandKind::RESET_ASSERTIONS, smtlib::RESET_ASSERTIONS_STR);
 }
 
 }  // namespace smt

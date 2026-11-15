@@ -11,9 +11,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <memory>
-#include <ostream>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -22,7 +20,6 @@
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
 
@@ -209,176 +206,6 @@ Term cast_term(const SmtSolver & solver, const Term & term, const Sort & sort);
  *          number of arguments
  */
 Term cast_op(const SmtSolver & solver, const Op & op, const TermVec & terms);
-
-/* string constants for the SMT-LIB commands */
-inline constexpr std::string_view SET_OPTION_STR = "set-option";
-inline constexpr std::string_view SET_LOGIC_STR = "set-logic";
-inline constexpr std::string_view DECLARE_FUN_STR = "declare-fun";
-inline constexpr std::string_view DEFINE_FUN_STR = "define-fun";
-inline constexpr std::string_view DECLARE_SORT_STR = "declare-sort";
-inline constexpr std::string_view DEFINE_SORT_STR = "define-sort";
-inline constexpr std::string_view DECLARE_DATATYPE_STR = "declare-datatypes";
-inline constexpr std::string_view ASSERT_STR = "assert";
-inline constexpr std::string_view CHECK_SAT_STR = "check-sat";
-inline constexpr std::string_view CHECK_SAT_ASSUMING_STR = "check-sat-assuming";
-inline constexpr std::string_view GET_VALUE_STR = "get-value";
-inline constexpr std::string_view GET_UNSAT_ASSUMPTIONS_STR =
-    "get-unsat-assumptions";
-inline constexpr std::string_view GET_INTERPOLANT_STR = "get-interpolant";
-inline constexpr std::string_view GET_INTERPOLANTS_STR = "get-interpolants";
-inline constexpr std::string_view CHECK_SAT_ASSUMING_MODEL_STR =
-    "check-sat-assuming-model";
-inline constexpr std::string_view GET_UNSAT_MODEL_INTERPOLANT_STR =
-    "get-unsat-model-interpolant";
-inline constexpr std::string_view PUSH_STR = "push";
-inline constexpr std::string_view POP_STR = "pop";
-inline constexpr std::string_view RESET_ASSERTIONS_STR = "reset-assertions";
-inline constexpr std::string_view RESET_STR = "reset";
-
-/* string constants for the SMT-LIB attributes */
-inline constexpr std::string_view INTERPOLATION_GROUP_STR =
-    "interpolation-group";
-inline constexpr std::string_view NAMED_STR = "named";
-
-/** A symbol as SMT-LIB writes it: as is if it is a simple symbol, as the
- *  SMT-LIB standard defines one, and in bars otherwise
- *  @param s the symbol
- *  @return s, or s in bars
- */
-std::string smtlib_quote_symbol(const std::string & s);
-
-/** The symbol an SMT-LIB symbol names: without its bars if it is quoted, so
- *  |a b| names a b, and as is otherwise
- *  @param s the symbol as SMT-LIB writes it
- *  @return s without its bars
- */
-std::string smtlib_unquote_symbol(const std::string & s);
-
-/** An operator applied to its children as SMT-LIB writes it, (op c1 ... cn),
- *  with each child written by term_text and a bound variable's sort by
- *  sort_text, or by its to_string where either is empty. SMT-LIB writes
- *  some applications in forms of their own:
- *  - an applied function, constructor, selector or tester has no operator:
- *    the one applied, which is the first child, stands in its place, and a
- *    nullary constructor applied is that constructor alone;
- *  - a quantifier lists its bound variable with its sort,
- *    (forall ((x S)) body);
- *  - a power to a constant exponent n of 2 or more is the product of n
- *    factors with *, which solvers without SMT-LIB's ** read too, and a
- *    bit-vector power is one with bvmul.
- *  @param op the operator
- *  @param children what it is applied to
- *  @param term_text how a child is written
- *  @param sort_text how a bound variable's sort is written
- *  @return the SMT-LIB text of the application
- */
-std::string smtlib_application(
-    const Op & op,
-    const TermVec & children,
-    const std::function<std::string(const Term &)> & term_text = {},
-    const std::function<std::string(const Sort &)> & sort_text = {});
-
-/** The text of a constant array, ((as const S) v). SMT-LIB's theory of
- *  arrays declares no const, so this is a solver extension, written as
- *  SMT-LIB writes a symbol whose result sort its arguments do not fix.
- *  @param sort the text of the array sort
- *  @param value the text of the value at every index
- *  @return the text of the constant array
- */
-std::string smtlib_const_array(const std::string & sort,
-                               const std::string & value);
-
-/** The SMT-LIB text of an integer or real value. Its numbers lose leading
- *  zeros and gain a zero on an empty side of a decimal point, as SMT-LIB
- *  writes them: .1 becomes 0.1.
- *  @param sk the sort kind of the value, INT or REAL
- *  @param value a numeral, decimal or fraction of numerals without spaces,
- *         optionally after a sign, as in 5, +5, -0.5 or -1/2
- *  @return the SMT-LIB text of the value
- */
-std::string smtlib_arith_value(SortKind sk, const std::string & value);
-
-/** The SMT-LIB declaration of a symbol, (declare-fun f (D1 ... Dn) R) for
- *  a function and (declare-fun x () S) otherwise
- *  @param symbol the symbol
- *  @param sort_text how a sort is written; by its to_string if empty
- *  @return the text of its declaration
- */
-std::string smtlib_declare_fun(
-    const Term & symbol,
-    const std::function<std::string(const Sort &)> & sort_text = {});
-
-/** One SMT-LIB declaration of datatypes, which may refer to each other,
- *  (declare-datatypes ((D1 0) ... (Dn 0)) (cs1 ... csn))
- *  @param datatypes the datatype sorts, in the order to declare them
- *  @param sort_text how a selector's sort is written; by its to_string if
- *         empty
- *  @return the text of their declaration
- *  @throws IncorrectUsageException if datatypes is empty or holds a sort
- *          that is not a datatype
- */
-std::string smtlib_declare_datatypes(
-    const SortVec & datatypes,
-    const std::function<std::string(const Sort &)> & sort_text = {});
-
-/** Writes assertions as an SMT-LIB benchmark: set-logic, a declaration
- *  for every uninterpreted sort, datatype and symbol they use, each kind
- *  in name order, the assertions, and check-sat. Terms and sorts are
- *  written by their to_string, so their solver must print them in
- *  SMT-LIB.
- *  @param out where to write
- *  @param logic the logic, such as ALL for a solver's default, since
- *         SMT-LIB declares nothing before set-logic
- *  @param assertions the formulas to assert
- */
-void smtlib_benchmark(std::ostream & out,
-                      const std::string & logic,
-                      const TermVec & assertions);
-
-// Helpers for implementing AbsTerm::to_int, AbsTerm::to_signed_int and
-// AbsTerm::to_bits. Each throws an IncorrectUsageException if its input is
-// malformed or its value does not fit in the result type.
-
-/** Parses the text of an integer value: `n`, `-n` or `(- n)`, where `n` is
- *  a decimal numeral, optionally followed by a fractional part of zeros
- *  (as in `5.0`) so that real values with an integral value are accepted.
- *  SMT-LIB numerals are never negative, and its negative integer values
- *  are `(- n)`; `-n` is an SMT-LIB symbol, but Yices2 and MathSAT print
- *  values that way outside SMT-LIB, and cvc5 and Z3 print integral reals
- *  as `n.0`.
- */
-std::uint64_t smtlib_int_to_uint64(const std::string & s);
-std::int64_t smtlib_int_to_int64(const std::string & s);
-
-/** Interprets a string of 0s and 1s, most significant bit first, as a
- *  bit-vector of the string's length, which may be any: unsigned, or in
- *  two's complement.
- */
-std::uint64_t bits_to_uint64(const std::string & bits);
-std::int64_t bits_to_int64(const std::string & bits);
-
-/** The bits, most significant first, of an SMT-LIB bit-vector value:
- *  `#b...`, `#x...` or `(_ bvN W)`, as many as its width.
- */
-std::string smtlib_bv_to_bits(const std::string & s);
-
-/** Like bits_to_uint64 and bits_to_int64, for an SMT-LIB bit-vector value
- *  of any width: `#b...`, `#x...` or `(_ bvN W)`.
- */
-std::uint64_t smtlib_bv_to_uint64(const std::string & s);
-std::int64_t smtlib_bv_to_int64(const std::string & s);
-
-/** The bits, most significant first, of the value of bit-vector sort `sort`
- *  that `val` names: a numeral in a base from 2 to 36 with an optional
- *  leading minus, as passed to AbsSmtSolver::make_term. A short value is
- *  zero-extended, and a negative one is written in two's complement.
- *  Throws an IncorrectUsageException for another base, a malformed
- *  numeral, a value outside the smallest signed and the largest unsigned
- *  value of the sort, or a sort that is not a bit-vector sort.
- */
-std::string bv_value_to_bits(const std::string & val,
-                             std::uint64_t base,
-                             const Sort & sort);
 
 /** The start of every name internal_name makes. A solver that makes such
  *  names refuses a user name with this start, so the two never meet.

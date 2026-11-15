@@ -145,6 +145,7 @@ set(
   "${PROJECT_SOURCE_DIR}/src/logging_sort.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_term.cpp"
   "${PROJECT_SOURCE_DIR}/src/logging_solver.cpp"
+  "${PROJECT_SOURCE_DIR}/src/numeral_utils.cpp"
   "${PROJECT_SOURCE_DIR}/src/ops.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_interpolator.cpp"
   "${PROJECT_SOURCE_DIR}/src/printing_solver.cpp"
@@ -162,6 +163,7 @@ set(
   "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_visitor.cpp"
+  "${PROJECT_SOURCE_DIR}/src/text_utils.cpp"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp"
 )
 

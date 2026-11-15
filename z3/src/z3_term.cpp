@@ -13,9 +13,10 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/z3_sort.h"
 
 using namespace std;
@@ -338,9 +339,9 @@ string Z3Term::to_string() const
     // constructor it tests
     if (z_func.decl_kind() == Z3_OP_DT_IS)
     {
-      return "(_ is " + smtlib_quote_symbol(get_constructor_name()) + ")";
+      return "(_ is " + smtlib::quote_symbol(get_constructor_name()) + ")";
     }
-    return smtlib_quote_symbol(z_func.name().str());
+    return smtlib::quote_symbol(z_func.name().str());
   }
   else
   {

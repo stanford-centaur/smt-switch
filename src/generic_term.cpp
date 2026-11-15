@@ -16,11 +16,12 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/generic_sort.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 namespace smt {
 
@@ -223,7 +224,7 @@ std::string GenericTerm::get_param_name() const
   {
     throw IncorrectUsageException("Only a param has a param name");
   }
-  return smtlib_unquote_symbol(repr);
+  return smtlib::unquote_symbol(repr);
 }
 
 std::string GenericTerm::get_selector_name() const
@@ -242,23 +243,23 @@ std::string GenericTerm::get_symbol_name() const
     throw IncorrectUsageException(
         "Only a symbol that is not a param has a symbol name");
   }
-  // The name was quoted with smtlib_quote_symbol, which adds bars to any
+  // The name was quoted with smtlib::quote_symbol, which adds bars to any
   // name with a bar in it, so bars around it are always ones it added.
-  return smtlib_unquote_symbol(repr);
+  return smtlib::unquote_symbol(repr);
 }
 
 std::uint64_t GenericTerm::to_int() const
 {
   return int_convertible_sort_kind(*this, repr) == BV
-             ? smtlib_bv_to_uint64(repr)
-             : smtlib_int_to_uint64(repr);
+             ? smtlib::bv_to_uint64(repr)
+             : smtlib::int_to_uint64(repr);
 }
 
 std::int64_t GenericTerm::to_signed_int() const
 {
   return int_convertible_sort_kind(*this, repr) == BV
-             ? smtlib_bv_to_int64(repr)
-             : smtlib_int_to_int64(repr);
+             ? smtlib::bv_to_int64(repr)
+             : smtlib::int_to_int64(repr);
 }
 
 std::string GenericTerm::print_value_as(SortKind /* sk */) const

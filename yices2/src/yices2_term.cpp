@@ -17,9 +17,10 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/yices2_extensions.h"
 #include "smt-switch/yices2_sort.h"
 
@@ -364,7 +365,7 @@ uint64_t Yices2Term::to_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_uint64(rational_const_text(term));
+    return smtlib::int_to_uint64(rational_const_text(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -380,7 +381,7 @@ int64_t Yices2Term::to_signed_int() const
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
-    return smtlib_int_to_int64(rational_const_text(term));
+    return smtlib::int_to_int64(rational_const_text(term));
   }
   throw IncorrectUsageException(
       "Can't convert a term that is not a bit-vector or arithmetic constant "
@@ -645,8 +646,8 @@ string Yices2Term::to_string() const
   if (tc == YICES_ARITH_CONSTANT)
   {
     // Yices prints a number as -5 or -1/2
-    return smtlib_arith_value(get_sort()->get_sort_kind(),
-                              yices2_to_string(term));
+    return smtlib::arith_value(get_sort()->get_sort_kind(),
+                               yices2_to_string(term));
   }
   if (tc == YICES_BV_CONSTANT)
   {
@@ -656,14 +657,15 @@ string Yices2Term::to_string() const
   {
     // how make_term writes a constant array, its one child being the base
     // value
-    return smtlib_const_array(get_sort()->to_string(), (*begin())->to_string());
+    return smtlib::const_array(get_sort()->to_string(),
+                               (*begin())->to_string());
   }
   if (is_symbol())
   {
     const char * name = yices_get_term_name(term);
     if (name)
     {
-      return smtlib_quote_symbol(name);
+      return smtlib::quote_symbol(name);
     }
   }
 
@@ -689,7 +691,7 @@ string Yices2Term::to_string() const
   {
     children.push_back(*it);
   }
-  return smtlib_application(op, children);
+  return smtlib::application(op, children);
 }
 
 // end Yices2Term implementation

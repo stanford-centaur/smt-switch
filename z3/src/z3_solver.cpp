@@ -25,12 +25,14 @@
 
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 #include "smt-switch/z3_datatype.h"
 #include "smt-switch/z3_sort.h"
@@ -362,7 +364,7 @@ void Z3Solver::set_logic(const std::string logic)
     // an SMT-LIB name it refuses is one it lacks.
     if (Z3_get_error_code(*ctx) == Z3_INVALID_ARG)
     {
-      if (!is_smtlib_logic(logic))
+      if (!smtlib::is_logic(logic))
       {
         throw IncorrectUsageException(logic + " is not a logic");
       }
@@ -952,7 +954,7 @@ Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
         "Expected " + std::to_string(arity) + " sort arguments to "
         + sort_con->to_string() + " but got " + std::to_string(sorts.size()));
   }
-  std::string text = "(" + smtlib_quote_symbol(zcon->get_uninterpreted_name());
+  std::string text = "(" + smtlib::quote_symbol(zcon->get_uninterpreted_name());
   std::vector<z3::sort> params;
   params.reserve(sorts.size());
   for (const Sort & s : sorts)

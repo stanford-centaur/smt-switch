@@ -17,12 +17,13 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
 #include "smt-switch/printing_solver.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 namespace smt {
 
@@ -135,12 +136,13 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       }
       if (msat && num_reused == 0 && !asserted.empty())
       {
-        (*out_stream) << "(" << RESET_ASSERTIONS_STR << ")" << std::endl;
+        (*out_stream) << "(" << smtlib::RESET_ASSERTIONS_STR << ")"
+                      << std::endl;
       }
       else if (num_reused < asserted.size())
       {
-        (*out_stream) << "(" << POP_STR << " " << asserted.size() - num_reused
-                      << ")" << std::endl;
+        (*out_stream) << "(" << smtlib::POP_STR << " "
+                      << asserted.size() - num_reused << ")" << std::endl;
       }
       asserted.resize(num_reused);
       asserted_names.resize(num_reused);
@@ -151,14 +153,16 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         std::string name =
             msat ? "g" + std::to_string(k + 1)
                  : name_prefix + std::to_string(record->num_names++);
-        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-        (*out_stream) << "(" << ASSERT_STR << " (! " << formulae[k] << " :"
-                      << (msat ? INTERPOLATION_GROUP_STR : NAMED_STR) << " "
-                      << name << "))" << std::endl;
+        (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << smtlib::ASSERT_STR << " (! " << formulae[k]
+                      << " :"
+                      << (msat ? smtlib::INTERPOLATION_GROUP_STR
+                               : smtlib::NAMED_STR)
+                      << " " << name << "))" << std::endl;
         asserted.push_back(formulae[k]);
         asserted_names.push_back(name);
       }
-      (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+      (*out_stream) << "(" << smtlib::CHECK_SAT_STR << ")" << std::endl;
       Result r =
           wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
       // the interpolants are asked for only after an unsat answer
@@ -167,7 +171,7 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         // one per prefix of the groups
         for (std::size_t i = 1; i < formulae.size(); ++i)
         {
-          (*out_stream) << "(" << GET_INTERPOLANT_STR << " (";
+          (*out_stream) << "(" << smtlib::GET_INTERPOLANT_STR << " (";
           for (std::size_t j = 0; j < i; ++j)
           {
             (*out_stream) << (j > 0 ? " " : "") << asserted_names[j];
@@ -178,7 +182,7 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       else if (r.is_unsat())
       {
         // all at once, partitioned into every formula but the last
-        (*out_stream) << "(" << GET_INTERPOLANTS_STR;
+        (*out_stream) << "(" << smtlib::GET_INTERPOLANTS_STR;
         for (std::size_t j = 0; j + 1 < formulae.size(); ++j)
         {
           (*out_stream) << " (" << asserted_names[j] << ")";
@@ -194,12 +198,12 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       Result r = wrapped_interpolator->get_interpolant(
           formulae.front(), formulae.back(), I);
       out_I.push_back(I);
-      (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-      (*out_stream) << "(" << ASSERT_STR << " " << formulae.front() << ")"
-                    << std::endl;
-      (*out_stream) << "(" << GET_INTERPOLANT_STR << " I (not "
+      (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+      (*out_stream) << "(" << smtlib::ASSERT_STR << " " << formulae.front()
+                    << ")" << std::endl;
+      (*out_stream) << "(" << smtlib::GET_INTERPOLANT_STR << " I (not "
                     << formulae.back() << "))" << std::endl;
-      (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+      (*out_stream) << "(" << smtlib::POP_STR << " 1)" << std::endl;
       return r;
     }
     case YICES2_INTERPOLATOR: {
@@ -232,23 +236,25 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
           }
         }
         // B, with the model interpolants of the rounds before
-        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-        (*out_stream) << "(" << ASSERT_STR << " " << B << ")" << std::endl;
+        (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << smtlib::ASSERT_STR << " " << B << ")"
+                      << std::endl;
         for (const Term & t : model_interpolants)
         {
-          (*out_stream) << "(" << ASSERT_STR << " " << t << ")" << std::endl;
+          (*out_stream) << "(" << smtlib::ASSERT_STR << " " << t << ")"
+                        << std::endl;
         }
-        (*out_stream) << "(" << CHECK_SAT_STR << ")" << std::endl;
+        (*out_stream) << "(" << smtlib::CHECK_SAT_STR << ")" << std::endl;
         if (!model.empty())
         {
-          (*out_stream) << "(" << GET_VALUE_STR << " (";
+          (*out_stream) << "(" << smtlib::GET_VALUE_STR << " (";
           for (std::size_t i = 0; i < model.size(); ++i)
           {
             (*out_stream) << (i > 0 ? " " : "") << model[i].first;
           }
           (*out_stream) << "))" << std::endl;
         }
-        (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << smtlib::POP_STR << " 1)" << std::endl;
         // The round ended at B if B had no model left, or if B's check did
         // not decide. An unknown answer with an empty model comes from B's
         // check, or from A's when the two share no symbols, so B's check is
@@ -270,9 +276,10 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         }
         // A under the shared symbols' values in B's model, those the
         // wrapped interpolator found rather than any the script finds
-        (*out_stream) << "(" << PUSH_STR << " 1)" << std::endl;
-        (*out_stream) << "(" << ASSERT_STR << " " << A << ")" << std::endl;
-        (*out_stream) << "(" << CHECK_SAT_ASSUMING_MODEL_STR << " (";
+        (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << smtlib::ASSERT_STR << " " << A << ")"
+                      << std::endl;
+        (*out_stream) << "(" << smtlib::CHECK_SAT_ASSUMING_MODEL_STR << " (";
         for (std::size_t i = 0; i < model.size(); ++i)
         {
           (*out_stream) << (i > 0 ? " " : "") << model[i].first;
@@ -285,10 +292,10 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         (*out_stream) << "))" << std::endl;
         if (model_interpolant)
         {
-          (*out_stream) << "(" << GET_UNSAT_MODEL_INTERPOLANT_STR << ")"
+          (*out_stream) << "(" << smtlib::GET_UNSAT_MODEL_INTERPOLANT_STR << ")"
                         << std::endl;
         }
-        (*out_stream) << "(" << POP_STR << " 1)" << std::endl;
+        (*out_stream) << "(" << smtlib::POP_STR << " 1)" << std::endl;
         if (!r.is_unsat())
         {
           out_I.push_back(Term());
