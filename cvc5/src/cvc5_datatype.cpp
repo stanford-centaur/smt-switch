@@ -22,6 +22,17 @@
 
 namespace smt {
 
+namespace {
+
+// The sort of a cvc5::Datatype is not directly accessible,
+// but each constructor has it as its codomain.
+cvc5::Sort sort_of(const cvc5::Datatype & dt)
+{
+  return dt[0].getTerm().getSort().getDatatypeConstructorCodomainSort();
+}
+
+}  // namespace
+
 Cvc5DatatypeDecl::Cvc5DatatypeDecl(cvc5::DatatypeDecl t) : datatypedecl(t) {}
 
 std::string Cvc5DatatypeDecl::get_name() const
@@ -64,17 +75,6 @@ bool Cvc5DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
       backend_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
   return std::tie(name, selectors) < std::tie(cd->name, cd->selectors);
 }
-
-namespace {
-
-// The sort of a cvc5::Datatype is not directly accessible,
-// but each constructor has it as its codomain.
-cvc5::Sort sort_of(const cvc5::Datatype & dt)
-{
-  return dt[0].getTerm().getSort().getDatatypeConstructorCodomainSort();
-}
-
-}  // namespace
 
 Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}
 

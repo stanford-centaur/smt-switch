@@ -58,12 +58,6 @@ namespace {
   return cs;
 }
 
-}  // namespace
-
-/* Cvc5Solver implementation */
-
-namespace {
-
 // the options every Cvc5Solver starts from, set again by reset()
 void set_default_options(::cvc5::Solver & s)
 {
@@ -73,6 +67,8 @@ void set_default_options(::cvc5::Solver & s)
 }
 
 }  // namespace
+
+/* Cvc5Solver implementation */
 
 struct Cvc5Solver::Instance
 {

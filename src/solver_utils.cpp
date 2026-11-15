@@ -31,6 +31,52 @@
 
 namespace smt {
 
+namespace {
+
+/** The exception for a val that is not a base-`base` numeral */
+IncorrectUsageException not_a_numeral(const std::string & val,
+                                      std::uint64_t base)
+{
+  return IncorrectUsageException("Value " + val + " is not a base-"
+                                 + std::to_string(base) + " numeral");
+}
+
+/** The decimal numeral of the non-empty string of base-`base` digits
+ *  `digits`, 0 to 9 then a to z in either case, or "" if digits is not one
+ */
+std::string digits_to_decimal(const std::string & digits, unsigned base)
+{
+  if (digits.empty())
+  {
+    return "";
+  }
+  std::string dec = "0";
+  for (char c : digits)
+  {
+    unsigned digit = detail::numeral_digit(c);
+    if (digit >= base)
+    {
+      return "";
+    }
+    // dec = dec * base + digit
+    unsigned carry = digit;
+    for (auto it = dec.rbegin(); it != dec.rend(); ++it)
+    {
+      unsigned current = static_cast<unsigned>(*it - '0') * base + carry;
+      *it = static_cast<char>('0' + current % 10);
+      carry = current / 10;
+    }
+    while (carry > 0)
+    {
+      dec.insert(dec.begin(), static_cast<char>('0' + carry % 10));
+      carry /= 10;
+    }
+  }
+  return dec;
+}
+
+}  // namespace
+
 Term make_nary_term(const AbsSmtSolver * solver,
                     const Op & op,
                     const TermVec & terms)
@@ -181,18 +227,6 @@ unsigned detail::numeral_digit(char c)
                                : c >= 'A' && c <= 'Z' ? c - 'A' + 10
                                                       : 36);
 }
-
-namespace {
-
-/** The exception for a val that is not a base-`base` numeral */
-IncorrectUsageException not_a_numeral(const std::string & val,
-                                      std::uint64_t base)
-{
-  return IncorrectUsageException("Value " + val + " is not a base-"
-                                 + std::to_string(base) + " numeral");
-}
-
-}  // namespace
 
 std::vector<std::uint32_t> detail::bv_value_to_words(const std::string & val,
                                                      std::uint64_t base,
@@ -425,44 +459,6 @@ bool is_arith_number(SortKind sk, const std::string & val)
   }
   return is_decimal_numeral(whole) && is_decimal_numeral(part);
 }
-
-namespace {
-
-/** The decimal numeral of the non-empty string of base-`base` digits
- *  `digits`, 0 to 9 then a to z in either case, or "" if digits is not one
- */
-std::string digits_to_decimal(const std::string & digits, unsigned base)
-{
-  if (digits.empty())
-  {
-    return "";
-  }
-  std::string dec = "0";
-  for (char c : digits)
-  {
-    unsigned digit = detail::numeral_digit(c);
-    if (digit >= base)
-    {
-      return "";
-    }
-    // dec = dec * base + digit
-    unsigned carry = digit;
-    for (auto it = dec.rbegin(); it != dec.rend(); ++it)
-    {
-      unsigned current = static_cast<unsigned>(*it - '0') * base + carry;
-      *it = static_cast<char>('0' + current % 10);
-      carry = current / 10;
-    }
-    while (carry > 0)
-    {
-      dec.insert(dec.begin(), static_cast<char>('0' + carry % 10));
-      carry /= 10;
-    }
-  }
-  return dec;
-}
-
-}  // namespace
 
 std::string arith_value_to_decimal(SortKind sk,
                                    const std::string & val,

@@ -24,6 +24,24 @@
 
 namespace smt {
 
+namespace {
+
+/** Returns the kind of a term's sort if to_int can handle it */
+SortKind int_convertible_sort_kind(const GenericTerm & term,
+                                   const std::string & repr)
+{
+  SortKind sk = term.get_sort()->get_sort_kind();
+  if (!term.is_value() || (sk != BV && sk != INT && sk != REAL))
+  {
+    throw IncorrectUsageException(
+        "Can't convert " + repr
+        + " to an integer: it is not a bit-vector or arithmetic value");
+  }
+  return sk;
+}
+
+}  // namespace
+
 /* GenericTerm */
 
 GenericTerm::GenericTerm(Sort s, Op o, TermVec c, std::string r)
@@ -187,24 +205,6 @@ bool GenericTerm::is_value() const
 }
 
 bool GenericTerm::is_ground() const { return ground; }
-
-namespace {
-
-/** Returns the kind of a term's sort if to_int can handle it */
-SortKind int_convertible_sort_kind(const GenericTerm & term,
-                                   const std::string & repr)
-{
-  SortKind sk = term.get_sort()->get_sort_kind();
-  if (!term.is_value() || (sk != BV && sk != INT && sk != REAL))
-  {
-    throw IncorrectUsageException(
-        "Can't convert " + repr
-        + " to an integer: it is not a bit-vector or arithmetic value");
-  }
-  return sk;
-}
-
-}  // namespace
 
 std::string GenericTerm::get_constructor_name() const
 {

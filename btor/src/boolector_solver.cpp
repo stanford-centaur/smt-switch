@@ -170,12 +170,6 @@ ScopedArrayModel::~ScopedArrayModel()
   }
 }
 
-}  // namespace
-
-/* BoolectorSolver implementation */
-
-namespace {
-
 // a new Boolector instance, deleted once the solver and every term and sort
 // made from it have let go of it
 std::shared_ptr<Btor> new_btor()
@@ -187,6 +181,8 @@ std::shared_ptr<Btor> new_btor()
 }
 
 }  // namespace
+
+/* BoolectorSolver implementation */
 
 BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
 {

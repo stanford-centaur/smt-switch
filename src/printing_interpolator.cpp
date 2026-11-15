@@ -30,6 +30,12 @@ namespace {
 
 constexpr const char * name_prefix = "smt_switch_generated_";
 
+// the message for an interpolator whose queries printing cannot write
+std::string no_query_syntax(SolverEnum se)
+{
+  return "A printing interpolator cannot write the queries of " + to_string(se);
+}
+
 }  // namespace
 
 PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
@@ -51,16 +57,6 @@ PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
     : PrintingInterpolator(std::move(s), os)
 {
 }
-
-namespace {
-
-// the message for an interpolator whose queries printing cannot write
-std::string no_query_syntax(SolverEnum se)
-{
-  return "A printing interpolator cannot write the queries of " + to_string(se);
-}
-
-}  // namespace
 
 Result PrintingInterpolator::compute_interpolant(const Term & A,
                                                  const Term & B,

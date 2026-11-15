@@ -199,6 +199,22 @@ Assoc assoc_of(PrimOp po)
   return row ? row->assoc : Assoc::NONE;
 }
 
+/** @throws IncorrectUsageException unless po takes given indices; the null
+ *  operator takes none
+ */
+void check_num_indices(PrimOp po, std::uint64_t given)
+{
+  const std::uint64_t expected =
+      (po == NUM_OPS_AND_NULL && given == 0) ? 0 : get_num_indices(po);
+  if (given != expected)
+  {
+    throw IncorrectUsageException(to_string(po) + " takes "
+                                  + std::to_string(expected)
+                                  + (expected == 1 ? " index" : " indices")
+                                  + ", not " + std::to_string(given));
+  }
+}
+
 }  // namespace
 
 std::string to_string(PrimOp op)
@@ -245,26 +261,6 @@ bool Op::Indices::operator!=(const Indices & other) const
 {
   return !(*this == other);
 }
-
-namespace {
-
-/** @throws IncorrectUsageException unless po takes given indices; the null
- *  operator takes none
- */
-void check_num_indices(PrimOp po, std::uint64_t given)
-{
-  const std::uint64_t expected =
-      (po == NUM_OPS_AND_NULL && given == 0) ? 0 : get_num_indices(po);
-  if (given != expected)
-  {
-    throw IncorrectUsageException(to_string(po) + " takes "
-                                  + std::to_string(expected)
-                                  + (expected == 1 ? " index" : " indices")
-                                  + ", not " + std::to_string(given));
-  }
-}
-
-}  // namespace
 
 Op::Op(PrimOp o) : prim_op(o) { check_num_indices(o, 0); }
 
