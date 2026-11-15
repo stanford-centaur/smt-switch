@@ -894,6 +894,89 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          testing::ValuesIn(available_solver_enums()),
                          testing::PrintToStringParamName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetJustifyingSymbols);
+class GetJustifyingSymbols : public ::testing::TestWithParam<SolverEnum>
+{
+ protected:
+  void SetUp() override
+  {
+    // a logging solver keeps the terms as built
+    s = smt::create_solver(GetParam(), /* logging */ true);
+    s->set_opt("produce-models", "true");
+    Sort boolsort = s->make_sort(BOOL);
+    bvsort = s->make_sort(BV, 8);
+    a = s->make_symbol("a", boolsort);
+    b = s->make_symbol("b", boolsort);
+    c = s->make_symbol("c", boolsort);
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+  }
+
+  /** The justifying symbols of t in a model of the assertions */
+  UnorderedTermSet justify(const Term & t, const TermVec & assertions)
+  {
+    for (const Term & f : assertions)
+    {
+      s->assert_formula(f);
+    }
+    EXPECT_TRUE(s->check_sat().is_sat());
+    UnorderedTermSet out;
+    get_justifying_symbols(s, t, out);
+    return out;
+  }
+
+  SmtSolver s;
+  Sort bvsort;
+  Term a, b, c, x, y;
+};
+
+TEST_P(GetJustifyingSymbols, TrueDisjunctNeedsOnlyItself)
+{
+  Term t = s->make_term(Or, a, b);
+  EXPECT_EQ(justify(t, { a, s->make_term(Not, b) }), (UnorderedTermSet{ a }));
+}
+
+TEST_P(GetJustifyingSymbols, FalseConjunctNeedsOnlyItself)
+{
+  Term t = s->make_term(And, a, b, c);
+  EXPECT_EQ(justify(t, { a, s->make_term(Not, b), c }),
+            (UnorderedTermSet{ b }));
+}
+
+TEST_P(GetJustifyingSymbols, TrueConjunctionNeedsEveryConjunct)
+{
+  Term t = s->make_term(And, a, b);
+  EXPECT_EQ(justify(t, { a, b }), (UnorderedTermSet{ a, b }));
+}
+
+TEST_P(GetJustifyingSymbols, FalsePremiseNeedsOnlyItself)
+{
+  Term t = s->make_term(Implies, a, b);
+  EXPECT_EQ(justify(t, { s->make_term(Not, a), b }), (UnorderedTermSet{ a }));
+}
+
+TEST_P(GetJustifyingSymbols, IfThenElseNeedsOnlyTheTakenBranch)
+{
+  Term t = s->make_term(Ite, a, x, y);
+  EXPECT_EQ(justify(t, { a }), (UnorderedTermSet{ a, x }));
+}
+
+TEST_P(GetJustifyingSymbols, ZeroOperandDecidesBitVectorAnd)
+{
+  Term t = s->make_term(BVAnd, x, y);
+  Term zero = s->make_term(0, bvsort);
+  Term five = s->make_term(5, bvsort);
+  EXPECT_EQ(
+      justify(t,
+              { s->make_term(Equal, x, zero), s->make_term(Equal, y, five) }),
+      (UnorderedTermSet{ x }));
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         GetJustifyingSymbols,
+                         testing::ValuesIn(available_solver_enums()),
+                         testing::PrintToStringParamName());
+
 TEST(BvValueToBits, DecimalAcrossLimbs)
 {
   // 2^32 - 1 and 2^32, either side of one 32-bit chunk

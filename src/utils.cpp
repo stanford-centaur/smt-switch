@@ -252,6 +252,101 @@ class TheoryAtomsVisitor : public TermVisitor
   UnorderedTermSet & out_;
 };
 
+// Collects the symbolic constants that fix the values of terms in the
+// model, following only the child that decides a term's value when one
+// does
+class JustificationVisitor : public TermVisitor
+{
+ public:
+  JustificationVisitor(const SmtSolver & solver, UnorderedTermSet & out)
+      : solver_(solver), out_(out)
+  {
+  }
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    Op op = term->get_op();
+    if (op.is_null())
+    {
+      if (term->is_symbolic_const())
+      {
+        out_.insert(term);
+      }
+      return VisitResult::Skip;
+    }
+    TermVec children(term->begin(), term->end());
+    if (op == Ite)
+    {
+      visit(children[0]);
+      visit(solver_->get_value(children[0])->to_bool() ? children[1]
+                                                       : children[2]);
+      return VisitResult::Skip;
+    }
+    Term decider;
+    if (op == And || op == Or)
+    {
+      // a false conjunct or a true disjunct
+      bool deciding_value = op == Or;
+      for (const Term & c : children)
+      {
+        if (solver_->get_value(c)->to_bool() == deciding_value)
+        {
+          decider = c;
+          break;
+        }
+      }
+    }
+    else if (op == Implies)
+    {
+      // a false premise, else a true conclusion
+      for (std::size_t i = 0; i + 1 < children.size() && !decider; ++i)
+      {
+        if (!solver_->get_value(children[i])->to_bool())
+        {
+          decider = children[i];
+        }
+      }
+      if (!decider && solver_->get_value(children.back())->to_bool())
+      {
+        decider = children.back();
+      }
+    }
+    else if (op == BVAnd || op == BVNand || op == BVMul)
+    {
+      for (const Term & c : children)
+      {
+        if (solver_->get_value(c)->to_bits().find('1') == std::string::npos)
+        {
+          decider = c;
+          break;
+        }
+      }
+    }
+    else if (op == BVOr || op == BVNor)
+    {
+      for (const Term & c : children)
+      {
+        if (solver_->get_value(c)->to_bits().find('0') == std::string::npos)
+        {
+          decider = c;
+          break;
+        }
+      }
+    }
+    if (decider)
+    {
+      visit(decider);
+      return VisitResult::Skip;
+    }
+    return VisitResult::Continue;
+  }
+
+ private:
+  SmtSolver solver_;
+  UnorderedTermSet & out_;
+};
+
 }  // namespace
 
 void op_partition(PrimOp o, const Term & term, TermVec & out)
@@ -348,6 +443,13 @@ void get_theory_atoms(const SmtSolver & solver,
                       bool split_ites)
 {
   TheoryAtomsVisitor(solver, split_ites, out).visit(formula);
+}
+
+void get_justifying_symbols(const SmtSolver & solver,
+                            const Term & term,
+                            UnorderedTermSet & out)
+{
+  JustificationVisitor(solver, out).visit(term);
 }
 
 bool is_lit(const Term & l, const Sort & boolsort)
