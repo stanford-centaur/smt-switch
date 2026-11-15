@@ -133,6 +133,21 @@ void get_theory_atoms(const SmtSolver & solver,
                       UnorderedTermSet & out,
                       bool split_ites = false);
 
+/** Collects symbolic constants whose values in the solver's model alone
+ *  fix the value of a term. Below a subterm whose value one child decides,
+ *  only that child counts: the condition and the taken branch of an
+ *  if-then-else, a false child of a conjunction, a true child of a
+ *  disjunction, a false premise or true conclusion of an implication, an
+ *  all-zero child of a bit-vector and, nand or multiplication, and an
+ *  all-one child of a bit-vector or or nor.
+ *  @param solver the solver the term belongs to, whose last check was sat
+ *  @param term the term whose value to justify
+ *  @param out the set the symbolic constants are added to
+ */
+void get_justifying_symbols(const SmtSolver & solver,
+                            const Term & term,
+                            UnorderedTermSet & out);
+
 /** returns true iff l is a literal
  *  e.g. either a boolean symbolic constant or its negation
  *  NOTE will return false for nested negations, i.e. (not (not (not l)))
