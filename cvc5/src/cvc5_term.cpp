@@ -240,8 +240,12 @@ PrimOp to_primop(cvc5::Kind kind)
   return kind_primops.primops[i];
 }
 
+namespace {
+
 // struct for hashing
 std::hash<cvc5::Term> termhash;
+
+}  // namespace
 
 /* Cvc5Term implementation */
 

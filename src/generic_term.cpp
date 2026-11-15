@@ -188,9 +188,11 @@ bool GenericTerm::is_value() const
 
 bool GenericTerm::is_ground() const { return ground; }
 
+namespace {
+
 /** Returns the kind of a term's sort if to_int can handle it */
-static SortKind int_convertible_sort_kind(const GenericTerm & term,
-                                          const std::string & repr)
+SortKind int_convertible_sort_kind(const GenericTerm & term,
+                                   const std::string & repr)
 {
   SortKind sk = term.get_sort()->get_sort_kind();
   if (!term.is_value() || (sk != BV && sk != INT && sk != REAL))
@@ -201,6 +203,8 @@ static SortKind int_convertible_sort_kind(const GenericTerm & term,
   }
   return sk;
 }
+
+}  // namespace
 
 std::string GenericTerm::get_constructor_name() const
 {

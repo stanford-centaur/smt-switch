@@ -1282,10 +1282,10 @@ constexpr std::pair<PrimOp, PrimOp> bool_bv_ops[] = { { And, BVAnd },
                                                       { Not, BVNot },
                                                       { Equal, BVComp } };
 
+namespace {
+
 /* A value term as another sort */
-static Term cast_value(const SmtSolver & solver,
-                       const Term & term,
-                       const Sort & sort)
+Term cast_value(const SmtSolver & solver, const Term & term, const Sort & sort)
 {
   SortKind sk = sort->get_sort_kind();
   Sort cur_sort = term->get_sort();
@@ -1334,6 +1334,8 @@ static Term cast_value(const SmtSolver & solver,
                                   + " is not yet implemented.");
   }
 }
+
+}  // namespace
 
 Term cast_term(const SmtSolver & solver, const Term & term, const Sort & sort)
 {
@@ -2334,12 +2336,16 @@ std::string smtlib_unquote_symbol(const std::string & s)
   return s;
 }
 
+namespace {
+
 template <class T>
-static std::string get_text(const T & x,
-                            const std::function<std::string(const T &)> & text)
+std::string get_text(const T & x,
+                     const std::function<std::string(const T &)> & text)
 {
   return text ? text(x) : x->to_string();
 }
+
+}  // namespace
 
 std::string smtlib_application(
     const Op & op,
@@ -2481,13 +2487,15 @@ std::string smtlib_declare_datatypes(
   return res + " (" + names + ") (" + bodies + "))";
 }
 
+namespace {
+
 // Adds the uninterpreted sorts, sort constructors and datatypes that
 // declaring a term of sort s needs, keyed by name, to those found so far.
 // Distinct ones with the same name are all kept; an applied sort adds its
 // constructor, once whatever it is applied to.
-static void collect_declared_sorts(const Sort & s,
-                                   std::map<std::string, SortVec> & sorts,
-                                   std::map<std::string, Sort> & datatypes)
+void collect_declared_sorts(const Sort & s,
+                            std::map<std::string, SortVec> & sorts,
+                            std::map<std::string, Sort> & datatypes)
 {
   // no default, so that -Wswitch reports an enumerator without a case
   switch (s->get_sort_kind())
@@ -2555,8 +2563,6 @@ static void collect_declared_sorts(const Sort & s,
     case NUM_SORT_KINDS: break;
   }
 }
-
-namespace {
 
 // Writes sorts and terms as SMT-LIB, each renamed sort by its new name.
 struct SortRenamer

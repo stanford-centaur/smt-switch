@@ -37,13 +37,15 @@ extern "C" {
 
 namespace smt {
 
+namespace {
+
 /** Refuses po applied to num_args arguments, which Boolector has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] static void throw_unsupported(PrimOp po, std::size_t num_args)
+[[noreturn]] void throw_unsupported(PrimOp po, std::size_t num_args)
 {
   const std::pair<std::size_t, std::size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
@@ -59,7 +61,7 @@ namespace smt {
 /** The node of op applied to one argument in a single Boolector call
  *  @throws as throw_unsupported where Boolector has none
  */
-static BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
+BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
 {
   switch (op.prim_op)
   {
@@ -94,10 +96,10 @@ static BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
 /** The node of po applied to two arguments in a single Boolector call
  *  @throws as throw_unsupported where Boolector has none
  */
-static BoolectorNode * binary_op(Btor * btor,
-                                 PrimOp po,
-                                 BoolectorNode * a,
-                                 BoolectorNode * b)
+BoolectorNode * binary_op(Btor * btor,
+                          PrimOp po,
+                          BoolectorNode * a,
+                          BoolectorNode * b)
 {
   switch (po)
   {
@@ -139,8 +141,6 @@ static BoolectorNode * binary_op(Btor * btor,
   }
 }
 
-namespace {
-
 /** The model of an array from boolector_array_assignment, freed when it
  *  goes out of scope
  */
@@ -174,15 +174,19 @@ ScopedArrayModel::~ScopedArrayModel()
 
 /* BoolectorSolver implementation */
 
+namespace {
+
 // a new Boolector instance, deleted once the solver and every term and sort
 // made from it have let go of it
-static std::shared_ptr<Btor> new_btor()
+std::shared_ptr<Btor> new_btor()
 {
   return std::shared_ptr<Btor>(boolector_new(), [](Btor * b) {
     boolector_release_all(b);
     boolector_delete(b);
   });
 }
+
+}  // namespace
 
 BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
 {

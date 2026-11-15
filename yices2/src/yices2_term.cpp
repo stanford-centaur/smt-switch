@@ -45,10 +45,12 @@ bool Yices2Term::compare(const Term & absterm) const
   return yterm && term == yterm->term;
 }
 
+namespace {
+
 /** Returns a term as Yices prints it, in its own language and on one line,
  *  e.g. -5 or 1/2 for a constant
  */
-static string yices2_to_string(term_t term)
+string yices2_to_string(term_t term)
 {
   return detail::get_yices2_string(
       yices_term_to_string(term, UINT32_MAX, 1, 0));
@@ -57,7 +59,7 @@ static string yices2_to_string(term_t term)
 /** Returns the value of an arithmetic constant as GMP writes it, n or n/d
  *  in decimal
  */
-static string rational_const_text(term_t term)
+string rational_const_text(term_t term)
 {
   mpq_t value;
   mpq_init(value);
@@ -79,7 +81,7 @@ static string rational_const_text(term_t term)
  * Returns that bitvector and fills in low and high, or NULL_TERM when the
  * array is some other shape, a concatenation for instance.
  */
-static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
+term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
 {
   int32_t num_bits = yices_term_num_children(term);
   if (num_bits < 1)
@@ -121,7 +123,7 @@ static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
  * would say the term is a leaf, which whoever rebuilds it from its children
  * would believe.
  */
-[[noreturn]] static void no_smt_switch_op(term_t term)
+[[noreturn]] void no_smt_switch_op(term_t term)
 {
   throw NotImplementedException(
       "smt-switch has no op for the Yices2 term "
@@ -131,7 +133,7 @@ static term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
 /* (divides n t) is (_ divisible n) applied to t, where n is a positive integer
  * that fits in an op index
  */
-static Op divisible_op(term_t term)
+Op divisible_op(term_t term)
 {
   mpq_t divisor;
   mpq_init(divisor);
@@ -147,6 +149,8 @@ static Op divisible_op(term_t term)
   }
   return Op(Divisible, n);
 }
+
+}  // namespace
 
 Op Yices2Term::get_op() const
 {
@@ -306,8 +310,10 @@ bool Yices2Term::is_value() const
           || tc == YICES_LAMBDA_TERM);
 }
 
+namespace {
+
 /** Returns the bits of a bit-vector constant, most significant first */
-static string bv_constant_to_bits(term_t term)
+string bv_constant_to_bits(term_t term)
 {
   const uint32_t width = yices_term_bitsize(term);
   // yices gives the bits least significant first
@@ -320,6 +326,8 @@ static string bv_constant_to_bits(term_t term)
   }
   return res;
 }
+
+}  // namespace
 
 string Yices2Term::get_constructor_name() const
 {

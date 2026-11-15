@@ -33,6 +33,8 @@
 
 namespace smt {
 
+namespace {
+
 // Whether a sort is or contains an uninterpreted sort
 bool uses_uninterp_sort(const Sort & sort)
 {
@@ -58,6 +60,8 @@ bool uses_uninterp_sort(const Sort & sort)
 
   return res;
 }
+
+}  // namespace
 
 TermTranslator::TermTranslator(const SmtSolver & s) : solver(s)
 {

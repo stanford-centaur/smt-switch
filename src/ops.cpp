@@ -246,10 +246,12 @@ bool Op::Indices::operator!=(const Indices & other) const
   return !(*this == other);
 }
 
+namespace {
+
 /** @throws IncorrectUsageException unless po takes given indices; the null
  *  operator takes none
  */
-static void check_num_indices(PrimOp po, std::uint64_t given)
+void check_num_indices(PrimOp po, std::uint64_t given)
 {
   const std::uint64_t expected =
       (po == NUM_OPS_AND_NULL && given == 0) ? 0 : get_num_indices(po);
@@ -261,6 +263,8 @@ static void check_num_indices(PrimOp po, std::uint64_t given)
                                   + ", not " + std::to_string(given));
   }
 }
+
+}  // namespace
 
 Op::Op(PrimOp o) : prim_op(o) { check_num_indices(o, 0); }
 

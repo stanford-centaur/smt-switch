@@ -31,9 +31,11 @@
 
 namespace smt {
 
+namespace {
+
 // cvc5 raises CVC5ApiException for a call its API does not allow, and its
 // subclass CVC5ApiUnsupportedException for one it does not support.
-[[noreturn]] static void rethrow_cvc5_error(const ::cvc5::CVC5ApiException & e)
+[[noreturn]] void rethrow_cvc5_error(const ::cvc5::CVC5ApiException & e)
 {
   if (dynamic_cast<const ::cvc5::CVC5ApiUnsupportedException *>(&e))
   {
@@ -44,7 +46,7 @@ namespace smt {
 
 // The cvc5 sort of a term of sort s. cvc5 accepts a sort constructor there
 // and goes on with it, so it is refused here.
-static ::cvc5::Sort term_sort(const Sort & s)
+::cvc5::Sort term_sort(const Sort & s)
 {
   auto cs = backend_pointer_cast<Cvc5Sort>(s)->get_cvc5_sort();
   if (cs.isUninterpretedSortConstructor())
@@ -56,15 +58,21 @@ static ::cvc5::Sort term_sort(const Sort & s)
   return cs;
 }
 
+}  // namespace
+
 /* Cvc5Solver implementation */
 
+namespace {
+
 // the options every Cvc5Solver starts from, set again by reset()
-static void set_default_options(::cvc5::Solver & s)
+void set_default_options(::cvc5::Solver & s)
 {
   s.setOption("lang", "smt2");
   s.setOption("bv-print-consts-as-indexed-symbols", "true");
   s.setOption("arrays-exp", "true");
 }
+
+}  // namespace
 
 struct Cvc5Solver::Instance
 {

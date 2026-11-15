@@ -39,6 +39,8 @@ using namespace std;
 
 namespace smt {
 
+namespace {
+
 // Shared with yices2_timelimit_handler, which runs on a signal. The context is
 // the one check the process's single SIGALRM timer is set for, claimed with a
 // compare-exchange so that a check in another thread cannot take it over; a
@@ -52,7 +54,7 @@ std::atomic<context_t *> running_ctx{ nullptr };
 static_assert(std::atomic<context_t *>::is_always_lock_free,
               "the time limit handler reads the running context");
 volatile sig_atomic_t yices2_terminated = 0;
-static struct sigaction program_alarm_action;
+struct sigaction program_alarm_action;
 
 // Registered for SIGALRM alone, so the argument cannot be anything else and is
 // not worth naming. Only async-signal-safe work belongs here: a comparison,
@@ -69,8 +71,6 @@ void yices2_timelimit_handler(int /* signum */)
     yices2_terminated = 1;
   }
 }
-
-namespace {
 
 // frees a context, keeping the Yices instance alive until then
 struct ContextDeleter
@@ -137,10 +137,12 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
   }
 }
 
+namespace {
+
 /** The smt-switch term of res
  *  @throws Exception for the error Yices2 reports where making res failed
  */
-static Term checked_term(term_t res)
+Term checked_term(term_t res)
 {
   if (yices_error_code() != 0)
   {
@@ -148,6 +150,8 @@ static Term checked_term(term_t res)
   }
   return std::make_shared<Yices2Term>(res);
 }
+
+}  // namespace
 
 void Yices2Solver::set_logic(const std::string logic)
 {
@@ -511,14 +515,16 @@ Term Yices2Solver::get_value(const Term & t) const
   return res;
 }
 
+namespace {
+
 /* Turn one model node back into a term of the given sort. Yices reports
  * model values as yval_t nodes and has no generic node-to-term conversion,
  * so each one goes through the string form make_term already reads.
  */
-static Term term_from_yval(const Yices2Solver & solver,
-                           model_t * model,
-                           const yval_t & node,
-                           const Sort & sort)
+Term term_from_yval(const Yices2Solver & solver,
+                    model_t * model,
+                    const yval_t & node,
+                    const Sort & sort)
 {
   switch (node.node_tag)
   {
@@ -572,6 +578,8 @@ static Term term_from_yval(const Yices2Solver & solver,
       "Yices2 gave an array model node of tag " + std::to_string(node.node_tag)
       + ", which this backend cannot turn back into a term");
 }
+
+}  // namespace
 
 UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
                                                 Term & out_const_base) const
@@ -886,11 +894,13 @@ Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
   return std::make_shared<Yices2Term>(y_term);
 }
 
+namespace {
+
 /**
  * The Int constant a bit-vector constant stands for, read as unsigned or as
  * two's complement
  */
-static term_t bv_value_to_int(term_t bv_value, bool is_signed)
+term_t bv_value_to_int(term_t bv_value, bool is_signed)
 {
   const uint32_t width = yices_term_bitsize(bv_value);
   // yices gives the bits least significant first
@@ -922,7 +932,7 @@ static term_t bv_value_to_int(term_t bv_value, bool is_signed)
  * The exponent of a Pow, which yices_power takes as a uint32_t, so only a
  * constant non-negative integer that fits in one
  */
-static uint32_t pow_exponent(term_t term)
+uint32_t pow_exponent(term_t term)
 {
   bool fits = false;
   uint32_t res = 0;
@@ -954,7 +964,7 @@ static uint32_t pow_exponent(term_t term)
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] static void throw_unsupported(PrimOp po, size_t num_args)
+[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
 {
   const pair<size_t, size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
@@ -970,7 +980,7 @@ static uint32_t pow_exponent(term_t term)
 /** The term of op applied to one argument
  *  @throws as throw_unsupported where Yices2 has no such op
  */
-static term_t unary_term(const Op & op, term_t a)
+term_t unary_term(const Op & op, term_t a)
 {
   switch (op.prim_op)
   {
@@ -1066,7 +1076,7 @@ static term_t unary_term(const Op & op, term_t a)
 /** The term of po applied to two arguments
  *  @throws as throw_unsupported where Yices2 has no such op
  */
-static term_t binary_term(PrimOp po, term_t a, term_t b)
+term_t binary_term(PrimOp po, term_t a, term_t b)
 {
   switch (po)
   {
@@ -1126,10 +1136,10 @@ static term_t binary_term(PrimOp po, term_t a, term_t b)
  *
  *  Some of the calls may modify args.
  */
-static Term variadic_term(const AbsSmtSolver * solver,
-                          const Op & op,
-                          const TermVec & terms,
-                          vector<term_t> & args)
+Term variadic_term(const AbsSmtSolver * solver,
+                   const Op & op,
+                   const TermVec & terms,
+                   vector<term_t> & args)
 {
   const uint32_t n = narrow_num_args(args.size());
   term_t * a = args.data();
@@ -1161,6 +1171,8 @@ static Term variadic_term(const AbsSmtSolver * solver,
   }
   return checked_term(res);
 }
+
+}  // namespace
 
 Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 {

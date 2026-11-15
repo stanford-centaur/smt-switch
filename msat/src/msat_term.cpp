@@ -25,11 +25,13 @@ using namespace std;
 
 namespace smt {
 
+namespace {
+
 // MathSAT's congruence t1 = t2 mod n, i.e. n divides t1 - t2, is smt-switch's
 // (_ divisible n) with the one child t1 - t2. t2 can't be dropped: MathSAT
 // moves the constant part into t2, e.g. x + 1 = 0 mod 3 is stored as
 // x = -1 mod 3.
-static bool is_congruence(msat_env e, msat_term t)
+bool is_congruence(msat_env e, msat_term t)
 {
   return msat_decl_get_tag(e, msat_term_get_decl(t)) == MSAT_TAG_INT_MOD_CONGR;
 }
@@ -37,7 +39,7 @@ static bool is_congruence(msat_env e, msat_term t)
 /** The modulus n of a congruence t1 = t2 mod n
  *  @throws NotImplementedException if n does not fit in an op index
  */
-static uint64_t congruence_modulus(msat_env e, msat_term t)
+uint64_t congruence_modulus(msat_env e, msat_term t)
 {
   mpz_t modulus;
   mpz_init(modulus);
@@ -59,6 +61,8 @@ static uint64_t congruence_modulus(msat_env e, msat_term t)
   }
   return res;
 }
+
+}  // namespace
 
 // MsatTerm implementation
 
@@ -447,10 +451,12 @@ string MsatTerm::to_string() const
   }
 }
 
+namespace {
+
 /** Returns the value of a MathSAT arithmetic number term as n or n/d in
  *  decimal, as GMP writes it, or throws if the term is not a number.
  */
-static string number_to_text(msat_env env, msat_term term, bool is_uf)
+string number_to_text(msat_env env, msat_term term, bool is_uf)
 {
   if (is_uf)
   {
@@ -477,6 +483,8 @@ static string number_to_text(msat_env env, msat_term term, bool is_uf)
   text.resize(text.find('\0'));
   return text;
 }
+
+}  // namespace
 
 string MsatTerm::get_constructor_name() const
 {

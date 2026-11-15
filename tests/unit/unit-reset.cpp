@@ -139,7 +139,7 @@ TEST_P(UnitResetTests, FunctionNameReusedByNextSolver)
   EXPECT_EQ(s->make_term(Select, f, x)->get_op(), Select);
 }
 
-static std::vector<SolverConfiguration> working_reset_configurations()
+std::vector<SolverConfiguration> working_reset_configurations()
 {
   std::vector<SolverConfiguration> result;
   for (const SolverConfiguration & sc :

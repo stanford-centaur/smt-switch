@@ -177,14 +177,18 @@ TEST(GenericSort, SortConstructors)
   EXPECT_NE(list_int, list_bool);
 }
 
+namespace {
+
 // The datatype of one constructor, with the given names
-static Sort datatype_sort(const string & name, const string & cons)
+Sort datatype_sort(const string & name, const string & cons)
 {
   DatatypeDecl decl = make_shared<GenericDatatypeDecl>(name);
   shared_ptr<GenericDatatype> dt = make_shared<GenericDatatype>(decl);
   dt->add_constructor(make_shared<GenericDatatypeConstructorDecl>(cons));
   return make_shared<GenericDatatypeSort>(dt);
 }
+
+}  // namespace
 
 TEST(GenericSort, DatatypeComponents)
 {

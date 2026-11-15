@@ -45,7 +45,7 @@ class DisjointSetTests
   Term x, y, z, w;
 };
 
-static bool disjoint_set_rank(const Term & t1, const Term & t2)
+bool disjoint_set_rank(const Term & t1, const Term & t2)
 {
   if (!t1->is_value() && !t2->is_value())
   {

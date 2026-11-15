@@ -32,11 +32,13 @@ namespace smt {
 
 // helpers
 
+namespace {
+
 /** The PrimOp of the nodes of kind k, or NUM_OPS_AND_NULL for a kind whose
  *  nodes are not applications
  *  @throws Exception for a kind with no PrimOp
  */
-static PrimOp primop_of(BtorNodeKind k)
+PrimOp primop_of(BtorNodeKind k)
 {
   switch (k)
   {
@@ -68,6 +70,8 @@ static PrimOp primop_of(BtorNodeKind k)
           + std::to_string(k));
   }
 }
+
+}  // namespace
 
 Op lookup_op(Btor * btor, BoolectorNode * n)
 {
@@ -280,8 +284,10 @@ bool BoolectorTerm::is_value() const
   return res;
 }
 
+namespace {
+
 /** Returns the bits of a constant, most significant first */
-static std::string const_to_bits(Btor * btor, BtorNode * exp)
+std::string const_to_bits(Btor * btor, BtorNode * exp)
 {
   if (!btor_node_is_bv_const(exp))
   {
@@ -315,8 +321,6 @@ static std::string const_to_bits(Btor * btor, BtorNode * exp)
   boolector_release(btor, held_node);
   return s;
 }
-
-namespace {
 
 struct MallocDeleter
 {

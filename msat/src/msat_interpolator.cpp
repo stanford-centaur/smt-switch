@@ -27,18 +27,20 @@ using namespace std;
 
 namespace smt {
 
+namespace {
+
 /** text, followed by error if there is one */
-static string with_error(const string & text, const string & error)
+string with_error(const string & text, const string & error)
 {
   return error.empty() ? text : text + ": " + error;
 }
 
 // After MathSAT refuses a push or pop, the assertions kept for reuse no
 // longer match its backtrack points, so the next query starts afresh.
-[[noreturn]] static void throw_and_forget_query(const string & what,
-                                                msat_env env,
-                                                TermVec & assertions,
-                                                vector<int> & groups)
+[[noreturn]] void throw_and_forget_query(const string & what,
+                                         msat_env env,
+                                         TermVec & assertions,
+                                         vector<int> & groups)
 {
   string error = detail::last_error_message(env);
   msat_reset_env(env);
@@ -46,6 +48,8 @@ static string with_error(const string & text, const string & error)
   groups.clear();
   throw SolverException(with_error("MathSAT refused to " + what, error));
 }
+
+}  // namespace
 
 MsatInterpolator::MsatInterpolator()
     : AbsSmtInterpolator(MSAT_INTERPOLATOR, std::make_shared<MsatSolver>()),
