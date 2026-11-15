@@ -6,10 +6,9 @@
  * \copyright See the LICENSE file in the top-level source directory.
  *
  * A shared libsmt-switch does not link the backends, which link it, so it
- * finds each one when first asked: among the libraries already loaded,
- * then beside libsmt-switch, then on the system's search path. A static
- * one is linked with every backend it was built with and refers to them
- * directly.
+ * finds each one when asked: among the libraries already loaded, then
+ * beside libsmt-switch, then on the system's search path. A static one is
+ * linked with every backend it was built with and refers to them directly.
  */
 #include "smt-switch/solver_factory.h"
 
@@ -21,33 +20,23 @@
 #include <vector>
 #ifdef SMT_SWITCH_LOAD_BACKENDS
 #include <filesystem>
-#include <mutex>
-#include <unordered_map>
 #endif
 
 #include "smt-switch/exceptions.h"
 
 namespace smt {
 
-/* The backend whose library is libsmt-switch-<suffix>, loaded on first use
- * and kept loaded, since its solvers run its code. A static libsmt-switch
- * loads none.
+/* The backend whose library is libsmt-switch-<suffix>, loaded if it is not
+ * yet and kept loaded, since its solvers run its code. Loading it again
+ * only finds the library already loaded. A static libsmt-switch loads
+ * none.
  */
 [[maybe_unused]] static const detail::BackendFactory & load_backend(
     const std::string & suffix)
 {
 #ifdef SMT_SWITCH_LOAD_BACKENDS
   // an object in libsmt-switch, for dladdr to name the file that holds it
-  static const char library_locator = 0;
-  static std::mutex mutex;
-  static std::unordered_map<std::string, const detail::BackendFactory *> loaded;
-  std::lock_guard<std::mutex> lock(mutex);
-  auto it = loaded.find(suffix);
-  if (it != loaded.end())
-  {
-    return *it->second;
-  }
-
+  static constexpr char library_locator = 0;
   const std::string entry = "smt_switch_backend_" + suffix;
   const std::string file = SMT_SWITCH_LIBRARY_PREFIX "smt-switch-" + suffix
                            + SMT_SWITCH_LIBRARY_SUFFIX;
@@ -87,9 +76,7 @@ namespace smt {
                             + dlerror());
     }
   }
-  const auto * backend = static_cast<const detail::BackendFactory *>(symbol);
-  loaded.emplace(suffix, backend);
-  return *backend;
+  return *static_cast<const detail::BackendFactory *>(symbol);
 #else
   throw NotImplementedException("smt-switch was built without the " + suffix
                                 + " backend");
