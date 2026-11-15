@@ -117,6 +117,22 @@ void get_terms_with_ops(const Term & term,
                         const std::unordered_set<PrimOp> & ops,
                         UnorderedTermSet & out);
 
+/** Collects the theory atoms of a Boolean formula, as is_theory_atom
+ *  defines them, without looking inside an atom
+ *  @param solver the solver the formula belongs to
+ *  @param formula the formula to search
+ *  @param out the set the atoms are added to
+ *  @param split_ites if true, an atom with if-then-else arguments is
+ *         replaced by the atoms obtained by putting each branch in place
+ *         of each if-then-else, and the if-then-else conditions are
+ *         searched too; e.g. (= y (ite c a b)) gives (= y a), (= y b) and
+ *         the atoms of c
+ */
+void get_theory_atoms(const SmtSolver & solver,
+                      const Term & formula,
+                      UnorderedTermSet & out,
+                      bool split_ites = false);
+
 /** returns true iff l is a literal
  *  e.g. either a boolean symbolic constant or its negation
  *  NOTE will return false for nested negations, i.e. (not (not (not l)))
@@ -126,6 +142,16 @@ void get_terms_with_ops(const Term & term,
  *  @return true iff l is a literal
  */
 bool is_lit(const Term & l, const Sort & boolsort);
+
+/** Whether a term is a theory atom: a Boolean application other than a
+ *  connective, a quantifier, an extract, or an equality or distinct over
+ *  Booleans. Symbols and values are not theory atoms.
+ *  @param t the term to check
+ *  @param boolsort the Boolean sort of t's solver, so that solvers that
+ *         alias Booleans and bit-vectors of width one are supported
+ *  @return true iff t is a theory atom
+ */
+bool is_theory_atom(const Term & t, const Sort & boolsort);
 
 /** Writes a CNF formula in DIMACS format
  *  @param cnf a Boolean term that is true or a conjunction of clauses, each
