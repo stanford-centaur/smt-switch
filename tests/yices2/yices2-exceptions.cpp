@@ -73,12 +73,16 @@ TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
   EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
 }
 
+namespace {
+
 // checks s, first telling started that its thread is running
-static Result check_once_started(SmtSolver s, std::promise<void> * started)
+Result check_once_started(SmtSolver s, std::promise<void> * started)
 {
   started->set_value();
   return s->check_sat();
 }
+
+}  // namespace
 
 TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
 {

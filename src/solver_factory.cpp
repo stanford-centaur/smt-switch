@@ -26,12 +26,14 @@
 
 namespace smt {
 
+namespace {
+
 /* The backend whose library is libsmt-switch-<suffix>, loaded if it is not
  * yet and kept loaded, since its solvers run its code. Loading it again
  * only finds the library already loaded. A static libsmt-switch loads
  * none.
  */
-[[maybe_unused]] static const detail::BackendFactory & load_backend(
+[[maybe_unused]] const detail::BackendFactory & load_backend(
     const std::string & suffix)
 {
 #ifdef SMT_SWITCH_LOAD_BACKENDS
@@ -84,7 +86,7 @@ namespace smt {
 }
 
 /* The backend of a solver or its interpolator */
-static const detail::BackendFactory & backend(SolverEnum se)
+const detail::BackendFactory & backend(SolverEnum se)
 {
   // no default, so that -Wswitch reports an enumerator without a case
   switch (se)
@@ -136,6 +138,8 @@ static const detail::BackendFactory & backend(SolverEnum se)
   }
   throw InternalException("Unknown SolverEnum: " + std::to_string(se));
 }
+
+}  // namespace
 
 SmtSolver create_solver(SolverEnum se, bool logging)
 {

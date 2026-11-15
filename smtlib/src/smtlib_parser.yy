@@ -51,7 +51,9 @@ class SmtLibScanner;
 
 namespace smt {
 
-static std::uint64_t to_nat(const SmtLibParser::location_type & l,
+namespace {
+
+std::uint64_t to_nat(const SmtLibParser::location_type & l,
                             const std::string & s)
 {
   try
@@ -63,6 +65,8 @@ static std::uint64_t to_nat(const SmtLibParser::location_type & l,
     throw SmtLibParser::syntax_error(l, "Numeral out of range: " + s);
   }
 }
+
+}  // namespace
 
 void SmtLibParser::error(const location_type & l, const std::string & m)
 {

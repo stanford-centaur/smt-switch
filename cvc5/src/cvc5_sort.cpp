@@ -18,8 +18,12 @@
 
 namespace smt {
 
+namespace {
+
 // struct for hashing
 std::hash<cvc5::Sort> sorthash;
+
+}  // namespace
 
 Cvc5Sort::Cvc5Sort(cvc5::Sort s) : sort(s) {}
 

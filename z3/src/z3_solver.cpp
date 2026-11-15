@@ -44,6 +44,8 @@ namespace smt {
 static_assert(std::is_same_v<unsigned, std::uint32_t>,
               "Z3 takes counts and widths as an unsigned of 32 bits");
 
+namespace {
+
 // extension function: bvcomp as an ite over equality. Each new term is
 // referenced until the ite holds it, as in ext_Z3_mk_abs, and a failed
 // call returns null at once, leaving its error for the caller to read.
@@ -124,7 +126,7 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] static void throw_unsupported(PrimOp po, size_t num_args)
+[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
 {
   const pair<size_t, size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
@@ -140,7 +142,7 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
 /** The term of op applied to one argument
  *  @throws as throw_unsupported where this backend has no such op
  */
-static Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
+Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
 {
   switch (op.prim_op)
   {
@@ -194,7 +196,7 @@ static Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
 /** The term of po applied to two arguments
  *  @throws as throw_unsupported where this backend has no such op
  */
-static Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
+Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
 {
   const std::array<Z3_ast, 2> args{ { a, b } };
   switch (po)
@@ -251,11 +253,11 @@ static Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
 /** The term of op applied to terms, three or more, whose Z3 terms are args,
  *  in a single Z3 call where Z3 has one and through make_nary_term otherwise
  */
-static Term variadic_term(const AbsSmtSolver * solver,
-                          const std::shared_ptr<Z3Context> & ctx,
-                          const Op & op,
-                          const TermVec & terms,
-                          const vector<Z3_ast> & args)
+Term variadic_term(const AbsSmtSolver * solver,
+                   const std::shared_ptr<Z3Context> & ctx,
+                   const Op & op,
+                   const TermVec & terms,
+                   const vector<Z3_ast> & args)
 {
   const unsigned n = narrow_num_args(args.size());
   Z3_ast res;
@@ -271,6 +273,8 @@ static Term variadic_term(const AbsSmtSolver * solver,
   }
   return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
+
+}  // namespace
 
 /* Z3Solver implementation */
 

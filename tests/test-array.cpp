@@ -56,9 +56,9 @@ class ArrayModelTests
 /* What the model says an array holds at one index: the entry the solver
  * listed, or the constant base standing in for every index it did not.
  */
-static Term model_value_at(const UnorderedTermMap & array_vals,
-                           const Term & const_base,
-                           const Term & idx)
+Term model_value_at(const UnorderedTermMap & array_vals,
+                    const Term & const_base,
+                    const Term & idx)
 {
   auto entry = array_vals.find(idx);
   return entry == array_vals.end() ? const_base : entry->second;

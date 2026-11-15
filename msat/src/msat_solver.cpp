@@ -34,13 +34,15 @@ using namespace std;
 
 namespace smt {
 
+namespace {
+
 /** The bit-vector of width bits that val, a numeral in base `base`, names,
  *  as AbsSmtSolver::make_term accepts it
  */
-static msat_term make_bv_value(msat_env e,
-                               const string & val,
-                               uint64_t base,
-                               uint64_t width)
+msat_term make_bv_value(msat_env e,
+                        const string & val,
+                        uint64_t base,
+                        uint64_t width)
 {
   vector<uint32_t> words = detail::bv_value_to_words(val, base, width);
   // msat_make_bv_number reads a string far more slowly
@@ -63,7 +65,7 @@ struct Deadline
 /** Termination test: tells MathSAT to stop once the deadline passes
  *  @param deadline the running query's Deadline
  */
-static int reached_deadline(void * deadline)
+int reached_deadline(void * deadline)
 {
   Deadline * d = static_cast<Deadline *>(deadline);
   if (std::chrono::steady_clock::now() >= d->time)
@@ -79,7 +81,7 @@ static int reached_deadline(void * deadline)
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] static void throw_unsupported(PrimOp po, size_t num_args)
+[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
 {
   const pair<size_t, size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
@@ -95,7 +97,7 @@ static int reached_deadline(void * deadline)
 /** The term of op applied to one argument
  *  @throws as throw_unsupported where MathSAT has no such op
  */
-static msat_term unary_term(msat_env e, const Op & op, msat_term a)
+msat_term unary_term(msat_env e, const Op & op, msat_term a)
 {
   switch (op.prim_op)
   {
@@ -166,7 +168,7 @@ static msat_term unary_term(msat_env e, const Op & op, msat_term a)
 /** The term of po applied to two arguments
  *  @throws as throw_unsupported where MathSAT has no such op
  */
-static msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
+msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
 {
   switch (po)
   {
@@ -218,6 +220,8 @@ static msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
     default: throw_unsupported(po, 2);
   }
 }
+
+}  // namespace
 
 // MsatSolver implementation
 

@@ -66,12 +66,14 @@ constexpr std::string_view start_only_options[] = {
   "produce-unsat-assumptions", "produce-unsat-cores", "random-seed",
 };
 
+namespace {
+
 /** An SMT-LIB command, e.g. (push 1)
  * @param name the command's name
  * @param args its arguments, each written after a space
  */
 template <class... Args>
-static std::string smtlib_command(std::string_view name, const Args &... args)
+std::string smtlib_command(std::string_view name, const Args &... args)
 {
   // std::string's += takes a char, so an integer would be appended as one
   static_assert((std::is_convertible_v<const Args &, std::string_view> && ...),
@@ -82,6 +84,8 @@ static std::string smtlib_command(std::string_view name, const Args &... args)
   command += ')';
   return command;
 }
+
+}  // namespace
 
 template <class... Args>
 bool GenericSolver::send_or_hold(std::string_view name,
@@ -98,8 +102,10 @@ std::string GenericSolver::run_command(CommandKind kind,
   return run_command(smtlib_command(name, args...), kind);
 }
 
+namespace {
+
 // helper functions
-static bool is_white_space(char c)
+bool is_white_space(char c)
 {
   return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 }
@@ -107,7 +113,7 @@ static bool is_white_space(char c)
 // Close a descriptor and mark it unset: teardown can run twice, and a
 // second close would land on whatever the kernel has since reused the
 // number for. EINTR is not retried, the descriptor being gone by then.
-static void close_fd(int & fd)
+void close_fd(int & fd)
 {
   if (fd < 0)
   {
@@ -118,7 +124,7 @@ static void close_fd(int & fd)
 }
 
 // Whether a trimmed response is the binary reporting an error.
-static bool is_error_response(const std::string & response)
+bool is_error_response(const std::string & response)
 {
   const std::string err_prefix("(error ");
   return response.compare(0, err_prefix.size(), err_prefix) == 0;
@@ -134,7 +140,7 @@ static bool is_error_response(const std::string & response)
  * error message quoting a stray ')' back at us is the obvious way to meet
  * that.
  */
-static std::size_t sexpr_end(const std::string & buf, std::size_t i)
+std::size_t sexpr_end(const std::string & buf, std::size_t i)
 {
   if (buf[i] == '|')
   {
@@ -222,8 +228,7 @@ static std::size_t sexpr_end(const std::string & buf, std::size_t i)
  * gives an empty vector. Returns no value for anything that is not one
  * parenthesized expression, such as an atom.
  */
-static std::optional<std::vector<std::string>> split_sexpr(
-    const std::string & s)
+std::optional<std::vector<std::string>> split_sexpr(const std::string & s)
 {
   if (s.empty() || s.front() != '(' || sexpr_end(s, 0) != s.size())
   {
@@ -258,7 +263,7 @@ static std::optional<std::vector<std::string>> split_sexpr(
  * yet. Exactness matters: over- or under-reading by a byte slips the
  * command and response streams out of step for good.
  */
-static std::size_t response_length(const std::string & buf)
+std::size_t response_length(const std::string & buf)
 {
   std::size_t i = 0;
   while (i < buf.size() && is_white_space(buf[i]))
@@ -287,6 +292,8 @@ std::string & trim(std::string & str)
     str.erase(0, 1);
   return str;
 }
+
+}  // namespace
 
 const std::chrono::milliseconds GenericSolver::default_response_timeout =
     std::chrono::hours(1);
@@ -1382,6 +1389,8 @@ DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const
   return new_dt_decl;
 }
 
+namespace {
+
 /** throw if a name a user chose for a term or function lies where the
  * generic solver makes up names of its own
  * @param name the name chosen
@@ -1389,8 +1398,7 @@ DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const
  * @throws IncorrectUsageException if the name starts with
  * INTERNAL_NAME_PREFIX
  */
-static void refuse_internal_name(const std::string & name,
-                                 const std::string & what)
+void refuse_internal_name(const std::string & name, const std::string & what)
 {
   if (is_internal_name(name))
   {
@@ -1400,6 +1408,8 @@ static void refuse_internal_name(const std::string & name,
         + ", which the generic solver keeps for names of its own");
   }
 }
+
+}  // namespace
 
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
     const std::string s) const
@@ -1648,8 +1658,10 @@ Term GenericSolver::make_value(bool b) const
   return term;
 }
 
+namespace {
+
 /** Throws unless a value of sort kind sk can be made from a number */
-static void check_value_sort_kind(SortKind sk)
+void check_value_sort_kind(SortKind sk)
 {
   if (sk != BV && sk != INT && sk != REAL)
   {
@@ -1657,6 +1669,8 @@ static void check_value_sort_kind(SortKind sk)
                                   + to_string(sk) + " from a number");
   }
 }
+
+}  // namespace
 
 Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 {
@@ -1815,13 +1829,15 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort) const
   return term;
 }
 
+namespace {
+
 /**
  * base raised to exponent, as products found by repeated squaring, so the
  * term grows with the number of digits of the exponent rather than with it
  */
-static Term make_power(const GenericSolver & solver,
-                       const Term & base,
-                       std::int64_t exponent)
+Term make_power(const GenericSolver & solver,
+                const Term & base,
+                std::int64_t exponent)
 {
   if (exponent == 0)
   {
@@ -1835,6 +1851,8 @@ static Term make_power(const GenericSolver & solver,
   Term square = solver.make_term(Mult, half, half);
   return exponent % 2 == 0 ? square : solver.make_term(Mult, square, base);
 }
+
+}  // namespace
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
