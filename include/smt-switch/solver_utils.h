@@ -109,18 +109,6 @@ double time_limit_seconds(const std::string & value);
  */
 std::uint64_t time_limit_milliseconds(const std::string & value);
 
-/** Whether s is a non-empty string of decimal digits */
-bool is_decimal_numeral(const std::string & s);
-
-/** Whether name is a logic as SMT-LIB names them: ALL, or optional QF_ and
- *  HO_ prefixes followed by arrays (A or AX), UF, BV, FP, DT, S and an
- *  arithmetic part (IDL, RDL, LIA, LRA, LIRA, NIA, NRA, NIRA or EIA), each
- *  optional and in that order, but at least one
- *  @param name the name to check
- *  @return true iff name is such a logic
- */
-bool is_smtlib_logic(const std::string & name);
-
 // The general forms of the checks above, for the kinds no wrapper covers
 namespace detail {
 
@@ -196,34 +184,6 @@ T narrow(U value, const char * what)
   return static_cast<T>(value);
 }
 
-/** The value of c as a digit of a numeral in a base up to 36: 0 to 9,
- *  then a to z in either case
- *  @param c the character
- *  @return its value, or 36 if c is no such digit
- */
-unsigned numeral_digit(char c);
-
-/** The two's complement of the bit-vector value val, a numeral in base
- *  `base` with an optional leading sign, as AbsSmtSolver::make_term
- *  accepts it
- *  @param val the value
- *  @param base from 2 to 36
- *  @param width the width of the bit-vector
- *  @return its bits in 32-bit words, least significant first, as many as
- *  width bits take; bits of the last word above width are zero
- *  @throws IncorrectUsageException for another base, a val that is not
- *  such a numeral, or a value outside the smallest signed and the largest
- *  unsigned value of width bits
- */
-std::vector<std::uint32_t> bv_value_to_words(const std::string & val,
-                                             std::uint64_t base,
-                                             std::uint64_t width);
-
-/** bv_value_to_words as one number, for a width of at most 64 */
-std::uint64_t bv_value_to_uint64(const std::string & val,
-                                 std::uint64_t base,
-                                 std::uint64_t width);
-
 /** Opens a pipe whose ends any later exec closes, so that no program
  *  another child runs holds them
  *  @param fds receives the read end, then the write end, or -1 for both
@@ -233,35 +193,6 @@ std::uint64_t bv_value_to_uint64(const std::string & val,
 int make_cloexec_pipe(int (&fds)[2]);
 
 }  // namespace detail
-
-/** Whether val is a number a value of sort kind sk, INT or REAL, can be
- *  made from, with an optional leading minus: a decimal numeral, or for a
- *  REAL also a decimal or a fraction of numerals. The slash of a fraction
- *  may have spaces around it, as TermTranslator writes one.
- *  Solvers read some other strings, such as "" or "1.2.3", without an
- *  error but not as the number meant, so check before handing one over.
- *  @param sk the sort kind of the value, INT or REAL
- *  @param val the string to check
- *  @return true iff val is such a number
- */
-bool is_arith_number(SortKind sk, const std::string & val);
-
-/** The number val names in base `base`, written for is_arith_number: val
- *  itself in base 10, less a leading plus, and otherwise the same number
- *  in decimal, a REAL with a point as a fraction. In another base, val is
- *  a numeral, or for a REAL a decimal or fraction of numerals, of digits
- *  in that base (0 to 9, then a to z in either case), with an optional
- *  leading sign.
- *  @param sk the sort kind of the value, INT or REAL
- *  @param val the number in base `base`
- *  @param base from 2 to 36
- *  @return the number in base 10
- *  @throws IncorrectUsageException for another base, or a val in a base
- *  other than 10 that is not such a number
- */
-std::string arith_value_to_decimal(SortKind sk,
-                                   const std::string & val,
-                                   std::uint64_t base);
 
 /** The index-value map that a chain of stores over a constant base stands
  *  for, given the index and value each store along it writes. A backend

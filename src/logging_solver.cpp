@@ -28,6 +28,7 @@
 #include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_hashtable.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -190,7 +191,7 @@ Term LoggingSolver::get_constructor(const Sort & s, std::string name) const
     domain.push_back(sel.sort ? sel.sort : s);
   }
   return make_component(
-      wrapped, CONSTRUCTOR, domain, s, smtlib_quote_symbol(name));
+      wrapped, CONSTRUCTOR, domain, s, smtlib::quote_symbol(name));
 }
 
 Term LoggingSolver::get_tester(const Sort & s, std::string name) const
@@ -203,7 +204,7 @@ Term LoggingSolver::get_tester(const Sort & s, std::string name) const
                         TESTER,
                         SortVec{ s },
                         make_sort(BOOL),
-                        "(_ is " + smtlib_quote_symbol(name) + ")");
+                        "(_ is " + smtlib::quote_symbol(name) + ")");
 }
 
 Term LoggingSolver::get_selector(const Sort & s,
@@ -223,7 +224,7 @@ Term LoggingSolver::get_selector(const Sort & s,
                             SELECTOR,
                             SortVec{ s },
                             sel.sort ? sel.sort : s,
-                            smtlib_quote_symbol(name));
+                            smtlib::quote_symbol(name));
     }
   }
   throw IncorrectUsageException("Constructor " + con + " has no selector "
@@ -457,7 +458,7 @@ Term LoggingSolver::make_symbol(const std::string name, const Sort & sort)
                                            sort,
                                            Op(),
                                            TermVec{},
-                                           smtlib_quote_symbol(name),
+                                           smtlib::quote_symbol(name),
                                            /* symbol */ true,
                                            next_term_id);
 

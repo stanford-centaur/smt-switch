@@ -27,10 +27,12 @@
 #include "smt-switch/bitwuzla_sort.h"
 #include "smt-switch/bitwuzla_term.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -182,7 +184,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 
 void BzlaSolver::set_logic(const std::string logic)
 {
-  if (!is_smtlib_logic(logic))
+  if (!smtlib::is_logic(logic))
   {
     throw IncorrectUsageException(logic + " is not an SMT-LIB logic");
   }
@@ -438,7 +440,7 @@ Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   // Bitwuzla prints a sort's symbol as is, so it is the applied sort's
   // SMT-LIB text
   std::string symbol =
-      "(" + smtlib_quote_symbol(bcon->get_uninterpreted_name());
+      "(" + smtlib::quote_symbol(bcon->get_uninterpreted_name());
   std::vector<bitwuzla::Sort> params;
   params.reserve(sorts.size());
   for (const Sort & s : sorts)
@@ -761,7 +763,7 @@ void BzlaSolver::dump_smt2(std::string filename) const
   {
     throw SystemException("Cannot open " + filename + " for writing");
   }
-  smtlib_benchmark(out, logic_, assertions);
+  smtlib::benchmark(out, logic_, assertions);
   out.close();
   if (!out)
   {

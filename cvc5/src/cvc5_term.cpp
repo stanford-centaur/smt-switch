@@ -20,8 +20,9 @@
 
 #include "smt-switch/cvc5_sort.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 namespace smt {
 
@@ -334,7 +335,7 @@ std::string Cvc5Term::to_string() const
   // SMT-LIB term
   if (term.getSort().isDatatypeTester())
   {
-    return "(_ is " + smtlib_quote_symbol(get_constructor_name()) + ")";
+    return "(_ is " + smtlib::quote_symbol(get_constructor_name()) + ")";
   }
   return term.toString();
 }

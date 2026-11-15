@@ -15,6 +15,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -23,8 +24,8 @@
 
 #include "smt-switch/bitwuzla_sort.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 

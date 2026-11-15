@@ -21,6 +21,7 @@
 #include "smt-switch/exceptions.h"
 #include "smt-switch/generic_sort.h"
 #include "smt-switch/generic_term.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
@@ -28,7 +29,6 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 using namespace smt;
 using namespace smt_tests;
@@ -411,44 +411,44 @@ INSTANTIATE_TEST_SUITE_P(
 // SMT-LIB numerals are never negative: a negative integer value is (- n)
 TEST(ToIntParsing, SmtlibNegativeInt)
 {
-  EXPECT_EQ(smtlib_int_to_int64("(- 5)"), -5);
-  EXPECT_EQ(smtlib_int_to_int64("(- 9223372036854775808)"), int64_min);
-  EXPECT_EQ(smtlib_int_to_int64("(- 5.0)"), -5);
-  EXPECT_THROW(smtlib_int_to_uint64("(- 5)"), IncorrectUsageException);
-  EXPECT_THROW(smtlib_int_to_int64("(- 9223372036854775809)"),
+  EXPECT_EQ(smtlib::int_to_int64("(- 5)"), -5);
+  EXPECT_EQ(smtlib::int_to_int64("(- 9223372036854775808)"), int64_min);
+  EXPECT_EQ(smtlib::int_to_int64("(- 5.0)"), -5);
+  EXPECT_THROW(smtlib::int_to_uint64("(- 5)"), IncorrectUsageException);
+  EXPECT_THROW(smtlib::int_to_int64("(- 9223372036854775809)"),
                IncorrectUsageException);
-  EXPECT_THROW(smtlib_int_to_int64("(- (- 5))"), IncorrectUsageException);
-  EXPECT_THROW(smtlib_int_to_int64("(/ (- 1) 2)"), IncorrectUsageException);
+  EXPECT_THROW(smtlib::int_to_int64("(- (- 5))"), IncorrectUsageException);
+  EXPECT_THROW(smtlib::int_to_int64("(/ (- 1) 2)"), IncorrectUsageException);
 }
 
 // -5 is an SMT-LIB symbol, but Yices2 and MathSAT print values this way
 TEST(ToIntParsing, SignedLiteral)
 {
-  EXPECT_EQ(smtlib_int_to_int64("-5"), -5);
-  EXPECT_THROW(smtlib_int_to_uint64("-5"), IncorrectUsageException);
-  EXPECT_EQ(smtlib_int_to_uint64("-0"), 0u);
+  EXPECT_EQ(smtlib::int_to_int64("-5"), -5);
+  EXPECT_THROW(smtlib::int_to_uint64("-5"), IncorrectUsageException);
+  EXPECT_EQ(smtlib::int_to_uint64("-0"), 0u);
 }
 
 TEST(ToIntParsing, HexBV)
 {
-  EXPECT_EQ(smtlib_bv_to_uint64("#xfF"), 255u);
-  EXPECT_EQ(smtlib_bv_to_int64("#xff"), -1);
-  EXPECT_THROW(smtlib_bv_to_uint64("#xg0"), IncorrectUsageException);
+  EXPECT_EQ(smtlib::bv_to_uint64("#xfF"), 255u);
+  EXPECT_EQ(smtlib::bv_to_int64("#xff"), -1);
+  EXPECT_THROW(smtlib::bv_to_uint64("#xg0"), IncorrectUsageException);
 }
 
 TEST(ToIntParsing, IndexedBVOutOfRange)
 {
-  EXPECT_EQ(smtlib_bv_to_int64("(_ bv15 4)"), -1);
-  EXPECT_THROW(smtlib_bv_to_uint64("(_ bv16 4)"), IncorrectUsageException);
-  EXPECT_THROW(smtlib_bv_to_int64("(_ bv16 4)"), IncorrectUsageException);
+  EXPECT_EQ(smtlib::bv_to_int64("(_ bv15 4)"), -1);
+  EXPECT_THROW(smtlib::bv_to_uint64("(_ bv16 4)"), IncorrectUsageException);
+  EXPECT_THROW(smtlib::bv_to_int64("(_ bv16 4)"), IncorrectUsageException);
 }
 
 TEST(ToIntParsing, BVToBits)
 {
-  EXPECT_EQ(smtlib_bv_to_bits("#b0101"), "0101");
-  EXPECT_EQ(smtlib_bv_to_bits("#x0a"), "00001010");
-  EXPECT_EQ(smtlib_bv_to_bits("(_ bv5 8)"), "00000101");
-  EXPECT_EQ(smtlib_bv_to_bits("(_ bv2 1024)"), std::string(1022, '0') + "10");
+  EXPECT_EQ(smtlib::bv_to_bits("#b0101"), "0101");
+  EXPECT_EQ(smtlib::bv_to_bits("#x0a"), "00001010");
+  EXPECT_EQ(smtlib::bv_to_bits("(_ bv5 8)"), "00000101");
+  EXPECT_EQ(smtlib::bv_to_bits("(_ bv2 1024)"), std::string(1022, '0') + "10");
   for (const char * s : { "#b",
                           "#x",
                           "#b012",
@@ -459,24 +459,24 @@ TEST(ToIntParsing, BVToBits)
                           "5" })
   {
     SCOPED_TRACE(s);
-    EXPECT_THROW(smtlib_bv_to_bits(s), IncorrectUsageException);
+    EXPECT_THROW(smtlib::bv_to_bits(s), IncorrectUsageException);
   }
 }
 
 TEST(ToIntParsing, WideBV)
 {
-  EXPECT_EQ(smtlib_bv_to_uint64("(_ bv2 1024)"), 2u);
-  EXPECT_EQ(smtlib_bv_to_int64("(_ bv2 1024)"), 2);
-  EXPECT_EQ(smtlib_bv_to_uint64("#x0ffffffffffffffff"), uint64_max);
-  EXPECT_THROW(smtlib_bv_to_int64("#x0ffffffffffffffff"),
+  EXPECT_EQ(smtlib::bv_to_uint64("(_ bv2 1024)"), 2u);
+  EXPECT_EQ(smtlib::bv_to_int64("(_ bv2 1024)"), 2);
+  EXPECT_EQ(smtlib::bv_to_uint64("#x0ffffffffffffffff"), uint64_max);
+  EXPECT_THROW(smtlib::bv_to_int64("#x0ffffffffffffffff"),
                IncorrectUsageException);
-  EXPECT_EQ(smtlib_bv_to_int64("#xfffffffffffffffff"), -1);
+  EXPECT_EQ(smtlib::bv_to_int64("#xfffffffffffffffff"), -1);
   EXPECT_EQ(bits_to_int64(std::string(65, '1')), -1);
   EXPECT_THROW(bits_to_uint64(std::string(65, '1')), IncorrectUsageException);
-  EXPECT_THROW(smtlib_bv_to_uint64("(_ bv18446744073709551616 65)"),
+  EXPECT_THROW(smtlib::bv_to_uint64("(_ bv18446744073709551616 65)"),
                IncorrectUsageException);
   // 2^65 - 1 is all ones in 65 bits
-  EXPECT_EQ(smtlib_bv_to_int64("(_ bv36893488147419103231 65)"), -1);
+  EXPECT_EQ(smtlib::bv_to_int64("(_ bv36893488147419103231 65)"), -1);
 }
 
 // AbsTerm::to_signed_int is the default for Term implementations outside

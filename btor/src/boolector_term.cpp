@@ -26,6 +26,8 @@ extern "C" {
 
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -348,11 +350,11 @@ std::string BoolectorTerm::to_string() const
     // has a symbol
     if (is_negated())
     {
-      sres = "(bvnot " + smtlib_quote_symbol(sym) + ")";
+      sres = "(bvnot " + smtlib::quote_symbol(sym) + ")";
     }
     else
     {
-      sres = smtlib_quote_symbol(sym);
+      sres = smtlib::quote_symbol(sym);
     }
     return sres;
   }

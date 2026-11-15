@@ -47,7 +47,7 @@ class SmtLibScanner;
 #include "smt-switch/smtlib_reader.h"
 #include "smtlib_scanner.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 namespace smt {
 
@@ -343,7 +343,7 @@ nested_s_expr:
   number
 | bv_literal
 | QUOTESTRING       { $$ = '"' + $1 + '"'; }
-| SYMBOL            { $$ = smtlib_quote_symbol($1); }
+| SYMBOL            { $$ = smtlib::quote_symbol($1); }
 | KEYWORD           { $$ = ':' + $1; }
 | reserved_word
 | LP s_expr_list RP { $$ = "(" + $2 + ")"; }

@@ -18,6 +18,7 @@
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/generic_sort.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
@@ -26,6 +27,7 @@
 #include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 #include "term_utils.h"
 
@@ -1045,80 +1047,80 @@ TEST(InternalName, KindAndIndex)
 
 TEST(SmtLibQuoteSymbol, SimpleSymbolStaysBare)
 {
-  EXPECT_EQ(smtlib_quote_symbol("x"), "x");
-  EXPECT_EQ(smtlib_quote_symbol("a1"), "a1");
-  EXPECT_EQ(smtlib_quote_symbol("~!@$%^&*_-+=<>.?/"), "~!@$%^&*_-+=<>.?/");
+  EXPECT_EQ(smtlib::quote_symbol("x"), "x");
+  EXPECT_EQ(smtlib::quote_symbol("a1"), "a1");
+  EXPECT_EQ(smtlib::quote_symbol("~!@$%^&*_-+=<>.?/"), "~!@$%^&*_-+=<>.?/");
 }
 
 TEST(SmtLibQuoteSymbol, OtherSymbolGetsBars)
 {
-  EXPECT_EQ(smtlib_quote_symbol(""), "||");
-  EXPECT_EQ(smtlib_quote_symbol("1a"), "|1a|");
-  EXPECT_EQ(smtlib_quote_symbol("a b"), "|a b|");
-  EXPECT_EQ(smtlib_quote_symbol("a\"b"), "|a\"b|");
-  EXPECT_EQ(smtlib_quote_symbol("\xc3\xa9"), "|\xc3\xa9|");
+  EXPECT_EQ(smtlib::quote_symbol(""), "||");
+  EXPECT_EQ(smtlib::quote_symbol("1a"), "|1a|");
+  EXPECT_EQ(smtlib::quote_symbol("a b"), "|a b|");
+  EXPECT_EQ(smtlib::quote_symbol("a\"b"), "|a\"b|");
+  EXPECT_EQ(smtlib::quote_symbol("\xc3\xa9"), "|\xc3\xa9|");
 }
 
 TEST(SmtLibQuoteSymbol, ReservedWordGetsBars)
 {
-  EXPECT_EQ(smtlib_quote_symbol("let"), "|let|");
-  EXPECT_EQ(smtlib_quote_symbol("par"), "|par|");
-  EXPECT_EQ(smtlib_quote_symbol("NUMERAL"), "|NUMERAL|");
-  EXPECT_EQ(smtlib_quote_symbol("_"), "|_|");
-  EXPECT_EQ(smtlib_quote_symbol("!"), "|!|");
-  EXPECT_EQ(smtlib_quote_symbol("check-sat"), "|check-sat|");
+  EXPECT_EQ(smtlib::quote_symbol("let"), "|let|");
+  EXPECT_EQ(smtlib::quote_symbol("par"), "|par|");
+  EXPECT_EQ(smtlib::quote_symbol("NUMERAL"), "|NUMERAL|");
+  EXPECT_EQ(smtlib::quote_symbol("_"), "|_|");
+  EXPECT_EQ(smtlib::quote_symbol("!"), "|!|");
+  EXPECT_EQ(smtlib::quote_symbol("check-sat"), "|check-sat|");
   // only the exact words are reserved
-  EXPECT_EQ(smtlib_quote_symbol("lets"), "lets");
-  EXPECT_EQ(smtlib_quote_symbol("Let"), "Let");
+  EXPECT_EQ(smtlib::quote_symbol("lets"), "lets");
+  EXPECT_EQ(smtlib::quote_symbol("Let"), "Let");
 }
 
 TEST(SmtLibUnquoteSymbol, QuotedSymbolLosesBars)
 {
-  EXPECT_EQ(smtlib_unquote_symbol("|a b|"), "a b");
-  EXPECT_EQ(smtlib_unquote_symbol("|x|"), "x");
-  EXPECT_EQ(smtlib_unquote_symbol("||"), "");
+  EXPECT_EQ(smtlib::unquote_symbol("|a b|"), "a b");
+  EXPECT_EQ(smtlib::unquote_symbol("|x|"), "x");
+  EXPECT_EQ(smtlib::unquote_symbol("||"), "");
 }
 
 TEST(SmtLibUnquoteSymbol, OtherTextStaysAsIs)
 {
-  EXPECT_EQ(smtlib_unquote_symbol("x"), "x");
-  EXPECT_EQ(smtlib_unquote_symbol(""), "");
+  EXPECT_EQ(smtlib::unquote_symbol("x"), "x");
+  EXPECT_EQ(smtlib::unquote_symbol(""), "");
   // a lone bar, or one at one end only, is not a quoted symbol
-  EXPECT_EQ(smtlib_unquote_symbol("|"), "|");
-  EXPECT_EQ(smtlib_unquote_symbol("|a"), "|a");
-  EXPECT_EQ(smtlib_unquote_symbol("a|"), "a|");
+  EXPECT_EQ(smtlib::unquote_symbol("|"), "|");
+  EXPECT_EQ(smtlib::unquote_symbol("|a"), "|a");
+  EXPECT_EQ(smtlib::unquote_symbol("a|"), "a|");
 }
 
 TEST(SmtLibArithValue, IntegerStaysANumeral)
 {
-  EXPECT_EQ(smtlib_arith_value(INT, "5"), "5");
-  EXPECT_EQ(smtlib_arith_value(INT, "-5"), "(- 5)");
-  EXPECT_EQ(smtlib_arith_value(INT, "+5"), "5");
-  EXPECT_EQ(smtlib_arith_value(INT, "007"), "7");
-  EXPECT_EQ(smtlib_arith_value(INT, "0"), "0");
-  EXPECT_EQ(smtlib_arith_value(INT, "-00"), "(- 0)");
+  EXPECT_EQ(smtlib::arith_value(INT, "5"), "5");
+  EXPECT_EQ(smtlib::arith_value(INT, "-5"), "(- 5)");
+  EXPECT_EQ(smtlib::arith_value(INT, "+5"), "5");
+  EXPECT_EQ(smtlib::arith_value(INT, "007"), "7");
+  EXPECT_EQ(smtlib::arith_value(INT, "0"), "0");
+  EXPECT_EQ(smtlib::arith_value(INT, "-00"), "(- 0)");
 }
 
 TEST(SmtLibArithValue, RealGetsADecimalPoint)
 {
-  EXPECT_EQ(smtlib_arith_value(REAL, "5"), "5.0");
-  EXPECT_EQ(smtlib_arith_value(REAL, "0.5"), "0.5");
-  EXPECT_EQ(smtlib_arith_value(REAL, "-0.5"), "(- 0.5)");
+  EXPECT_EQ(smtlib::arith_value(REAL, "5"), "5.0");
+  EXPECT_EQ(smtlib::arith_value(REAL, "0.5"), "0.5");
+  EXPECT_EQ(smtlib::arith_value(REAL, "-0.5"), "(- 0.5)");
 }
 
 TEST(SmtLibArithValue, DecimalGetsDigitsAroundItsPoint)
 {
-  EXPECT_EQ(smtlib_arith_value(REAL, ".1"), "0.1");
-  EXPECT_EQ(smtlib_arith_value(REAL, "-.1"), "(- 0.1)");
-  EXPECT_EQ(smtlib_arith_value(REAL, "1."), "1.0");
-  EXPECT_EQ(smtlib_arith_value(REAL, "00.50"), "0.50");
+  EXPECT_EQ(smtlib::arith_value(REAL, ".1"), "0.1");
+  EXPECT_EQ(smtlib::arith_value(REAL, "-.1"), "(- 0.1)");
+  EXPECT_EQ(smtlib::arith_value(REAL, "1."), "1.0");
+  EXPECT_EQ(smtlib::arith_value(REAL, "00.50"), "0.50");
 }
 
 TEST(SmtLibArithValue, FractionIsADivision)
 {
-  EXPECT_EQ(smtlib_arith_value(REAL, "1/2"), "(/ 1.0 2.0)");
-  EXPECT_EQ(smtlib_arith_value(REAL, "-1/2"), "(- (/ 1.0 2.0))");
-  EXPECT_EQ(smtlib_arith_value(REAL, "01/02"), "(/ 1.0 2.0)");
+  EXPECT_EQ(smtlib::arith_value(REAL, "1/2"), "(/ 1.0 2.0)");
+  EXPECT_EQ(smtlib::arith_value(REAL, "-1/2"), "(- (/ 1.0 2.0))");
+  EXPECT_EQ(smtlib::arith_value(REAL, "01/02"), "(/ 1.0 2.0)");
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibApplication);
@@ -1142,13 +1144,13 @@ class SmtLibApplication
 
 TEST_P(SmtLibApplication, OpThenChildren)
 {
-  EXPECT_EQ(smtlib_application(Op(Plus), { x, y }), "(+ x y)");
+  EXPECT_EQ(smtlib::application(Op(Plus), { x, y }), "(+ x y)");
 }
 
 TEST_P(SmtLibApplication, AppliedFunctionStandsForTheOp)
 {
   Term f = s->make_symbol("f", s->make_sort(FUNCTION, { intsort, intsort }));
-  EXPECT_EQ(smtlib_application(Op(Apply), { f, x }), "(f x)");
+  EXPECT_EQ(smtlib::application(Op(Apply), { f, x }), "(f x)");
 }
 
 TEST_P(SmtLibApplication, QuantifierListsItsVariableWithItsSort)
@@ -1159,21 +1161,21 @@ TEST_P(SmtLibApplication, QuantifierListsItsVariableWithItsSort)
   auto term_text = [&](const Term & t) {
     return t == p ? string("p") : string("body");
   };
-  EXPECT_EQ(smtlib_application(Op(Forall), { p, body }, term_text),
+  EXPECT_EQ(smtlib::application(Op(Forall), { p, body }, term_text),
             "(forall ((p Int)) body)");
 }
 
 TEST_P(SmtLibApplication, PowerIsAProduct)
 {
-  EXPECT_EQ(smtlib_application(Op(Pow), { x, s->make_term(3, intsort) }),
+  EXPECT_EQ(smtlib::application(Op(Pow), { x, s->make_term(3, intsort) }),
             "(* x x x)");
 }
 
 TEST_P(SmtLibApplication, PowerWithoutAProduct)
 {
-  EXPECT_EQ(smtlib_application(Op(Pow), { x, s->make_term(0, intsort) }),
+  EXPECT_EQ(smtlib::application(Op(Pow), { x, s->make_term(0, intsort) }),
             "(** x 0)");
-  EXPECT_EQ(smtlib_application(Op(Pow), { x, x }), "(** x x)");
+  EXPECT_EQ(smtlib::application(Op(Pow), { x, x }), "(** x x)");
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -1201,14 +1203,14 @@ class SmtLibDeclareFun
 
 TEST_P(SmtLibDeclareFun, ConstantHasAnEmptyDomain)
 {
-  EXPECT_EQ(smtlib_declare_fun(s->make_symbol("x", intsort)),
+  EXPECT_EQ(smtlib::declare_fun(s->make_symbol("x", intsort)),
             "(declare-fun x () Int)");
 }
 
 TEST_P(SmtLibDeclareFun, FunctionListsItsDomain)
 {
   Sort fsort = s->make_sort(FUNCTION, { intsort, intsort, intsort });
-  EXPECT_EQ(smtlib_declare_fun(s->make_symbol("f", fsort)),
+  EXPECT_EQ(smtlib::declare_fun(s->make_symbol("f", fsort)),
             "(declare-fun f (Int Int) Int)");
 }
 
@@ -1221,7 +1223,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST(SmtLibDeclareDatatypes, NoDatatypeIsRefused)
 {
-  EXPECT_THROW(smtlib_declare_datatypes({}), IncorrectUsageException);
+  EXPECT_THROW(smtlib::declare_datatypes({}), IncorrectUsageException);
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareDatatypes);
@@ -1253,21 +1255,21 @@ class SmtLibDeclareDatatypes
 
 TEST_P(SmtLibDeclareDatatypes, ListsConstructorsWithTheirSelectors)
 {
-  EXPECT_EQ(smtlib_declare_datatypes({ list }),
+  EXPECT_EQ(smtlib::declare_datatypes({ list }),
             "(declare-datatypes ((list 0)) "
             "(((nil) (cons (head Int) (tail list)))))");
 }
 
 TEST_P(SmtLibDeclareDatatypes, DeclaresSeveralTogether)
 {
-  EXPECT_EQ(smtlib_declare_datatypes({ color, list }),
+  EXPECT_EQ(smtlib::declare_datatypes({ color, list }),
             "(declare-datatypes ((color 0) (list 0)) "
             "(((red) (green)) ((nil) (cons (head Int) (tail list)))))");
 }
 
 TEST_P(SmtLibDeclareDatatypes, NonDatatypeIsRefused)
 {
-  EXPECT_THROW(smtlib_declare_datatypes({ list, s->make_sort(INT) }),
+  EXPECT_THROW(smtlib::declare_datatypes({ list, s->make_sort(INT) }),
                IncorrectUsageException);
 }
 
@@ -1281,7 +1283,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST(SmtLibBenchmark, NothingToDeclare)
 {
   ostringstream out;
-  smtlib_benchmark(out, "QF_LIA", {});
+  smtlib::benchmark(out, "QF_LIA", {});
   EXPECT_EQ(out.str(), "(set-logic QF_LIA)\n(check-sat)\n");
 }
 
@@ -1311,7 +1313,7 @@ TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
   Term a = s->make_term(Apply, p, u);
   Term b = s->make_term(Gt, x, s->make_term(0, intsort));
   ostringstream out;
-  smtlib_benchmark(out, "QF_UFLIA", { a, b });
+  smtlib::benchmark(out, "QF_UFLIA", { a, b });
   EXPECT_EQ(out.str(),
             "(set-logic QF_UFLIA)\n"
             "(declare-sort U 0)\n"
@@ -1336,7 +1338,7 @@ TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
   Term v = s->make_symbol("v", usort);
   Term eq = s->make_term(Equal, u, v);
   ostringstream out;
-  smtlib_benchmark(out, "QF_UF", { eq });
+  smtlib::benchmark(out, "QF_UF", { eq });
   EXPECT_EQ(out.str(),
             "(set-logic QF_UF)\n"
             "(declare-sort |my sort| 0)\n"
@@ -1368,7 +1370,7 @@ TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
   Term ab = s->make_term(Equal, a, b);
   Term cd = s->make_term(Equal, c, d);
   ostringstream out;
-  smtlib_benchmark(out, "QF_UF", { ab, cd });
+  smtlib::benchmark(out, "QF_UF", { ab, cd });
   EXPECT_EQ(out.str(),
             "(set-logic QF_UF)\n"
             "(declare-sort S 0)\n"
@@ -1401,7 +1403,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresTheSortConstructor)
   Term b = s->make_symbol("b", fint);
   Term eq = s->make_term(Equal, a, b);
   ostringstream out;
-  smtlib_benchmark(out, "ALL", { eq });
+  smtlib::benchmark(out, "ALL", { eq });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
             "(declare-sort F 1)\n"
@@ -1421,7 +1423,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
   Term cd = s->make_term(
       Equal, s->make_symbol("c", fbool), s->make_symbol("d", fbool));
   ostringstream out;
-  smtlib_benchmark(out, "ALL", { ab, cd });
+  smtlib::benchmark(out, "ALL", { ab, cd });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
             "(declare-sort F 1)\n"
@@ -1457,7 +1459,7 @@ TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
   Term cd = s->make_term(
       Equal, s->make_symbol("c", second_int), s->make_symbol("d", second_int));
   ostringstream out;
-  smtlib_benchmark(out, "ALL", { ab, cd });
+  smtlib::benchmark(out, "ALL", { ab, cd });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
             "(declare-sort F 1)\n"
@@ -1497,7 +1499,7 @@ TEST_P(SmtLibBenchmarkDatatypes, DeclaresTheDatatypeWithItsConstructors)
   Term m = s->make_symbol("m", list);
   Term d = s->make_term(Distinct, l, m);
   ostringstream out;
-  smtlib_benchmark(out, "ALL", { d });
+  smtlib::benchmark(out, "ALL", { d });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
             "(declare-datatypes ((list 0)) "
@@ -1532,7 +1534,7 @@ TEST_P(SmtLibBenchmarkDatatypes, RefusesTwoDatatypesWithTheSameName)
   Term cd = s->make_term(
       Equal, s->make_symbol("c", second), s->make_symbol("d", second));
   ostringstream out;
-  EXPECT_THROW(smtlib_benchmark(out, "ALL", { ab, cd }),
+  EXPECT_THROW(smtlib::benchmark(out, "ALL", { ab, cd }),
                NotImplementedException);
 }
 
@@ -1554,7 +1556,7 @@ TEST_P(SmtLibBenchmarkQuantifiers, LeavesBoundVariablesUndeclared)
   Term i = s->make_param("i", intsort);
   Term forall = s->make_term(Forall, i, s->make_term(Le, i, x));
   ostringstream out;
-  smtlib_benchmark(out, "ALL", { forall });
+  smtlib::benchmark(out, "ALL", { forall });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
             "(declare-fun x () Int)\n"
@@ -1598,7 +1600,7 @@ TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
   Term d = s->make_symbol("d", second);
   Term cd = s->make_term(Equal, c, d);
   ostringstream out;
-  smtlib_benchmark(out, "UF", { forall, cd });
+  smtlib::benchmark(out, "UF", { forall, cd });
   EXPECT_EQ(out.str(),
             "(set-logic UF)\n"
             "(declare-sort S 0)\n"

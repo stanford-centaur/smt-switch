@@ -18,7 +18,7 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 namespace smt {
 
@@ -169,7 +169,7 @@ std::string LoggingTerm::to_string() const
   }
   else
   {
-    repr = smtlib_application(op, children ? *children : TermVec());
+    repr = smtlib::application(op, children ? *children : TermVec());
     return repr;
   }
 }

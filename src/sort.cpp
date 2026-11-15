@@ -16,7 +16,7 @@
 
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 namespace smt {
 
@@ -175,10 +175,10 @@ std::string AbsSort::to_string() const
     SortVec param_sorts = get_uninterpreted_param_sorts();
     if (param_sorts.empty())
     {
-      return smtlib_quote_symbol(get_uninterpreted_name());
+      return smtlib::quote_symbol(get_uninterpreted_name());
     }
     std::string res("(");
-    res += smtlib_quote_symbol(get_uninterpreted_name());
+    res += smtlib::quote_symbol(get_uninterpreted_name());
     for (const Sort & s : param_sorts)
     {
       res += " ";
@@ -189,7 +189,7 @@ std::string AbsSort::to_string() const
   }
   else if (sk == UNINTERPRETED_CONS)
   {
-    return smtlib_quote_symbol(get_uninterpreted_name());
+    return smtlib::quote_symbol(get_uninterpreted_name());
   }
   else if (sk == DATATYPE)
   {

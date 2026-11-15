@@ -26,10 +26,12 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 #include "smt-switch/yices2_extensions.h"
 #include "smt-switch/yices2_sort.h"
@@ -495,7 +497,7 @@ void Yices2Solver::set_logic(const std::string logic)
         "Yices2 can only set the logic before the first assertion, check or "
         "push");
   }
-  if (!is_smtlib_logic(logic))
+  if (!smtlib::is_logic(logic))
   {
     throw IncorrectUsageException(logic + " is not an SMT-LIB logic");
   }
@@ -1255,7 +1257,7 @@ void Yices2Solver::dump_smt2(std::string filename) const
   {
     throw SystemException("Cannot open " + filename + " for writing");
   }
-  smtlib_benchmark(out, logic_, assertions);
+  smtlib::benchmark(out, logic_, assertions);
   out.close();
   if (!out)
   {

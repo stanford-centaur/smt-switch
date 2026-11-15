@@ -18,7 +18,9 @@
 #include "smt-switch/exceptions.h"
 #include "smt-switch/msat_extensions.h"
 #include "smt-switch/msat_sort.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
 using namespace std;
@@ -470,7 +472,7 @@ string MsatTerm::to_string() const
     {
       throw IncorrectUsageException("Can't print a MathSAT error declaration");
     }
-    return smtlib_quote_symbol(get_symbol_name());
+    return smtlib::quote_symbol(get_symbol_name());
   }
   else
   {
@@ -522,7 +524,7 @@ uint64_t MsatTerm::to_int() const
   {
     return bits_to_uint64(to_bits());
   }
-  return smtlib_int_to_uint64(number_to_text(*env, term, is_uf));
+  return smtlib::int_to_uint64(number_to_text(*env, term, is_uf));
 }
 
 int64_t MsatTerm::to_signed_int() const
@@ -531,7 +533,7 @@ int64_t MsatTerm::to_signed_int() const
   {
     return bits_to_int64(to_bits());
   }
-  return smtlib_int_to_int64(number_to_text(*env, term, is_uf));
+  return smtlib::int_to_int64(number_to_text(*env, term, is_uf));
 }
 
 string MsatTerm::to_bits() const

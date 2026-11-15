@@ -24,10 +24,12 @@
 #include "smt-switch/msat_extensions.h"
 #include "smt-switch/msat_sort.h"
 #include "smt-switch/msat_term.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
 using namespace std;
@@ -1145,7 +1147,7 @@ void MsatSolver::EnvWrapper::set_logic(const std::string & logic_name)
           "query");
   }
   // MathSAT takes any name, so the name is checked here.
-  if (!is_smtlib_logic(logic_name))
+  if (!smtlib::is_logic(logic_name))
   {
     throw IncorrectUsageException(logic_name + " is not an SMT-LIB logic");
   }

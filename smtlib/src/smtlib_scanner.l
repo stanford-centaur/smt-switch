@@ -72,7 +72,7 @@ inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
 #include <new>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/text_utils.h"
 
 // The length of the token, as the location counts it. Some flex versions
 // declare yyleng as an int and others as a yy_size_t. A token too long for
@@ -160,7 +160,7 @@ let                   { return SmtLibParser::make_LET(yytext, loc); }
                         }
                         loc.step();
                         return SmtLibParser::make_SYMBOL(
-                            smtlib_unquote_symbol(yytext), loc);
+                            smtlib::unquote_symbol(yytext), loc);
                       }
 {simplesymbol}        { return SmtLibParser::make_SYMBOL(yytext, loc); }
 
