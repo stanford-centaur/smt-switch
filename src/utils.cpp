@@ -20,6 +20,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -147,6 +148,32 @@ class OpsVisitor : public TermVisitor
   UnorderedOpSet & out_;
 };
 
+// Collects the applications of some operators, going below each one too
+class TermsWithOpsVisitor : public TermVisitor
+{
+ public:
+  TermsWithOpsVisitor(const std::unordered_set<PrimOp> & ops,
+                      UnorderedTermSet & out)
+      : ops_(ops), out_(out)
+  {
+  }
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    Op op = term->get_op();
+    if (!op.is_null() && ops_.find(op.prim_op) != ops_.end())
+    {
+      out_.insert(term);
+    }
+    return VisitResult::Continue;
+  }
+
+ private:
+  const std::unordered_set<PrimOp> & ops_;
+  UnorderedTermSet & out_;
+};
+
 }  // namespace
 
 void op_partition(PrimOp o, const Term & term, TermVec & out)
@@ -228,6 +255,13 @@ void get_free_symbols(const Term & term, UnorderedTermSet & out)
 void get_ops(const Term & term, UnorderedOpSet & out)
 {
   OpsVisitor(out).visit(term);
+}
+
+void get_terms_with_ops(const Term & term,
+                        const std::unordered_set<PrimOp> & ops,
+                        UnorderedTermSet & out)
+{
+  TermsWithOpsVisitor(ops, out).visit(term);
 }
 
 bool is_lit(const Term & l, const Sort & boolsort)
