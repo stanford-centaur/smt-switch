@@ -23,6 +23,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
@@ -812,6 +813,86 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilDimacsTests,
     UnitUtilDimacsTests,
     testing::ValuesIn(available_solver_enums_with_generic()));
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IsTheoryAtom);
+class IsTheoryAtom : public ::testing::TestWithParam<SolverEnum>
+{
+ protected:
+  void SetUp() override
+  {
+    // a logging solver keeps the terms as built
+    s = smt::create_solver(GetParam(), /* logging */ true);
+    boolsort = s->make_sort(BOOL);
+    Sort bvsort = s->make_sort(BV, 8);
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+    z = s->make_symbol("z", bvsort);
+    b = s->make_symbol("b", boolsort);
+    c = s->make_symbol("c", boolsort);
+    less = s->make_term(BVUlt, x, y);
+    equal = s->make_term(Equal, x, z);
+  }
+  SmtSolver s;
+  Sort boolsort;
+  Term x, y, z, b, c, less, equal;
+};
+
+TEST_P(IsTheoryAtom, TheoryRelations)
+{
+  EXPECT_TRUE(is_theory_atom(less, boolsort));
+  EXPECT_TRUE(is_theory_atom(equal, boolsort));
+  EXPECT_TRUE(is_theory_atom(s->make_term(Distinct, x, y, z), boolsort));
+}
+
+TEST_P(IsTheoryAtom, ConnectivesAndLeaves)
+{
+  EXPECT_FALSE(is_theory_atom(b, boolsort));
+  EXPECT_FALSE(is_theory_atom(s->make_term(true), boolsort));
+  EXPECT_FALSE(is_theory_atom(x, boolsort));
+  EXPECT_FALSE(is_theory_atom(s->make_term(And, b, less), boolsort));
+  EXPECT_FALSE(is_theory_atom(s->make_term(Not, less), boolsort));
+  EXPECT_FALSE(is_theory_atom(s->make_term(Ite, b, less, c), boolsort));
+  EXPECT_FALSE(is_theory_atom(s->make_term(Equal, b, less), boolsort));
+}
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetTheoryAtoms);
+class GetTheoryAtoms : public IsTheoryAtom
+{
+};
+
+TEST_P(GetTheoryAtoms, StopsAtAtoms)
+{
+  Term f = s->make_term(And,
+                        s->make_term(Or, less, b),
+                        s->make_term(Not, s->make_term(Equal, c, equal)));
+  UnorderedTermSet atoms;
+  get_theory_atoms(s, f, atoms);
+  EXPECT_EQ(atoms, (UnorderedTermSet{ less, equal }));
+}
+
+TEST_P(GetTheoryAtoms, SplitsIfThenElse)
+{
+  Term f = s->make_term(BVUlt, s->make_term(Ite, less, x, y), z);
+  UnorderedTermSet whole;
+  get_theory_atoms(s, f, whole);
+  EXPECT_EQ(whole, (UnorderedTermSet{ f }));
+
+  UnorderedTermSet split;
+  get_theory_atoms(s, f, split, /* split_ites */ true);
+  EXPECT_EQ(split,
+            (UnorderedTermSet{
+                less, s->make_term(BVUlt, x, z), s->make_term(BVUlt, y, z) }));
+}
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         IsTheoryAtom,
+                         testing::ValuesIn(available_solver_enums()),
+                         testing::PrintToStringParamName());
+
+INSTANTIATE_TEST_SUITE_P(UnitUtil,
+                         GetTheoryAtoms,
+                         testing::ValuesIn(available_solver_enums()),
+                         testing::PrintToStringParamName());
 
 TEST(BvValueToBits, DecimalAcrossLimbs)
 {

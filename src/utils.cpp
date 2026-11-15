@@ -174,6 +174,84 @@ class TermsWithOpsVisitor : public TermVisitor
   UnorderedTermSet & out_;
 };
 
+// Collects the theory atoms of a formula, going through its connectives.
+// With split_ites, an application with if-then-else children is visited
+// once for each choice of their branches, and their conditions too.
+class TheoryAtomsVisitor : public TermVisitor
+{
+ public:
+  TheoryAtomsVisitor(const SmtSolver & solver,
+                     bool split_ites,
+                     UnorderedTermSet & out)
+      : solver_(solver),
+        boolsort_(solver->make_sort(BOOL)),
+        split_ites_(split_ites),
+        out_(out)
+  {
+  }
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    if (term->get_sort() != boolsort_ || term->is_value())
+    {
+      return VisitResult::Skip;
+    }
+    if (split_ites_)
+    {
+      // each child's choices: both branches of an if-then-else, else itself
+      std::vector<TermVec> choices;
+      bool has_ite = false;
+      for (const Term & c : term)
+      {
+        if (c->get_op() == Ite)
+        {
+          has_ite = true;
+          TermVec ite(c->begin(), c->end());
+          visit(ite[0]);
+          choices.push_back({ ite[1], ite[2] });
+        }
+        else
+        {
+          choices.push_back({ c });
+        }
+      }
+      if (has_ite)
+      {
+        // count through every combination of choices, the first fastest
+        std::vector<std::size_t> picks(choices.size(), 0);
+        std::size_t i = 0;
+        while (i < picks.size())
+        {
+          TermVec children;
+          for (std::size_t j = 0; j < choices.size(); ++j)
+          {
+            children.push_back(choices[j][picks[j]]);
+          }
+          visit(solver_->make_term(term->get_op(), children));
+          for (i = 0; i < picks.size() && ++picks[i] == choices[i].size(); ++i)
+          {
+            picks[i] = 0;
+          }
+        }
+        return VisitResult::Continue;
+      }
+    }
+    if (is_theory_atom(term, boolsort_))
+    {
+      out_.insert(term);
+      return VisitResult::Skip;
+    }
+    return VisitResult::Continue;
+  }
+
+ private:
+  SmtSolver solver_;
+  Sort boolsort_;
+  bool split_ites_;
+  UnorderedTermSet & out_;
+};
+
 }  // namespace
 
 void op_partition(PrimOp o, const Term & term, TermVec & out)
@@ -264,6 +342,14 @@ void get_terms_with_ops(const Term & term,
   TermsWithOpsVisitor(ops, out).visit(term);
 }
 
+void get_theory_atoms(const SmtSolver & solver,
+                      const Term & formula,
+                      UnorderedTermSet & out,
+                      bool split_ites)
+{
+  TheoryAtomsVisitor(solver, split_ites, out).visit(formula);
+}
+
 bool is_lit(const Term & l, const Sort & boolsort)
 {
   // take a boolsort as an argument for sort aliasing solvers
@@ -286,6 +372,34 @@ bool is_lit(const Term & l, const Sort & boolsort)
   }
 
   return false;
+}
+
+bool is_theory_atom(const Term & t, const Sort & boolsort)
+{
+  // take a boolsort as an argument for sort aliasing solvers
+  if (t->get_sort() != boolsort)
+  {
+    return false;
+  }
+  Op op = t->get_op();
+  if (op.is_null())
+  {
+    return false;
+  }
+  PrimOp po = op.prim_op;
+  if (po == And || po == Or || po == Xor || po == Not || po == Implies
+      || po == Ite || po == Forall || po == Exists
+      || po == Extract
+      // the connectives of a solver that aliases Booleans and bit-vectors
+      // of width one
+      || po == BVAnd || po == BVOr || po == BVXor || po == BVNand || po == BVNor
+      || po == BVXnor || po == BVNot)
+  {
+    return false;
+  }
+  // an equality or distinct over Booleans is a connective too
+  return !((po == Equal || po == Distinct)
+           && (*t->begin())->get_sort() == boolsort);
 }
 
 void cnf_to_dimacs(const Term & cnf, std::ostringstream & y)
