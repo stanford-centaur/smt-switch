@@ -12,7 +12,7 @@
 
 #include <string_view>
 
-namespace smt_tests {
+namespace smt::tests {
 
 // Raw string literals, so that a path arrives exactly as configure found it,
 // backslashes and quotes included; configure refuses a path containing the
@@ -30,6 +30,6 @@ inline constexpr std::string_view mathsat_binary = R"path(@MATHSAT_BINARY@)path"
 inline constexpr std::string_view yices2_binary = R"path(@YICES2_BINARY@)path";
 inline constexpr std::string_view z3_binary = R"path(@Z3_BINARY@)path";
 
-}  // namespace smt_tests
+}  // namespace smt::tests
 
 #endif  // SMT_SWITCH_TEST_PATHS_H

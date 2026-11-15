@@ -21,23 +21,21 @@
 #include "smt-switch/sorting_network.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortingNetworkTests);
-class SortingNetworkTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<tuple<SolverConfiguration, size_t>>
+class SortingNetworkTests : public ::testing::Test,
+                            public ::testing::WithParamInterface<
+                                std::tuple<SolverConfiguration, size_t>>
 {
  protected:
   void SetUp() override
   {
     auto params = GetParam();
-    solver = create_solver(get<0>(params));
-    NUM_VARS = get<1>(params);
+    solver = create_solver(std::get<0>(params));
+    NUM_VARS = std::get<1>(params);
     solver->set_opt("produce-models", "true");
     solver->set_opt("incremental", "true");
     boolsort = solver->make_sort(BOOL);
@@ -76,7 +74,7 @@ TEST_P(SortingNetworkTests, TestSortingNetwork)
     solver->check_sat();
 
     size_t counted_true = 0;
-    string model = "\n";
+    std::string model = "\n";
     Term val;
     for (const auto & bb : boolvec)
     {
@@ -109,3 +107,5 @@ INSTANTIATE_TEST_SUITE_P(
                      testing::Values(3, 6, 8)));
 
 }  // namespace
+
+}  // namespace smt::tests

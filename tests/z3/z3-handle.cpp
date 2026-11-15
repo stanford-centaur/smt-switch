@@ -17,7 +17,7 @@
 
 #include "smt-switch/z3_solver.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -47,3 +47,5 @@ TEST(Z3Handle, UsableAfterDestruction)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

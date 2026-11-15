@@ -11,22 +11,24 @@
 #include <string>
 #include <vector>
 
-using namespace cvc5;
+namespace smt::tests {
+
+namespace {
 
 TEST(Cvc5InterpolantsApi, InterpolantOfConjunction)
 {
-  TermManager tm;
-  Sort boolsort = tm.getBooleanSort();
-  Term b1 = tm.mkConst(boolsort, "b1");
-  Term b2 = tm.mkConst(boolsort, "b2");
+  cvc5::TermManager tm;
+  cvc5::Sort boolsort = tm.getBooleanSort();
+  cvc5::Term b1 = tm.mkConst(boolsort, "b1");
+  cvc5::Term b2 = tm.mkConst(boolsort, "b2");
 
-  EXPECT_EQ(b2.getKind(), Kind::CONSTANT);
+  EXPECT_EQ(b2.getKind(), cvc5::Kind::CONSTANT);
 
-  Solver s(tm);
+  cvc5::Solver s(tm);
   s.setOption("produce-interpolants", "true");
   s.setOption("incremental", "false");
-  s.assertFormula(tm.mkTerm(Kind::AND, { b1, b2 }));
-  Term I = s.getInterpolant(b2);
+  s.assertFormula(tm.mkTerm(cvc5::Kind::AND, { b1, b2 }));
+  cvc5::Term I = s.getInterpolant(b2);
 
   ASSERT_FALSE(I.isNull());
 
@@ -34,7 +36,11 @@ TEST(Cvc5InterpolantsApi, InterpolantOfConjunction)
   // sides share, so I must be equivalent to b2, though not necessarily b2
   // itself: its kind need not be CONSTANT
   EXPECT_TRUE(I.getSort().isBoolean());
-  Solver checker(tm);
-  checker.assertFormula(tm.mkTerm(Kind::DISTINCT, { I, b2 }));
+  cvc5::Solver checker(tm);
+  checker.assertFormula(tm.mkTerm(cvc5::Kind::DISTINCT, { I, b2 }));
   EXPECT_TRUE(checker.checkSat().isUnsat());
 }
+
+}  // namespace
+
+}  // namespace smt::tests

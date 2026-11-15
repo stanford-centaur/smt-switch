@@ -23,9 +23,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -200,3 +198,5 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace
+
+}  // namespace smt::tests

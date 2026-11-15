@@ -15,7 +15,9 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(BtorResetTest, BaseContext1AfterReset)
 {
@@ -62,3 +64,7 @@ TEST(BtorResetTest, BaseContext1HidesItsLevel)
   EXPECT_EQ(s->get_context_level(), 0);
   EXPECT_TRUE(s->check_sat().is_sat());
 }
+
+}  // namespace
+
+}  // namespace smt::tests

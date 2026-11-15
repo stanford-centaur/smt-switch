@@ -22,9 +22,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -39,7 +37,7 @@ class Logging : public ::testing::Test,
     // can mess things up
     // Thus, need to use the "lite" version of solvers
     // before wrapping with a LoggingSolver
-    s = make_shared<LoggingSolver>(create_solver(GetParam()));
+    s = std::make_shared<LoggingSolver>(create_solver(GetParam()));
     s->set_opt("produce-models", "true");
     bvsort4 = s->make_sort(BV, 4);
     bvsort8 = s->make_sort(BV, 8);
@@ -195,7 +193,7 @@ TEST_P(Logging, TermFromAnotherSolver)
     GTEST_SKIP() << "generic terms compare by their text, so another generic "
                     "solver's x is taken for this one's";
   }
-  SmtSolver s2 = make_shared<LoggingSolver>(create_solver(GetParam()));
+  SmtSolver s2 = std::make_shared<LoggingSolver>(create_solver(GetParam()));
   Term x2 = s2->make_symbol("x", s2->make_sort(BV, 4));
   EXPECT_THROW(s->make_term(BVAdd, x, x2), IncorrectUsageException);
 }
@@ -290,3 +288,5 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests

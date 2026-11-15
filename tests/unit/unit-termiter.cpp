@@ -26,9 +26,7 @@
 #include "smt-switch/term.h"
 #include "term_utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -264,3 +262,5 @@ INSTANTIATE_TEST_SUITE_P(
                                                                   TERMITER })));
 
 }  // namespace
+
+}  // namespace smt::tests

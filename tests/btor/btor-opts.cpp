@@ -19,8 +19,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace std;
+namespace smt::tests {
+
+namespace {
 
 TEST(BtorOptTest3, NonStandardOpt)
 {
@@ -132,3 +133,7 @@ TEST(BtorOpts, ResetForgetsUnsatAssumptions)
   s->reset();
   EXPECT_NO_THROW(s->set_opt("incremental", "false"));
 }
+
+}  // namespace
+
+}  // namespace smt::tests

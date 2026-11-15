@@ -22,7 +22,7 @@
 
 #include "smt-switch/bitwuzla_solver.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -55,3 +55,5 @@ TEST(BzlaHandle, UsableAfterDestruction)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

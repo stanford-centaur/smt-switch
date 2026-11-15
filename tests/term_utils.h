@@ -20,7 +20,7 @@
 #include "available_solvers.h"
 #include "smt-switch/smt_defs.h"
 
-namespace smt_tests {
+namespace smt::tests {
 
 /** Checks a term read back out of a solver against the one put in: the same
  *  term for a logging solver, which records its input, and a term that means
@@ -49,6 +49,6 @@ namespace smt_tests {
     const smt::Term & read_back,
     const smt::Term & original);
 
-}  // namespace smt_tests
+}  // namespace smt::tests
 
 #endif  // SMT_SWITCH_TERM_UTILS_H

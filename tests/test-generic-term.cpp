@@ -17,7 +17,9 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(GenericTerm, IdsAndProperties)
 {
@@ -46,3 +48,7 @@ TEST(GenericTerm, NeedsOpOrRepresentation)
   EXPECT_THROW(GenericTerm(int_sort, Op(), {}, "", true),
                IncorrectUsageException);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

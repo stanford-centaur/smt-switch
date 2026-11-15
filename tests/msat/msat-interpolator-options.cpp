@@ -18,7 +18,9 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(MsatInterpolatorOptions, RefusesOnlyTheOptionsInterpolationNeeds)
 {
@@ -42,3 +44,7 @@ TEST(MsatInterpolatorOptions, RefusesOnlyTheOptionsInterpolationNeeds)
   EXPECT_THROW(s->set_opt("dpll.ghost_filtering", "false"),
                IncorrectUsageException);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

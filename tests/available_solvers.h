@@ -20,7 +20,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_enums.h"
 
-namespace smt_tests {
+namespace smt::tests {
 
 struct SolverConfiguration
 {
@@ -116,6 +116,6 @@ struct ConfigPairName
            + config_name(std::get<1>(info.param));
   }
 };
-}  // namespace smt_tests
+}  // namespace smt::tests
 
 #endif  // SMT_SWITCH_AVAILABLE_SOLVERS_H

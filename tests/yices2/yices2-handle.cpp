@@ -18,7 +18,7 @@
 
 #include "smt-switch/yices2_solver.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -49,3 +49,5 @@ TEST(Yices2Handle, UsableAfterDestruction)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

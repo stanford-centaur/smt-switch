@@ -29,9 +29,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -229,8 +227,8 @@ TEST_P(UnitTermTests, TermContainers)
   v.reserve(num_terms);
   for (size_t i = 0; i < num_terms; ++i)
   {
-    Term x = s->make_symbol("x" + to_string(i), bvsort8);
-    Term y = s->make_symbol("y" + to_string(i), bvsort8);
+    Term x = s->make_symbol("x" + std::to_string(i), bvsort8);
+    Term y = s->make_symbol("y" + std::to_string(i), bvsort8);
     v.push_back(x);
     uts.insert(x);
     utm[x] = y;
@@ -547,3 +545,5 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests

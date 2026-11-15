@@ -20,7 +20,9 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(BtorForeignSort, AnotherSolversSortsRefused)
 {
@@ -60,3 +62,7 @@ TEST(BtorForeignSort, AnotherSolversSortNotEqual)
   EXPECT_NE(other_bv8, bv8);
   EXPECT_NE(bv8 < other_bv8, other_bv8 < bv8);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

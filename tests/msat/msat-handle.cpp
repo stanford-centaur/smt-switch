@@ -17,7 +17,7 @@
 
 #include "smt-switch/msat_solver.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -49,3 +49,5 @@ TEST(MsatHandle, UsableAfterDestruction)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

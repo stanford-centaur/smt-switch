@@ -11,8 +11,9 @@
 
 #include "smt-switch/ops.h"
 
-using namespace smt;
-using namespace std;
+namespace smt::tests {
+
+namespace {
 
 TEST(UnitFun, OpEquality)
 {
@@ -36,3 +37,7 @@ TEST(UnitFun, OpEquality)
   EXPECT_EQ(ext, ext2);
   EXPECT_NE(ext, ext3);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

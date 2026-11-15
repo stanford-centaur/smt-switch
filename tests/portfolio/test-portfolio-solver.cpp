@@ -23,9 +23,7 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -33,10 +31,10 @@ namespace {
  *  portfolio. The generic solver cannot: a portfolio hands each member its
  *  term through a TermTranslator, which refuses the generic solver.
  */
-vector<SolverEnum> backends_with(
-    const unordered_set<SolverAttribute> & attributes)
+std::vector<SolverEnum> backends_with(
+    const std::unordered_set<SolverAttribute> & attributes)
 {
-  vector<SolverEnum> backends;
+  std::vector<SolverEnum> backends;
   for (SolverEnum se : filter_solver_enums_with_generic(attributes))
   {
     if (se != GENERIC_SOLVER)
@@ -48,10 +46,10 @@ vector<SolverEnum> backends_with(
 }
 
 /** A fresh solver from each backend that has the attributes */
-vector<SmtSolver> members_with(
-    const unordered_set<SolverAttribute> & attributes)
+std::vector<SmtSolver> members_with(
+    const std::unordered_set<SolverAttribute> & attributes)
 {
-  vector<SmtSolver> members;
+  std::vector<SmtSolver> members;
   for (SolverEnum se : backends_with(attributes))
   {
     members.push_back(create_solver(SolverConfiguration(se, false)));
@@ -63,11 +61,11 @@ vector<SmtSolver> members_with(
  *  order and once in reverse, so that several instances of a backend are
  *  alive at once and are not all made back to back
  */
-vector<SmtSolver> two_members_each_with(
-    const unordered_set<SolverAttribute> & attributes)
+std::vector<SmtSolver> two_members_each_with(
+    const std::unordered_set<SolverAttribute> & attributes)
 {
-  vector<SolverEnum> backends = backends_with(attributes);
-  vector<SmtSolver> members;
+  std::vector<SolverEnum> backends = backends_with(attributes);
+  std::vector<SmtSolver> members;
   for (auto it = backends.begin(); it != backends.end(); ++it)
   {
     members.push_back(create_solver(SolverConfiguration(*it, false)));
@@ -80,9 +78,9 @@ vector<SmtSolver> two_members_each_with(
 }
 
 /** A fresh solver from each backend without the attribute */
-vector<SmtSolver> members_without(SolverAttribute attribute)
+std::vector<SmtSolver> members_without(SolverAttribute attribute)
 {
-  vector<SmtSolver> members;
+  std::vector<SmtSolver> members;
   for (SolverEnum se : backends_with({}))
   {
     if (!solver_has_attribute(se, attribute))
@@ -96,7 +94,7 @@ vector<SmtSolver> members_without(SolverAttribute attribute)
 /** A solver from the first backend that has the attributes, to make a term
  *  in that no member shares
  */
-SmtSolver term_maker(const unordered_set<SolverAttribute> & attributes)
+SmtSolver term_maker(const std::unordered_set<SolverAttribute> & attributes)
 {
   return create_solver(
       SolverConfiguration(backends_with(attributes).front(), false));
@@ -111,8 +109,6 @@ Term make_int_term()
   return s->make_term(Gt, x, s->make_term(0, int_sort));
 }
 
-}  // namespace
-
 TEST(PortfolioSolver, TwoPortfoliosFindSat)
 {
   if (backends_with({ THEORY_BV }).empty())
@@ -125,15 +121,15 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
 
   int pg = 50;
 
-  vector<Term> nts;
+  std::vector<Term> nts;
   for (int i = 0; i < pg; ++i)
   {
-    Term x = s->make_symbol("x" + to_string(i), bvsort);
+    Term x = s->make_symbol("x" + std::to_string(i), bvsort);
     nts.push_back(x);
   }
 
   Term ten24 = s->make_term(256, bvsort);
-  vector<Term> neqs;
+  std::vector<Term> neqs;
   for (int i = 0; i < pg; ++i)
   {
     for (int j = 0; j < pg; ++j)
@@ -177,8 +173,8 @@ TEST(PortfolioSolver, AnswersATrivialTerm)
 
 TEST(PortfolioSolver, FailingSolverDropsOut)
 {
-  vector<SmtSolver> members = members_without(THEORY_INT);
-  vector<SmtSolver> answering = members_with({ THEORY_INT });
+  std::vector<SmtSolver> members = members_without(THEORY_INT);
+  std::vector<SmtSolver> answering = members_with({ THEORY_INT });
   if (members.empty() || answering.empty())
   {
     GTEST_SKIP() << "needs backends both with and without integers";
@@ -190,7 +186,7 @@ TEST(PortfolioSolver, FailingSolverDropsOut)
 
 TEST(PortfolioSolver, ThrowsWhenNoSolverAnswers)
 {
-  vector<SmtSolver> members = members_without(THEORY_INT);
+  std::vector<SmtSolver> members = members_without(THEORY_INT);
   if (members.empty() || backends_with({ THEORY_INT }).empty())
   {
     GTEST_SKIP() << "needs backends both with and without integers";
@@ -209,3 +205,7 @@ TEST(PortfolioSolver, CanBeUsedAgain)
   EXPECT_TRUE(p.portfolio_solve().is_sat());
   EXPECT_TRUE(p.portfolio_solve().is_sat());
 }
+
+}  // namespace
+
+}  // namespace smt::tests

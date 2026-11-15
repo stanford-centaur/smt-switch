@@ -20,7 +20,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/yices2_factory.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -48,3 +48,5 @@ TEST(Yices2Queries, FailedQueryLeavesLogicSettable)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

@@ -18,8 +18,10 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
-using namespace std;
+namespace smt::tests {
+
+namespace {
+
 using testing::StrEq;
 using testing::ThrowsMessage;
 
@@ -59,26 +61,27 @@ TEST(GenericSort, SortProperties)
   EXPECT_EQ(us1->get_arity(), 0);
 
   // Creates a new datatype with one constructor
-  DatatypeDecl new_dt_decl = make_shared<GenericDatatypeDecl>("testSort1");
-  shared_ptr<GenericDatatype> new_dt =
-      shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
-  shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
-      shared_ptr<GenericDatatypeConstructorDecl>(
+  DatatypeDecl new_dt_decl = std::make_shared<GenericDatatypeDecl>("testSort1");
+  std::shared_ptr<GenericDatatype> new_dt =
+      std::shared_ptr<GenericDatatype>(new GenericDatatype(new_dt_decl));
+  std::shared_ptr<GenericDatatypeConstructorDecl> new_dt_cons_decl =
+      std::shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl("Cons"));
   new_dt->add_constructor(new_dt_cons_decl);
-  shared_ptr<GenericDatatypeSort> dt_sort =
-      make_shared<GenericDatatypeSort>(new_dt);
+  std::shared_ptr<GenericDatatypeSort> dt_sort =
+      std::make_shared<GenericDatatypeSort>(new_dt);
 
   // Creates a different datatype with one constructor
-  DatatypeDecl new2_dt_decl = make_shared<GenericDatatypeDecl>("testSort2");
-  shared_ptr<GenericDatatype> new2_dt =
-      shared_ptr<GenericDatatype>(new GenericDatatype(new2_dt_decl));
-  shared_ptr<GenericDatatypeConstructorDecl> new2_dt_cons_decl =
-      shared_ptr<GenericDatatypeConstructorDecl>(
+  DatatypeDecl new2_dt_decl =
+      std::make_shared<GenericDatatypeDecl>("testSort2");
+  std::shared_ptr<GenericDatatype> new2_dt =
+      std::shared_ptr<GenericDatatype>(new GenericDatatype(new2_dt_decl));
+  std::shared_ptr<GenericDatatypeConstructorDecl> new2_dt_cons_decl =
+      std::shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl("test2"));
   new2_dt->add_constructor(new2_dt_cons_decl);
-  shared_ptr<GenericDatatypeSort> dt_sort2 =
-      make_shared<GenericDatatypeSort>(new2_dt);
+  std::shared_ptr<GenericDatatypeSort> dt_sort2 =
+      std::make_shared<GenericDatatypeSort>(new2_dt);
   // Asserts that the sorts are distinct from one another and that the
   // copy operator works with said sorts
   EXPECT_NE(dt_sort, dt_sort2);
@@ -113,7 +116,7 @@ TEST(GenericSort, FunctionSortString)
 }
 
 // Matches an IncorrectUsageException with exactly this message
-auto incorrect_usage(const string & message)
+auto incorrect_usage(const std::string & message)
 {
   return ThrowsMessage<IncorrectUsageException>(StrEq(message));
 }
@@ -177,30 +180,27 @@ TEST(GenericSort, SortConstructors)
   EXPECT_NE(list_int, list_bool);
 }
 
-namespace {
-
 // The datatype of one constructor, with the given names
-Sort datatype_sort(const string & name, const string & cons)
+Sort datatype_sort(const std::string & name, const std::string & cons)
 {
-  DatatypeDecl decl = make_shared<GenericDatatypeDecl>(name);
-  shared_ptr<GenericDatatype> dt = make_shared<GenericDatatype>(decl);
-  dt->add_constructor(make_shared<GenericDatatypeConstructorDecl>(cons));
-  return make_shared<GenericDatatypeSort>(dt);
+  DatatypeDecl decl = std::make_shared<GenericDatatypeDecl>(name);
+  std::shared_ptr<GenericDatatype> dt = std::make_shared<GenericDatatype>(decl);
+  dt->add_constructor(std::make_shared<GenericDatatypeConstructorDecl>(cons));
+  return std::make_shared<GenericDatatypeSort>(dt);
 }
-
-}  // namespace
 
 TEST(GenericSort, DatatypeComponents)
 {
   Sort list = datatype_sort("list", "cons");
   Sort pair = datatype_sort("pair", "cons");
-  Sort cons = make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
+  Sort cons =
+      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
   Sort cons_again =
-      make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
-  Sort nil = make_shared<DatatypeComponentSort>(CONSTRUCTOR, "nil", list);
+      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
+  Sort nil = std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "nil", list);
   Sort pair_cons =
-      make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", pair);
-  Sort is_cons = make_shared<DatatypeComponentSort>(TESTER, "cons", list);
+      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", pair);
+  Sort is_cons = std::make_shared<DatatypeComponentSort>(TESTER, "cons", list);
   EXPECT_EQ(cons, cons_again);
   EXPECT_NE(cons, nil);
   // a constructor of the same name in another datatype is another one
@@ -219,3 +219,7 @@ TEST(GenericSort, DatatypeSortDiffersFromOtherKinds)
   Sort int_sort = std::make_shared<GenericSort>(INT);
   EXPECT_NE(list, int_sort);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

@@ -19,7 +19,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/z3_factory.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(Z3ForeignSort, AnotherSolversSortsRefused)
 {
@@ -73,3 +75,7 @@ TEST(Z3ForeignSort, AnotherSolversSortNotEqual)
   EXPECT_NE(fun, other_fun);
   EXPECT_NE(fun < other_fun, other_fun < fun);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

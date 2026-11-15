@@ -18,7 +18,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(BtorSubstitutedValues, BitVector)
 {
@@ -52,3 +54,7 @@ TEST(BtorSubstitutedValues, Array)
   EXPECT_TRUE(ite->is_value());
   EXPECT_TRUE(store->is_value());
 }
+
+}  // namespace
+
+}  // namespace smt::tests

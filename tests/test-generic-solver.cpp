@@ -35,9 +35,7 @@
 #include "smt-switch/term_translator.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -56,7 +54,7 @@ void init_solver(SmtSolver gs)
 }
 
 /** The arguments the binary of a native backend's solver is started with */
-vector<string> binary_args(SolverEnum se)
+std::vector<std::string> binary_args(SolverEnum se)
 {
   switch (se)
   {
@@ -144,15 +142,15 @@ constexpr unsigned int buffer_size_min = 2;
 constexpr unsigned int buffer_size_max = 256;
 
 // (solver binary, buffer size)
-typedef tuple<SolverEnum, unsigned int> GenericSolverParam;
+typedef std::tuple<SolverEnum, unsigned int> GenericSolverParam;
 
 /** Every buffer size for each available binary that passes the filter. A
  *  built solver without an executable is left out of every suite.
  */
-vector<GenericSolverParam> params_where(
-    const function<bool(SolverEnum)> & filter)
+std::vector<GenericSolverParam> params_where(
+    const std::function<bool(SolverEnum)> & filter)
 {
-  vector<GenericSolverParam> params;
+  std::vector<GenericSolverParam> params;
   for (SolverEnum b : available_solver_enums())
   {
     if (solver_binary(b).empty() || !filter(b))
@@ -165,15 +163,15 @@ vector<GenericSolverParam> params_where(
   return params;
 }
 
-vector<GenericSolverParam> params_with(SolverAttribute a)
+std::vector<GenericSolverParam> params_with(SolverAttribute a)
 {
   return params_where([a](SolverEnum b) { return has_attribute(b, a); });
 }
 
 /** Each available binary at the biggest buffer size only */
-vector<GenericSolverParam> params_one_buffer_size()
+std::vector<GenericSolverParam> params_one_buffer_size()
 {
-  vector<GenericSolverParam> params;
+  std::vector<GenericSolverParam> params;
   for (SolverEnum b : available_solver_enums())
   {
     if (!solver_binary(b).empty())
@@ -184,10 +182,10 @@ vector<GenericSolverParam> params_one_buffer_size()
   return params;
 }
 
-string param_name(const testing::TestParamInfo<GenericSolverParam> & info)
+std::string param_name(const testing::TestParamInfo<GenericSolverParam> & info)
 {
-  return to_string(get<0>(info.param)) + "_Buf"
-         + std::to_string(get<1>(info.param));
+  return to_string(std::get<0>(info.param)) + "_Buf"
+         + std::to_string(std::get<1>(info.param));
 }
 
 // The suites below share this fixture and differ only in what the binaries
@@ -199,7 +197,7 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
  protected:
   void SetUp() override
   {
-    binary = get<0>(GetParam());
+    binary = std::get<0>(GetParam());
     start_binary();
     init_solver(gs);
   }
@@ -211,7 +209,7 @@ class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
     gs = std::make_shared<GenericSolver>(std::string(solver_binary(binary)),
                                          binary_args(binary),
                                          timeout,
-                                         get<1>(GetParam()));
+                                         std::get<1>(GetParam()));
   }
 
   SolverEnum binary;
@@ -338,21 +336,21 @@ TEST_P(GenericSolverTests, DumpLeavesOutWhatNoLongerHolds)
   gs->assert_formula(b);
   gs->pop(1);
   gs->assert_formula(c);
-  string file = testing::TempDir() + "generic-dump-" + to_string(binary) + "-"
-                + std::to_string(get<1>(GetParam())) + ".smt2";
+  std::string file = testing::TempDir() + "generic-dump-" + to_string(binary)
+                     + "-" + std::to_string(std::get<1>(GetParam())) + ".smt2";
   gs->dump_smt2(file);
-  ifstream in(file);
-  stringstream contents;
+  std::ifstream in(file);
+  std::stringstream contents;
   contents << in.rdbuf();
-  string dump = contents.str();
-  EXPECT_EQ(dump.find("(push"), string::npos) << dump;
-  EXPECT_EQ(dump.find("(pop"), string::npos) << dump;
-  EXPECT_EQ(dump.find("(reset-assertions"), string::npos) << dump;
-  EXPECT_EQ(dump.find("(assert a)"), string::npos) << dump;
-  EXPECT_EQ(dump.find("(assert b)"), string::npos) << dump;
-  EXPECT_NE(dump.find("(assert c)"), string::npos) << dump;
+  std::string dump = contents.str();
+  EXPECT_EQ(dump.find("(push"), std::string::npos) << dump;
+  EXPECT_EQ(dump.find("(pop"), std::string::npos) << dump;
+  EXPECT_EQ(dump.find("(reset-assertions"), std::string::npos) << dump;
+  EXPECT_EQ(dump.find("(assert a)"), std::string::npos) << dump;
+  EXPECT_EQ(dump.find("(assert b)"), std::string::npos) << dump;
+  EXPECT_NE(dump.find("(assert c)"), std::string::npos) << dump;
   // b was declared inside the popped scope, and stays declared
-  EXPECT_NE(dump.find("(declare-fun b "), string::npos) << dump;
+  EXPECT_NE(dump.find("(declare-fun b "), std::string::npos) << dump;
 }
 
 TEST_P(GenericSolverTests, SymbolAfterDefinedTerm)
@@ -1308,9 +1306,9 @@ TEST_P(GenericSolverTests, BvStringWideBounds)
 {
   Sort bv64 = gs->make_sort(BV, 64);
   EXPECT_EQ(gs->make_term(std::to_string(UINT64_MAX), bv64)->to_string(),
-            "#b" + string(64, '1'));
+            "#b" + std::string(64, '1'));
   EXPECT_EQ(gs->make_term(std::to_string(INT64_MIN), bv64)->to_string(),
-            "#b1" + string(63, '0'));
+            "#b1" + std::string(63, '0'));
   // the values from here on are too wide for C++ literals
   // 2^64
   EXPECT_THROW(gs->make_term("18446744073709551616", bv64),
@@ -1321,10 +1319,10 @@ TEST_P(GenericSolverTests, BvStringWideBounds)
   Sort bv65 = gs->make_sort(BV, 65);
   // 2^65 - 1
   EXPECT_EQ(gs->make_term("36893488147419103231", bv65)->to_string(),
-            "#b" + string(65, '1'));
+            "#b" + std::string(65, '1'));
   // -2^64
   EXPECT_EQ(gs->make_term("-18446744073709551616", bv65)->to_string(),
-            "#b1" + string(64, '0'));
+            "#b1" + std::string(64, '0'));
   // 2^65
   EXPECT_THROW(gs->make_term("36893488147419103232", bv65),
                IncorrectUsageException);
@@ -1340,9 +1338,9 @@ TEST_P(GenericSolverTests, BvIntOutOfRange)
   EXPECT_THROW(gs->make_term(-0b1000'0001, bv_sort), IncorrectUsageException);
   Sort bv64 = gs->make_sort(BV, 64);
   EXPECT_EQ(gs->make_term(INT64_MIN, bv64)->to_string(),
-            "#b1" + string(63, '0'));
+            "#b1" + std::string(63, '0'));
   EXPECT_EQ(gs->make_term(INT64_MAX, bv64)->to_string(),
-            "#b0" + string(63, '1'));
+            "#b0" + std::string(63, '1'));
 }
 
 TEST_P(GenericSolverIntTests, IntStringNotANumber)
@@ -1567,10 +1565,11 @@ INSTANTIATE_TEST_SUITE_P(,
 
 TEST(GenericSolver, NonExistingBinary)
 {
-  EXPECT_THROW(
-      std::make_shared<GenericSolver>(
-          "/non/existing/path", vector<string>{}, solver_response_timeout, 5),
-      IncorrectUsageException);
+  EXPECT_THROW(std::make_shared<GenericSolver>("/non/existing/path",
+                                               std::vector<std::string>{},
+                                               solver_response_timeout,
+                                               5),
+               IncorrectUsageException);
 }
 
 TEST(GenericSolver, BinaryClosedItsInput)
@@ -1578,13 +1577,13 @@ TEST(GenericSolver, BinaryClosedItsInput)
   // the binary closes its input before answering the first command, so
   // the constructor's next command at the latest goes to a pipe nobody
   // reads
-  EXPECT_THROW(
-      std::make_shared<GenericSolver>(
-          "/bin/sh",
-          vector<string>{ "-c", "exec 0<&-; echo success; exec sleep 10" },
-          solver_response_timeout,
-          5),
-      SolverException);
+  EXPECT_THROW(std::make_shared<GenericSolver>(
+                   "/bin/sh",
+                   std::vector<std::string>{
+                       "-c", "exec 0<&-; echo success; exec sleep 10" },
+                   solver_response_timeout,
+                   5),
+               SolverException);
 }
 
 TEST(GenericSolver, StderrIsNotAnAnswer)
@@ -1593,14 +1592,17 @@ TEST(GenericSolver, StderrIsNotAnAnswer)
   // Bitwuzla warns ahead of some check-sat answers
   SmtSolver gs = std::make_shared<GenericSolver>(
       "/bin/sh",
-      vector<string>{ "-c",
-                      "while read -r line; do case \"$line\" in"
-                      " *check-sat*) echo 'stderr is not an answer' >&2;"
-                      " echo sat ;;"
-                      " *) echo success ;; esac; done" },
+      std::vector<std::string>{
+          "-c",
+          "while read -r line; do case \"$line\" in"
+          " *check-sat*) echo 'stderr is not an answer' >&2;"
+          " echo sat ;;"
+          " *) echo success ;; esac; done" },
       solver_response_timeout,
       5);
   EXPECT_TRUE(gs->check_sat().is_sat());
 }
 
 }  // namespace
+
+}  // namespace smt::tests

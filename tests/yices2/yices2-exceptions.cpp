@@ -26,7 +26,9 @@
 #include "smt-switch/term.h"
 #include "smt-switch/yices2_factory.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(Yices2Exceptions, LaterCallsDoNotReportAnEarlierError)
 {
@@ -73,16 +75,12 @@ TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
   EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
 }
 
-namespace {
-
 // checks s, first telling started that its thread is running
 Result check_once_started(SmtSolver s, std::promise<void> * started)
 {
   started->set_value();
   return s->check_sat();
 }
-
-}  // namespace
 
 TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
 {
@@ -119,3 +117,7 @@ TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
   // the refused check left the running one's limit in place
   EXPECT_TRUE(running.get().is_unknown());
 }
+
+}  // namespace
+
+}  // namespace smt::tests

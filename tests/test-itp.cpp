@@ -32,9 +32,7 @@
 #include "smt-switch/term_translator.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -46,7 +44,7 @@ struct ItpParam
   SolverAttribute theory;
 };
 
-ostream & operator<<(ostream & o, const ItpParam & p)
+std::ostream & operator<<(std::ostream & o, const ItpParam & p)
 {
   return o << p.config << " over " << p.theory;
 }
@@ -111,8 +109,8 @@ TEST_P(ItpTests, Interpolant)
 void expect_chain(SolverEnum interpolator,
                   const TermVec & formulae,
                   const TermVec & interpolants,
-                  const string & query,
-                  const string & logic = "")
+                  const std::string & query,
+                  const std::string & logic = "")
 {
   ASSERT_EQ(interpolants.size(), formulae.size() - 1) << query;
   SmtSolver checker = create_solver(
@@ -551,8 +549,8 @@ TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
       And, itp->make_term(Equal, read, x), itp->make_term(gt, read, y));
   Term without_array = itp->make_term(lt, x, y);
   UnorderedTermSet shared{ x, y };
-  for (auto [A, B] :
-       { pair{ with_array, without_array }, pair{ without_array, with_array } })
+  for (auto [A, B] : { std::pair{ with_array, without_array },
+                       std::pair{ without_array, with_array } })
   {
     Term I;
     ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << A << " / " << B;
@@ -608,9 +606,9 @@ TEST_P(ItpTests, NonlinearInterpolant)
 }
 
 // each interpolator runs the tests in every theory it supports
-vector<ItpParam> itp_params()
+std::vector<ItpParam> itp_params()
 {
-  vector<ItpParam> params;
+  std::vector<ItpParam> params;
   for (SolverAttribute theory : { THEORY_INT, THEORY_BV })
   {
     for (SolverConfiguration sc :
@@ -623,13 +621,13 @@ vector<ItpParam> itp_params()
 }
 
 // names a case after its solver and theory, e.g. CVC5_INT or BZLA_BV
-string itp_param_name(const testing::TestParamInfo<ItpParam> & info)
+std::string itp_param_name(const testing::TestParamInfo<ItpParam> & info)
 {
-  string solver = to_string(info.param.config.solver_enum);
+  std::string solver = to_string(info.param.config.solver_enum);
   solver = solver.substr(0, solver.find("_INTERPOLATOR"));
-  string theory = to_string(info.param.theory);
+  std::string theory = to_string(info.param.theory);
   theory = theory.substr(theory.find("THEORY_") + 7);
-  string name = solver + "_" + theory;
+  std::string name = solver + "_" + theory;
   if (info.param.config.is_logging_solver)
   {
     name += "_LOGGING";
@@ -641,4 +639,7 @@ INSTANTIATE_TEST_SUITE_P(,
                          ItpTests,
                          testing::ValuesIn(itp_params()),
                          itp_param_name);
+
 }  // namespace
+
+}  // namespace smt::tests

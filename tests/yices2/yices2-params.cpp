@@ -21,7 +21,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/yices2_factory.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -60,3 +60,5 @@ TEST(Yices2Params, ParamIsNotASymbolicConstant)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

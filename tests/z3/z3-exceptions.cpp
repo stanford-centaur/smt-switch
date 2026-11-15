@@ -20,7 +20,9 @@
 #include "smt-switch/term.h"
 #include "smt-switch/z3_factory.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(Z3Exceptions, MissingOperatorsAreNotImplemented)
 {
@@ -98,3 +100,7 @@ TEST(Z3Exceptions, ConstantArrayNeedsTheElementSort)
   EXPECT_THROW(s->make_term(s->make_term(0, s->make_sort(BV, 8)), arrsort),
                IncorrectUsageException);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

@@ -29,7 +29,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -120,3 +120,5 @@ TEST(MsatConfig, UnsatAssumptionsRefusedBeforeCheck)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

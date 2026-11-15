@@ -12,6 +12,10 @@
 
 #include "smt-switch/exceptions.h"
 
+namespace smt::tests {
+
+namespace {
+
 // Callers catch smt::Exception, or std::exception, to handle any error the
 // library raises, so every exception class must be catchable as both and
 // keep its message.
@@ -66,3 +70,7 @@ TYPED_TEST(UnitExceptions, MessageThroughBaseReference)
   }
   FAIL() << "exception was not caught as std::exception";
 }
+
+}  // namespace
+
+}  // namespace smt::tests

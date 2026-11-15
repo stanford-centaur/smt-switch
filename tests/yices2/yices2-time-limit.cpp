@@ -24,7 +24,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/yices2_factory.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -132,3 +132,5 @@ TEST_F(Yices2TimeLimit, RefusesALimitWhileTheProgramsTimerIsArmed)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

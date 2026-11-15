@@ -23,9 +23,7 @@
 #include "smt-switch/solver_factory.h"
 #include "test_paths.h"
 
-using namespace smt;
-
-namespace smt_tests {
+namespace smt::tests {
 
 SolverConfiguration::SolverConfiguration(smt::SolverEnum se, bool ils)
     : solver_enum(se), is_logging_solver(ils)
@@ -72,12 +70,12 @@ std::string_view solver_binary(SolverEnum se)
 {
   switch (se)
   {
-    case BTOR: return smt_tests::boolector_binary;
-    case BZLA: return smt_tests::bitwuzla_binary;
-    case CVC5: return smt_tests::cvc5_binary;
-    case MSAT: return smt_tests::mathsat_binary;
-    case YICES2: return smt_tests::yices2_binary;
-    case Z3: return smt_tests::z3_binary;
+    case BTOR: return boolector_binary;
+    case BZLA: return bitwuzla_binary;
+    case CVC5: return cvc5_binary;
+    case MSAT: return mathsat_binary;
+    case YICES2: return yices2_binary;
+    case Z3: return z3_binary;
     default: return "";
   }
 }
@@ -252,4 +250,4 @@ std::string config_name(SolverConfiguration sc)
   return name;
 }
 
-}  // namespace smt_tests
+}  // namespace smt::tests

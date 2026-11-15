@@ -17,8 +17,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace std;
+namespace smt::tests {
+
+namespace {
 
 TEST(BtorNegation, LiteSolver)
 {
@@ -92,3 +93,7 @@ TEST(BtorNegation, LoggingSolver)
   EXPECT_NE(s->make_term(Not, nult5), ult5);
   EXPECT_EQ(s->make_term(Not, nult5)->get_op(), Not);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

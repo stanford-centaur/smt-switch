@@ -21,9 +21,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-
-namespace smt_tests {
+namespace smt::tests {
 
 namespace {
 
@@ -147,4 +145,4 @@ UnorderedTermMap assignment(const SmtSolver & solver,
          << "\n  got back: " << read_back;
 }
 
-}  // namespace smt_tests
+}  // namespace smt::tests

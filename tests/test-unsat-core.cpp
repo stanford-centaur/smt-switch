@@ -23,9 +23,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -202,3 +200,5 @@ INSTANTIATE_TEST_SUITE_P(
         filter_solver_configurations_with_generic({ UNSAT_CORE })));
 
 }  // namespace
+
+}  // namespace smt::tests
