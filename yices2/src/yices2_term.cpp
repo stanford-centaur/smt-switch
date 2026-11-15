@@ -27,24 +27,6 @@ using namespace std;
 
 namespace smt {
 
-// Yices2Term implementation
-
-Yices2Term::Yices2Term(term_t t) : term(t) {}
-
-size_t Yices2Term::hash() const
-{
-  // term_t is a unique id for the term.
-  return term;
-}
-
-size_t Yices2Term::get_id() const { return term; }
-
-bool Yices2Term::compare(const Term & absterm) const
-{
-  shared_ptr<Yices2Term> yterm = std::dynamic_pointer_cast<Yices2Term>(absterm);
-  return yterm && term == yterm->term;
-}
-
 namespace {
 
 /** Returns a term as Yices prints it, in its own language and on one line,
@@ -150,7 +132,40 @@ Op divisible_op(term_t term)
   return Op(Divisible, n);
 }
 
+/** Returns the bits of a bit-vector constant, most significant first */
+string bv_constant_to_bits(term_t term)
+{
+  const uint32_t width = yices_term_bitsize(term);
+  // yices gives the bits least significant first
+  vector<int32_t> bits(width);
+  yices_bv_const_value(term, bits.data());
+  string res;
+  for (uint32_t i = width; i > 0; --i)
+  {
+    res += bits[i - 1] ? '1' : '0';
+  }
+  return res;
+}
+
 }  // namespace
+
+// Yices2Term implementation
+
+Yices2Term::Yices2Term(term_t t) : term(t) {}
+
+size_t Yices2Term::hash() const
+{
+  // term_t is a unique id for the term.
+  return term;
+}
+
+size_t Yices2Term::get_id() const { return term; }
+
+bool Yices2Term::compare(const Term & absterm) const
+{
+  shared_ptr<Yices2Term> yterm = std::dynamic_pointer_cast<Yices2Term>(absterm);
+  return yterm && term == yterm->term;
+}
 
 Op Yices2Term::get_op() const
 {
@@ -309,25 +324,6 @@ bool Yices2Term::is_value() const
           || tc == YICES_BV_CONSTANT || tc == YICES_SCALAR_CONSTANT
           || tc == YICES_LAMBDA_TERM);
 }
-
-namespace {
-
-/** Returns the bits of a bit-vector constant, most significant first */
-string bv_constant_to_bits(term_t term)
-{
-  const uint32_t width = yices_term_bitsize(term);
-  // yices gives the bits least significant first
-  vector<int32_t> bits(width);
-  yices_bv_const_value(term, bits.data());
-  string res;
-  for (uint32_t i = width; i > 0; --i)
-  {
-    res += bits[i - 1] ? '1' : '0';
-  }
-  return res;
-}
-
-}  // namespace
 
 string Yices2Term::get_constructor_name() const
 {

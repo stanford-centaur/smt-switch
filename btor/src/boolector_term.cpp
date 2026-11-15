@@ -71,6 +71,47 @@ PrimOp primop_of(BtorNodeKind k)
   }
 }
 
+/** Returns the bits of a constant, most significant first */
+std::string const_to_bits(Btor * btor, BtorNode * exp)
+{
+  if (!btor_node_is_bv_const(exp))
+  {
+    throw IncorrectUsageException(
+        "Can't get a bitstring from a term that is not a constant");
+  }
+  // boolector_get_bits accepts only a node with an external reference, which
+  // the node a term simplified to can lack, so one is held while reading
+  BtorNode * held = btor_node_copy(btor, exp);
+  btor_node_inc_ext_ref_counter(btor, held);
+  BoolectorNode * held_node = BTOR_EXPORT_BOOLECTOR_NODE(held);
+  // the bits of the constant itself, which need no model, unlike its
+  // assignment
+  const char * bits = nullptr;
+  std::string s;
+  try
+  {
+    bits = boolector_get_bits(btor, held_node);
+    s = bits;
+  }
+  catch (...)
+  {
+    if (bits)
+    {
+      boolector_free_bits(btor, bits);
+    }
+    boolector_release(btor, held_node);
+    throw;
+  }
+  boolector_free_bits(btor, bits);
+  boolector_release(btor, held_node);
+  return s;
+}
+
+struct MallocDeleter
+{
+  void operator()(char * p) const { std::free(p); }
+};
+
 }  // namespace
 
 Op lookup_op(Btor * btor, BoolectorNode * n)
@@ -283,51 +324,6 @@ bool BoolectorTerm::is_value() const
   res |= is_const_array();
   return res;
 }
-
-namespace {
-
-/** Returns the bits of a constant, most significant first */
-std::string const_to_bits(Btor * btor, BtorNode * exp)
-{
-  if (!btor_node_is_bv_const(exp))
-  {
-    throw IncorrectUsageException(
-        "Can't get a bitstring from a term that is not a constant");
-  }
-  // boolector_get_bits accepts only a node with an external reference, which
-  // the node a term simplified to can lack, so one is held while reading
-  BtorNode * held = btor_node_copy(btor, exp);
-  btor_node_inc_ext_ref_counter(btor, held);
-  BoolectorNode * held_node = BTOR_EXPORT_BOOLECTOR_NODE(held);
-  // the bits of the constant itself, which need no model, unlike its
-  // assignment
-  const char * bits = nullptr;
-  std::string s;
-  try
-  {
-    bits = boolector_get_bits(btor, held_node);
-    s = bits;
-  }
-  catch (...)
-  {
-    if (bits)
-    {
-      boolector_free_bits(btor, bits);
-    }
-    boolector_release(btor, held_node);
-    throw;
-  }
-  boolector_free_bits(btor, bits);
-  boolector_release(btor, held_node);
-  return s;
-}
-
-struct MallocDeleter
-{
-  void operator()(char * p) const { std::free(p); }
-};
-
-}  // namespace
 
 std::string BoolectorTerm::to_string() const
 {

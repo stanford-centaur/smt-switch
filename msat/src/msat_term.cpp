@@ -62,6 +62,37 @@ uint64_t congruence_modulus(msat_env e, msat_term t)
   return res;
 }
 
+/** Returns the value of a MathSAT arithmetic number term as n or n/d in
+ *  decimal, as GMP writes it, or throws if the term is not a number.
+ */
+string number_to_text(msat_env env, msat_term term, bool is_uf)
+{
+  if (is_uf)
+  {
+    throw IncorrectUsageException(
+        "Can't convert a function symbol to an integer");
+  }
+  if (!msat_term_is_number(env, term))
+  {
+    throw IncorrectUsageException(
+        "Can't convert "
+        + detail::get_msat_string(msat_to_smtlib2_term(env, term))
+        + " to an integer: it is not a number");
+  }
+  mpq_t value;
+  mpq_init(value);
+  msat_term_to_number(env, term, value);
+  // room for both parts, a sign, the slash and the terminator, as
+  // mpq_get_str documents
+  string text(mpz_sizeinbase(mpq_numref(value), 10)
+                  + mpz_sizeinbase(mpq_denref(value), 10) + 3,
+              '\0');
+  mpq_get_str(&text[0], 10, value);
+  mpq_clear(value);
+  text.resize(text.find('\0'));
+  return text;
+}
+
 }  // namespace
 
 // MsatTerm implementation
@@ -450,41 +481,6 @@ string MsatTerm::to_string() const
     return detail::get_msat_string(msat_to_smtlib2_term(*env, term));
   }
 }
-
-namespace {
-
-/** Returns the value of a MathSAT arithmetic number term as n or n/d in
- *  decimal, as GMP writes it, or throws if the term is not a number.
- */
-string number_to_text(msat_env env, msat_term term, bool is_uf)
-{
-  if (is_uf)
-  {
-    throw IncorrectUsageException(
-        "Can't convert a function symbol to an integer");
-  }
-  if (!msat_term_is_number(env, term))
-  {
-    throw IncorrectUsageException(
-        "Can't convert "
-        + detail::get_msat_string(msat_to_smtlib2_term(env, term))
-        + " to an integer: it is not a number");
-  }
-  mpq_t value;
-  mpq_init(value);
-  msat_term_to_number(env, term, value);
-  // room for both parts, a sign, the slash and the terminator, as
-  // mpq_get_str documents
-  string text(mpz_sizeinbase(mpq_numref(value), 10)
-                  + mpz_sizeinbase(mpq_denref(value), 10) + 3,
-              '\0');
-  mpq_get_str(&text[0], 10, value);
-  mpq_clear(value);
-  text.resize(text.find('\0'));
-  return text;
-}
-
-}  // namespace
 
 string MsatTerm::get_constructor_name() const
 {

@@ -57,6 +57,8 @@
 
 namespace smt {
 
+namespace {
+
 /** The standard options that SMT-LIB 2.6, Section 4.1.7, permits only in
  * start mode.
  */
@@ -65,8 +67,6 @@ constexpr std::string_view start_only_options[] = {
   "produce-assignments",       "produce-models",      "produce-proofs",
   "produce-unsat-assumptions", "produce-unsat-cores", "random-seed",
 };
-
-namespace {
 
 /** An SMT-LIB command, e.g. (push 1)
  * @param name the command's name
@@ -84,25 +84,6 @@ std::string smtlib_command(std::string_view name, const Args &... args)
   command += ')';
   return command;
 }
-
-}  // namespace
-
-template <class... Args>
-bool GenericSolver::send_or_hold(std::string_view name,
-                                 const Args &... args) const
-{
-  return send_or_hold(smtlib_command(name, args...));
-}
-
-template <class... Args>
-std::string GenericSolver::run_command(CommandKind kind,
-                                       std::string_view name,
-                                       const Args &... args) const
-{
-  return run_command(smtlib_command(name, args...), kind);
-}
-
-namespace {
 
 // helper functions
 bool is_white_space(char c)
@@ -293,7 +274,71 @@ std::string & trim(std::string & str)
   return str;
 }
 
+/** throw if a name a user chose for a term or function lies where the
+ * generic solver makes up names of its own
+ * @param name the name chosen
+ * @param what what is being named, for the message
+ * @throws IncorrectUsageException if the name starts with
+ * INTERNAL_NAME_PREFIX
+ */
+void refuse_internal_name(const std::string & name, const std::string & what)
+{
+  if (is_internal_name(name))
+  {
+    throw IncorrectUsageException(
+        what + " name " + name + " starts with "
+        + std::string(INTERNAL_NAME_PREFIX)
+        + ", which the generic solver keeps for names of its own");
+  }
+}
+
+/** Throws unless a value of sort kind sk can be made from a number */
+void check_value_sort_kind(SortKind sk)
+{
+  if (sk != BV && sk != INT && sk != REAL)
+  {
+    throw IncorrectUsageException("Can't make a value of sort kind "
+                                  + to_string(sk) + " from a number");
+  }
+}
+
+/**
+ * base raised to exponent, as products found by repeated squaring, so the
+ * term grows with the number of digits of the exponent rather than with it
+ */
+Term make_power(const GenericSolver & solver,
+                const Term & base,
+                std::int64_t exponent)
+{
+  if (exponent == 0)
+  {
+    return solver.make_term(1, base->get_sort());
+  }
+  if (exponent == 1)
+  {
+    return base;
+  }
+  Term half = make_power(solver, base, exponent / 2);
+  Term square = solver.make_term(Mult, half, half);
+  return exponent % 2 == 0 ? square : solver.make_term(Mult, square, base);
+}
+
 }  // namespace
+
+template <class... Args>
+bool GenericSolver::send_or_hold(std::string_view name,
+                                 const Args &... args) const
+{
+  return send_or_hold(smtlib_command(name, args...));
+}
+
+template <class... Args>
+std::string GenericSolver::run_command(CommandKind kind,
+                                       std::string_view name,
+                                       const Args &... args) const
+{
+  return run_command(smtlib_command(name, args...), kind);
+}
 
 const std::chrono::milliseconds GenericSolver::default_response_timeout =
     std::chrono::hours(1);
@@ -1389,28 +1434,6 @@ DatatypeDecl GenericSolver::make_datatype_decl(const std::string & s) const
   return new_dt_decl;
 }
 
-namespace {
-
-/** throw if a name a user chose for a term or function lies where the
- * generic solver makes up names of its own
- * @param name the name chosen
- * @param what what is being named, for the message
- * @throws IncorrectUsageException if the name starts with
- * INTERNAL_NAME_PREFIX
- */
-void refuse_internal_name(const std::string & name, const std::string & what)
-{
-  if (is_internal_name(name))
-  {
-    throw IncorrectUsageException(
-        what + " name " + name + " starts with "
-        + std::string(INTERNAL_NAME_PREFIX)
-        + ", which the generic solver keeps for names of its own");
-  }
-}
-
-}  // namespace
-
 DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
     const std::string s) const
 {
@@ -1658,20 +1681,6 @@ Term GenericSolver::make_value(bool b) const
   return term;
 }
 
-namespace {
-
-/** Throws unless a value of sort kind sk can be made from a number */
-void check_value_sort_kind(SortKind sk)
-{
-  if (sk != BV && sk != INT && sk != REAL)
-  {
-    throw IncorrectUsageException("Can't make a value of sort kind "
-                                  + to_string(sk) + " from a number");
-  }
-}
-
-}  // namespace
-
 Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 {
   Term value_term = make_value(i, sort);
@@ -1828,31 +1837,6 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort) const
   term_name_map[term] = internal_name("param", term_counter);
   return term;
 }
-
-namespace {
-
-/**
- * base raised to exponent, as products found by repeated squaring, so the
- * term grows with the number of digits of the exponent rather than with it
- */
-Term make_power(const GenericSolver & solver,
-                const Term & base,
-                std::int64_t exponent)
-{
-  if (exponent == 0)
-  {
-    return solver.make_term(1, base->get_sort());
-  }
-  if (exponent == 1)
-  {
-    return base;
-  }
-  Term half = make_power(solver, base, exponent / 2);
-  Term square = solver.make_term(Mult, half, half);
-  return exponent % 2 == 0 ? square : solver.make_term(Mult, square, base);
-}
-
-}  // namespace
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {

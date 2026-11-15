@@ -79,6 +79,356 @@ struct ContextDeleter
   void operator()(context_t * c) const { yices_free_context(c); }
 };
 
+/** The smt-switch term of res
+ *  @throws Exception for the error Yices2 reports where making res failed
+ */
+Term checked_term(term_t res)
+{
+  if (yices_error_code() != 0)
+  {
+    detail::throw_yices2_error();
+  }
+  return std::make_shared<Yices2Term>(res);
+}
+
+/* Turn one model node back into a term of the given sort. Yices reports
+ * model values as yval_t nodes and has no generic node-to-term conversion,
+ * so each one goes through the string form make_term already reads.
+ */
+Term term_from_yval(const Yices2Solver & solver,
+                    model_t * model,
+                    const yval_t & node,
+                    const Sort & sort)
+{
+  switch (node.node_tag)
+  {
+    case YVAL_BOOL: {
+      int32_t b = 0;
+      if (yices_val_get_bool(model, &node, &b) < 0)
+      {
+        detail::throw_yices2_error();
+      }
+      return solver.make_term(b != 0);
+    }
+    case YVAL_BV: {
+      uint32_t width = yices_val_bitsize(model, &node);
+      std::vector<int32_t> bits(width);
+      if (yices_val_get_bv(model, &node, bits.data()) < 0)
+      {
+        detail::throw_yices2_error();
+      }
+      // bits[0] is the low-order bit, so read the array back to front
+      std::string digits;
+      for (uint32_t pos = width; pos > 0; pos--)
+      {
+        digits += bits[pos - 1] ? '1' : '0';
+      }
+      return solver.make_term(digits, sort, 2);
+    }
+    case YVAL_RATIONAL: {
+      int64_t num = 0;
+      uint64_t den = 0;
+      if (yices_val_get_rational64(model, &node, &num, &den) < 0)
+      {
+        detail::throw_yices2_error();
+      }
+      if (den != 1)
+      {
+        throw NotImplementedException(
+            "Yices2 gave the non-integer array model value "
+            + std::to_string(num) + "/" + std::to_string(den));
+      }
+      return solver.make_term(std::to_string(num), sort, 10);
+    }
+    case YVAL_UNKNOWN:
+    case YVAL_ALGEBRAIC:
+    case YVAL_FINITEFIELD:
+    case YVAL_SCALAR:
+    case YVAL_TUPLE:
+    case YVAL_FUNCTION:
+    case YVAL_MAPPING: break;
+  }
+  throw NotImplementedException(
+      "Yices2 gave an array model node of tag " + std::to_string(node.node_tag)
+      + ", which this backend cannot turn back into a term");
+}
+
+/**
+ * The Int constant a bit-vector constant stands for, read as unsigned or as
+ * two's complement
+ */
+term_t bv_value_to_int(term_t bv_value, bool is_signed)
+{
+  const uint32_t width = yices_term_bitsize(bv_value);
+  // yices gives the bits least significant first
+  vector<int32_t> bits(width);
+  yices_bv_const_value(bv_value, bits.data());
+  mpz_t value;
+  mpz_init(value);
+  for (uint32_t i = 0; i < width; ++i)
+  {
+    if (bits[i])
+    {
+      mpz_setbit(value, i);
+    }
+  }
+  if (is_signed && bits[width - 1])
+  {
+    mpz_t modulus;
+    mpz_init(modulus);
+    mpz_setbit(modulus, width);
+    mpz_sub(value, value, modulus);
+    mpz_clear(modulus);
+  }
+  term_t res = yices_mpz(value);
+  mpz_clear(value);
+  return res;
+}
+
+/**
+ * The exponent of a Pow, which yices_power takes as a uint32_t, so only a
+ * constant non-negative integer that fits in one
+ */
+uint32_t pow_exponent(term_t term)
+{
+  bool fits = false;
+  uint32_t res = 0;
+  // checked first, as yices_rational_const_value fails on anything else
+  if (yices_term_constructor(term) == YICES_ARITH_CONSTANT)
+  {
+    mpq_t value;
+    mpq_init(value);
+    yices_rational_const_value(term, value);
+    if (mpz_cmp_ui(mpq_denref(value), 1) == 0 && mpz_sgn(mpq_numref(value)) >= 0
+        && mpz_cmp_ui(mpq_numref(value), UINT32_MAX) <= 0)
+    {
+      fits = true;
+      res = static_cast<uint32_t>(mpz_get_ui(mpq_numref(value)));
+    }
+    mpq_clear(value);
+  }
+  if (!fits)
+  {
+    throw NotImplementedException(
+        "Yices2 can only raise to a constant integer exponent from 0 to "
+        + std::to_string(UINT32_MAX));
+  }
+  return res;
+}
+
+/** Refuses po applied to num_args arguments, which Yices2 has no operator for
+ *  @throws IncorrectUsageException where SMT-LIB does not allow that many
+ *          arguments
+ *  @throws NotImplementedException otherwise
+ */
+[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
+{
+  const pair<size_t, size_t> arity = get_arity(po);
+  if (num_args < arity.first || num_args > arity.second)
+  {
+    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+                                  + std::to_string(num_args)
+                                  + (num_args == 1 ? " term" : " terms"));
+  }
+  throw NotImplementedException("Yices2 does not support the operator "
+                                + to_string(po));
+}
+
+/** The term of op applied to one argument
+ *  @throws as throw_unsupported where Yices2 has no such op
+ */
+term_t unary_term(const Op & op, term_t a)
+{
+  switch (op.prim_op)
+  {
+    case Not: return yices_not(a);
+    case Negate: return yices_neg(a);
+    case Abs: return yices_abs(a);
+    case To_Real:
+      if (!yices_term_is_arithmetic(a))
+      {
+        throw IncorrectUsageException(
+            "Can't apply to_real to a non-arithmetic term");
+      }
+      // Int is a subtype of Real in Yices2, which has no conversion
+      return a;
+    case To_Int: return yices_floor(a);
+    case Is_Int: return yices_is_int_atom(a);
+    case Divisible:
+      if (op.indices[0] < 1)
+      {
+        throw IncorrectUsageException("Can't create divisible with index < 1");
+      }
+      return yices_divides_atom(
+          yices_parse_rational(std::to_string(op.indices[0]).c_str()), a);
+    case Extract:
+      return yices_bvextract(
+          a, narrow_index(op, op.indices[1]), narrow_index(op, op.indices[0]));
+    case BVNot: return yices_bvnot(a);
+    case BVNeg: return yices_bvneg(a);
+    case Zero_Extend:
+      return yices_zero_extend(a, narrow_index(op, op.indices[0]));
+    case Sign_Extend:
+      return yices_sign_extend(a, narrow_index(op, op.indices[0]));
+    case Repeat:
+      if (op.indices[0] < 1)
+      {
+        throw IncorrectUsageException("Can't create repeat with index < 1");
+      }
+      return yices_bvrepeat(a, narrow_index(op, op.indices[0]));
+    case Rotate_Left:
+    case Rotate_Right: {
+      if (!yices_term_is_bitvector(a))
+      {
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a non-bit-vector term");
+      }
+      // Yices2 rotates by at most the width, SMT-LIB by any amount
+      std::uint32_t n = narrow_index(op, op.indices[0] % yices_term_bitsize(a));
+      return op.prim_op == Rotate_Left ? yices_rotate_left(a, n)
+                                       : yices_rotate_right(a, n);
+    }
+    case BV_To_Nat:
+    case UBV_To_Int:
+    case SBV_To_Int:
+      if (!yices_term_is_bitvector(a))
+      {
+        throw IncorrectUsageException("Can't apply " + op.to_string()
+                                      + " to a non-bit-vector term");
+      }
+      // Yices2 has no conversion, so only a value can be folded into one
+      if (yices_term_constructor(a) != YICES_BV_CONSTANT)
+      {
+        throw NotImplementedException("Yices2 has no " + op.to_string()
+                                      + ", so it can only apply it to a "
+                                        "bit-vector value");
+      }
+      return bv_value_to_int(a, op.prim_op == SBV_To_Int);
+    case Int_To_BV: {
+      if (!yices_term_is_int(a))
+      {
+        throw IncorrectUsageException(
+            "Can't apply int_to_bv to a non-integer term");
+      }
+      // Yices2 has no conversion, so only a value can be folded into one
+      if (yices_term_constructor(a) != YICES_ARITH_CONSTANT)
+      {
+        throw NotImplementedException(
+            "Yices2 has no int_to_bv, so it can only apply it to an Int value");
+      }
+      const uint32_t width = narrow_index(op, op.indices[0]);
+      mpq_t value;
+      mpq_init(value);
+      yices_rational_const_value(a, value);
+      // truncates two's complement to the width, which is the value mod
+      // 2^width
+      const term_t res = yices_bvconst_mpz(width, mpq_numref(value));
+      mpq_clear(value);
+      return res;
+    }
+    default: throw_unsupported(op.prim_op, 1);
+  }
+}
+
+/** The term of po applied to two arguments
+ *  @throws as throw_unsupported where Yices2 has no such op
+ */
+term_t binary_term(PrimOp po, term_t a, term_t b)
+{
+  switch (po)
+  {
+    case And: return yices_and2(a, b);
+    case Or: return yices_or2(a, b);
+    case Xor: return yices_xor2(a, b);
+    case Implies: return yices_implies(a, b);
+    case Equal: return yices_eq(a, b);
+    case Distinct:
+      return yices_distinct(2, std::array<term_t, 2>{ { a, b } }.data());
+    case Plus: return yices_add(a, b);
+    case Minus: return yices_sub(a, b);
+    case Mult: return yices_mul(a, b);
+    case Div: return yices_division(a, b);
+    case Lt: return yices_arith_lt_atom(a, b);
+    case Le: return yices_arith_leq_atom(a, b);
+    case Gt: return yices_arith_gt_atom(a, b);
+    case Ge: return yices_arith_geq_atom(a, b);
+    case Mod: return yices_imod(a, b);
+    case Pow: return yices_power(a, pow_exponent(b));
+    case IntDiv: return yices_idiv(a, b);
+    case Concat: return yices_bvconcat2(a, b);
+    case BVAnd: return yices_bvand2(a, b);
+    case BVOr: return yices_bvor2(a, b);
+    case BVXor: return yices_bvxor2(a, b);
+    case BVNand: return yices_bvnand(a, b);
+    case BVNor: return yices_bvnor(a, b);
+    case BVXnor: return yices_bvxnor(a, b);
+    case BVAdd: return yices_bvadd(a, b);
+    case BVSub: return yices_bvsub(a, b);
+    case BVMul: return yices_bvmul(a, b);
+    case BVUdiv: return yices_bvdiv(a, b);
+    case BVSdiv: return yices_bvsdiv(a, b);
+    case BVUrem: return yices_bvrem(a, b);
+    case BVSrem: return yices_bvsrem(a, b);
+    case BVSmod: return yices_bvsmod(a, b);
+    case BVShl: return yices_bvshl(a, b);
+    case BVAshr: return yices_bvashr(a, b);
+    case BVLshr: return yices_bvlshr(a, b);
+    case BVComp: return ext_yices_bvcomp(a, b);
+    case BVUlt: return yices_bvlt_atom(a, b);
+    case BVUle: return yices_bvle_atom(a, b);
+    case BVUgt: return yices_bvgt_atom(a, b);
+    case BVUge: return yices_bvge_atom(a, b);
+    case BVSlt: return yices_bvslt_atom(a, b);
+    case BVSle: return yices_bvsle_atom(a, b);
+    case BVSgt: return yices_bvsgt_atom(a, b);
+    case BVSge: return yices_bvsge_atom(a, b);
+    case Select: return ext_yices_select(a, b);
+    default: throw_unsupported(po, 2);
+  }
+}
+
+/** The term of op applied to terms, three or more, whose Yices2 terms are
+ *  args, in a single Yices2 call where Yices2 has one and through
+ *  make_nary_term otherwise
+ *
+ *  Some of the calls may modify args.
+ */
+Term variadic_term(const AbsSmtSolver * solver,
+                   const Op & op,
+                   const TermVec & terms,
+                   vector<term_t> & args)
+{
+  const uint32_t n = narrow_num_args(args.size());
+  term_t * a = args.data();
+  term_t res;
+  switch (op.prim_op)
+  {
+    case And:
+      res = n == 3 ? yices_and3(a[0], a[1], a[2]) : yices_and(n, a);
+      break;
+    case Or: res = n == 3 ? yices_or3(a[0], a[1], a[2]) : yices_or(n, a); break;
+    case Xor:
+      res = n == 3 ? yices_xor3(a[0], a[1], a[2]) : yices_xor(n, a);
+      break;
+    case Distinct: res = yices_distinct(n, a); break;
+    case Plus: res = yices_sum(n, a); break;
+    case Mult: res = yices_product(n, a); break;
+    case BVAnd:
+      res = n == 3 ? yices_bvand3(a[0], a[1], a[2]) : yices_bvand(n, a);
+      break;
+    case BVOr:
+      res = n == 3 ? yices_bvor3(a[0], a[1], a[2]) : yices_bvor(n, a);
+      break;
+    case BVXor:
+      res = n == 3 ? ext_yices_bvxor3(a[0], a[1], a[2]) : yices_bvxor(n, a);
+      break;
+    case BVAdd: res = yices_bvsum(n, a); break;
+    case BVMul: res = yices_bvproduct(n, a); break;
+    default: return make_nary_term(solver, op, terms);
+  }
+  return checked_term(res);
+}
+
 }  // namespace
 
 /* Yices2Solver implementation */
@@ -136,22 +486,6 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
                                   + option);
   }
 }
-
-namespace {
-
-/** The smt-switch term of res
- *  @throws Exception for the error Yices2 reports where making res failed
- */
-Term checked_term(term_t res)
-{
-  if (yices_error_code() != 0)
-  {
-    detail::throw_yices2_error();
-  }
-  return std::make_shared<Yices2Term>(res);
-}
-
-}  // namespace
 
 void Yices2Solver::set_logic(const std::string logic)
 {
@@ -515,72 +849,6 @@ Term Yices2Solver::get_value(const Term & t) const
   return res;
 }
 
-namespace {
-
-/* Turn one model node back into a term of the given sort. Yices reports
- * model values as yval_t nodes and has no generic node-to-term conversion,
- * so each one goes through the string form make_term already reads.
- */
-Term term_from_yval(const Yices2Solver & solver,
-                    model_t * model,
-                    const yval_t & node,
-                    const Sort & sort)
-{
-  switch (node.node_tag)
-  {
-    case YVAL_BOOL: {
-      int32_t b = 0;
-      if (yices_val_get_bool(model, &node, &b) < 0)
-      {
-        detail::throw_yices2_error();
-      }
-      return solver.make_term(b != 0);
-    }
-    case YVAL_BV: {
-      uint32_t width = yices_val_bitsize(model, &node);
-      std::vector<int32_t> bits(width);
-      if (yices_val_get_bv(model, &node, bits.data()) < 0)
-      {
-        detail::throw_yices2_error();
-      }
-      // bits[0] is the low-order bit, so read the array back to front
-      std::string digits;
-      for (uint32_t pos = width; pos > 0; pos--)
-      {
-        digits += bits[pos - 1] ? '1' : '0';
-      }
-      return solver.make_term(digits, sort, 2);
-    }
-    case YVAL_RATIONAL: {
-      int64_t num = 0;
-      uint64_t den = 0;
-      if (yices_val_get_rational64(model, &node, &num, &den) < 0)
-      {
-        detail::throw_yices2_error();
-      }
-      if (den != 1)
-      {
-        throw NotImplementedException(
-            "Yices2 gave the non-integer array model value "
-            + std::to_string(num) + "/" + std::to_string(den));
-      }
-      return solver.make_term(std::to_string(num), sort, 10);
-    }
-    case YVAL_UNKNOWN:
-    case YVAL_ALGEBRAIC:
-    case YVAL_FINITEFIELD:
-    case YVAL_SCALAR:
-    case YVAL_TUPLE:
-    case YVAL_FUNCTION:
-    case YVAL_MAPPING: break;
-  }
-  throw NotImplementedException(
-      "Yices2 gave an array model node of tag " + std::to_string(node.node_tag)
-      + ", which this backend cannot turn back into a term");
-}
-
-}  // namespace
-
 UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
                                                 Term & out_const_base) const
 {
@@ -893,286 +1161,6 @@ Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
   yices_set_term_name(y_term, name.c_str());
   return std::make_shared<Yices2Term>(y_term);
 }
-
-namespace {
-
-/**
- * The Int constant a bit-vector constant stands for, read as unsigned or as
- * two's complement
- */
-term_t bv_value_to_int(term_t bv_value, bool is_signed)
-{
-  const uint32_t width = yices_term_bitsize(bv_value);
-  // yices gives the bits least significant first
-  vector<int32_t> bits(width);
-  yices_bv_const_value(bv_value, bits.data());
-  mpz_t value;
-  mpz_init(value);
-  for (uint32_t i = 0; i < width; ++i)
-  {
-    if (bits[i])
-    {
-      mpz_setbit(value, i);
-    }
-  }
-  if (is_signed && bits[width - 1])
-  {
-    mpz_t modulus;
-    mpz_init(modulus);
-    mpz_setbit(modulus, width);
-    mpz_sub(value, value, modulus);
-    mpz_clear(modulus);
-  }
-  term_t res = yices_mpz(value);
-  mpz_clear(value);
-  return res;
-}
-
-/**
- * The exponent of a Pow, which yices_power takes as a uint32_t, so only a
- * constant non-negative integer that fits in one
- */
-uint32_t pow_exponent(term_t term)
-{
-  bool fits = false;
-  uint32_t res = 0;
-  // checked first, as yices_rational_const_value fails on anything else
-  if (yices_term_constructor(term) == YICES_ARITH_CONSTANT)
-  {
-    mpq_t value;
-    mpq_init(value);
-    yices_rational_const_value(term, value);
-    if (mpz_cmp_ui(mpq_denref(value), 1) == 0 && mpz_sgn(mpq_numref(value)) >= 0
-        && mpz_cmp_ui(mpq_numref(value), UINT32_MAX) <= 0)
-    {
-      fits = true;
-      res = static_cast<uint32_t>(mpz_get_ui(mpq_numref(value)));
-    }
-    mpq_clear(value);
-  }
-  if (!fits)
-  {
-    throw NotImplementedException(
-        "Yices2 can only raise to a constant integer exponent from 0 to "
-        + std::to_string(UINT32_MAX));
-  }
-  return res;
-}
-
-/** Refuses po applied to num_args arguments, which Yices2 has no operator for
- *  @throws IncorrectUsageException where SMT-LIB does not allow that many
- *          arguments
- *  @throws NotImplementedException otherwise
- */
-[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
-{
-  const pair<size_t, size_t> arity = get_arity(po);
-  if (num_args < arity.first || num_args > arity.second)
-  {
-    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
-                                  + std::to_string(num_args)
-                                  + (num_args == 1 ? " term" : " terms"));
-  }
-  throw NotImplementedException("Yices2 does not support the operator "
-                                + to_string(po));
-}
-
-/** The term of op applied to one argument
- *  @throws as throw_unsupported where Yices2 has no such op
- */
-term_t unary_term(const Op & op, term_t a)
-{
-  switch (op.prim_op)
-  {
-    case Not: return yices_not(a);
-    case Negate: return yices_neg(a);
-    case Abs: return yices_abs(a);
-    case To_Real:
-      if (!yices_term_is_arithmetic(a))
-      {
-        throw IncorrectUsageException(
-            "Can't apply to_real to a non-arithmetic term");
-      }
-      // Int is a subtype of Real in Yices2, which has no conversion
-      return a;
-    case To_Int: return yices_floor(a);
-    case Is_Int: return yices_is_int_atom(a);
-    case Divisible:
-      if (op.indices[0] < 1)
-      {
-        throw IncorrectUsageException("Can't create divisible with index < 1");
-      }
-      return yices_divides_atom(
-          yices_parse_rational(std::to_string(op.indices[0]).c_str()), a);
-    case Extract:
-      return yices_bvextract(
-          a, narrow_index(op, op.indices[1]), narrow_index(op, op.indices[0]));
-    case BVNot: return yices_bvnot(a);
-    case BVNeg: return yices_bvneg(a);
-    case Zero_Extend:
-      return yices_zero_extend(a, narrow_index(op, op.indices[0]));
-    case Sign_Extend:
-      return yices_sign_extend(a, narrow_index(op, op.indices[0]));
-    case Repeat:
-      if (op.indices[0] < 1)
-      {
-        throw IncorrectUsageException("Can't create repeat with index < 1");
-      }
-      return yices_bvrepeat(a, narrow_index(op, op.indices[0]));
-    case Rotate_Left:
-    case Rotate_Right: {
-      if (!yices_term_is_bitvector(a))
-      {
-        throw IncorrectUsageException("Can't apply " + op.to_string()
-                                      + " to a non-bit-vector term");
-      }
-      // Yices2 rotates by at most the width, SMT-LIB by any amount
-      std::uint32_t n = narrow_index(op, op.indices[0] % yices_term_bitsize(a));
-      return op.prim_op == Rotate_Left ? yices_rotate_left(a, n)
-                                       : yices_rotate_right(a, n);
-    }
-    case BV_To_Nat:
-    case UBV_To_Int:
-    case SBV_To_Int:
-      if (!yices_term_is_bitvector(a))
-      {
-        throw IncorrectUsageException("Can't apply " + op.to_string()
-                                      + " to a non-bit-vector term");
-      }
-      // Yices2 has no conversion, so only a value can be folded into one
-      if (yices_term_constructor(a) != YICES_BV_CONSTANT)
-      {
-        throw NotImplementedException("Yices2 has no " + op.to_string()
-                                      + ", so it can only apply it to a "
-                                        "bit-vector value");
-      }
-      return bv_value_to_int(a, op.prim_op == SBV_To_Int);
-    case Int_To_BV: {
-      if (!yices_term_is_int(a))
-      {
-        throw IncorrectUsageException(
-            "Can't apply int_to_bv to a non-integer term");
-      }
-      // Yices2 has no conversion, so only a value can be folded into one
-      if (yices_term_constructor(a) != YICES_ARITH_CONSTANT)
-      {
-        throw NotImplementedException(
-            "Yices2 has no int_to_bv, so it can only apply it to an Int value");
-      }
-      const uint32_t width = narrow_index(op, op.indices[0]);
-      mpq_t value;
-      mpq_init(value);
-      yices_rational_const_value(a, value);
-      // truncates two's complement to the width, which is the value mod
-      // 2^width
-      const term_t res = yices_bvconst_mpz(width, mpq_numref(value));
-      mpq_clear(value);
-      return res;
-    }
-    default: throw_unsupported(op.prim_op, 1);
-  }
-}
-
-/** The term of po applied to two arguments
- *  @throws as throw_unsupported where Yices2 has no such op
- */
-term_t binary_term(PrimOp po, term_t a, term_t b)
-{
-  switch (po)
-  {
-    case And: return yices_and2(a, b);
-    case Or: return yices_or2(a, b);
-    case Xor: return yices_xor2(a, b);
-    case Implies: return yices_implies(a, b);
-    case Equal: return yices_eq(a, b);
-    case Distinct:
-      return yices_distinct(2, std::array<term_t, 2>{ { a, b } }.data());
-    case Plus: return yices_add(a, b);
-    case Minus: return yices_sub(a, b);
-    case Mult: return yices_mul(a, b);
-    case Div: return yices_division(a, b);
-    case Lt: return yices_arith_lt_atom(a, b);
-    case Le: return yices_arith_leq_atom(a, b);
-    case Gt: return yices_arith_gt_atom(a, b);
-    case Ge: return yices_arith_geq_atom(a, b);
-    case Mod: return yices_imod(a, b);
-    case Pow: return yices_power(a, pow_exponent(b));
-    case IntDiv: return yices_idiv(a, b);
-    case Concat: return yices_bvconcat2(a, b);
-    case BVAnd: return yices_bvand2(a, b);
-    case BVOr: return yices_bvor2(a, b);
-    case BVXor: return yices_bvxor2(a, b);
-    case BVNand: return yices_bvnand(a, b);
-    case BVNor: return yices_bvnor(a, b);
-    case BVXnor: return yices_bvxnor(a, b);
-    case BVAdd: return yices_bvadd(a, b);
-    case BVSub: return yices_bvsub(a, b);
-    case BVMul: return yices_bvmul(a, b);
-    case BVUdiv: return yices_bvdiv(a, b);
-    case BVSdiv: return yices_bvsdiv(a, b);
-    case BVUrem: return yices_bvrem(a, b);
-    case BVSrem: return yices_bvsrem(a, b);
-    case BVSmod: return yices_bvsmod(a, b);
-    case BVShl: return yices_bvshl(a, b);
-    case BVAshr: return yices_bvashr(a, b);
-    case BVLshr: return yices_bvlshr(a, b);
-    case BVComp: return ext_yices_bvcomp(a, b);
-    case BVUlt: return yices_bvlt_atom(a, b);
-    case BVUle: return yices_bvle_atom(a, b);
-    case BVUgt: return yices_bvgt_atom(a, b);
-    case BVUge: return yices_bvge_atom(a, b);
-    case BVSlt: return yices_bvslt_atom(a, b);
-    case BVSle: return yices_bvsle_atom(a, b);
-    case BVSgt: return yices_bvsgt_atom(a, b);
-    case BVSge: return yices_bvsge_atom(a, b);
-    case Select: return ext_yices_select(a, b);
-    default: throw_unsupported(po, 2);
-  }
-}
-
-/** The term of op applied to terms, three or more, whose Yices2 terms are
- *  args, in a single Yices2 call where Yices2 has one and through
- *  make_nary_term otherwise
- *
- *  Some of the calls may modify args.
- */
-Term variadic_term(const AbsSmtSolver * solver,
-                   const Op & op,
-                   const TermVec & terms,
-                   vector<term_t> & args)
-{
-  const uint32_t n = narrow_num_args(args.size());
-  term_t * a = args.data();
-  term_t res;
-  switch (op.prim_op)
-  {
-    case And:
-      res = n == 3 ? yices_and3(a[0], a[1], a[2]) : yices_and(n, a);
-      break;
-    case Or: res = n == 3 ? yices_or3(a[0], a[1], a[2]) : yices_or(n, a); break;
-    case Xor:
-      res = n == 3 ? yices_xor3(a[0], a[1], a[2]) : yices_xor(n, a);
-      break;
-    case Distinct: res = yices_distinct(n, a); break;
-    case Plus: res = yices_sum(n, a); break;
-    case Mult: res = yices_product(n, a); break;
-    case BVAnd:
-      res = n == 3 ? yices_bvand3(a[0], a[1], a[2]) : yices_bvand(n, a);
-      break;
-    case BVOr:
-      res = n == 3 ? yices_bvor3(a[0], a[1], a[2]) : yices_bvor(n, a);
-      break;
-    case BVXor:
-      res = n == 3 ? ext_yices_bvxor3(a[0], a[1], a[2]) : yices_bvxor(n, a);
-      break;
-    case BVAdd: res = yices_bvsum(n, a); break;
-    case BVMul: res = yices_bvproduct(n, a); break;
-    default: return make_nary_term(solver, op, terms);
-  }
-  return checked_term(res);
-}
-
-}  // namespace
 
 Term Yices2Solver::make_term(Op op, const TermVec & terms) const
 {

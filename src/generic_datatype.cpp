@@ -22,6 +22,23 @@
 
 namespace smt {
 
+namespace {
+
+// A selector of a declaration compares by its name and sort. A self
+// selector's sort is null there, as make_sort gives the datatype's sort only
+// to the copy the datatype sort keeps, so it never changes once added.
+bool selector_equal(const SelectorComponents & a, const SelectorComponents & b)
+{
+  return std::tie(a.name, a.sort) == std::tie(b.name, b.sort);
+}
+
+bool selector_less(const SelectorComponents & a, const SelectorComponents & b)
+{
+  return std::tie(a.name, a.sort) < std::tie(b.name, b.sort);
+}
+
+}  // namespace
+
 GenericDatatypeDecl::GenericDatatypeDecl(std::string name)
     : dt_name(std::move(name))
 {
@@ -39,23 +56,6 @@ std::string GenericDatatypeConstructorDecl::get_name() const
 {
   return cons_name;
 }
-
-namespace {
-
-// A selector of a declaration compares by its name and sort. A self
-// selector's sort is null there, as make_sort gives the datatype's sort only
-// to the copy the datatype sort keeps, so it never changes once added.
-bool selector_equal(const SelectorComponents & a, const SelectorComponents & b)
-{
-  return std::tie(a.name, a.sort) == std::tie(b.name, b.sort);
-}
-
-bool selector_less(const SelectorComponents & a, const SelectorComponents & b)
-{
-  return std::tie(a.name, a.sort) < std::tie(b.name, b.sort);
-}
-
-}  // namespace
 
 std::size_t GenericDatatypeConstructorDecl::hash() const
 {
