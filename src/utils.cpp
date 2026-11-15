@@ -34,6 +34,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
+#include "smt-switch/term_visitor.h"
 
 namespace smt {
 
@@ -72,36 +73,85 @@ void throw_foreign_handle(const Datatype & h)
 
 }  // namespace detail
 
+namespace {
+
+// Goes down through the applications of one operator and collects the
+// terms where they stop
+class OpPartitionVisitor : public TermVisitor
+{
+ public:
+  OpPartitionVisitor(PrimOp op, TermVec & out) : op_(op), out_(out) {}
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    if (term->get_op().prim_op == op_)
+    {
+      return VisitResult::Continue;
+    }
+    out_.push_back(term);
+    return VisitResult::Skip;
+  }
+
+ private:
+  PrimOp op_;
+  TermVec & out_;
+};
+
+// Collects the terms that match, without going below them
+class MatchingTermsVisitor : public TermVisitor
+{
+ public:
+  MatchingTermsVisitor(bool (*matches)(const Term & term),
+                       UnorderedTermSet & out)
+      : matches_(matches), out_(out)
+  {
+  }
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    if (matches_(term))
+    {
+      out_.insert(term);
+      return VisitResult::Skip;
+    }
+    return VisitResult::Continue;
+  }
+
+ private:
+  bool (*matches_)(const Term & term);
+  UnorderedTermSet & out_;
+};
+
+// Collects the operators of the applications in a term
+class OpsVisitor : public TermVisitor
+{
+ public:
+  explicit OpsVisitor(UnorderedOpSet & out) : out_(out) {}
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    Op op = term->get_op();
+    // a null operator is a leaf's
+    if (op.is_null())
+    {
+      return VisitResult::Skip;
+    }
+    out_.insert(op);
+    return VisitResult::Continue;
+  }
+
+ private:
+  UnorderedOpSet & out_;
+};
+
+}  // namespace
+
 void op_partition(PrimOp o, const Term & term, TermVec & out)
 {
-  TermVec to_visit({ term });
-  UnorderedTermSet visited;
-
-  Term t;
-  while (to_visit.size())
-  {
-    t = to_visit.back();
-    to_visit.pop_back();
-
-    if (visited.find(t) == visited.end())
-    {
-      visited.insert(t);
-
-      Op op = t->get_op();
-      if (op.prim_op == o)
-      {
-        // add children to queue
-        for (auto tt : t)
-        {
-          to_visit.push_back(tt);
-        }
-      }
-      else
-      {
-        out.push_back(t);
-      }
-    }
-  }
+  OpPartitionVisitor(o, out).visit(term);
 }
 
 void conjunctive_partition(const Term & term, TermVec & out, bool include_bvand)
@@ -160,32 +210,7 @@ void get_matching_terms(const Term & term,
                         UnorderedTermSet & out,
                         bool (*matching_fun)(const Term & term))
 {
-  TermVec to_visit({ term });
-  UnorderedTermSet visited;
-
-  Term t;
-  while (to_visit.size())
-  {
-    t = to_visit.back();
-    to_visit.pop_back();
-
-    if (visited.find(t) == visited.end())
-    {
-      visited.insert(t);
-
-      if (matching_fun(t))
-      {
-        out.insert(t);
-      }
-      else
-      {  // add children to queue
-        for (auto tt : t)
-        {
-          to_visit.push_back(tt);
-        }
-      }
-    }
-  }
+  MatchingTermsVisitor(matching_fun, out).visit(term);
 }
 
 void get_free_symbolic_consts(const Term & term, UnorderedTermSet & out)
@@ -202,30 +227,7 @@ void get_free_symbols(const Term & term, UnorderedTermSet & out)
 
 void get_ops(const Term & term, UnorderedOpSet & out)
 {
-  TermVec to_visit({ term });
-  UnorderedTermSet visited;
-
-  Term t;
-  while (to_visit.size())
-  {
-    t = to_visit.back();
-    to_visit.pop_back();
-    if (visited.find(t) == visited.end())
-    {
-      visited.insert(t);
-      Op op = t->get_op();
-      // Only add non-null operators to the set
-      if (!op.is_null())
-      {
-        out.insert(t->get_op());
-        // add children to queue
-        for (auto tt : t)
-        {
-          to_visit.push_back(tt);
-        }
-      }
-    }
-  }
+  OpsVisitor(out).visit(term);
 }
 
 bool is_lit(const Term & l, const Sort & boolsort)
@@ -2358,6 +2360,35 @@ struct SortRenamer
   }
 };
 
+// Collects what terms need declared, each kind by name
+class DeclarationsVisitor : public TermVisitor
+{
+ public:
+  DeclarationsVisitor(std::map<std::string, Term> & symbols,
+                      std::map<std::string, SortVec> & sorts,
+                      std::map<std::string, Sort> & datatypes)
+      : symbols_(symbols), sorts_(sorts), datatypes_(datatypes)
+  {
+  }
+
+ protected:
+  VisitResult visit_term(const Term & term) override
+  {
+    // a param is a symbol too, but its quantifier binds it
+    if (term->is_symbol() && !term->is_param())
+    {
+      symbols_.emplace(term->to_string(), term);
+    }
+    collect_declared_sorts(term->get_sort(), sorts_, datatypes_);
+    return VisitResult::Continue;
+  }
+
+ private:
+  std::map<std::string, Term> & symbols_;
+  std::map<std::string, SortVec> & sorts_;
+  std::map<std::string, Sort> & datatypes_;
+};
+
 }  // namespace
 
 void smtlib_benchmark(std::ostream & out,
@@ -2369,26 +2400,12 @@ void smtlib_benchmark(std::ostream & out,
   std::map<std::string, Term> symbols;
   std::map<std::string, SortVec> sorts;
   std::map<std::string, Sort> datatypes;
-  TermVec to_visit = assertions;
-  UnorderedTermSet visited;
-  while (!to_visit.empty())
+  DeclarationsVisitor declarations(symbols, sorts, datatypes);
+  // the last assertion first, which decides which of two sorts of the same
+  // name keeps it
+  for (auto it = assertions.rbegin(); it != assertions.rend(); ++it)
   {
-    Term t = to_visit.back();
-    to_visit.pop_back();
-    if (!visited.insert(t).second)
-    {
-      continue;
-    }
-    // a param is a symbol too, but its quantifier binds it
-    if (t->is_symbol() && !t->is_param())
-    {
-      symbols.emplace(t->to_string(), t);
-    }
-    collect_declared_sorts(t->get_sort(), sorts, datatypes);
-    for (const Term & c : t)
-    {
-      to_visit.push_back(c);
-    }
+    declarations.visit(*it);
   }
 
   // SMT-LIB cannot declare two sorts with the same name, but a sort's name
