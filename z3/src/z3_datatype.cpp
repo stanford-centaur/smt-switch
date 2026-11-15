@@ -12,21 +12,18 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <tuple>
 #include <utility>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/utils.h"
 #include "smt-switch/z3_sort.h"
 
-namespace z3 {
+namespace smt {
 
-bool operator==(const z3::sort & lhs, const z3::sort & rhs)
-{
-  return z3::eq(lhs, rhs);
-}
-// A null sort, which has no id, comes first
-bool operator<(const z3::sort & lhs, const z3::sort & rhs)
+namespace {
+
+// Orders sorts by id, with a null sort, which has no id, first
+bool sort_less(const z3::sort & lhs, const z3::sort & rhs)
 {
   if (static_cast<Z3_sort>(lhs) == nullptr
       || static_cast<Z3_sort>(rhs) == nullptr)
@@ -36,9 +33,8 @@ bool operator<(const z3::sort & lhs, const z3::sort & rhs)
   }
   return lhs.id() < rhs.id();
 }
-}  // namespace z3
 
-namespace smt {
+}  // namespace
 
 Z3DatatypeDecl::Z3DatatypeDecl(std::string n) : name(std::move(n)) {}
 
@@ -74,16 +70,50 @@ std::size_t Z3DatatypeConstructorDecl::hash() const
 bool Z3DatatypeConstructorDecl::compare(const DatatypeConstructorDecl & d) const
 {
   auto other = std::dynamic_pointer_cast<Z3DatatypeConstructorDecl>(d);
-  return other
-         && std::tie(constructorname, selectors)
-                == std::tie(other->constructorname, other->selectors);
+  if (!other || constructorname != other->constructorname
+      || selectors.size() != other->selectors.size())
+  {
+    return false;
+  }
+  for (std::size_t i = 0; i < selectors.size(); ++i)
+  {
+    const auto & [name, sort] = selectors[i];
+    const auto & [other_name, other_sort] = other->selectors[i];
+    if (name != other_name || !z3::eq(sort, other_sort))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool Z3DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
 {
   auto other = backend_pointer_cast<Z3DatatypeConstructorDecl>(d);
-  return std::tie(constructorname, selectors)
-         < std::tie(other->constructorname, other->selectors);
+  if (constructorname != other->constructorname)
+  {
+    return constructorname < other->constructorname;
+  }
+  // the selectors in order, each by name and then by sort
+  for (std::size_t i = 0; i < selectors.size() && i < other->selectors.size();
+       ++i)
+  {
+    const auto & [name, sort] = selectors[i];
+    const auto & [other_name, other_sort] = other->selectors[i];
+    if (name != other_name)
+    {
+      return name < other_name;
+    }
+    if (sort_less(sort, other_sort))
+    {
+      return true;
+    }
+    if (sort_less(other_sort, sort))
+    {
+      return false;
+    }
+  }
+  return selectors.size() < other->selectors.size();
 }
 
 Z3Datatype::Z3Datatype(const std::shared_ptr<Z3Context> & ctx, z3::sort s)
