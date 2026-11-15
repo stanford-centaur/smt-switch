@@ -18,6 +18,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
@@ -105,6 +106,16 @@ void get_free_symbolic_consts(const Term & term, UnorderedTermSet & out);
 void get_free_symbols(const Term & term, UnorderedTermSet & out);
 
 void get_ops(const Term & term, UnorderedOpSet & out);
+
+/** Collects the subterms built with any of the given operators, including
+ *  those below another one
+ *  @param term the term to search
+ *  @param ops the operators to look for
+ *  @param out the set the subterms are added to
+ */
+void get_terms_with_ops(const Term & term,
+                        const std::unordered_set<PrimOp> & ops,
+                        UnorderedTermSet & out);
 
 /** returns true iff l is a literal
  *  e.g. either a boolean symbolic constant or its negation

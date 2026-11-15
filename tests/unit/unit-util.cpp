@@ -156,6 +156,32 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
   }
 }
 
+TEST_P(UnitUtilTests, TermsWithOps)
+{
+  Term inner = s->make_term(And, symbols[2], symbols[3]);
+  Term disjunction = s->make_term(Or, symbols[1], inner);
+  Term outer = s->make_term(And, symbols[0], disjunction);
+
+  UnorderedTermSet conjunctions;
+  get_terms_with_ops(outer, { And }, conjunctions);
+  UnorderedTermSet connectives;
+  get_terms_with_ops(outer, { And, Or }, connectives);
+  UnorderedTermSet none;
+  get_terms_with_ops(outer, {}, none);
+
+  EXPECT_TRUE(none.empty());
+  for (const Term & t : connectives)
+  {
+    EXPECT_TRUE(t->get_op() == And || t->get_op() == Or);
+  }
+  // only a logging solver keeps the terms as built
+  if (GetParam().is_logging_solver)
+  {
+    EXPECT_EQ(conjunctions, (UnorderedTermSet{ outer, inner }));
+    EXPECT_EQ(connectives, (UnorderedTermSet{ outer, disjunction, inner }));
+  }
+}
+
 TEST_P(UnitUtilIntTests, Oracles)
 {
   SolverConfiguration c = GetParam();
