@@ -16,6 +16,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "smt-switch/exceptions.h"
@@ -27,6 +28,498 @@
 namespace smt {
 
 namespace {
+
+/** Checks that terms match expected form for quantifiers
+ *  To make term traversal easier considering the different
+ *  handlings of quantifiers in the API's of underlying
+ *  smt-switch requires that quantified terms take the form:
+ *  <Forall/Exists> bound_param . body
+ *  thus it takes two arguments, the parameter and a formula
+ *  containing that parameter
+ *  this does not limit expressivity because you can nest them
+ *  @param terms the vector of terms
+ *  @return true iff the terms match the expected pattern
+ *  Note: this is applied directly in check_sortedness because it must
+ *  be over terms
+ */
+bool check_quantifier_terms(const TermVec & terms)
+{
+  return terms.size() == 2 && terms[0]->is_param()
+         && terms[1]->get_sort()->get_sort_kind() == BOOL;
+}
+
+/* helpers for sort checking */
+
+/** Checks that sorts are expected for a quantified term
+ *  e.g. that the second argument is of sort Bool
+ *  similar to check_quantifier_terms but doesn't check that
+ *  first argument is a parameter
+ *  @param sorts the vector of sorts
+ *  @return true iff the terms match the expected pattern
+ *  Note: this is applied directly in compute_sort because it must
+ *  be over terms
+ */
+bool check_quantifier_sorts(const SortVec & sorts)
+{
+  return sorts.size() == 2 && sorts[1]->get_sort_kind() == BOOL;
+}
+
+/** Checks that the sorts are equivalent
+ *  @param sorts a vector of sorts
+ *  @return true iff they're all equal, so true for none
+ */
+bool equal_sorts(const SortVec & sorts)
+{
+  return (adjacent_find(sorts.begin(), sorts.end(), std::not_equal_to<Sort>())
+          == sorts.end());
+}
+
+/** Checks that Ite arguments are well-sorted
+ *  @param sorts a vector of sorts
+ *  @return true iff only the sorts are valid for an ite
+ */
+bool check_ite_sorts(const SortVec & sorts)
+{
+  return sorts.size() == 3 && sorts[0]->get_sort_kind() == BOOL
+         && sorts[1] == sorts[2];
+}
+
+/** Returns true iff all the sorts have SortKind sk
+ *  @param sk the expected SortKind
+ *  @param sorts the vector of Sorts to check
+ *  @return true iff all SortKinds have sort sk
+ */
+bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
+{
+  for (auto sort : sorts)
+  {
+    if (sk != sort->get_sort_kind())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Returns true iff all the sorts have SortKind in sks
+ *  @param sks the set of possible SortKinds
+ *  @param sorts the vector of Sorts to check
+ *  @return true iff all sorts have SortKind in sks
+ */
+bool check_one_of_sortkinds(const std::unordered_set<SortKind> & sks,
+                            const SortVec & sorts)
+{
+  for (auto sort : sorts)
+  {
+    if (sks.find(sort->get_sort_kind()) == sks.end())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Checks if the sorts are well-sorted for an apply operator
+ *  @param sorts the vector of sorts
+ *  @return true iff the first sort is a function sort
+ *         and the rest of the sorts match the domain of the
+ *         function
+ */
+bool check_apply_sorts(const SortVec & sorts)
+{
+  if (sorts.empty())
+  {
+    return false;
+  }
+  Sort funsort = sorts[0];
+  if (funsort->get_sort_kind() != FUNCTION)
+  {
+    return false;
+  }
+
+  SortVec domain_sorts = funsort->get_domain_sorts();
+  if (domain_sorts.size() + 1 != sorts.size())
+  {
+    // expecting same number of arguments to function as arity
+    return false;
+  }
+
+  for (std::size_t i = 0; i < domain_sorts.size(); ++i)
+  {
+    if (domain_sorts[i] != sorts[i + 1])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Checks if the sorts are well-sorted for a select operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is an array sort
+ *         and the second sort is the index sort
+ */
+bool check_select_sorts(const SortVec & sorts)
+{
+  if (sorts.size() != 2)
+  {
+    return false;
+  }
+
+  Sort arrsort = sorts[0];
+  if (arrsort->get_sort_kind() != ARRAY)
+  {
+    return false;
+  }
+
+  if (sorts[1] != arrsort->get_indexsort())
+  {
+    return false;
+  }
+
+  return true;
+}
+
+// the selector, then the datatype term it reads
+bool check_selector_sorts(const SortVec & sorts)
+{
+  return sorts.size() == 2 && sorts[0]->get_sort_kind() == SELECTOR
+         && sorts[1]->get_sort_kind() == DATATYPE;
+}
+
+// the constructor, then its arguments, which only the backend checks
+bool check_constructor_sorts(const SortVec & sorts)
+{
+  return !sorts.empty() && sorts[0]->get_sort_kind() == CONSTRUCTOR;
+}
+
+// the tester, then the datatype term it tests
+bool check_tester_sorts(const SortVec & sorts)
+{
+  return sorts.size() == 2 && sorts[0]->get_sort_kind() == TESTER
+         && sorts[1]->get_sort_kind() == DATATYPE;
+}
+
+/** Checks if the sorts are well-sorted for a store operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is an array sort
+ *         and the next two match the index and element sort
+ */
+bool check_store_sorts(const SortVec & sorts)
+{
+  if (sorts.size() != 3)
+  {
+    return false;
+  }
+
+  Sort arrsort = sorts[0];
+  if (arrsort->get_sort_kind() != ARRAY)
+  {
+    return false;
+  }
+
+  if (sorts[1] != arrsort->get_indexsort())
+  {
+    return false;
+  }
+  else if (sorts[2] != arrsort->get_elemsort())
+  {
+    return false;
+  }
+
+  return true;
+}
+
+/** Checks if the sorts are well-sorted for a substring operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is the string sort
+ *         and the next two match the int sort
+ */
+bool check_substr_sorts(const SortVec & sorts)
+{
+  if (sorts.size() != 3)
+  {
+    return false;
+  }
+
+  Sort strsort = sorts[0];
+  if (strsort->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+
+  if (sorts[1]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+  else if (sorts[2]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+/** Checks if the sorts are well-sorted for a char at operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first sort is the string sort
+ *         and the second is the int sort
+ */
+bool check_charat_sorts(const SortVec & sorts)
+{
+  if (sorts.size() != 2)
+  {
+    return false;
+  }
+
+  Sort strsort = sorts[0];
+  if (strsort->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+
+  if (sorts[1]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+/** Checks if the sorts are well-sorted for an index of operator
+ *  @param sorts the vector of sorts
+ *  @param returns true iff the first two sorts are the string sort
+ *         and the third is the int sort
+ */
+bool check_indexof_sorts(const SortVec & sorts)
+{
+  if (sorts.size() != 3)
+  {
+    return false;
+  }
+
+  Sort strsort = sorts[0];
+  if (strsort->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+
+  if (sorts[1]->get_sort_kind() != STRING)
+  {
+    return false;
+  }
+  else if (sorts[2]->get_sort_kind() != INT)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool bool_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(BOOL, sorts);
+}
+
+bool bv_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(BV, sorts);
+}
+
+bool eq_bv_sorts(const SortVec & sorts)
+{
+  return !sorts.empty() && sorts[0]->get_sort_kind() == BV
+         && equal_sorts(sorts);
+}
+
+bool real_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(REAL, sorts);
+}
+
+bool int_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(INT, sorts);
+}
+
+bool string_sorts(const SortVec & sorts)
+{
+  return check_sortkind_matches(STRING, sorts);
+}
+
+bool arithmetic_sorts(const SortVec & sorts)
+{
+  return check_one_of_sortkinds({ INT, REAL }, sorts);
+}
+
+/** Weaker version of equal_sorts
+ *  Checks that the sorts are either equivalent
+ *  or at least all arithmetic sorts (e.g. real
+ *  and integer).
+ *  @return true iff they're all arithmetic sorts
+ *          or exactly the same sort
+ */
+bool arith_equal_sorts(const SortVec & sorts)
+{
+  return equal_sorts(sorts) || arithmetic_sorts(sorts);
+}
+
+Sort same_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  return sorts[0];
+}
+
+/** @return the Real sort if one of the sorts is the Real sort, and the first
+ *  sort otherwise, for an arithmetic operator over Ints and Reals */
+Sort arithmetic_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  // over an Int and a Real, every solver of both makes the term a Real
+  for (const Sort & sort : sorts)
+  {
+    if (sort->get_sort_kind() == REAL)
+    {
+      return sort;
+    }
+  }
+  return sorts[0];
+}
+
+Sort bool_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+{
+  return solver->make_sort(BOOL);
+}
+
+Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+{
+  return solver->make_sort(BV, 1);
+}
+
+Sort real_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+{
+  return solver->make_sort(REAL);
+}
+
+Sort int_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+{
+  return solver->make_sort(INT);
+}
+
+Sort string_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+{
+  return solver->make_sort(STRING);
+}
+
+Sort ite_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  if (sorts[1] != sorts[2])
+  {
+    throw IncorrectUsageException("Ite element sorts don't match: "
+                                  + sorts[1]->to_string() + ", "
+                                  + sorts[2]->to_string());
+  }
+  return sorts[1];
+}
+
+Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  std::uint64_t upper = op.indices[0];
+  std::uint64_t lower = op.indices[1];
+  std::uint64_t width = sorts[0]->get_width();
+  if (lower > upper || upper >= width)
+  {
+    throw IncorrectUsageException(
+        op.to_string() + " needs width > upper >= lower, but its argument has "
+        + "width " + std::to_string(width));
+  }
+  return solver->make_sort(BV, upper - lower + 1);
+}
+
+Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  std::uint64_t width0 = sorts[0]->get_width();
+  std::uint64_t width1 = sorts[1]->get_width();
+  if (width1 > max - width0)
+  {
+    throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                  + std::to_string(max) + " bits");
+  }
+  return solver->make_sort(BV, width0 + width1);
+}
+
+Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  std::uint64_t width = sorts[0]->get_width();
+  if (op.indices[0] > max - width)
+  {
+    throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                  + std::to_string(max) + " bits");
+  }
+  return solver->make_sort(BV, op.indices[0] + width);
+}
+
+Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+{
+  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+  std::uint64_t width = sorts[0]->get_width();
+  if (width != 0 && op.indices[0] > max / width)
+  {
+    throw IncorrectUsageException(op.to_string() + " would be wider than "
+                                  + std::to_string(max) + " bits");
+  }
+  return solver->make_sort(BV, op.indices[0] * width);
+}
+
+Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec &)
+{
+  return solver->make_sort(BV, op.indices[0]);
+}
+
+Sort apply_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  Sort funsort = sorts[0];
+  if (funsort->get_sort_kind() != FUNCTION)
+  {
+    throw IncorrectUsageException(
+        "Expecting first argument to Apply to be a function but got "
+        + funsort->to_string());
+  }
+  return funsort->get_codomain_sort();
+}
+
+Sort select_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  Sort arraysort = sorts[0];
+  if (arraysort->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException(
+        "Expecting first argument of Select to be an array but got: "
+        + arraysort->to_string());
+  }
+  return arraysort->get_elemsort();
+}
+
+Sort store_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  Sort arraysort = sorts[0];
+  if (arraysort->get_sort_kind() != ARRAY)
+  {
+    throw IncorrectUsageException(
+        "Expecting first argument of Store to be an array but got: "
+        + arraysort->to_string());
+  }
+  return arraysort;
+}
+
+Sort selector_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  return (sorts[0])->get_codomain_sort();
+}
+Sort constructor_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+{
+  return (sorts[0])->get_codomain_sort();
+}
 
 /** How check_sortedness checks an operator's argument sorts, by the
  *  function it calls
@@ -340,455 +833,6 @@ Sort compute_sort(Op op, const SmtSolver solver, const TermVec & terms)
 Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts)
 {
   return compute_sort(op, solver.get(), sorts);
-}
-
-// helper function implementations
-
-bool check_quantifier_terms(const TermVec & terms)
-{
-  return terms.size() == 2 && terms[0]->is_param()
-         && terms[1]->get_sort()->get_sort_kind() == BOOL;
-}
-
-/* helpers for sort checking */
-
-bool check_quantifier_sorts(const SortVec & sorts)
-{
-  return sorts.size() == 2 && sorts[1]->get_sort_kind() == BOOL;
-}
-
-bool equal_sorts(const SortVec & sorts)
-{
-  return (adjacent_find(sorts.begin(), sorts.end(), std::not_equal_to<Sort>())
-          == sorts.end());
-}
-
-bool arith_equal_sorts(const SortVec & sorts)
-{
-  return equal_sorts(sorts) || arithmetic_sorts(sorts);
-}
-
-bool equal_sortkinds(const SortVec & sorts)
-{
-  if (sorts.empty())
-  {
-    return true;
-  }
-  SortKind first_sk = sorts[0]->get_sort_kind();
-  for (auto it = next(sorts.begin()); it != sorts.end(); ++it)
-  {
-    if (first_sk != (*it)->get_sort_kind())
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool check_ite_sorts(const SortVec & sorts)
-{
-  return sorts.size() == 3 && sorts[0]->get_sort_kind() == BOOL
-         && sorts[1] == sorts[2];
-}
-
-bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
-{
-  for (auto sort : sorts)
-  {
-    if (sk != sort->get_sort_kind())
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool check_one_of_sortkinds(const std::unordered_set<SortKind> & sks,
-                            const SortVec & sorts)
-{
-  for (auto sort : sorts)
-  {
-    if (sks.find(sort->get_sort_kind()) == sks.end())
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool check_apply_sorts(const SortVec & sorts)
-{
-  if (sorts.empty())
-  {
-    return false;
-  }
-  Sort funsort = sorts[0];
-  if (funsort->get_sort_kind() != FUNCTION)
-  {
-    return false;
-  }
-
-  SortVec domain_sorts = funsort->get_domain_sorts();
-  if (domain_sorts.size() + 1 != sorts.size())
-  {
-    // expecting same number of arguments to function as arity
-    return false;
-  }
-
-  for (std::size_t i = 0; i < domain_sorts.size(); ++i)
-  {
-    if (domain_sorts[i] != sorts[i + 1])
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool check_select_sorts(const SortVec & sorts)
-{
-  if (sorts.size() != 2)
-  {
-    return false;
-  }
-
-  Sort arrsort = sorts[0];
-  if (arrsort->get_sort_kind() != ARRAY)
-  {
-    return false;
-  }
-
-  if (sorts[1] != arrsort->get_indexsort())
-  {
-    return false;
-  }
-
-  return true;
-}
-
-// the selector, then the datatype term it reads
-bool check_selector_sorts(const SortVec & sorts)
-{
-  return sorts.size() == 2 && sorts[0]->get_sort_kind() == SELECTOR
-         && sorts[1]->get_sort_kind() == DATATYPE;
-}
-
-// the constructor, then its arguments, which only the backend checks
-bool check_constructor_sorts(const SortVec & sorts)
-{
-  return !sorts.empty() && sorts[0]->get_sort_kind() == CONSTRUCTOR;
-}
-
-// the tester, then the datatype term it tests
-bool check_tester_sorts(const SortVec & sorts)
-{
-  return sorts.size() == 2 && sorts[0]->get_sort_kind() == TESTER
-         && sorts[1]->get_sort_kind() == DATATYPE;
-}
-
-bool check_store_sorts(const SortVec & sorts)
-{
-  if (sorts.size() != 3)
-  {
-    return false;
-  }
-
-  Sort arrsort = sorts[0];
-  if (arrsort->get_sort_kind() != ARRAY)
-  {
-    return false;
-  }
-
-  if (sorts[1] != arrsort->get_indexsort())
-  {
-    return false;
-  }
-  else if (sorts[2] != arrsort->get_elemsort())
-  {
-    return false;
-  }
-
-  return true;
-}
-
-bool check_substr_sorts(const SortVec & sorts)
-{
-  if (sorts.size() != 3)
-  {
-    return false;
-  }
-
-  Sort strsort = sorts[0];
-  if (strsort->get_sort_kind() != STRING)
-  {
-    return false;
-  }
-
-  if (sorts[1]->get_sort_kind() != INT)
-  {
-    return false;
-  }
-  else if (sorts[2]->get_sort_kind() != INT)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-bool check_charat_sorts(const SortVec & sorts)
-{
-  if (sorts.size() != 2)
-  {
-    return false;
-  }
-
-  Sort strsort = sorts[0];
-  if (strsort->get_sort_kind() != STRING)
-  {
-    return false;
-  }
-
-  if (sorts[1]->get_sort_kind() != INT)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-bool check_indexof_sorts(const SortVec & sorts)
-{
-  if (sorts.size() != 3)
-  {
-    return false;
-  }
-
-  Sort strsort = sorts[0];
-  if (strsort->get_sort_kind() != STRING)
-  {
-    return false;
-  }
-
-  if (sorts[1]->get_sort_kind() != STRING)
-  {
-    return false;
-  }
-  else if (sorts[2]->get_sort_kind() != INT)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-bool bool_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(BOOL, sorts);
-}
-
-bool bv_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(BV, sorts);
-}
-
-bool eq_bv_sorts(const SortVec & sorts)
-{
-  return !sorts.empty() && sorts[0]->get_sort_kind() == BV
-         && equal_sorts(sorts);
-}
-
-bool real_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(REAL, sorts);
-}
-
-bool int_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(INT, sorts);
-}
-
-bool string_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(STRING, sorts);
-}
-
-bool arithmetic_sorts(const SortVec & sorts)
-{
-  return check_one_of_sortkinds({ INT, REAL }, sorts);
-}
-
-bool array_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(ARRAY, sorts);
-}
-
-bool function_sorts(const SortVec & sorts)
-{
-  return check_sortkind_matches(FUNCTION, sorts);
-}
-
-/* helpers for sort inference (return type of operation) */
-
-/* Common sort computation helper functions */
-
-Sort same_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  return sorts[0];
-}
-
-Sort arithmetic_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  // over an Int and a Real, every solver of both makes the term a Real
-  for (const Sort & sort : sorts)
-  {
-    if (sort->get_sort_kind() == REAL)
-    {
-      return sort;
-    }
-  }
-  return sorts[0];
-}
-
-Sort bool_sort(Op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(BOOL);
-}
-
-Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(BV, 1);
-}
-
-Sort real_sort(Op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(REAL);
-}
-
-Sort int_sort(Op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(INT);
-}
-
-Sort string_sort(Op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(STRING);
-}
-
-Sort ite_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  if (sorts[1] != sorts[2])
-  {
-    throw IncorrectUsageException("Ite element sorts don't match: "
-                                  + sorts[1]->to_string() + ", "
-                                  + sorts[2]->to_string());
-  }
-  return sorts[1];
-}
-
-Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-{
-  std::uint64_t upper = op.indices[0];
-  std::uint64_t lower = op.indices[1];
-  std::uint64_t width = sorts[0]->get_width();
-  if (lower > upper || upper >= width)
-  {
-    throw IncorrectUsageException(
-        op.to_string() + " needs width > upper >= lower, but its argument has "
-        + "width " + std::to_string(width));
-  }
-  return solver->make_sort(BV, upper - lower + 1);
-}
-
-Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-{
-  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
-  std::uint64_t width0 = sorts[0]->get_width();
-  std::uint64_t width1 = sorts[1]->get_width();
-  if (width1 > max - width0)
-  {
-    throw IncorrectUsageException(op.to_string() + " would be wider than "
-                                  + std::to_string(max) + " bits");
-  }
-  return solver->make_sort(BV, width0 + width1);
-}
-
-Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-{
-  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
-  std::uint64_t width = sorts[0]->get_width();
-  if (op.indices[0] > max - width)
-  {
-    throw IncorrectUsageException(op.to_string() + " would be wider than "
-                                  + std::to_string(max) + " bits");
-  }
-  return solver->make_sort(BV, op.indices[0] + width);
-}
-
-Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
-{
-  constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
-  std::uint64_t width = sorts[0]->get_width();
-  if (width != 0 && op.indices[0] > max / width)
-  {
-    throw IncorrectUsageException(op.to_string() + " would be wider than "
-                                  + std::to_string(max) + " bits");
-  }
-  return solver->make_sort(BV, op.indices[0] * width);
-}
-
-Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(BV, op.indices[0]);
-}
-
-Sort apply_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  Sort funsort = sorts[0];
-  if (funsort->get_sort_kind() != FUNCTION)
-  {
-    throw IncorrectUsageException(
-        "Expecting first argument to Apply to be a function but got "
-        + funsort->to_string());
-  }
-  return funsort->get_codomain_sort();
-}
-
-Sort select_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  Sort arraysort = sorts[0];
-  if (arraysort->get_sort_kind() != ARRAY)
-  {
-    throw IncorrectUsageException(
-        "Expecting first argument of Select to be an array but got: "
-        + arraysort->to_string());
-  }
-  return arraysort->get_elemsort();
-}
-
-Sort store_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  Sort arraysort = sorts[0];
-  if (arraysort->get_sort_kind() != ARRAY)
-  {
-    throw IncorrectUsageException(
-        "Expecting first argument of Store to be an array but got: "
-        + arraysort->to_string());
-  }
-  return arraysort;
-}
-
-Sort selector_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  return (sorts[0])->get_codomain_sort();
-}
-Sort constructor_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
-{
-  return (sorts[0])->get_codomain_sort();
-}
-Sort tester_sort(Op, const AbsSmtSolver * solver, const SortVec &)
-{
-  return solver->make_sort(BOOL);
 }
 
 }  // namespace smt

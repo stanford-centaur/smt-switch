@@ -85,43 +85,36 @@ class DatatypeSortedness : public UnitSortInferenceTests
 {
 };
 
-TEST_P(UnitSortInferenceTests, HelperTests)
+TEST_P(UnitSortInferenceTests, SortRules)
 {
-  EXPECT_TRUE(equal_sorts({ boolsort, boolsort }));
-  EXPECT_TRUE(equal_sorts({ bvsort4, bvsort4 }));
-  EXPECT_TRUE(equal_sorts({ arrsort, arrsort }));
-  EXPECT_TRUE(equal_sorts({ funsort, funsort }));
-  EXPECT_FALSE(equal_sorts({ boolsort, bvsort4 }));
-  EXPECT_FALSE(equal_sorts({ bvsort4, bvsort5 }));
+  EXPECT_TRUE(check_sortedness(Equal, SortVec{ boolsort, boolsort }));
+  EXPECT_TRUE(check_sortedness(Equal, SortVec{ bvsort4, bvsort4 }));
+  EXPECT_TRUE(check_sortedness(Equal, SortVec{ arrsort, arrsort }));
+  EXPECT_TRUE(check_sortedness(Equal, SortVec{ funsort, funsort }));
+  EXPECT_FALSE(check_sortedness(Equal, SortVec{ boolsort, bvsort4 }));
+  EXPECT_FALSE(check_sortedness(Equal, SortVec{ bvsort4, bvsort5 }));
 
-  EXPECT_TRUE(equal_sortkinds({ bvsort4, bvsort5 }));
-  EXPECT_TRUE(equal_sortkinds({ funsort, funsort }));
-  EXPECT_FALSE(equal_sortkinds({ funsort, bvsort4 }));
-
-  EXPECT_FALSE(check_ite_sorts({ boolsort, bvsort4, bvsort5 }));
+  EXPECT_FALSE(check_sortedness(Ite, SortVec{ boolsort, bvsort4, bvsort5 }));
 
   // if solver aliases booleans and bitvectors of width 1, this test fails
   if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
   {
-    EXPECT_TRUE(check_ite_sorts({ boolsort, bvsort4, bvsort4 }));
-    EXPECT_TRUE(bool_sorts({ boolsort }));
+    EXPECT_TRUE(check_sortedness(Ite, SortVec{ boolsort, bvsort4, bvsort4 }));
+    EXPECT_TRUE(check_sortedness(Not, SortVec{ boolsort }));
   }
 
-  EXPECT_TRUE(bv_sorts({ bvsort4 }));
-  EXPECT_TRUE(array_sorts({ arrsort }));
-  EXPECT_TRUE(function_sorts({ funsort }));
+  EXPECT_TRUE(check_sortedness(BVNot, SortVec{ bvsort4 }));
 }
 
-TEST_P(UnitSortInferenceTests, HelpersTakeTooFewSorts)
+TEST_P(UnitSortInferenceTests, SortednessTooFewSorts)
 {
-  EXPECT_TRUE(equal_sorts({}));
-  EXPECT_TRUE(equal_sortkinds({}));
-  EXPECT_FALSE(check_ite_sorts({}));
-  EXPECT_FALSE(check_ite_sorts({ boolsort, bvsort4 }));
-  EXPECT_FALSE(check_apply_sorts({}));
-  EXPECT_FALSE(eq_bv_sorts({}));
-  EXPECT_FALSE(check_select_sorts({}));
-  EXPECT_FALSE(check_store_sorts({}));
+  EXPECT_FALSE(check_sortedness(Equal, SortVec{}));
+  EXPECT_FALSE(check_sortedness(Ite, SortVec{}));
+  EXPECT_FALSE(check_sortedness(Ite, SortVec{ boolsort, bvsort4 }));
+  EXPECT_FALSE(check_sortedness(Apply, SortVec{}));
+  EXPECT_FALSE(check_sortedness(BVAnd, SortVec{}));
+  EXPECT_FALSE(check_sortedness(Select, SortVec{}));
+  EXPECT_FALSE(check_sortedness(Store, SortVec{}));
 }
 
 TEST_P(UnitSortInferenceTests, SortComputationTooFewArguments)
