@@ -293,9 +293,6 @@ std::string Op::to_string() const
 
 bool Op::is_null() const { return prim_op == NUM_OPS_AND_NULL; }
 
-// check_sortedness and compute_sort are defined in sort_inference.cpp,
-// beside the sort rules of each operator they look up.
-
 std::pair<std::size_t, std::size_t> get_arity(PrimOp po)
 {
   const PrimOpInfo & row = info(po, "get_arity");
