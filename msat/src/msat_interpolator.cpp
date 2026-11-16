@@ -23,26 +23,24 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/term.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
 
 /** text, followed by error if there is one */
-string with_error(const string & text, const string & error)
+std::string with_error(const std::string & text, const std::string & error)
 {
   return error.empty() ? text : text + ": " + error;
 }
 
 // After MathSAT refuses a push or pop, the assertions kept for reuse no
 // longer match its backtrack points, so the next query starts afresh.
-[[noreturn]] void throw_and_forget_query(const string & what,
+[[noreturn]] void throw_and_forget_query(const std::string & what,
                                          msat_env env,
                                          TermVec & assertions,
-                                         vector<int> & groups)
+                                         std::vector<int> & groups)
 {
-  string error = detail::last_error_message(env);
+  std::string error = detail::last_error_message(env);
   msat_reset_env(env);
   assertions.clear();
   groups.clear();
@@ -70,10 +68,11 @@ void MsatInterpolator::initialize()
   // msat_solver_->set_opt("theory.eq_propagation", "false");
 }
 
-void MsatInterpolator::do_set_opt(const string & option, const string & value)
+void MsatInterpolator::do_set_opt(const std::string & option,
+                                  const std::string & value)
 {
   // The constructor sets these, and the interpolator cannot do without them.
-  const string name = detail::msat_option_name(option);
+  const std::string name = detail::msat_option_name(option);
   if (name == "interpolation" || name == "theory.bv.eager")
   {
     throw IncorrectUsageException(
@@ -112,7 +111,7 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
 
   // unwrapped before anything changes, so a refused formula leaves the
   // assertion stack as it was
-  vector<msat_term> mformulae;
+  std::vector<msat_term> mformulae;
   mformulae.reserve(formulae.size());
   for (const Term & f : formulae)
   {
@@ -210,7 +209,7 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
     }
     else
     {
-      out_I.push_back(make_shared<MsatTerm>(env, mI));
+      out_I.push_back(std::make_shared<MsatTerm>(env, mI));
     }
   }
 

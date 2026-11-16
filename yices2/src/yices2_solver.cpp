@@ -37,8 +37,6 @@
 #include "smt-switch/yices2_sort.h"
 #include "smt-switch/yices2_term.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
@@ -163,7 +161,7 @@ term_t bv_value_to_int(term_t bv_value, bool is_signed)
 {
   const uint32_t width = yices_term_bitsize(bv_value);
   // yices gives the bits least significant first
-  vector<int32_t> bits(width);
+  std::vector<int32_t> bits(width);
   yices_bv_const_value(bv_value, bits.data());
   mpz_t value;
   mpz_init(value);
@@ -225,7 +223,7 @@ uint32_t pow_exponent(term_t term)
  */
 [[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
 {
-  const pair<size_t, size_t> arity = get_arity(po);
+  const std::pair<size_t, size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
   {
     throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
@@ -398,7 +396,7 @@ term_t binary_term(PrimOp po, term_t a, term_t b)
 Term variadic_term(const AbsSmtSolver * solver,
                    const Op & op,
                    const TermVec & terms,
-                   vector<term_t> & args)
+                   std::vector<term_t> & args)
 {
   const uint32_t n = narrow_num_args(args.size());
   term_t * a = args.data();
@@ -576,7 +574,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
   }
   else
   {
-    string msg("Can't create value ");
+    std::string msg("Can't create value ");
     msg += std::to_string(i);
     msg += " with sort ";
     msg += sort->to_string();
@@ -643,7 +641,7 @@ Term Yices2Solver::make_term(const std::string val,
   }
   else
   {
-    string msg("Can't create value ");
+    std::string msg("Can't create value ");
     msg += val;
     msg += " with sort ";
     msg += sort->to_string();
@@ -665,8 +663,8 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
                                   + sort->to_string()
                                   + ", which is not an array sort");
   }
-  shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
-  shared_ptr<Yices2Term> yval = backend_pointer_cast<Yices2Term>(val);
+  std::shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
+  std::shared_ptr<Yices2Term> yval = backend_pointer_cast<Yices2Term>(val);
 
   // a variable, not an uninterpreted term, as yices_lambda takes only the
   // first; the same one each time, so Yices finds an equal lambda it made
@@ -682,7 +680,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
 
 void Yices2Solver::do_assert(const Term & t)
 {
-  shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
+  std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
   yices_assert_formula(get_context().get(), yterm->term);
   if (yices_error_code() != 0)
   {
@@ -722,7 +720,7 @@ Result Yices2Solver::check_sat()
 
 Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
 {
-  vector<term_t> y_assumps;
+  std::vector<term_t> y_assumps;
   y_assumps.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
@@ -804,7 +802,7 @@ void Yices2Solver::do_pop(uint64_t num)
 
 Term Yices2Solver::get_value(const Term & t) const
 {
-  shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
+  std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
   detail::Yices2ModelPtr model(ctx ? yices_get_model(ctx.get(), true)
                                    : nullptr);
   if (!model)
@@ -855,7 +853,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
                                                 Term & out_const_base) const
 {
   out_const_base = nullptr;
-  shared_ptr<Yices2Term> yarr = backend_pointer_cast<Yices2Term>(arr);
+  std::shared_ptr<Yices2Term> yarr = backend_pointer_cast<Yices2Term>(arr);
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
@@ -1131,7 +1129,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
     throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
 
-  shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
+  std::shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   term_t y_term = yices_new_uninterpreted_term(ysort->get_ytype());
   yices_set_term_name(y_term, name.c_str());
 
@@ -1156,7 +1154,7 @@ Term Yices2Solver::get_symbol(const std::string & name) const
 
 Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
 {
-  shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
+  std::shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
   // a variable, not an uninterpreted term: this is the one a quantifier can
   // bind, and the only one yices_forall and yices_lambda accept
   term_t y_term = yices_new_variable(ysort->get_ytype());
@@ -1173,7 +1171,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
                                   + " to zero terms");
   }
 
-  vector<term_t> yterms;
+  std::vector<term_t> yterms;
   yterms.reserve(size);
   for (const auto & t : terms)
   {
@@ -1195,7 +1193,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   {
     if (!yices_term_is_function(yterms[0]))
     {
-      string msg(
+      std::string msg(
           "Expecting an uninterpreted function to be used with Apply but got ");
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
@@ -1268,13 +1266,13 @@ void Yices2Solver::dump_smt2(std::string filename) const
 Term Yices2Solver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {
-  shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(term);
+  std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(term);
 
-  vector<term_t> to_subst;
-  vector<term_t> values;
+  std::vector<term_t> to_subst;
+  std::vector<term_t> values;
 
-  shared_ptr<Yices2Term> tmp_key;
-  shared_ptr<Yices2Term> tmp_val;
+  std::shared_ptr<Yices2Term> tmp_key;
+  std::shared_ptr<Yices2Term> tmp_val;
 
   for (auto elem : substitution_map)
   {

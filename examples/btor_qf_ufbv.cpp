@@ -10,52 +10,49 @@
 
 #include <iostream>
 
-using namespace smt;
-using namespace std;
-
 int main()
 {
   // Boolector aliases booleans and bitvectors of size one
   // and also performs on-the-fly rewriting
   // if you'd like to maintain the term structure, you can
   // enable logging by passing true
-  SmtSolver s = BoolectorSolverFactory::create(false);
+  smt::SmtSolver s = smt::BoolectorSolverFactory::create(false);
 
   s->set_logic("QF_UFBV");
   s->set_opt("incremental", "true");
   s->set_opt("produce-models", "true");
   s->set_opt("produce-unsat-assumptions", "true");
-  Sort bvs = s->make_sort(BV, 32);
-  Sort funs = s->make_sort(FUNCTION, { bvs, bvs });
+  smt::Sort bvs = s->make_sort(smt::BV, 32);
+  smt::Sort funs = s->make_sort(smt::FUNCTION, { bvs, bvs });
 
-  Term x = s->make_symbol("x", bvs);
-  Term y = s->make_symbol("y", bvs);
-  Term f = s->make_symbol("f", funs);
+  smt::Term x = s->make_symbol("x", bvs);
+  smt::Term y = s->make_symbol("y", bvs);
+  smt::Term f = s->make_symbol("f", funs);
 
-  Op ext = Op(Extract, 15, 0);
-  Term x0 = s->make_term(ext, x);
-  Term y0 = s->make_term(ext, y);
+  smt::Op ext = smt::Op(smt::Extract, 15, 0);
+  smt::Term x0 = s->make_term(ext, x);
+  smt::Term y0 = s->make_term(ext, y);
 
-  Term fx = s->make_term(Apply, f, x);
-  Term fy = s->make_term(Apply, f, y);
-  s->assert_formula(s->make_term(Distinct, fx, fy));
+  smt::Term fx = s->make_term(smt::Apply, f, x);
+  smt::Term fy = s->make_term(smt::Apply, f, y);
+  s->assert_formula(s->make_term(smt::Distinct, fx, fy));
 
   s->push(1);
-  s->assert_formula(s->make_term(Equal, x0, y0));
-  cout << s->check_sat() << endl;
+  s->assert_formula(s->make_term(smt::Equal, x0, y0));
+  std::cout << s->check_sat() << std::endl;
 
-  cout << s->get_value(x) << endl;
+  std::cout << s->get_value(x) << std::endl;
   s->pop(1);
 
-  Term xy = s->make_term(BVAnd, x, y);
-  Term a1 = s->make_term(BVUge, x0, y0);
-  Term a2 = s->make_term(BVUge, xy, x);
-  Term a3 = s->make_term(BVUge, xy, y);
-  cout << s->check_sat_assuming({ a1, a2, a3 }) << endl;
-  UnorderedTermSet ua;
+  smt::Term xy = s->make_term(smt::BVAnd, x, y);
+  smt::Term a1 = s->make_term(smt::BVUge, x0, y0);
+  smt::Term a2 = s->make_term(smt::BVUge, xy, x);
+  smt::Term a3 = s->make_term(smt::BVUge, xy, y);
+  std::cout << s->check_sat_assuming({ a1, a2, a3 }) << std::endl;
+  smt::UnorderedTermSet ua;
   s->get_unsat_assumptions(ua);
-  for (Term t : ua)
+  for (smt::Term t : ua)
   {
-    cout << t << endl;
+    std::cout << t << std::endl;
   }
 }

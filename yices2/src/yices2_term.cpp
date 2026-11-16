@@ -24,8 +24,6 @@
 #include "smt-switch/yices2_extensions.h"
 #include "smt-switch/yices2_sort.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
@@ -33,7 +31,7 @@ namespace {
 /** Returns a term as Yices prints it, in its own language and on one line,
  *  e.g. -5 or 1/2 for a constant
  */
-string yices2_to_string(term_t term)
+std::string yices2_to_string(term_t term)
 {
   return detail::get_yices2_string(
       yices_term_to_string(term, UINT32_MAX, 1, 0));
@@ -42,16 +40,16 @@ string yices2_to_string(term_t term)
 /** Returns the value of an arithmetic constant as GMP writes it, n or n/d
  *  in decimal
  */
-string rational_const_text(term_t term)
+std::string rational_const_text(term_t term)
 {
   mpq_t value;
   mpq_init(value);
   yices_rational_const_value(term, value);
   // room for both parts, a sign, the slash and the terminator, as
   // mpq_get_str documents
-  string text(mpz_sizeinbase(mpq_numref(value), 10)
-                  + mpz_sizeinbase(mpq_denref(value), 10) + 3,
-              '\0');
+  std::string text(mpz_sizeinbase(mpq_numref(value), 10)
+                       + mpz_sizeinbase(mpq_denref(value), 10) + 3,
+                   '\0');
   mpq_get_str(&text[0], 10, value);
   mpq_clear(value);
   text.resize(text.find('\0'));
@@ -134,13 +132,13 @@ Op divisible_op(term_t term)
 }
 
 /** Returns the bits of a bit-vector constant, most significant first */
-string bv_constant_to_bits(term_t term)
+std::string bv_constant_to_bits(term_t term)
 {
   const uint32_t width = yices_term_bitsize(term);
   // yices gives the bits least significant first
-  vector<int32_t> bits(width);
+  std::vector<int32_t> bits(width);
   yices_bv_const_value(term, bits.data());
-  string res;
+  std::string res;
   for (uint32_t i = width; i > 0; --i)
   {
     res += bits[i - 1] ? '1' : '0';
@@ -164,7 +162,8 @@ size_t Yices2Term::get_id() const { return term; }
 
 bool Yices2Term::compare(const Term & absterm) const
 {
-  shared_ptr<Yices2Term> yterm = std::dynamic_pointer_cast<Yices2Term>(absterm);
+  std::shared_ptr<Yices2Term> yterm =
+      std::dynamic_pointer_cast<Yices2Term>(absterm);
   return yterm && term == yterm->term;
 }
 
@@ -326,13 +325,13 @@ bool Yices2Term::is_value() const
           || tc == YICES_LAMBDA_TERM);
 }
 
-string Yices2Term::get_constructor_name() const
+std::string Yices2Term::get_constructor_name() const
 {
   throw IncorrectUsageException(
       "Only a constructor or a tester has a constructor name");
 }
 
-string Yices2Term::get_param_name() const
+std::string Yices2Term::get_param_name() const
 {
   if (!is_param())
   {
@@ -341,12 +340,12 @@ string Yices2Term::get_param_name() const
   return yices_get_term_name(term);
 }
 
-string Yices2Term::get_selector_name() const
+std::string Yices2Term::get_selector_name() const
 {
   throw IncorrectUsageException("Only a selector has a selector name");
 }
 
-string Yices2Term::get_symbol_name() const
+std::string Yices2Term::get_symbol_name() const
 {
   if (!is_symbol() || is_param())
   {
@@ -388,7 +387,7 @@ int64_t Yices2Term::to_signed_int() const
       "to an integer");
 }
 
-string Yices2Term::to_bits() const
+std::string Yices2Term::to_bits() const
 {
   if (yices_term_constructor(term) != YICES_BV_CONSTANT)
   {
@@ -640,7 +639,7 @@ std::string Yices2Term::print_value_as(SortKind /* sk */) const
   return to_string();
 }
 
-string Yices2Term::to_string() const
+std::string Yices2Term::to_string() const
 {
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_ARITH_CONSTANT)

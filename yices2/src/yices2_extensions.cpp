@@ -15,8 +15,6 @@
 
 #include "smt-switch/exceptions.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
@@ -33,10 +31,10 @@ void detail::Yices2ModelDeleter::operator()(model_t * model) const
   yices_free_model(model);
 }
 
-string detail::get_yices2_error()
+std::string detail::get_yices2_error()
 {
-  unique_ptr<char, YicesStringDeleter> reason(yices_error_string());
-  string msg(reason.get());
+  std::unique_ptr<char, YicesStringDeleter> reason(yices_error_string());
+  std::string msg(reason.get());
   yices_clear_error();
   // Yices2 ends a few of its error messages with a newline.
   if (!msg.empty() && msg.back() == '\n')
@@ -49,7 +47,7 @@ string detail::get_yices2_error()
 void detail::throw_yices2_error()
 {
   error_code_t code = yices_error_code();
-  string msg = get_yices2_error();
+  std::string msg = get_yices2_error();
   // Yices reports most refusals under codes of their own, so only those
   // that are not the caller's mistake are listed.
   switch (code)
@@ -104,9 +102,9 @@ void detail::throw_yices2_error()
   }
 }
 
-string detail::get_yices2_string(char * s)
+std::string detail::get_yices2_string(char * s)
 {
-  unique_ptr<char, YicesStringDeleter> owned(s);
+  std::unique_ptr<char, YicesStringDeleter> owned(s);
   if (!owned)
   {
     throw_yices2_error();

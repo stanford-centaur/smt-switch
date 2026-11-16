@@ -23,8 +23,6 @@
 #include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
@@ -67,7 +65,7 @@ uint64_t congruence_modulus(msat_env e, msat_term t)
 /** Returns the value of a MathSAT arithmetic number term as n or n/d in
  *  decimal, as GMP writes it, or throws if the term is not a number.
  */
-string number_to_text(msat_env env, msat_term term, bool is_uf)
+std::string number_to_text(msat_env env, msat_term term, bool is_uf)
 {
   if (is_uf)
   {
@@ -86,9 +84,9 @@ string number_to_text(msat_env env, msat_term term, bool is_uf)
   msat_term_to_number(env, term, value);
   // room for both parts, a sign, the slash and the terminator, as
   // mpq_get_str documents
-  string text(mpz_sizeinbase(mpq_numref(value), 10)
-                  + mpz_sizeinbase(mpq_denref(value), 10) + 3,
-              '\0');
+  std::string text(mpz_sizeinbase(mpq_numref(value), 10)
+                       + mpz_sizeinbase(mpq_denref(value), 10) + 3,
+                   '\0');
   mpq_get_str(&text[0], 10, value);
   mpq_clear(value);
   text.resize(text.find('\0'));
@@ -132,7 +130,8 @@ size_t MsatTerm::get_id() const
 
 bool MsatTerm::compare(const Term & absterm) const
 {
-  shared_ptr<MsatTerm> mterm = std::dynamic_pointer_cast<MsatTerm>(absterm);
+  std::shared_ptr<MsatTerm> mterm =
+      std::dynamic_pointer_cast<MsatTerm>(absterm);
   if (!mterm || env != mterm->env)
   {
     // ids are unique only within one environment
@@ -371,7 +370,7 @@ Sort MsatTerm::get_sort() const
   else
   {
     // need to reconstruct the function type
-    vector<msat_type> param_types;
+    std::vector<msat_type> param_types;
     size_t arity = msat_decl_get_arity(decl);
     param_types.reserve(arity);
     for (size_t i = 0; i < arity; i++)
@@ -459,12 +458,12 @@ bool MsatTerm::is_value() const
   {
     return false;
   }
-  string name =
+  std::string name =
       detail::get_msat_string(msat_decl_get_name(msat_term_get_decl(term)));
   return name[0] == '@';
 }
 
-string MsatTerm::to_string() const
+std::string MsatTerm::to_string() const
 {
   if (is_uf)
   {
@@ -484,13 +483,13 @@ string MsatTerm::to_string() const
   }
 }
 
-string MsatTerm::get_constructor_name() const
+std::string MsatTerm::get_constructor_name() const
 {
   throw IncorrectUsageException(
       "Only a constructor or a tester has a constructor name");
 }
 
-string MsatTerm::get_param_name() const
+std::string MsatTerm::get_param_name() const
 {
   if (!is_param())
   {
@@ -501,12 +500,12 @@ string MsatTerm::get_param_name() const
       .substr(1);
 }
 
-string MsatTerm::get_selector_name() const
+std::string MsatTerm::get_selector_name() const
 {
   throw IncorrectUsageException("Only a selector has a selector name");
 }
 
-string MsatTerm::get_symbol_name() const
+std::string MsatTerm::get_symbol_name() const
 {
   // A function has a declaration but no term, which is_param would read.
   if (!is_uf && (!is_symbol() || is_param()))
@@ -536,7 +535,7 @@ int64_t MsatTerm::to_signed_int() const
   return smtlib::int_to_int64(number_to_text(*env, term, is_uf));
 }
 
-string MsatTerm::to_bits() const
+std::string MsatTerm::to_bits() const
 {
   size_t width = 0;
   if (is_uf || !msat_is_bv_type(*env, msat_term_get_type(term), &width)
@@ -548,7 +547,7 @@ string MsatTerm::to_bits() const
   mpq_t value;
   mpq_init(value);
   msat_term_to_number(*env, term, value);
-  string bits(width, '0');
+  std::string bits(width, '0');
   for (size_t i = 0; i < width; ++i)
   {
     if (mpz_tstbit(mpq_numref(value), i))
