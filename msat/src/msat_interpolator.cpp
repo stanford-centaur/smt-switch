@@ -16,7 +16,6 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/msat_env.h"
-#include "smt-switch/msat_extensions.h"
 #include "smt-switch/msat_solver.h"
 #include "smt-switch/msat_term.h"
 #include "smt-switch/result.h"
@@ -40,7 +39,7 @@ std::string with_error(const std::string & text, const std::string & error)
                                          TermVec & assertions,
                                          std::vector<int> & groups)
 {
-  std::string error = detail::last_error_message(env);
+  std::string error = msat_last_error_message(env);
   msat_reset_env(env);
   assertions.clear();
   groups.clear();
@@ -72,8 +71,8 @@ void MsatInterpolator::do_set_opt(const std::string & option,
                                   const std::string & value)
 {
   // The constructor sets these, and the interpolator cannot do without them.
-  const std::string name = detail::msat_option_name(option);
-  if (name == "interpolation" || name == "theory.bv.eager")
+  if (option == "produce-interpolants" || option == "interpolation"
+      || option == "theory.bv.eager")
   {
     throw IncorrectUsageException(
         "The MathSAT interpolator does not allow the option " + option);
@@ -185,7 +184,7 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
     }
     return Result(
         UNKNOWN,
-        with_error("Interpolation failure", detail::last_error_message(*env)));
+        with_error("Interpolation failure", msat_last_error_message(*env)));
   }
 
   Result r = Result(UNSAT);
@@ -204,7 +203,7 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
         r = Result(UNKNOWN,
                    with_error("Had at least one interpolation failure in "
                               "get_sequence_interpolants",
-                              detail::last_error_message(*env)));
+                              msat_last_error_message(*env)));
       }
     }
     else
