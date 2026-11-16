@@ -32,8 +32,6 @@ namespace {
 class Cvc5PrintingTest : public testing::Test
 {
  protected:
-  void SetUp() override { os = new std::ostream(&strbuf); }
-  void TearDown() override { delete os; }
   void check_result(
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
@@ -45,13 +43,13 @@ class Cvc5PrintingTest : public testing::Test
     dump_and_run(cvc5_binary, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;
-  std::ostream * os;
+  std::ostream os{ &strbuf };
 };
 
 TEST_F(Cvc5PrintingTest, Interpolation)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   s->set_opt("bv-print-consts-as-indexed-symbols", "true");
   Sort intsort = s->make_sort(INT);
@@ -89,8 +87,8 @@ TEST_F(Cvc5PrintingTest, Interpolation)
 
 TEST_F(Cvc5PrintingTest, SequenceInterpolation)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -114,8 +112,8 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolation)
 // a query that extends an unsat last one asks only its new splits
 TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -150,8 +148,8 @@ TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
 // extends that pair asks every split
 TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      Cvc5SolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);

@@ -35,9 +35,7 @@ class BitwuzlaPrintingTest : public testing::Test
 #ifndef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
     GTEST_SKIP() << "this Bitwuzla cannot interpolate";
 #endif
-    os = new std::ostream(&strbuf);
   }
-  void TearDown() override { delete os; }
   void check_result(
       std::vector<std::unordered_set<std::string>> expected_results,
       std::string extra_opts = "")
@@ -49,13 +47,13 @@ class BitwuzlaPrintingTest : public testing::Test
     dump_and_run(bitwuzla_binary, strbuf, expected_results, extra_opts);
   }
   std::stringbuf strbuf;
-  std::ostream * os = nullptr;
+  std::ostream os{ &strbuf };
 };
 
 TEST_F(BitwuzlaPrintingTest, Interpolation)
 {
-  SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolator(), os);
+  SmtInterpolator solver =
+      interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -94,8 +92,8 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
 
 TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
 {
-  SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolator(), os);
+  SmtInterpolator solver =
+      interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -126,8 +124,8 @@ TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
 // that shares only a prefix with it, or nothing, pops the rest
 TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
 {
-  SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolator(), os);
+  SmtInterpolator solver =
+      interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
   Sort bvsort = solver->make_sort(BV, 2);
@@ -193,8 +191,8 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
 // query through the other left asserted
 TEST_F(BitwuzlaPrintingTest, CopiesShareWhatIsAsserted)
 {
-  SmtInterpolator solver = create_printing_interpolator(
-      BitwuzlaSolverFactory::create_interpolator(), os);
+  SmtInterpolator solver =
+      interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   auto copy = std::make_shared<PrintingInterpolator>(
       *std::static_pointer_cast<PrintingInterpolator>(solver));
   solver->set_logic("QF_BV");

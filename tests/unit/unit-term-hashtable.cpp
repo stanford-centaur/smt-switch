@@ -76,7 +76,7 @@ TEST_P(UnitTestsHashTable, HashTable)
 // them in this test
 INSTANTIATE_TEST_SUITE_P(ParametrizedUnitHashTable,
                          UnitTestsHashTable,
-                         testing::ValuesIn(available_solver_enums()));
+                         testing::ValuesIn(solvers::available()));
 
 }  // namespace
 

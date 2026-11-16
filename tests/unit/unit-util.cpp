@@ -824,7 +824,7 @@ class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
   void SetUp() override
   {
     // a logging solver keeps the terms as built
-    s = smt::create_solver(GetParam(), /* logging */ true);
+    s = smt::solvers::create(GetParam(), /* logging */ true);
     boolsort = s->make_sort(BOOL);
     Sort bvsort = s->make_sort(BV, 8);
     x = s->make_symbol("x", bvsort);
@@ -889,12 +889,12 @@ TEST_P(GetTheoryAtoms, SplitsIfThenElse)
 
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          IsTheoryAtom,
-                         testing::ValuesIn(available_solver_enums()),
+                         testing::ValuesIn(solvers::available()),
                          testing::PrintToStringParamName());
 
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          GetTheoryAtoms,
-                         testing::ValuesIn(available_solver_enums()),
+                         testing::ValuesIn(solvers::available()),
                          testing::PrintToStringParamName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetJustifyingSymbols);
@@ -904,7 +904,7 @@ class GetJustifyingSymbols : public testing::TestWithParam<SolverEnum>
   void SetUp() override
   {
     // a logging solver keeps the terms as built
-    s = smt::create_solver(GetParam(), /* logging */ true);
+    s = smt::solvers::create(GetParam(), /* logging */ true);
     s->set_opt("produce-models", "true");
     Sort boolsort = s->make_sort(BOOL);
     bvsort = s->make_sort(BV, 8);
@@ -977,7 +977,7 @@ TEST_P(GetJustifyingSymbols, ZeroOperandDecidesBitVectorAnd)
 
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          GetJustifyingSymbols,
-                         testing::ValuesIn(available_solver_enums()),
+                         testing::ValuesIn(solvers::available()),
                          testing::PrintToStringParamName());
 
 TEST(InternalName, KindAndIndex)

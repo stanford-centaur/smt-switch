@@ -10,6 +10,7 @@
 #define SMT_SWITCH_PRINTING_SOLVER_H
 
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -22,31 +23,13 @@
 namespace smt {
 
 /**
- * @deprecated Taken only by the deprecated forms of the printing
- * constructors and factories, which ignore it: a PrintingInterpolator
- * writes each interpolation query as the interpolator it wraps runs it, and
- * nothing a PrintingSolver writes depends on a style.
- */
-// the enumerators rather than the type are deprecated, so that the
-// deprecated forms can still be defined without a warning
-enum PrintingStyleEnum
-{
-  DEFAULT_STYLE [[deprecated("printing no longer takes a style")]] = 0,
-  BZLA_STYLE [[deprecated("printing no longer takes a style")]],
-  CVC5_STYLE [[deprecated("printing no longer takes a style")]],
-  MSAT_STYLE [[deprecated("printing no longer takes a style")]],
-};
-
-/**
  * A class that wraps an SMT-solver and prints corresponding
  * SMT-LIB commands.
  */
 class PrintingSolver : public AbsSmtSolver
 {
  public:
-  PrintingSolver(SmtSolver s, std::ostream * os);
-  [[deprecated("use the constructor without a style")]] PrintingSolver(
-      SmtSolver s, std::ostream * os, PrintingStyleEnum pse);
+  PrintingSolver(SmtSolver s, std::ostream & os);
   PrintingSolver(const PrintingSolver & other) = default;
   PrintingSolver(PrintingSolver && other) = default;
   PrintingSolver & operator=(const PrintingSolver & other) = default;
@@ -125,23 +108,19 @@ class PrintingSolver : public AbsSmtSolver
   /* The wrapped solver */
   SmtSolver wrapped_solver;
   /* A stream to dump SMT-LIB commands to */
-  std::ostream * out_stream;
+  std::reference_wrapper<std::ostream> out_stream;
 };
 
-/* Returns a printing SmtSolver by wrapping PrintingSmtSolver's constructor.
- * @param wrapped_solver the solver to wrap
- * @param out_stream the stream to dump SMT-LIB to
- * @return an SmtSolver that dumps to out_stream each command that is executed.
- */
-SmtSolver create_printing_solver(SmtSolver wrapped_solver,
-                                 std::ostream * out_stream);
+namespace solvers {
 
-/* As create_printing_solver(wrapped_solver, out_stream); style is ignored.
+/** A solver that writes each command it runs to out_stream as SMT-LIB
+ *  @param wrapped_solver the solver that runs the commands
+ *  @param out_stream the stream to write SMT-LIB to
+ *  @return a solver that dumps to out_stream each command that is executed
  */
-[[deprecated("use create_printing_solver without a style")]] SmtSolver
-create_printing_solver(SmtSolver wrapped_solver,
-                       std::ostream * out_stream,
-                       PrintingStyleEnum style);
+SmtSolver printing(SmtSolver wrapped_solver, std::ostream & out_stream);
+
+}  // namespace solvers
 
 }  // namespace smt
 

@@ -34,7 +34,7 @@ SmtSolver create_solver(SolverConfiguration sc)
 {
   if (sc.solver_enum != GENERIC_SOLVER)
   {
-    return smt::create_solver(sc.solver_enum, sc.is_logging_solver);
+    return smt::solvers::create(sc.solver_enum, sc.is_logging_solver);
   }
   std::string path(solver_binary(CVC5));
   std::vector<std::string> args = {
@@ -57,7 +57,7 @@ SmtSolver create_solver(SolverConfiguration sc)
 
 std::vector<SolverEnum> available_solver_enums_with_generic()
 {
-  std::vector<SolverEnum> enums = smt::available_solver_enums();
+  std::vector<SolverEnum> enums = smt::solvers::available();
   // the generic solver drives the cvc5 executable
   if (!solver_binary(CVC5).empty())
   {
@@ -111,7 +111,7 @@ std::vector<SolverConfiguration> available_solver_configurations()
 std::vector<SolverConfiguration> available_interpolator_configurations()
 {
   std::vector<SolverConfiguration> result;
-  for (SolverEnum e : smt::available_interpolator_enums())
+  for (SolverEnum e : smt::interpolators::available())
   {
     SolverConfiguration sc(e, false);
     result.push_back(sc);

@@ -60,12 +60,12 @@ TEST(AvailableSolverEnums, ListsTheConfiguredBackends)
 #ifdef BUILD_Z3
   expected.push_back(Z3);
 #endif
-  EXPECT_EQ(sorted(available_solver_enums()), sorted(expected));
+  EXPECT_EQ(sorted(solvers::available()), sorted(expected));
 }
 
 TEST(AvailableInterpolatorEnums, ListsTheConfiguredInterpolators)
 {
-  std::vector<SolverEnum> available = available_interpolator_enums();
+  std::vector<SolverEnum> available = interpolators::available();
 #ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
   EXPECT_TRUE(contains(available, BZLA_INTERPOLATOR));
 #else
@@ -85,7 +85,7 @@ TEST(AvailableInterpolatorEnums, ListsTheConfiguredInterpolators)
   bool yices2_interpolates = true;
   try
   {
-    create_interpolator(YICES2_INTERPOLATOR);
+    interpolators::create(YICES2_INTERPOLATOR);
   }
   catch (const NotImplementedException &)
   {
@@ -96,18 +96,18 @@ TEST(AvailableInterpolatorEnums, ListsTheConfiguredInterpolators)
 
 TEST(CreateSolverRefusals, GenericSolver)
 {
-  EXPECT_THROW(create_solver(GENERIC_SOLVER, false), IncorrectUsageException);
+  EXPECT_THROW(solvers::create(GENERIC_SOLVER, false), IncorrectUsageException);
 }
 
 TEST(CreateSolverRefusals, Interpolator)
 {
-  EXPECT_THROW(create_solver(CVC5_INTERPOLATOR, false),
+  EXPECT_THROW(solvers::create(CVC5_INTERPOLATOR, false),
                IncorrectUsageException);
 }
 
 TEST(CreateInterpolatorRefusals, Solver)
 {
-  EXPECT_THROW(create_interpolator(CVC5), IncorrectUsageException);
+  EXPECT_THROW(interpolators::create(CVC5), IncorrectUsageException);
 }
 
 using SolverAndLogging = std::tuple<SolverEnum, bool>;
@@ -135,7 +135,7 @@ class CreateSolver : public testing::TestWithParam<SolverAndLogging>
 TEST_P(CreateSolver, MakesTheRequestedSolver)
 {
   const auto & [se, logging] = GetParam();
-  SmtSolver s = create_solver(se, logging);
+  SmtSolver s = solvers::create(se, logging);
   EXPECT_EQ(s->get_solver_enum(), se);
   EXPECT_EQ(std::dynamic_pointer_cast<LoggingSolver>(s) != nullptr, logging);
 }
@@ -156,20 +156,19 @@ class CreateInterpolator : public testing::TestWithParam<SolverEnum>
 
 TEST_P(CreateInterpolator, MakesTheRequestedInterpolator)
 {
-  SmtInterpolator itp = create_interpolator(GetParam());
+  SmtInterpolator itp = interpolators::create(GetParam());
   EXPECT_EQ(itp->get_solver_enum(), GetParam());
 }
 
 INSTANTIATE_TEST_SUITE_P(
     SolverFactory,
     CreateSolver,
-    testing::Combine(testing::ValuesIn(available_solver_enums()),
-                     testing::Bool()),
+    testing::Combine(testing::ValuesIn(solvers::available()), testing::Bool()),
     SolverAndLoggingName());
 
 INSTANTIATE_TEST_SUITE_P(SolverFactory,
                          CreateInterpolator,
-                         testing::ValuesIn(available_interpolator_enums()),
+                         testing::ValuesIn(interpolators::available()),
                          InterpolatorName());
 
 }  // namespace

@@ -141,24 +141,24 @@ const backend::Factory & factory_for(SolverEnum se)
 
 }  // namespace
 
-SmtSolver create_solver(SolverEnum se, bool logging)
+SmtSolver solvers::create(SolverEnum se, bool logging)
 {
   if (is_interpolator_solver_enum(se))
   {
     throw IncorrectUsageException(to_string(se)
                                   + " is an interpolator; use "
-                                    "create_interpolator");
+                                    "interpolators::create");
   }
   return factory_for(se).create(logging);
 }
 
-SmtInterpolator create_interpolator(SolverEnum se)
+SmtInterpolator interpolators::create(SolverEnum se)
 {
   if (!is_interpolator_solver_enum(se))
   {
     throw IncorrectUsageException(to_string(se)
                                   + " is not an interpolator; use "
-                                    "create_solver");
+                                    "solvers::create");
   }
   const backend::Factory & factory = factory_for(se);
   if (!factory.create_interpolator)
@@ -169,7 +169,7 @@ SmtInterpolator create_interpolator(SolverEnum se)
   return factory.create_interpolator();
 }
 
-std::vector<SolverEnum> available_solver_enums()
+std::vector<SolverEnum> solvers::available()
 {
   std::vector<SolverEnum> available;
   for (SolverEnum se : { BTOR, BZLA, CVC5, MSAT, YICES2, Z3 })
@@ -186,7 +186,7 @@ std::vector<SolverEnum> available_solver_enums()
   return available;
 }
 
-std::vector<SolverEnum> available_interpolator_enums()
+std::vector<SolverEnum> interpolators::available()
 {
   std::vector<SolverEnum> available;
   for (SolverEnum se : { BZLA_INTERPOLATOR,
@@ -198,7 +198,7 @@ std::vector<SolverEnum> available_interpolator_enums()
     // interpolate
     try
     {
-      create_interpolator(se);
+      create(se);
       available.push_back(se);
     }
     catch (const NotImplementedException &)

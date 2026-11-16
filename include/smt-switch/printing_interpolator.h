@@ -10,6 +10,7 @@
 #define SMT_SWITCH_PRINTING_INTERPOLATOR_H
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -30,9 +31,7 @@ namespace smt {
 class PrintingInterpolator : public AbsSmtInterpolator
 {
  public:
-  PrintingInterpolator(SmtInterpolator s, std::ostream * os);
-  [[deprecated("use the constructor without a style")]] PrintingInterpolator(
-      SmtInterpolator s, std::ostream * os, PrintingStyleEnum pse);
+  PrintingInterpolator(SmtInterpolator s, std::ostream & os);
   PrintingInterpolator(const PrintingInterpolator & other) = default;
   PrintingInterpolator & operator=(const PrintingInterpolator & other) =
       default;
@@ -57,7 +56,7 @@ class PrintingInterpolator : public AbsSmtInterpolator
   /* The wrapped interpolator */
   SmtInterpolator wrapped_interpolator;
   /* A stream to dump SMT-LIB commands to */
-  std::ostream * out_stream;
+  std::reference_wrapper<std::ostream> out_stream;
 
   /* What the queries printed so far left in the wrapped interpolator */
   struct QueryRecord
@@ -73,25 +72,20 @@ class PrintingInterpolator : public AbsSmtInterpolator
   std::shared_ptr<QueryRecord> record = std::make_shared<QueryRecord>();
 };
 
-/* Returns a printing SmtInterpolator by wrapping PrintingInterpolator's
- * constructor.
- * @param wrapped_interpolator the interpolating solver to wrap
- * @param out_stream the stream to dump SMT-LIB to
- * @return an SmtInterpolator that dumps to out_stream each command that is
- *         executed, writing each interpolation query as wrapped_interpolator
- *         runs it, and answers as wrapped_interpolator does
- */
-SmtInterpolator create_printing_interpolator(
-    SmtInterpolator wrapped_interpolator, std::ostream * out_stream);
+namespace interpolators {
 
-/* As create_printing_interpolator(wrapped_interpolator, out_stream); style
- * is ignored.
+/** An interpolator that writes each command it runs to out_stream as
+ *  SMT-LIB
+ *  @param wrapped_interpolator the interpolator that runs the commands
+ *  @param out_stream the stream to write SMT-LIB to
+ *  @return an interpolator that dumps to out_stream each command that is
+ *          executed, writing each interpolation query as wrapped_interpolator
+ *          runs it, and answers as wrapped_interpolator does
  */
-[[deprecated("use create_printing_interpolator without a style")]]
-SmtInterpolator create_printing_interpolator(
-    SmtInterpolator wrapped_interpolator,
-    std::ostream * out_stream,
-    PrintingStyleEnum style);
+SmtInterpolator printing(SmtInterpolator wrapped_interpolator,
+                         std::ostream & out_stream);
+
+}  // namespace interpolators
 
 }  // namespace smt
 

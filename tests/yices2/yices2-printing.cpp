@@ -42,7 +42,7 @@ TEST(Yices2InterpolationPrinting, ReplaysEachCheckOfAQuery)
   }
   std::stringbuf strbuf;
   std::ostream os(&strbuf);
-  SmtInterpolator s = create_printing_interpolator(itp, &os);
+  SmtInterpolator s = interpolators::printing(itp, os);
   s->set_logic("QF_LIA");
   Term p = s->make_symbol("p", s->make_sort(BOOL));
   Term I;

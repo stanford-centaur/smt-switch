@@ -63,7 +63,7 @@ class TermVisitor : public testing::TestWithParam<SolverEnum>
   void SetUp() override
   {
     // a logging solver keeps the terms as built, children in order
-    s = create_solver(GetParam(), /* logging */ true);
+    s = solvers::create(GetParam(), /* logging */ true);
     Sort bvsort = s->make_sort(BV, 8);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
@@ -109,7 +109,7 @@ TEST_P(TermVisitor, RemembersEarlierVisits)
 
 INSTANTIATE_TEST_SUITE_P(,
                          TermVisitor,
-                         testing::ValuesIn(available_solver_enums()),
+                         testing::ValuesIn(solvers::available()),
                          SolverName());
 
 }  // namespace
