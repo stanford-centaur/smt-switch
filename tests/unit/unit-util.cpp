@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "available_solvers.h"
-#include "smt-switch/datatype.h"
+#include "smt-switch/cnf.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/generic_sort.h"
 #include "smt-switch/numeral_utils.h"
@@ -227,7 +227,7 @@ TEST_P(UnitUtilIntTests, Oracles)
   }
 }
 
-TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
+TEST_P(UnitUtilDimacsTests, ToDimacs)
 {
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
@@ -244,8 +244,8 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   // Test 1
 
   std::ostringstream y;
-  cnf_to_dimacs(cnf, y);  // cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v
-                          // a))
+  cnf::to_dimacs(cnf, y);  // cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v
+                           // a))
   std::string ret = y.str();
   std::string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
   ASSERT_TRUE(ret == expected) << ret << " " << expected << std::endl
@@ -258,7 +258,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   Term clause6 = s->make_term(Or, a, b);
   Term cnf2 = s->make_term(And, clause4, s->make_term(And, clause5, clause6));
   std::ostringstream y2;
-  cnf_to_dimacs(cnf2, y2);  // cnf2 = ((a) /\ (~b) /\ (a v b))
+  cnf::to_dimacs(cnf2, y2);  // cnf2 = ((a) /\ (~b) /\ (a v b))
   std::string ret2 = y2.str();
   std::string expected2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
   ASSERT_TRUE(ret2 == expected2);
@@ -266,7 +266,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   // Testing an empty cnf
   Term cnf3 = s->make_term(true);
   std::ostringstream y3;
-  cnf_to_dimacs(cnf3, y3);  // cnf3 = True
+  cnf::to_dimacs(cnf3, y3);  // cnf3 = True
   std::string ret3 = y3.str();
   std::string expected3 = "p cnf 0 0\n";
   ASSERT_TRUE(ret3 == expected3) << ret3 << std::endl << expected3 << std::endl;
@@ -275,7 +275,7 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
   Term clause7 = s->make_term(false);
   Term cnf4 = s->make_term(And, clause5, s->make_term(And, clause7, clause1));
   std::ostringstream y4;
-  cnf_to_dimacs(cnf4, y4);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
+  cnf::to_dimacs(cnf4, y4);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
   std::string ret4 = y4.str();
   std::string expected4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
   ASSERT_TRUE(ret4 == expected4) << ret4 << std::endl << cnf4 << std::endl;
@@ -288,18 +288,18 @@ TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
   Term c = s->make_symbol("c", boolsort);
   Term x = s->make_symbol("x", s->make_sort(BV, 4));
   std::ostringstream y;
-  EXPECT_THROW(cnf_to_dimacs(x, y), IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Implies, a, b), y),
+  EXPECT_THROW(cnf::to_dimacs(x, y), IncorrectUsageException);
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Implies, a, b), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(And, a, b)), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Not, s->make_term(And, a, b)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Not, s->make_term(Not, a)), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Not, s->make_term(Not, a)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(Or, a, s->make_term(true)), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Or, a, s->make_term(true)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf_to_dimacs(s->make_term(And, a, s->make_term(true)), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(And, a, s->make_term(true)), y),
                IncorrectUsageException);
 }
 
@@ -316,7 +316,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
                         s->make_term(And, s->make_term(Or, p, q), r),
                         s->make_term(Not, t));
 
-  Term cnf1 = to_cnf(a, s);
+  Term cnf1 = cnf::convert(a, s);
 
   s->push();
   s->assert_formula(a);
@@ -343,7 +343,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   // b=Not(p xor q)
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
-  Term cnf2 = to_cnf(b, s);
+  Term cnf2 = cnf::convert(b, s);
 
   s->push();
   s->assert_formula(b);
@@ -369,7 +369,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   // c=((not p) and p)
   Term c = s->make_term(And, s->make_term(Not, p), p);
-  Term cnf3 = to_cnf(c, s);
+  Term cnf3 = cnf::convert(c, s);
 
   s->push();
   s->assert_formula(c);
@@ -391,7 +391,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   // d3=((p or q) and (r or t))
   Term d3 = s->make_term(And, d1, d2);
 
-  Term cnf4 = to_cnf(d3, s);
+  Term cnf4 = cnf::convert(d3, s);
 
   s->push();
   s->assert_formula(d3);
@@ -408,7 +408,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   ASSERT_TRUE(st == expected);
   // e=false
   Term e = s->make_term(false);
-  Term cnf5 = to_cnf(e, s);
+  Term cnf5 = cnf::convert(e, s);
 
   s->push();
   s->assert_formula(e);
@@ -426,7 +426,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   // f=true
   Term f = s->make_term(true);
-  Term cnf6 = to_cnf(f, s);
+  Term cnf6 = cnf::convert(f, s);
 
   s->push();
   s->assert_formula(f);
@@ -451,7 +451,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   // g=OR(p, q, r, t)
 
   Term g = s->make_term(Or, vec);
-  Term cnf7 = to_cnf(g, s);
+  Term cnf7 = cnf::convert(g, s);
 
   s->push();
   s->assert_formula(g);
@@ -478,22 +478,22 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   vecs.push_back(r);
   vecs.push_back(t);
   Term ne = s->make_term(Or, vecs);
-  bool check = is_cnf(ne);
+  bool check = cnf::is_cnf(ne);
   ASSERT_TRUE(check);
   ne = s->make_term(Xor, vecs);
-  check = is_cnf(ne);
+  check = cnf::is_cnf(ne);
   ASSERT_FALSE(check);
   ne = s->make_term(And, vecs);
-  check = is_cnf(ne);
+  check = cnf::is_cnf(ne);
   ASSERT_TRUE(check);
   ne = s->make_term(And, s->make_term(Or, p, q), s->make_term(Or, r, t));
-  check = is_cnf(ne);
+  check = cnf::is_cnf(ne);
   ASSERT_TRUE(check);
   ne = s->make_term(Implies, s->make_term(Or, p, q), s->make_term(Or, r, t));
-  check = is_cnf(ne);
+  check = cnf::is_cnf(ne);
   ASSERT_FALSE(check);
   ne = s->make_term(And, s->make_term(Equal, p, q), s->make_term(Or, r, t));
-  check = is_cnf(ne);
+  check = cnf::is_cnf(ne);
   ASSERT_FALSE(check);
 
   // checking elimination of true and false
@@ -502,20 +502,20 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   // formula=and(true, p)
   Term formula = s->make_term(And, true_term, p);
-  Term as = to_cnf(formula, s);
+  Term as = cnf::convert(formula, s);
   ASSERT_TRUE(as == p);
 
   // formula=and(or(p, true), or(q, false))
   formula = s->make_term(
       And, s->make_term(Or, p, true_term), s->make_term(Or, q, false_term));
-  as = to_cnf(formula, s);
+  as = cnf::convert(formula, s);
   ASSERT_TRUE(as == q);
 
   // h=((true->false)<->Or(p, q))
   Term h = s->make_term(
       Equal, s->make_term(Implies, tr, fa), s->make_term(Or, p, q));
 
-  Term cnf8 = to_cnf(h, s);
+  Term cnf8 = cnf::convert(h, s);
 
   s->push();
   s->assert_formula(h);
@@ -588,28 +588,28 @@ TEST_P(ToCnf, ConnectivesKeepEveryAssignment)
                      s->make_term(Implies, q, s->make_term(Not, r)),
                      s->make_term(Xor, p, r),
                      s->make_term(Equal, p, s->make_term(Or, q, r)) });
-  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+  expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, NaryImpliesKeepsEveryAssignment)
 {
   Term formula = s->make_term(
       And, s->make_term(Implies, { p, q, r }), s->make_term(Or, p, q));
-  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+  expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, NaryEqualKeepsEveryAssignment)
 {
   Term formula = s->make_term(
       Or, s->make_term(Equal, { p, q, r }), s->make_term(And, p, r));
-  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+  expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, NestedNaryXorKeepsEveryAssignment)
 {
   Term formula =
       s->make_term(Or, s->make_term(Xor, { p, q, r }), s->make_term(And, p, q));
-  expect_same_answer_per_assignment(formula, to_cnf(formula, s));
+  expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, IteIsKeptAsAnAtom)
@@ -618,7 +618,7 @@ TEST_P(ToCnf, IteIsKeptAsAnAtom)
                               { s->make_term(Ite, p, q, r),
                                 s->make_term(Not, p),
                                 s->make_term(Not, r) });
-  Term cnf = to_cnf(formula, s);
+  Term cnf = cnf::convert(formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
   expect_same_answer_per_assignment(formula, cnf);
 }
@@ -629,7 +629,7 @@ TEST_P(ToCnf, DistinctIsKeptAsAnAtom)
                               { s->make_term(Distinct, p, q),
                                 s->make_term(Not, p),
                                 s->make_term(Not, q) });
-  Term cnf = to_cnf(formula, s);
+  Term cnf = cnf::convert(formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
   expect_same_answer_per_assignment(formula, cnf);
 }
@@ -640,20 +640,20 @@ TEST_P(ToCnf, BitVectorAtomsAreKept)
       And,
       s->make_term(Or, s->make_term(BVUlt, x, y), s->make_term(Equal, x, y)),
       s->make_term(BVUlt, y, x));
-  Term cnf = to_cnf(formula, s);
+  Term cnf = cnf::convert(formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
 
   Term sat_formula = s->make_term(Or,
                                   s->make_term(BVUlt, x, y),
                                   s->make_term(Not, s->make_term(Equal, x, y)));
-  Term sat_cnf = to_cnf(sat_formula, s);
+  Term sat_cnf = cnf::convert(sat_formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ sat_cnf }).is_sat()) << sat_cnf;
 }
 
 TEST_P(ToCnf, TopLevelAtomIsReturned)
 {
   Term atom = s->make_term(BVUlt, x, y);
-  Term cnf = to_cnf(atom, s);
+  Term cnf = cnf::convert(atom, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf, atom }).is_sat()) << cnf;
   EXPECT_TRUE(
       s->check_sat_assuming({ cnf, s->make_term(Not, atom) }).is_unsat())

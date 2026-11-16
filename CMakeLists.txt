@@ -132,6 +132,7 @@ set(SMT_SWITCH_CMAKE_DIR lib/cmake/SmtSwitch)
 set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
 set(
   SOURCES
+  "${PROJECT_SOURCE_DIR}/src/cnf.cpp"
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/disjoint_set.cpp"
   "${PROJECT_SOURCE_DIR}/src/exceptions.cpp"
