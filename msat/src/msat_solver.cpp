@@ -125,17 +125,15 @@ msat_term ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1)
 
 msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
 {
-  // msat_make_pow gives back the base for an exponent of 0 rather than 1, a
-  // fraction for a negative one, and wrong answers for a symbolic one
+  // msat_make_pow gives a fraction for a negative exponent and wrong answers
+  // for a symbolic one
   bool natural = false;
-  bool zero = false;
   if (msat_term_is_number(e, t1))
   {
     mpq_t value;
     mpq_init(value);
     msat_term_to_number(e, t1, value);
     natural = mpz_cmp_ui(mpq_denref(value), 1) == 0 && mpq_sgn(value) >= 0;
-    zero = mpq_sgn(value) == 0;
     mpq_clear(value);
   }
   if (!natural)
@@ -143,7 +141,7 @@ msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
     throw NotImplementedException(
         "MathSAT can only raise to a constant non-negative integer exponent");
   }
-  return zero ? msat_make_number(e, "1") : msat_make_pow(e, t0, t1);
+  return msat_make_pow(e, t0, t1);
 }
 
 msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
