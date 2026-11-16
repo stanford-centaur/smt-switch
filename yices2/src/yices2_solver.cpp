@@ -430,16 +430,12 @@ term_t binary_term(PrimOp po, term_t a, term_t b)
   }
 }
 
-/** The term of op applied to terms, three or more, whose Yices2 terms are
- *  args, in a single Yices2 call where Yices2 has one and through
- *  backend::make_nary_term otherwise
+/** The term of op applied to three or more arguments whose Yices2 terms
+ *  are args, in a single Yices2 call, or null where Yices2 has none
  *
  *  Some of the calls may modify args.
  */
-Term variadic_term(const AbsSmtSolver * solver,
-                   const Op & op,
-                   const TermVec & terms,
-                   std::vector<term_t> & args)
+Term variadic_term(const Op & op, std::vector<term_t> & args)
 {
   const uint32_t n = backend::narrow_num_args(args.size());
   term_t * a = args.data();
@@ -467,7 +463,7 @@ Term variadic_term(const AbsSmtSolver * solver,
       break;
     case BVAdd: res = yices_bvsum(n, a); break;
     case BVMul: res = yices_bvproduct(n, a); break;
-    default: return backend::make_nary_term(solver, op, terms);
+    default: return nullptr;
   }
   return checked_term(res);
 }
@@ -486,7 +482,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models" || option == "produce-unsat-assumptions")
   {
-    if (!backend::bool_option_value(option, value))
+    if (!parse_bool_opt(option, value))
     {
       throw NotImplementedException("Yices2 cannot turn off " + option);
     }
@@ -499,14 +495,13 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "Yices2 can only set incremental before the first assertion, "
           "check or push");
     }
-    yices_set_config(
-        config,
-        "mode",
-        backend::bool_option_value(option, value) ? "push-pop" : "one-shot");
+    yices_set_config(config,
+                     "mode",
+                     parse_bool_opt(option, value) ? "push-pop" : "one-shot");
   }
   else if (option == "time-limit")
   {
-    time_limit = backend::time_limit_seconds(value);
+    time_limit = parse_time_limit(value);
   }
   else if (option == "produce-unsat-model-interpolants")
   {
@@ -516,8 +511,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "Yices2 can only set produce-unsat-model-interpolants before the "
           "first assertion, check or push");
     }
-    const char * yices_value =
-        backend::bool_option_value(option, value) ? "true" : "false";
+    const char * yices_value = parse_bool_opt(option, value) ? "true" : "false";
     if (yices_set_config(config, "model-interpolation", yices_value) < 0)
     {
       Yices2InstanceRef::throw_error();
@@ -1263,7 +1257,8 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    return variadic_term(this, op, terms, yterms);
+    Term variadic = variadic_term(op, yterms);
+    return variadic ? variadic : make_nary_term(op, terms);
   }
 
   return checked_term(res);
@@ -1278,7 +1273,7 @@ void Yices2Solver::do_reset()
   config = yices_new_config();
   symbol_table.clear();
   pushes_after_unsat = 0;
-  time_limit = 0;
+  time_limit = std::chrono::duration<double>::zero();
   logic_ = "ALL";
   assertions.clear();
   scope_starts.clear();
@@ -1352,7 +1347,7 @@ Term Yices2Solver::substitute(const Term term,
 // helpers
 void Yices2Solver::timelimit_start()
 {
-  if (time_limit)
+  if (time_limit != std::chrono::duration<double>::zero())
   {
     context_t * none = nullptr;
     if (!running_ctx.compare_exchange_strong(none, get_context().get()))
@@ -1384,7 +1379,7 @@ void Yices2Solver::timelimit_start()
     // macOS's setitimer refuses more than 100000000 seconds, which a longer
     // limit is cut to, and a timer of zero is disarmed rather than fired, so
     // a positive limit under a microsecond waits one.
-    const double seconds = std::min(time_limit, 100000000.0);
+    const double seconds = std::min(time_limit.count(), 100000000.0);
     itimerval timer{};
     timer.it_value.tv_sec = static_cast<time_t>(seconds);
     timer.it_value.tv_usec = static_cast<suseconds_t>(
@@ -1400,7 +1395,7 @@ void Yices2Solver::timelimit_start()
 bool Yices2Solver::timelimit_end()
 {
   bool res = false;
-  if (time_limit)
+  if (time_limit != std::chrono::duration<double>::zero())
   {
     // Cancel first: clearing running_ctx before the timer is off leaves a
     // window where the handler runs against a null context.

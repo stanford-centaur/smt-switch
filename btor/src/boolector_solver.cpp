@@ -243,13 +243,12 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {
-    boolector_set_opt(btor.get(),
-                      BTOR_OPT_MODEL_GEN,
-                      backend::bool_option_value(option, value));
+    boolector_set_opt(
+        btor.get(), BTOR_OPT_MODEL_GEN, parse_bool_opt(option, value));
   }
   else if (option == "incremental")
   {
-    bool on = backend::bool_option_value(option, value);
+    bool on = parse_bool_opt(option, value);
     if (!on && unsat_assumptions)
     {
       throw NotImplementedException(
@@ -264,7 +263,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     // Boolector gives unsat assumptions whenever it is incremental, so
     // turning them off leaves Boolector as it is and get_unsat_assumptions
     // refuses instead.
-    if (!backend::bool_option_value(option, value))
+    if (!parse_bool_opt(option, value))
     {
       unsat_assumptions = false;
       return;
@@ -280,7 +279,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "base-context-1")
   {
-    if (backend::bool_option_value(option, value))
+    if (parse_bool_opt(option, value))
     {
       base_context_1 = true;
       // pushed directly, so that the context level counts only the caller's
@@ -289,8 +288,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "time-limit")
   {
-    time_limit =
-        std::chrono::duration<double>(backend::time_limit_seconds(value));
+    time_limit = parse_time_limit(value);
   }
   else
   {
@@ -785,7 +783,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    backend::check_quantifier_binders(op, terms);
+    check_quantifier_binders(op, terms);
   }
 
   std::vector<BoolectorNode *> nodes;
@@ -880,7 +878,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    return backend::make_nary_term(this, op, terms);
+    return make_nary_term(op, terms);
   }
 
   return std::make_shared<BoolectorTerm>(btor, btor_res);

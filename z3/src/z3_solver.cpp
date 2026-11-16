@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -251,14 +252,11 @@ Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
   }
 }
 
-/** The term of op applied to terms, three or more, whose Z3 terms are args,
- *  in a single Z3 call where Z3 has one and through backend::make_nary_term
- * otherwise
+/** The term of op applied to three or more arguments whose Z3 terms are
+ *  args, in a single Z3 call, or null where Z3 has none
  */
-Term variadic_term(const AbsSmtSolver * solver,
-                   const std::shared_ptr<Z3Context> & ctx,
+Term variadic_term(const std::shared_ptr<Z3Context> & ctx,
                    const Op & op,
-                   const TermVec & terms,
                    const std::vector<Z3_ast> & args)
 {
   const unsigned n = backend::narrow_num_args(args.size());
@@ -271,7 +269,7 @@ Term variadic_term(const AbsSmtSolver * solver,
     case Plus: res = Z3_mk_add(*ctx, n, args.data()); break;
     case Minus: res = Z3_mk_sub(*ctx, n, args.data()); break;
     case Mult: res = Z3_mk_mul(*ctx, n, args.data()); break;
-    default: return backend::make_nary_term(solver, op, terms);
+    default: return nullptr;
   }
   return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
@@ -306,14 +304,14 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (!backend::bool_option_value(option, value))
+    if (!parse_bool_opt(option, value))
     {
       throw NotImplementedException("Z3 cannot turn off " + option);
     }
   }
   else if (option == "produce-models")
   {
-    bool on = backend::bool_option_value(option, value);
+    bool on = parse_bool_opt(option, value);
     solver_params.set("model", on);
     models_off = !on;
   }
@@ -321,19 +319,21 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
   {
     // Z3 takes the limit in milliseconds as an unsigned, and its largest
     // value means none.
-    solver_params.set("timeout",
-                      static_cast<unsigned>(std::min<std::uint64_t>(
-                          backend::time_limit_milliseconds(value),
-                          std::numeric_limits<unsigned>::max())));
+    solver_params.set(
+        "timeout",
+        static_cast<unsigned>(std::min<std::chrono::milliseconds::rep>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                parse_time_limit(value))
+                .count(),
+            std::numeric_limits<unsigned>::max())));
   }
   else if (option == "produce-unsat-assumptions")
   {
-    solver_params.set("unsat_core", backend::bool_option_value(option, value));
+    solver_params.set("unsat_core", parse_bool_opt(option, value));
   }
   else if (option == "produce-proofs")
   {
-    solver_params.set(option.c_str(),
-                      backend::bool_option_value(option, value));
+    solver_params.set(option.c_str(), parse_bool_opt(option, value));
   }
   else
   {
@@ -891,7 +891,7 @@ try
                                   + ", which has no constant base");
   }
 
-  return backend::store_chain_values(stores);
+  return store_chain_values(stores);
 }
 catch (const z3::exception & e)
 {
@@ -1133,7 +1133,7 @@ try
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    backend::check_quantifier_binders(op, terms);
+    check_quantifier_binders(op, terms);
   }
 
   if (size == 1)
@@ -1229,7 +1229,8 @@ try
   }
   else
   {
-    return variadic_term(this, ctx, op, terms, zargs);
+    Term variadic = variadic_term(ctx, op, zargs);
+    return variadic ? variadic : make_nary_term(op, terms);
   }
 
   return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
