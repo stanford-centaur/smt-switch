@@ -18,15 +18,13 @@
 
 #include "smt-switch/exceptions.h"
 
-using namespace std;
-
 namespace smt {
 
 void detail::MsatFreeDeleter::operator()(void * p) const { msat_free(p); }
 
-string detail::get_msat_string(char * s)
+std::string detail::get_msat_string(char * s)
 {
-  unique_ptr<char, MsatFreeDeleter> owned(s);
+  std::unique_ptr<char, MsatFreeDeleter> owned(s);
   if (!owned)
   {
     throw SolverException("MathSAT failed to print a term or sort");
@@ -34,7 +32,7 @@ string detail::get_msat_string(char * s)
   return owned.get();
 }
 
-string detail::msat_option_name(const string & option)
+std::string detail::msat_option_name(const std::string & option)
 {
   if (option == "produce-interpolants")
   {
@@ -47,7 +45,7 @@ string detail::msat_option_name(const string & option)
   return option;
 }
 
-string detail::last_error_message(msat_env e)
+std::string detail::last_error_message(msat_env e)
 {
   const char * msg = msat_last_error_message(e);
   return msg ? msg : "";
@@ -134,7 +132,7 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
 
   if (!msat_is_bool_type(e, itype))
   {
-    string msg("Expecting a Boolean condition for ITE but got ");
+    std::string msg("Expecting a Boolean condition for ITE but got ");
     throw IncorrectUsageException(
         msg + detail::get_msat_string(msat_to_smtlib2_term(e, i)));
   }
@@ -151,7 +149,7 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   msat_term res = msat_make_term_ite(e, i, t, el);
   if (MSAT_ERROR_TERM(res))
   {
-    string msg("Expecting ITE branches of matching sorts but got ");
+    std::string msg("Expecting ITE branches of matching sorts but got ");
     msg += detail::get_msat_string(msat_type_repr(ttype));
     msg += " and ";
     msg += detail::get_msat_string(msat_type_repr(eltype));

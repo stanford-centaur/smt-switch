@@ -38,8 +38,6 @@
 #include "smt-switch/z3_sort.h"
 #include "smt-switch/z3_term.h"
 
-using namespace std;
-
 namespace smt {
 
 // The narrowing helpers return a std::uint32_t, which Z3 takes as unsigned.
@@ -130,7 +128,7 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
  */
 [[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
 {
-  const pair<size_t, size_t> arity = get_arity(po);
+  const std::pair<size_t, size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
   {
     throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
@@ -259,7 +257,7 @@ Term variadic_term(const AbsSmtSolver * solver,
                    const std::shared_ptr<Z3Context> & ctx,
                    const Op & op,
                    const TermVec & terms,
-                   const vector<Z3_ast> & args)
+                   const std::vector<Z3_ast> & args)
 {
   const unsigned n = narrow_num_args(args.size());
   Z3_ast res;
@@ -398,7 +396,7 @@ void Z3Solver::add_constructor(z3::sort dtsort,
 {
   auto z3cons = std::static_pointer_cast<Z3DatatypeConstructorDecl>(cons);
   auto & cname = z3cons->constructorname;
-  auto recognizer = "is-"s + cname;
+  auto recognizer = std::string("is-") + cname;
   // the decl keeps its self placeholders, so another datatype it is added to
   // gets its own sort for them
   std::vector<z3::symbol> fieldnames;
@@ -619,7 +617,7 @@ Term Z3Solver::make_term(int64_t i, const Sort & sort) const
   }
   else
   {
-    string msg("Can't create value ");
+    std::string msg("Can't create value ");
     msg += std::to_string(i);
     msg += " with sort ";
     msg += sort->to_string();
@@ -680,7 +678,7 @@ Term Z3Solver::make_term(const std::string val,
   }
   else
   {
-    string msg("Can't create value ");
+    std::string msg("Can't create value ");
     msg += val;
     msg += " with sort ";
     msg += sort->to_string();
@@ -822,7 +820,7 @@ catch (const z3::exception & e)
 Term Z3Solver::get_value(const Term & t) const
 try
 {
-  shared_ptr<Z3Term> zterm = get_z3_term(t);
+  std::shared_ptr<Z3Term> zterm = get_z3_term(t);
   if (zterm->is_function)
   {
     throw IncorrectUsageException("Can't get the value of a function");
@@ -853,7 +851,7 @@ UnorderedTermMap Z3Solver::get_array_values(const Term & arr,
 try
 {
   out_const_base = nullptr;
-  shared_ptr<Z3Term> zarr = get_z3_term(arr);
+  std::shared_ptr<Z3Term> zarr = get_z3_term(arr);
   if (!instance)
   {
     throw IncorrectUsageException(
@@ -1069,7 +1067,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
                                   + ", which is reserved for internal use");
   }
 
-  shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
+  std::shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
   const char * c = name.c_str();
   z3::symbol z_name = ctx->str_symbol(c);
 
@@ -1106,7 +1104,7 @@ Term Z3Solver::get_symbol(const std::string & name) const
 
 Term Z3Solver::make_param(const std::string name, const Sort & sort) const
 {
-  shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
+  std::shared_ptr<Z3Sort> zsort = get_z3_sort(sort);
 
   if (zsort->function_kind.has_value())
   {
@@ -1135,7 +1133,7 @@ try
 
   if (size == 1)
   {
-    shared_ptr<Z3Term> zterm = get_z3_term(terms[0]);
+    std::shared_ptr<Z3Term> zterm = get_z3_term(terms[0]);
 
     if (zterm->is_function)
     {
@@ -1163,11 +1161,11 @@ try
   }
 
   // the operands, leaving out the function an Apply applies
-  vector<Z3_ast> zargs;
+  std::vector<Z3_ast> zargs;
   zargs.reserve(size);
   for (size_t i = op.prim_op == Apply ? 1 : 0; i < size; ++i)
   {
-    shared_ptr<Z3Term> zterm = get_z3_term(terms[i]);
+    std::shared_ptr<Z3Term> zterm = get_z3_term(terms[i]);
     if (zterm->is_function)
     {
       throw IncorrectUsageException("Can't use a function as an argument to "
@@ -1178,10 +1176,10 @@ try
 
   if (op.prim_op == Apply)
   {
-    shared_ptr<Z3Term> zfun = get_z3_term(terms[0]);
+    std::shared_ptr<Z3Term> zfun = get_z3_term(terms[0]);
     if (!zfun->is_function)
     {
-      string msg(
+      std::string msg(
           "Expecting an uninterpreted function to be used with Apply but got ");
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
@@ -1267,15 +1265,15 @@ try
   z3::expr_vector z3destinations(*ctx);
 
   // z3 counterpart of `term`
-  shared_ptr<Z3Term> z3term = get_z3_term(term);
+  std::shared_ptr<Z3Term> z3term = get_z3_term(term);
   z3::expr z3expr = to_expr(*ctx, z3term->term);
   // populate the z3 expr_vectors according to the substitution map
   for (auto p : substitution_map)
   {
     Term from_term = p.first;
     Term to_term = p.second;
-    shared_ptr<Z3Term> z3_from_term = get_z3_term(from_term);
-    shared_ptr<Z3Term> z3_to_term = get_z3_term(to_term);
+    std::shared_ptr<Z3Term> z3_from_term = get_z3_term(from_term);
+    std::shared_ptr<Z3Term> z3_to_term = get_z3_term(to_term);
     z3sources.push_back(z3_from_term->term);
     z3destinations.push_back(z3_to_term->term);
   }

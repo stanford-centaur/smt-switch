@@ -19,8 +19,6 @@
 #include "smt-switch/text_utils.h"
 #include "smt-switch/z3_sort.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
@@ -331,7 +329,7 @@ bool Z3Term::is_symbolic_const() const
 
 bool Z3Term::is_value() const { return !is_function && is_z3_value(term); }
 
-string Z3Term::to_string() const
+std::string Z3Term::to_string() const
 {
   if (is_function)
   {
@@ -349,7 +347,7 @@ string Z3Term::to_string() const
   }
 }
 
-string Z3Term::get_constructor_name() const
+std::string Z3Term::get_constructor_name() const
 {
   if (is_function && z_func.decl_kind() == Z3_OP_DT_CONSTRUCTOR)
   {
@@ -367,7 +365,7 @@ string Z3Term::get_constructor_name() const
       "Only a constructor or a tester has a constructor name");
 }
 
-string Z3Term::get_param_name() const
+std::string Z3Term::get_param_name() const
 {
   if (!is_param())
   {
@@ -376,7 +374,7 @@ string Z3Term::get_param_name() const
   return ctx->get_param_name(term);
 }
 
-string Z3Term::get_selector_name() const
+std::string Z3Term::get_selector_name() const
 {
   if (is_function && z_func.decl_kind() == Z3_OP_DT_ACCESSOR)
   {
@@ -385,7 +383,7 @@ string Z3Term::get_selector_name() const
   throw IncorrectUsageException("Only a selector has a selector name");
 }
 
-string Z3Term::get_symbol_name() const
+std::string Z3Term::get_symbol_name() const
 {
   if (!is_symbol() || is_param())
   {
@@ -443,7 +441,7 @@ int64_t Z3Term::to_signed_int() const
       + " to a signed integer: it is not a value that fits in 64 bits");
 }
 
-string Z3Term::to_bits() const
+std::string Z3Term::to_bits() const
 {
   if (is_function || !term.is_numeral() || !term.is_bv())
   {
@@ -451,8 +449,8 @@ string Z3Term::to_bits() const
         "Can't get a bitstring from a term that is not a bit-vector value");
   }
   // without leading zeros
-  const string bits = Z3_get_numeral_binary_string(term.ctx(), term);
-  return string(term.get_sort().bv_size() - bits.size(), '0') + bits;
+  const std::string bits = Z3_get_numeral_binary_string(term.ctx(), term);
+  return std::string(term.get_sort().bv_size() - bits.size(), '0') + bits;
 }
 
 bool Z3Term::to_bool() const

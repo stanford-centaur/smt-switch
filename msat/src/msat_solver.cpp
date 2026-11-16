@@ -32,8 +32,6 @@
 #include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 
-using namespace std;
-
 namespace smt {
 
 namespace {
@@ -42,11 +40,11 @@ namespace {
  *  as AbsSmtSolver::make_term accepts it
  */
 msat_term make_bv_value(msat_env e,
-                        const string & val,
+                        const std::string & val,
                         uint64_t base,
                         uint64_t width)
 {
-  vector<uint32_t> words = detail::bv_value_to_words(val, base, width);
+  std::vector<uint32_t> words = detail::bv_value_to_words(val, base, width);
   // msat_make_bv_number reads a string far more slowly
   mpz_t value;
   mpz_init(value);
@@ -85,7 +83,7 @@ int reached_deadline(void * deadline)
  */
 [[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
 {
-  const pair<size_t, size_t> arity = get_arity(po);
+  const std::pair<size_t, size_t> arity = get_arity(po);
   if (num_args < arity.first || num_args > arity.second)
   {
     throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
@@ -229,7 +227,7 @@ msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
 
 MsatSolver::MsatSolver() : AbsSmtSolver(MSAT) {}
 
-void MsatSolver::set_opt(const string option, const string value)
+void MsatSolver::set_opt(const std::string option, const std::string value)
 {
   // Note: mathsat needs options to be set on a configuration before creating an
   // environment. To handle this we lazily create the environment when needed
@@ -272,10 +270,10 @@ void MsatSolver::set_logic(const std::string logic_name)
 void MsatSolver::do_assert(const Term & t)
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  shared_ptr<MsatTerm> mterm = get_msat_term(t);
+  std::shared_ptr<MsatTerm> mterm = get_msat_term(t);
   if (msat_assert_formula(*env, mterm->term))
   {
-    string msg("Can't assert the term ");
+    std::string msg("Can't assert the term ");
     msg += t->to_string();
     throw IncorrectUsageException(msg);
   }
@@ -309,7 +307,7 @@ Result MsatSolver::check_sat()
   }
   else
   {
-    const string error = detail::last_error_message(*env);
+    const std::string error = detail::last_error_message(*env);
     return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
@@ -319,7 +317,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   // unwrapped before anything changes, so a refused assumption leaves
   // no label clause behind
-  vector<msat_term> massumptions;
+  std::vector<msat_term> massumptions;
   massumptions.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
@@ -331,7 +329,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
 
   msat_term lbl;
   assumption_map_.clear();
-  vector<msat_term> lbls;
+  std::vector<msat_term> lbls;
   lbls.reserve(assumptions.size());
   for (msat_term ma : massumptions)
   {
@@ -359,7 +357,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
   }
   else
   {
-    const string error = detail::last_error_message(*env);
+    const std::string error = detail::last_error_message(*env);
     return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
@@ -409,12 +407,12 @@ uint64_t MsatSolver::get_context_level() const
 Term MsatSolver::get_value(const Term & t) const
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  shared_ptr<MsatTerm> mterm = get_msat_term(t);
+  std::shared_ptr<MsatTerm> mterm = get_msat_term(t);
   msat_term val = msat_get_model_value(*env, mterm->term);
 
   if (MSAT_ERROR_TERM(val))
   {
-    string msg("Can't get the value of ");
+    std::string msg("Can't get the value of ");
     msg += t->to_string();
     msg +=
         " unless the last check-sat was sat and the term contains only this "
@@ -439,12 +437,12 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
                                   + ", which is not an array");
   }
 
-  shared_ptr<MsatTerm> marr = get_msat_term(arr);
+  std::shared_ptr<MsatTerm> marr = get_msat_term(arr);
   msat_term mval = msat_get_model_value(*env, marr->term);
 
   if (MSAT_ERROR_TERM(mval))
   {
-    string msg("Can't get the value of ");
+    std::string msg("Can't get the value of ");
     msg += arr->to_string();
     msg +=
         " unless the last check-sat was sat and the term contains only this "
@@ -681,7 +679,7 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
   }
   catch (IncorrectUsageException & e)
   {
-    string msg("Can't create value ");
+    std::string msg("Can't create value ");
     msg += std::to_string(i);
     msg += " with sort ";
     msg += sort->to_string();
@@ -730,7 +728,7 @@ Term MsatSolver::make_term(const std::string val,
   }
   catch (IncorrectUsageException & e)
   {
-    string msg("Can't create value ");
+    std::string msg("Can't create value ");
     msg += val;
     msg += " with sort ";
     msg += sort->to_string();
@@ -747,13 +745,13 @@ Term MsatSolver::make_term(const Term & val, const Sort & sort) const
                                   + sort->to_string()
                                   + ", which is not an array sort");
   }
-  shared_ptr<MsatSort> msort = get_msat_sort(sort);
-  shared_ptr<MsatTerm> mval = get_msat_term(val);
+  std::shared_ptr<MsatSort> msort = get_msat_sort(sort);
+  std::shared_ptr<MsatTerm> mval = get_msat_term(val);
   return std::make_shared<MsatTerm>(
       env, msat_make_array_const(*env, msort->get_msat_type(), mval->term));
 }
 
-Term MsatSolver::make_symbol(const string name, const Sort & sort)
+Term MsatSolver::make_symbol(const std::string name, const Sort & sort)
 {
   if (name.empty())
   {
@@ -781,7 +779,7 @@ Term MsatSolver::make_symbol(const string name, const Sort & sort)
     throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
 
-  shared_ptr<MsatSort> msort = get_msat_sort(sort);
+  std::shared_ptr<MsatSort> msort = get_msat_sort(sort);
   if (MSAT_ERROR_TYPE(msort->get_msat_type()))
   {
     throw IncorrectUsageException("Got an error type from MathSAT");
@@ -836,7 +834,7 @@ Term MsatSolver::get_symbol(const std::string & name) const
 Term MsatSolver::make_param(const std::string name, const Sort & sort) const
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  shared_ptr<MsatSort> msort = get_msat_sort(sort);
+  std::shared_ptr<MsatSort> msort = get_msat_sort(sort);
   msat_term var =
       msat_make_variable(*env, name.c_str(), msort->get_msat_type());
   return std::make_shared<MsatTerm>(env, var);
@@ -860,7 +858,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
                                   + to_string(op.prim_op));
   }
 
-  vector<msat_term> mterms;
+  std::vector<msat_term> mterms;
   mterms.reserve(size);
   for (const auto & t : terms)
   {
@@ -874,16 +872,16 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Apply)
   {
-    shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(terms[0]);
+    std::shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(terms[0]);
     if (!mterm->is_uf)
     {
-      string msg(
+      std::string msg(
           "Expecting an uninterpreted function to be used with Apply but got ");
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
     }
     // the first term is the function, applied to the rest
-    vector<msat_term> margs(mterms.begin() + 1, mterms.end());
+    std::vector<msat_term> margs(mterms.begin() + 1, mterms.end());
     res = ext_msat_make_uf(*env, mterm->decl, margs);
   }
   else if (size == 2)
@@ -905,10 +903,10 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
 
   if (MSAT_ERROR_TERM(res))
   {
-    string msg("MathSAT failed to apply ");
+    std::string msg("MathSAT failed to apply ");
     msg += op.to_string();
     msg += " to";
-    string separator = " ";
+    std::string separator = " ";
     for (const auto & t : terms)
     {
       msg += separator + t->to_string();
@@ -916,7 +914,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     }
     throw IncorrectUsageException(msg);
   }
-  return make_shared<MsatTerm>(env, res);
+  return std::make_shared<MsatTerm>(env, res);
 }
 
 void MsatSolver::do_reset()
@@ -949,13 +947,13 @@ Term MsatSolver::substitute(const Term term,
   }
 
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  shared_ptr<MsatTerm> mterm = get_msat_term(term);
+  std::shared_ptr<MsatTerm> mterm = get_msat_term(term);
 
-  vector<msat_term> to_subst;
-  vector<msat_term> values;
+  std::vector<msat_term> to_subst;
+  std::vector<msat_term> values;
 
-  shared_ptr<MsatTerm> tmp_key;
-  shared_ptr<MsatTerm> tmp_val;
+  std::shared_ptr<MsatTerm> tmp_key;
+  std::shared_ptr<MsatTerm> tmp_val;
   // TODO: Fallback to parent class implementation if there are uninterpreted
   // functions
   //       in the map
@@ -1096,9 +1094,9 @@ bool MsatSolver::is_initialized() const
   return env_wrapper_.is_initialized();
 }
 
-shared_ptr<MsatTerm> MsatSolver::get_msat_term(const Term & t) const
+std::shared_ptr<MsatTerm> MsatSolver::get_msat_term(const Term & t) const
 {
-  shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(t);
+  std::shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(t);
   if (!env_wrapper_.owns(mterm->env))
   {
     detail::throw_foreign_handle(t);
@@ -1106,9 +1104,9 @@ shared_ptr<MsatTerm> MsatSolver::get_msat_term(const Term & t) const
   return mterm;
 }
 
-shared_ptr<MsatSort> MsatSolver::get_msat_sort(const Sort & s) const
+std::shared_ptr<MsatSort> MsatSolver::get_msat_sort(const Sort & s) const
 {
-  shared_ptr<MsatSort> msort = backend_pointer_cast<MsatSort>(s);
+  std::shared_ptr<MsatSort> msort = backend_pointer_cast<MsatSort>(s);
   if (!env_wrapper_.owns(msort->env))
   {
     detail::throw_foreign_handle(s);
