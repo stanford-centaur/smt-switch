@@ -599,7 +599,7 @@ Term MsatTerm::get_child(std::size_t i) const
   {
     return std::make_shared<MsatTerm>(
         env,
-        ext_msat_make_minus(
+        detail::ext_msat_make_minus(
             *env, msat_term_get_arg(term, 0), msat_term_get_arg(term, 1)));
   }
   else if (!i && msat_term_is_uf(*env, term))

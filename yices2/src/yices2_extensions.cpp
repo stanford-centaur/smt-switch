@@ -112,28 +112,4 @@ std::string detail::get_yices2_string(char * s)
   return owned.get();
 }
 
-term_t ext_yices_select(term_t arr, term_t idx)
-{
-  term_t selection = yices_application1(arr, idx);
-  return selection;
-}
-
-term_t ext_yices_store(term_t arr, term_t idx, term_t nu)
-{
-  term_t updated = yices_update1(arr, idx, nu);
-  return updated;
-}
-
-term_t ext_yices_bvcomp(term_t t0, term_t t1)
-{
-  // ite(t0 == t1, #b1, #b0)
-  return yices_ite(
-      yices_eq(t0, t1), yices_bvconst_int64(1, 1), yices_bvconst_int64(1, 0));
-}
-
-term_t ext_yices_bvxor3(term_t t0, term_t t1, term_t t2)
-{
-  return yices_bvxor3(t0, t1, t2);
-}
-
 }  // namespace smt

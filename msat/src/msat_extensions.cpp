@@ -51,20 +51,20 @@ std::string detail::last_error_message(msat_env e)
   return msg ? msg : "";
 }
 
-msat_term ext_msat_make_negate(msat_env e, msat_term t)
+msat_term detail::ext_msat_make_negate(msat_env e, msat_term t)
 {
   msat_term negone = msat_make_number(e, "-1");
   return msat_make_times(e, negone, t);
 }
 
-msat_term ext_msat_make_abs(msat_env e, msat_term t)
+msat_term detail::ext_msat_make_abs(msat_env e, msat_term t)
 {
   msat_term negone = msat_make_number(e, "-1");
   msat_term neg = msat_make_leq(e, t, negone);
-  return msat_make_term_ite(e, neg, ext_msat_make_negate(e, t), t);
+  return msat_make_term_ite(e, neg, detail::ext_msat_make_negate(e, t), t);
 }
 
-msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
+msat_term detail::ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
 {
   // SMT-LIB's div rounds t1 / t2 down for a positive t2 and up for a negative
   // one, so that the remainder is never negative. MathSAT only has floor, and
@@ -73,8 +73,8 @@ msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
   msat_term res;
   msat_term div = msat_make_divide(e, t1, t2);
   msat_term div_floor = msat_make_floor(e, div);
-  msat_term div_ceil =
-      ext_msat_make_negate(e, msat_make_floor(e, ext_msat_make_negate(e, div)));
+  msat_term div_ceil = detail::ext_msat_make_negate(
+      e, msat_make_floor(e, detail::ext_msat_make_negate(e, div)));
 
   if (msat_term_is_number(e, t2))
   {
@@ -94,7 +94,9 @@ msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2)
   return res;
 }
 
-msat_term ext_msat_make_divisible(msat_env e, std::uint64_t n, msat_term t)
+msat_term detail::ext_msat_make_divisible(msat_env e,
+                                          std::uint64_t n,
+                                          msat_term t)
 {
   mpz_t modulus;
   mpz_init_set_str(modulus, std::to_string(n).c_str(), 10);
@@ -104,27 +106,30 @@ msat_term ext_msat_make_divisible(msat_env e, std::uint64_t n, msat_term t)
   return res;
 }
 
-msat_term ext_msat_make_nop(msat_env /* e */, msat_term t) { return t; }
+msat_term detail::ext_msat_make_nop(msat_env /* e */, msat_term t) { return t; }
 
-msat_term ext_msat_is_int(msat_env e, msat_term t)
+msat_term detail::ext_msat_is_int(msat_env e, msat_term t)
 {
   return msat_make_eq(e, t, msat_make_floor(e, t));
 }
 
-msat_term ext_msat_make_xor(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_xor(msat_env e, msat_term t0, msat_term t1)
 {
   msat_term tor = msat_make_or(e, t0, t1);
   msat_term notboth = msat_make_not(e, msat_make_and(e, t0, t1));
   return msat_make_and(e, tor, notboth);
 }
 
-msat_term ext_msat_make_implies(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_implies(msat_env e, msat_term t0, msat_term t1)
 {
   msat_term antecedent = msat_make_not(e, t0);
   return msat_make_or(e, antecedent, t1);
 }
 
-msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
+msat_term detail::ext_msat_make_ite(msat_env e,
+                                    msat_term i,
+                                    msat_term t,
+                                    msat_term el)
 {
   msat_type itype = msat_term_get_type(i);
   msat_type ttype = msat_term_get_type(t);
@@ -158,41 +163,41 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   return res;
 }
 
-msat_term ext_msat_make_distinct(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_distinct(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_not(e, msat_make_eq(e, t0, t1));
 }
 
-msat_term ext_msat_make_minus(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_minus(msat_env e, msat_term t0, msat_term t1)
 {
-  return msat_make_plus(e, t0, ext_msat_make_negate(e, t1));
+  return msat_make_plus(e, t0, detail::ext_msat_make_negate(e, t1));
 }
 
-msat_term ext_msat_make_lt(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_lt(msat_env e, msat_term t0, msat_term t1)
 {
   // t0 < t1 === !(t1 <= t0)
   return msat_make_not(e, msat_make_leq(e, t1, t0));
 }
 
-msat_term ext_msat_make_gt(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_gt(msat_env e, msat_term t0, msat_term t1)
 {
   // t0 > t1 === !(t0 <= t1)
   return msat_make_not(e, msat_make_leq(e, t0, t1));
 }
 
-msat_term ext_msat_make_geq(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_geq(msat_env e, msat_term t0, msat_term t1)
 {
   // t0 >= t1 === t1 <= t0
   return msat_make_leq(e, t1, t0);
 }
 
-msat_term ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_mod(msat_env e, msat_term t0, msat_term t1)
 {
-  msat_term t0_div_t1 = ext_msat_make_intdiv(e, t0, t1);
-  return ext_msat_make_minus(e, t0, msat_make_times(e, t1, t0_div_t1));
+  msat_term t0_div_t1 = detail::ext_msat_make_intdiv(e, t0, t1);
+  return detail::ext_msat_make_minus(e, t0, msat_make_times(e, t1, t0_div_t1));
 }
 
-msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
 {
   // msat_make_pow gives back the base for an exponent of 0 rather than 1, a
   // fraction for a negative one, and wrong answers for a symbolic one
@@ -215,22 +220,22 @@ msat_term ext_msat_make_pow(msat_env e, msat_term t0, msat_term t1)
   return zero ? msat_make_number(e, "1") : msat_make_pow(e, t0, t1);
 }
 
-msat_term ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_nand(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_bv_not(e, msat_make_bv_and(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_nor(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_nor(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_bv_not(e, msat_make_bv_or(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_xnor(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_bv_not(e, msat_make_bv_xor(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
+msat_term detail::ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
 {
   // From cvc5 rewrite rules
   // (bvsmod s t) abbreviates
@@ -298,22 +303,22 @@ msat_term ext_msat_make_bv_smod(msat_env e, msat_term s, msat_term t)
   return ite_0;
 }
 
-msat_term ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_ugt(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_not(e, msat_make_bv_uleq(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_ugeq(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_ugeq(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_not(e, msat_make_bv_ult(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_sgt(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_sgt(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_not(e, msat_make_bv_sleq(e, t0, t1));
 }
 
-msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1)
+msat_term detail::ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1)
 {
   return msat_make_not(e, msat_make_bv_slt(e, t0, t1));
 }
@@ -322,9 +327,9 @@ msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1)
  * Wraps msat_make_uf and converts boolean arguments to bitvectors of size 1
  * because mathsat doesn't support UF over booleans
  */
-msat_term ext_msat_make_uf(msat_env e,
-                           msat_decl func,
-                           std::vector<msat_term> args)
+msat_term detail::ext_msat_make_uf(msat_env e,
+                                   msat_decl func,
+                                   std::vector<msat_term> args)
 {
   std::vector<msat_term> converted_args;
   msat_type arg_type;

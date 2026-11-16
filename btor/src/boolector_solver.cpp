@@ -25,7 +25,6 @@ extern "C" {
 #include <utility>
 #include <vector>
 
-#include "smt-switch/boolector_extensions.h"
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/boolector_term.h"
 #include "smt-switch/exceptions.h"
@@ -40,6 +39,49 @@ extern "C" {
 namespace smt {
 
 namespace {
+
+/** A node held for a scope, and released when the scope ends */
+struct ScopedNode
+{
+  Btor * btor;
+  BoolectorNode * node;
+  ~ScopedNode() { boolector_release(btor, node); }
+};
+
+BoolectorNode * ext_btor_rotate_left(Btor * btor,
+                                     BoolectorNode * node,
+                                     uint32_t n)
+{
+  uint32_t width = boolector_get_width(btor, node);
+  n %= width;
+  if (n == 0)
+  {
+    return boolector_uext(btor, node, 0);
+  }
+
+  // compute directly with extracts
+  ScopedNode top_slice{ btor,
+                        boolector_slice(btor, node, width - 1, width - n) };
+  ScopedNode bot_slice{ btor, boolector_slice(btor, node, width - n - 1, 0) };
+  return boolector_concat(btor, bot_slice.node, top_slice.node);
+}
+
+BoolectorNode * ext_btor_rotate_right(Btor * btor,
+                                      BoolectorNode * node,
+                                      uint32_t n)
+{
+  uint32_t width = boolector_get_width(btor, node);
+  n %= width;
+  if (n == 0)
+  {
+    return boolector_uext(btor, node, 0);
+  }
+
+  // compute directly with extracts
+  ScopedNode top_slice{ btor, boolector_slice(btor, node, width - 1, n) };
+  ScopedNode bot_slice{ btor, boolector_slice(btor, node, n - 1, 0) };
+  return boolector_concat(btor, bot_slice.node, top_slice.node);
+}
 
 /** Refuses po applied to num_args arguments, which Boolector has no operator
  *  for
@@ -86,11 +128,9 @@ BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
       }
       return boolector_repeat(btor, a, narrow_index(op, op.indices[0]));
     case Rotate_Left:
-      return custom_boolector_rotate_left(
-          btor, a, narrow_index(op, op.indices[0]));
+      return ext_btor_rotate_left(btor, a, narrow_index(op, op.indices[0]));
     case Rotate_Right:
-      return custom_boolector_rotate_right(
-          btor, a, narrow_index(op, op.indices[0]));
+      return ext_btor_rotate_right(btor, a, narrow_index(op, op.indices[0]));
     default: throw_unsupported(op.prim_op, 1);
   }
 }

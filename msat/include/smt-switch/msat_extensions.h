@@ -43,8 +43,6 @@ std::string msat_option_name(const std::string & option);
  */
 std::string last_error_message(msat_env e);
 
-}  // namespace detail
-
 msat_term ext_msat_make_negate(msat_env e, msat_term t);
 msat_term ext_msat_make_abs(msat_env e, msat_term t);
 msat_term ext_msat_make_intdiv(msat_env e, msat_term t1, msat_term t2);
@@ -74,6 +72,7 @@ msat_term ext_msat_make_bv_sgeq(msat_env e, msat_term t0, msat_term t1);
 msat_term ext_msat_make_uf(msat_env e,
                            msat_decl func,
                            std::vector<msat_term> args);
+}  // namespace detail
 
 }  // namespace smt
 
