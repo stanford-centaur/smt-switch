@@ -48,7 +48,7 @@ namespace {
 bool check_quantifier_terms(const TermVec & terms)
 {
   return terms.size() == 2 && terms[0]->is_param()
-         && terms[1]->get_sort()->get_sort_kind() == BOOL;
+         && terms[1]->get_sort()->is_boolean();
 }
 
 /* helpers for sort checking */
@@ -64,7 +64,7 @@ bool check_quantifier_terms(const TermVec & terms)
  */
 bool check_quantifier_sorts(const SortVec & sorts)
 {
-  return sorts.size() == 2 && sorts[1]->get_sort_kind() == BOOL;
+  return sorts.size() == 2 && sorts[1]->is_boolean();
 }
 
 /** Checks that the sorts are equivalent
@@ -83,8 +83,7 @@ bool equal_sorts(const SortVec & sorts)
  */
 bool check_ite_sorts(const SortVec & sorts)
 {
-  return sorts.size() == 3 && sorts[0]->get_sort_kind() == BOOL
-         && sorts[1] == sorts[2];
+  return sorts.size() == 3 && sorts[0]->is_boolean() && sorts[1] == sorts[2];
 }
 
 /** Returns true iff all the sorts have SortKind sk
@@ -321,7 +320,14 @@ bool check_indexof_sorts(const SortVec & sorts)
 
 bool bool_sorts(const SortVec & sorts)
 {
-  return check_sortkind_matches(BOOL, sorts);
+  for (const Sort & sort : sorts)
+  {
+    if (!sort->is_boolean())
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool bv_sorts(const SortVec & sorts)

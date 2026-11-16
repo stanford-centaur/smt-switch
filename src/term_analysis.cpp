@@ -33,17 +33,14 @@ class TheoryAtomsVisitor : public TermVisitor
   TheoryAtomsVisitor(std::shared_ptr<const AbsSmtSolver> solver,
                      bool split_ites,
                      UnorderedTermSet & out)
-      : solver_(solver),
-        boolsort_(solver->make_sort(BOOL)),
-        split_ites_(split_ites),
-        out_(out)
+      : solver_(solver), split_ites_(split_ites), out_(out)
   {
   }
 
  protected:
   VisitResult visit_term(const Term & term) override
   {
-    if (term->get_sort() != boolsort_ || term->is_value())
+    if (!term->get_sort()->is_boolean() || term->is_value())
     {
       return VisitResult::Skip;
     }
@@ -87,7 +84,7 @@ class TheoryAtomsVisitor : public TermVisitor
         return VisitResult::Continue;
       }
     }
-    if (term->is_theory_atom(boolsort_))
+    if (term->is_theory_atom())
     {
       out_.insert(term);
       return VisitResult::Skip;
@@ -97,7 +94,6 @@ class TheoryAtomsVisitor : public TermVisitor
 
  private:
   std::shared_ptr<const AbsSmtSolver> solver_;
-  Sort boolsort_;
   bool split_ites_;
   UnorderedTermSet & out_;
 };

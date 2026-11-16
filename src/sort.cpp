@@ -45,6 +45,8 @@ std::string to_string(SortKind sk)
                           + std::to_string(static_cast<int>(sk)));
 }
 
+bool AbsSort::is_boolean() const { return get_sort_kind() == BOOL; }
+
 // A null sort equals only another null sort
 bool operator==(const Sort & s1, const Sort & s2)
 {

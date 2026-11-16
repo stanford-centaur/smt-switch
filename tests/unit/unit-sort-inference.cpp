@@ -95,13 +95,8 @@ TEST_P(UnitSortInferenceTests, SortRules)
 
   EXPECT_FALSE(Op(Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort5 }));
 
-  // if solver aliases booleans and bitvectors of width 1, this test fails
-  if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
-  {
-    EXPECT_TRUE(
-        Op(Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort4 }));
-    EXPECT_TRUE(Op(Not).check_sortedness(SortVec{ boolsort }));
-  }
+  EXPECT_TRUE(Op(Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort4 }));
+  EXPECT_TRUE(Op(Not).check_sortedness(SortVec{ boolsort }));
 
   EXPECT_TRUE(Op(BVNot).check_sortedness(SortVec{ bvsort4 }));
 }
@@ -134,12 +129,11 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_TRUE(Op(Equal).check_sortedness({ b1, b2 }));
   EXPECT_TRUE(Op(Distinct).check_sortedness({ b1, b2 }));
 
-  // wrong operator
-  // if solver aliases booleans and bitvectors of width 1, this test fails
+  EXPECT_TRUE(Op(And).check_sortedness({ b1, b2 }));
+  EXPECT_TRUE(Op(Xor).check_sortedness({ b1, b2 }));
+  // wrong operator, except where Booleans are bit-vectors of width one
   if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
   {
-    EXPECT_TRUE(Op(And).check_sortedness({ b1, b2 }));
-    EXPECT_TRUE(Op(Xor).check_sortedness({ b1, b2 }));
     EXPECT_FALSE(Op(BVAnd).check_sortedness({ b1, b2 }));
   }
 
@@ -190,12 +184,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
     Term param = s->make_param("param", bvsort4);
     EXPECT_TRUE(param->is_param());
     Term body = s->make_term(Equal, param, s->make_term(0, bvsort4));
-    // if bool and bv1 aliased, then body won't necessarily have type bool
-    // e.g. BTOR also returns the type as BV1
-    if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
-    {
-      EXPECT_TRUE(Op(Exists).check_sortedness({ param, body }));
-    }
+    EXPECT_TRUE(Op(Exists).check_sortedness({ param, body }));
     // not a parameter
     EXPECT_FALSE(Op(Exists).check_sortedness({ q, body }));
     // not a formula for the body

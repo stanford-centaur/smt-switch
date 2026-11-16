@@ -71,6 +71,8 @@ class BoolectorBVSort : public BoolectorSortBase
   BoolectorBVSort(const std::shared_ptr<Btor> & b,
                   BoolectorSort s,
                   std::uint64_t w);
+  // Boolector's Booleans are its bit-vectors of width one
+  bool is_boolean() const override;
   std::uint64_t get_width() const override;
 
  protected:

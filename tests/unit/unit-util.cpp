@@ -842,20 +842,20 @@ class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
 
 TEST_P(IsTheoryAtom, TheoryRelations)
 {
-  EXPECT_TRUE(less->is_theory_atom(boolsort));
-  EXPECT_TRUE(equal->is_theory_atom(boolsort));
-  EXPECT_TRUE(s->make_term(Distinct, x, y, z)->is_theory_atom(boolsort));
+  EXPECT_TRUE(less->is_theory_atom());
+  EXPECT_TRUE(equal->is_theory_atom());
+  EXPECT_TRUE(s->make_term(Distinct, x, y, z)->is_theory_atom());
 }
 
 TEST_P(IsTheoryAtom, ConnectivesAndLeaves)
 {
-  EXPECT_FALSE(b->is_theory_atom(boolsort));
-  EXPECT_FALSE(s->make_term(true)->is_theory_atom(boolsort));
-  EXPECT_FALSE(x->is_theory_atom(boolsort));
-  EXPECT_FALSE(s->make_term(And, b, less)->is_theory_atom(boolsort));
-  EXPECT_FALSE(s->make_term(Not, less)->is_theory_atom(boolsort));
-  EXPECT_FALSE(s->make_term(Ite, b, less, c)->is_theory_atom(boolsort));
-  EXPECT_FALSE(s->make_term(Equal, b, less)->is_theory_atom(boolsort));
+  EXPECT_FALSE(b->is_theory_atom());
+  EXPECT_FALSE(s->make_term(true)->is_theory_atom());
+  EXPECT_FALSE(x->is_theory_atom());
+  EXPECT_FALSE(s->make_term(And, b, less)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Not, less)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Ite, b, less, c)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Equal, b, less)->is_theory_atom());
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetTheoryAtoms);

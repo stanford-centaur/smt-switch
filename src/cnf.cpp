@@ -26,7 +26,7 @@ namespace smt::cnf {
 void to_dimacs(const Term & cnf, std::ostringstream & y)
 {
   Sort sort = cnf->get_sort();
-  if (sort->get_sort_kind() != BOOL)
+  if (!sort->is_boolean())
   {
     throw IncorrectUsageException("cnf::to_dimacs expects a Boolean term, but "
                                   + cnf->to_string() + " has sort "
@@ -86,7 +86,7 @@ void to_dimacs(const Term & cnf, std::ostringstream & y)
           before_or_elimination.push_back(child);
         }
       }
-      else if (t->is_lit(sort) || (t->is_value() && !t->to_bool()))
+      else if (t->is_lit() || (t->is_value() && !t->to_bool()))
       {
         after_or_elimination.push_back(t);
       }
@@ -173,9 +173,9 @@ namespace {
 // The connective convert encodes that t applies, or NUM_OPS_AND_NULL when t is
 // a symbol, a constant or an atom that convert keeps whole. Solvers that alias
 // Bool with (_ BitVec 1) report bit-vector ops for the connectives.
-PrimOp cnf_connective(const Term & t, const Sort & boolsort)
+PrimOp cnf_connective(const Term & t)
 {
-  if (t->get_sort() != boolsort)
+  if (!t->get_sort()->is_boolean())
   {
     return NUM_OPS_AND_NULL;
   }
@@ -200,7 +200,7 @@ PrimOp cnf_connective(const Term & t, const Sort & boolsort)
   {
     return Implies;
   }
-  if (op == Equal && (*t->begin())->get_sort() == boolsort)
+  if (op == Equal && (*t->begin())->get_sort()->is_boolean())
   {
     return Equal;
   }
@@ -243,7 +243,7 @@ class TseitinTraversal : public IdentityWalker
       }
 
     };
-    PrimOp connective = cnf_connective(term, boolsort_);
+    PrimOp connective = cnf_connective(term);
     if (connective == NUM_OPS_AND_NULL)
     {
       // a symbol or an atom stands for itself, and skipping it keeps the
@@ -305,7 +305,6 @@ class EliminateBooleanConstants : public IdentityWalker
  public:
   explicit EliminateBooleanConstants(const SmtSolver & solver)
       : IdentityWalker{ solver, false },
-        boolsort_(solver->make_sort(BOOL)),
         true_term_(solver->make_term(true)),
         false_term_(solver->make_term(false))
   {
@@ -398,7 +397,7 @@ class EliminateBooleanConstants : public IdentityWalker
       // keeping it as it is
       return solver_->make_term(And, vec);
     };
-    PrimOp op = cnf_connective(term, boolsort_);
+    PrimOp op = cnf_connective(term);
     if (op == NUM_OPS_AND_NULL)
     {
       // symbols, constants and atoms are kept as they are, and their
@@ -572,7 +571,6 @@ class EliminateBooleanConstants : public IdentityWalker
   }
 
  private:
-  Sort boolsort_;
   Term true_term_;
   Term false_term_;
 };

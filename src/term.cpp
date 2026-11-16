@@ -375,10 +375,9 @@ void AbsTerm::get_terms_with_ops(const std::unordered_set<PrimOp> & ops,
   TermsWithOpsVisitor(ops, out).visit(shared_from_this());
 }
 
-bool AbsTerm::is_lit(const Sort & boolsort)
+bool AbsTerm::is_lit()
 {
-  // take a boolsort as an argument for sort aliasing solvers
-  if (get_sort() != boolsort)
+  if (!get_sort()->is_boolean())
   {
     return false;
   }
@@ -399,10 +398,9 @@ bool AbsTerm::is_lit(const Sort & boolsort)
   return false;
 }
 
-bool AbsTerm::is_theory_atom(const Sort & boolsort)
+bool AbsTerm::is_theory_atom()
 {
-  // take a boolsort as an argument for sort aliasing solvers
-  if (get_sort() != boolsort)
+  if (!get_sort()->is_boolean())
   {
     return false;
   }
@@ -424,7 +422,7 @@ bool AbsTerm::is_theory_atom(const Sort & boolsort)
   }
   // an equality or distinct over Booleans is a connective too
   return !((po == Equal || po == Distinct)
-           && (*begin())->get_sort() == boolsort);
+           && (*begin())->get_sort()->is_boolean());
 }
 
 }  // namespace smt
