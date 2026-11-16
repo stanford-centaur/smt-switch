@@ -133,6 +133,7 @@ set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
 set(
   SOURCES
   "${PROJECT_SOURCE_DIR}/src/datatype.cpp"
+  "${PROJECT_SOURCE_DIR}/src/disjoint_set.cpp"
   "${PROJECT_SOURCE_DIR}/src/exceptions.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_datatype.cpp"
   "${PROJECT_SOURCE_DIR}/src/generic_solver.cpp"
@@ -164,6 +165,7 @@ set(
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_visitor.cpp"
   "${PROJECT_SOURCE_DIR}/src/text_utils.cpp"
+  "${PROJECT_SOURCE_DIR}/src/unsat_core_reducer.cpp"
   "${PROJECT_SOURCE_DIR}/src/utils.cpp"
 )
 
