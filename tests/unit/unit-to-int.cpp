@@ -30,15 +30,13 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
-const uint64_t uint64_max = numeric_limits<uint64_t>::max();
-const int64_t int64_max = numeric_limits<int64_t>::max();
-const int64_t int64_min = numeric_limits<int64_t>::min();
+const uint64_t uint64_max = std::numeric_limits<uint64_t>::max();
+const int64_t int64_max = std::numeric_limits<int64_t>::max();
+const int64_t int64_min = std::numeric_limits<int64_t>::min();
 
 class ToIntTests : public ::testing::Test,
                    public ::testing::WithParamInterface<SolverConfiguration>
@@ -499,3 +497,5 @@ TEST(ToIntParsing, DefaultToSignedInt)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

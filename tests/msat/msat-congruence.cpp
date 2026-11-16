@@ -21,7 +21,7 @@
 #include "smt-switch/term_translator.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -74,3 +74,5 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

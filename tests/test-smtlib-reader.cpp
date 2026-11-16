@@ -33,9 +33,7 @@
 #include "smt-switch/term.h"
 #include "test_paths.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -47,7 +45,7 @@ class StatusChecker : public SmtLibReader
  public:
   using SmtLibReader::SmtLibReader;
 
-  void set_info(const string & key, const string & val) override
+  void set_info(const std::string & key, const std::string & val) override
   {
     if (key == "status")
     {
@@ -66,7 +64,7 @@ class StatusChecker : public SmtLibReader
   size_t checks() const { return checks_; }
 
   /** A status no check-sat has followed, or empty */
-  const string & pending_status() const { return expected_; }
+  const std::string & pending_status() const { return expected_; }
 
  private:
   Result checked(Result r)
@@ -77,17 +75,17 @@ class StatusChecker : public SmtLibReader
     return r;
   }
 
-  string expected_;
+  std::string expected_;
   size_t checks_ = 0;
 };
 
 /** The .smt2 inputs in a directory of the test resources, in name order */
-vector<string> inputs_in(const string & directory)
+std::vector<std::string> inputs_in(const std::string & directory)
 {
-  vector<string> inputs;
-  for (const filesystem::directory_entry & entry :
-       filesystem::directory_iterator(string(smt_tests::smtlib_resource_dir)
-                                      + "/" + directory))
+  std::vector<std::string> inputs;
+  for (const std::filesystem::directory_entry & entry :
+       std::filesystem::directory_iterator(std::string(smtlib_resource_dir)
+                                           + "/" + directory))
   {
     if (entry.path().extension() == ".smt2")
     {
@@ -99,17 +97,18 @@ vector<string> inputs_in(const string & directory)
 }
 
 // (configuration, input, whether the reader is strict)
-typedef tuple<SolverConfiguration, string, bool> ReaderInput;
+typedef std::tuple<SolverConfiguration, std::string, bool> ReaderInput;
 
-string reader_input_name(const testing::TestParamInfo<ReaderInput> & info)
+std::string reader_input_name(const testing::TestParamInfo<ReaderInput> & info)
 {
-  string file = filesystem::path(get<1>(info.param)).stem().string();
+  std::string file =
+      std::filesystem::path(std::get<1>(info.param)).stem().string();
   // the inputs are named test-..., which says nothing in a test name
   if (file.rfind("test-", 0) == 0)
   {
     file.erase(0, 5);
   }
-  string name = config_name(get<0>(info.param)) + "_" + file;
+  std::string name = config_name(std::get<0>(info.param)) + "_" + file;
   replace(name.begin(), name.end(), '-', '_');
   return name;
 }
@@ -123,13 +122,13 @@ TEST_P(Benchmark, Answers)
 {
   const auto & [config, input, strict] = GetParam();
   if (config.solver_enum == YICES2
-      && filesystem::path(input).filename() == "test-array.smt2")
+      && std::filesystem::path(input).filename() == "test-array.smt2")
   {
     GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
                     "constant array, which test-array.smt2 does";
   }
   if (config.solver_enum == BZLA
-      && filesystem::path(input).filename()
+      && std::filesystem::path(input).filename()
              == "test-uninterp-sort-zero-arity.smt2")
   {
     GTEST_SKIP() << "Bitwuzla answers unknown to the distinct and the "
@@ -267,9 +266,9 @@ class Dump : public ::testing::Test,
    *  check-sat that ends s's dump
    *  @param name what tells the dump apart from the other tests' dumps
    */
-  Result reread(const string & name)
+  Result reread(const std::string & name)
   {
-    string file =
+    std::string file =
         testing::TempDir() + "dump-" + name + "-" + config_name(GetParam());
     s->dump_smt2(file);
     SmtSolver fresh = create_solver(GetParam());
@@ -528,14 +527,14 @@ class Input : public ::testing::Test,
     reader = std::make_unique<SmtLibReader>(s);
   }
 
-  static string error_input(const string & name)
+  static std::string error_input(const std::string & name)
   {
-    return string(smt_tests::smtlib_resource_dir) + "/errors/" + name;
+    return std::string(smtlib_resource_dir) + "/errors/" + name;
   }
 
   /** Parses an input from errors/ and returns the message of the
    *  ParseException it throws, failing the test if it throws none */
-  string parse_error(const string & name)
+  std::string parse_error(const std::string & name)
   {
     try
     {
@@ -561,20 +560,20 @@ TEST_P(Input, MissingFile)
 
 TEST_P(Input, UnreadableFile)
 {
-  EXPECT_THROW(reader->parse(string(smt_tests::smtlib_resource_dir)),
+  EXPECT_THROW(reader->parse(std::string(smtlib_resource_dir)),
                SystemException);
 }
 
 TEST_P(Input, SyntaxError)
 {
-  const string message = parse_error("syntax-error.smt2");
+  const std::string message = parse_error("syntax-error.smt2");
   EXPECT_EQ(message.rfind(error_input("syntax-error.smt2") + ":3.", 0), 0u)
       << message;
 }
 
 TEST_P(Input, OutOfRangeNumeral)
 {
-  const string message = parse_error("out-of-range-numeral.smt2");
+  const std::string message = parse_error("out-of-range-numeral.smt2");
   EXPECT_EQ(message.rfind(error_input("out-of-range-numeral.smt2") + ":2.", 0),
             0u)
       << message;
@@ -582,21 +581,21 @@ TEST_P(Input, OutOfRangeNumeral)
 
 TEST_P(Input, Redeclaration)
 {
-  const string message = parse_error("redeclaration.smt2");
+  const std::string message = parse_error("redeclaration.smt2");
   EXPECT_EQ(message.rfind(error_input("redeclaration.smt2") + ":3.", 0), 0u)
       << message;
 }
 
 TEST_P(Input, PopWithoutPush)
 {
-  const string message = parse_error("pop-without-push.smt2");
+  const std::string message = parse_error("pop-without-push.smt2");
   EXPECT_EQ(message.rfind(error_input("pop-without-push.smt2") + ":2.", 0), 0u)
       << message;
 }
 
 TEST_P(Input, ShortArraySort)
 {
-  const string message = parse_error("short-array-sort.smt2");
+  const std::string message = parse_error("short-array-sort.smt2");
   EXPECT_EQ(message.rfind(error_input("short-array-sort.smt2") + ":2.", 0), 0u)
       << message;
 }
@@ -607,8 +606,9 @@ TEST_P(Input, FailedParseClosesScopes)
   EXPECT_THROW(reader->parse(error_input("failed-define-fun.smt2")),
                ParseException);
   EXPECT_EQ(reader->current_scope(), 0u);
-  const string message = parse_error("stale-argument.smt2");
-  EXPECT_NE(message.find("Unrecognized symbol: b"), string::npos) << message;
+  const std::string message = parse_error("stale-argument.smt2");
+  EXPECT_NE(message.find("Unrecognized symbol: b"), std::string::npos)
+      << message;
 }
 
 TEST_P(Input, ArrayLogic)
@@ -709,12 +709,12 @@ class InfoRecorder : public SmtLibReader
  public:
   using SmtLibReader::SmtLibReader;
 
-  void set_info(const string & key, const string & val) override
+  void set_info(const std::string & key, const std::string & val) override
   {
     info[key] = val;
   }
 
-  unordered_map<string, string> info;
+  std::unordered_map<std::string, std::string> info;
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(AttributeValues);
@@ -730,16 +730,16 @@ class AttributeValues
   }
 
   /** The values of the set-info commands of an input from attributes/ */
-  unordered_map<string, string> values_in(const string & name)
+  std::unordered_map<std::string, std::string> values_in(
+      const std::string & name)
   {
     InfoRecorder reader(s);
-    reader.parse(string(smt_tests::smtlib_resource_dir) + "/attributes/"
-                 + name);
+    reader.parse(std::string(smtlib_resource_dir) + "/attributes/" + name);
     return reader.info;
   }
 
   SmtSolver s;
-  unordered_map<string, string> info;
+  std::unordered_map<std::string, std::string> info;
 };
 
 TEST_P(AttributeValues, ListElementsAreSpaced)
@@ -778,7 +778,8 @@ TEST_P(AttributeValues, TopLevelStringOrSymbolIsItsText)
 
 TEST_P(AttributeValues, ReservedWordsInLists)
 {
-  unordered_map<string, string> reserved = values_in("reserved-words.smt2");
+  std::unordered_map<std::string, std::string> reserved =
+      values_in("reserved-words.smt2");
   EXPECT_EQ(reserved["set"], "(set-logic set-option set-info)");
   EXPECT_EQ(reserved["declare"], "(declare-const declare-fun declare-sort)");
   EXPECT_EQ(reserved["define"], "(define-fun define-sort)");
@@ -801,11 +802,11 @@ class CommandRecorder : public SmtLibReader
  public:
   using SmtLibReader::SmtLibReader;
 
-  void declare_fun(const string & name,
+  void declare_fun(const std::string & name,
                    SortVec domain,
                    const Sort & sort) override
   {
-    vector<string> call = { "declare-fun", name };
+    std::vector<std::string> call = { "declare-fun", name };
     for (const Sort & s : domain)
     {
       call.push_back(to_string(s->get_sort_kind()));
@@ -814,16 +815,16 @@ class CommandRecorder : public SmtLibReader
     calls.push_back(call);
   }
 
-  void declare_sort(const string & name, std::uint64_t arity) override
+  void declare_sort(const std::string & name, std::uint64_t arity) override
   {
     calls.push_back({ "declare-sort", name, std::to_string(arity) });
   }
 
-  void define_fun(const string & name,
+  void define_fun(const std::string & name,
                   const Term & def,
                   const TermVec & args) override
   {
-    vector<string> call = { "define-fun", name };
+    std::vector<std::string> call = { "define-fun", name };
     for (const Term & a : args)
     {
       call.push_back(a->to_string());
@@ -832,14 +833,14 @@ class CommandRecorder : public SmtLibReader
     calls.push_back(call);
   }
 
-  void define_sort(const string & name, const Sort & sort) override
+  void define_sort(const std::string & name, const Sort & sort) override
   {
     calls.push_back({ "define-sort", name, to_string(sort->get_sort_kind()) });
   }
 
   void get_value(const TermVec & terms) override
   {
-    vector<string> call = { "get-value" };
+    std::vector<std::string> call = { "get-value" };
     for (const Term & t : terms)
     {
       call.push_back(t->to_string());
@@ -852,9 +853,12 @@ class CommandRecorder : public SmtLibReader
     calls.push_back({ "get-unsat-assumptions" });
   }
 
-  void echo(const string & text) override { calls.push_back({ "echo", text }); }
+  void echo(const std::string & text) override
+  {
+    calls.push_back({ "echo", text });
+  }
 
-  vector<vector<string>> calls;
+  std::vector<std::vector<std::string>> calls;
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Commands);
@@ -867,10 +871,9 @@ TEST_P(Commands, OverridesReceiveEachCommand)
 {
   SmtSolver s = create_solver(GetParam());
   CommandRecorder reader(s);
-  reader.parse(string(smt_tests::smtlib_resource_dir)
-               + "/commands/overridable.smt2");
+  reader.parse(std::string(smtlib_resource_dir) + "/commands/overridable.smt2");
   EXPECT_EQ(reader.calls,
-            (vector<vector<string>>{
+            (std::vector<std::vector<std::string>>{
                 { "declare-fun", "f", "BitVec", "BitVec", "BitVec" },
                 { "declare-sort", "U", "0" },
                 { "define-sort", "T", "BitVec" },
@@ -886,3 +889,5 @@ INSTANTIATE_TEST_SUITE_P(SmtLibReader,
                          ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests

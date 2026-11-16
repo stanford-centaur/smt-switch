@@ -32,13 +32,12 @@
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
-using testing::ElementsAre;
-using testing::IsEmpty;
+namespace smt::tests {
 
 namespace {
+
+using testing::ElementsAre;
+using testing::IsEmpty;
 
 // For every pair, neither is less than the other exactly when they are
 // equal.
@@ -152,14 +151,14 @@ TEST_P(Datatypes, DatatypeDecl)
   // Make datatype sort
   DatatypeDecl consListSpec = s->make_datatype_decl("list");
 
-  auto dt_decltest = make_shared<GenericDatatypeDecl>("secondtestdt");
+  auto dt_decltest = std::make_shared<GenericDatatypeDecl>("secondtestdt");
 
   std::shared_ptr<GenericDatatype> gdt =
-      make_shared<GenericDatatype>(dt_decltest);
+      std::make_shared<GenericDatatype>(dt_decltest);
   EXPECT_EQ(gdt->get_num_constructors(), 0);
 
-  shared_ptr<GenericDatatypeConstructorDecl> cons2test =
-      shared_ptr<GenericDatatypeConstructorDecl>(
+  std::shared_ptr<GenericDatatypeConstructorDecl> cons2test =
+      std::shared_ptr<GenericDatatypeConstructorDecl>(
           new GenericDatatypeConstructorDecl("constest"));
   gdt->add_constructor(cons2test);
   EXPECT_EQ(gdt->get_num_constructors(), 1);
@@ -169,8 +168,8 @@ TEST_P(Datatypes, DatatypeDecl)
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
 
-  shared_ptr<GenericDatatypeConstructorDecl> consdeclgen =
-      static_pointer_cast<GenericDatatypeConstructorDecl>(consdecl);
+  std::shared_ptr<GenericDatatypeConstructorDecl> consdeclgen =
+      std::static_pointer_cast<GenericDatatypeConstructorDecl>(consdecl);
   DatatypeConstructorDecl cons_copy = consdecl;
   ASSERT_EQ(cons_copy, consdecl);
 
@@ -187,12 +186,12 @@ TEST_P(Datatypes, DatatypeDecl)
 
   DatatypeConstructorDecl nonAddCons =
       s->make_datatype_constructor_decl("nonAddCons");
-  shared_ptr<SelectorComponents> newSelector =
-      make_shared<SelectorComponents>();
+  std::shared_ptr<SelectorComponents> newSelector =
+      std::make_shared<SelectorComponents>();
   newSelector->name = "nonaddselector";
   newSelector->sort = s->make_sort(INT);
-  shared_ptr<GenericDatatype> nonAddDT =
-      make_shared<GenericDatatype>(consListSpec);
+  std::shared_ptr<GenericDatatype> nonAddDT =
+      std::make_shared<GenericDatatype>(consListSpec);
   EXPECT_THROW(nonAddDT->add_selector(nonAddCons, *newSelector),
                SolverException);
 
@@ -272,19 +271,19 @@ TEST_P(Datatypes, NamesReachEveryComponent)
   s->add_constructor(treedecl, nodedecl);
   Sort treesort = s->make_sort(treedecl);
 
-  map<string, Sort> declared{ { "flag", boolsort },
-                              { "value", intsort },
-                              { "child", treesort } };
+  std::map<std::string, Sort> declared{ { "flag", boolsort },
+                                        { "value", intsort },
+                                        { "child", treesort } };
   Datatype dt = treesort->get_datatype();
   EXPECT_THAT(dt->get_constructor_names(), ElementsAre("leaf", "node"));
   EXPECT_THAT(dt->get_selector_names("node"),
               ElementsAre("flag", "value", "child"));
-  for (const string & con : dt->get_constructor_names())
+  for (const std::string & con : dt->get_constructor_names())
   {
     EXPECT_NO_THROW(s->get_tester(treesort, con)) << con;
     SortVec domain =
         s->get_constructor(treesort, con)->get_sort()->get_domain_sorts();
-    vector<string> selectors = dt->get_selector_names(con);
+    std::vector<std::string> selectors = dt->get_selector_names(con);
     ASSERT_EQ(domain.size(), selectors.size()) << con;
     for (size_t i = 0; i < selectors.size(); ++i)
     {
@@ -420,7 +419,7 @@ TEST_P(Datatypes, SecondMakeSortRefused)
 TEST_P(Datatypes, MakeDatatypeSortsMakesEach)
 {
   std::vector<DatatypeDecl> decls;
-  for (const string name : { "a", "b", "c" })
+  for (const std::string name : { "a", "b", "c" })
   {
     auto decl = s->make_datatype_decl(name);
     auto con = s->make_datatype_constructor_decl("mk" + name);
@@ -530,10 +529,10 @@ TEST_P(Datatypes, ComponentsAndApplications)
 
   // a constructor, selector or tester is a leaf of its own sort kind, and
   // its datatype declares it, not a symbol
-  for (const auto & [leaf, kind] : { pair{ nilc, CONSTRUCTOR },
-                                     pair{ cons, CONSTRUCTOR },
-                                     pair{ head, SELECTOR },
-                                     pair{ isnil, TESTER } })
+  for (const auto & [leaf, kind] : { std::pair{ nilc, CONSTRUCTOR },
+                                     std::pair{ cons, CONSTRUCTOR },
+                                     std::pair{ head, SELECTOR },
+                                     std::pair{ isnil, TESTER } })
   {
     EXPECT_EQ(leaf->get_sort()->get_sort_kind(), kind) << leaf;
     EXPECT_FALSE(leaf->is_symbol()) << leaf;
@@ -847,3 +846,5 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests

@@ -20,7 +20,7 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -55,3 +55,5 @@ TEST(MsatConstructors, InterpolatingKeepsBitBlastPreference)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

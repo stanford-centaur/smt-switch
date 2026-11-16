@@ -21,7 +21,7 @@
 #include "smt-switch/z3_solver.h"
 #include "smt-switch/z3_term.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -50,3 +50,5 @@ TEST(Z3Quantifier, BindingSeveralListsTheFirstThenTheRest)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

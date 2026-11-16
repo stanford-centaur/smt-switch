@@ -24,7 +24,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(BzlaTermManager, AnotherSolversTermsRefused)
 {
@@ -85,3 +87,7 @@ TEST(BzlaTermManager, AnotherInterpolatorsTermsRefused)
   Term out_I;
   EXPECT_THROW(itp->get_interpolant(a, b, out_I), IncorrectUsageException);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

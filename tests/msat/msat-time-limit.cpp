@@ -23,7 +23,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -90,3 +90,5 @@ TEST(MsatTimeLimit, StopsAnInterpolationQuery)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

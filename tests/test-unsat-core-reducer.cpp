@@ -25,9 +25,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -143,7 +141,8 @@ class UnknownAssumingSolver : public LoggingSolver
 TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
 {
   SolverConfiguration sc(GetParam().solver_enum, false);
-  UnsatCoreReducer uscr(make_shared<UnknownAssumingSolver>(create_solver(sc)));
+  UnsatCoreReducer uscr(
+      std::make_shared<UnknownAssumingSolver>(create_solver(sc)));
 
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
@@ -165,3 +164,5 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreReducerTests,
                              { UNSAT_CORE, FULL_TRANSFER })));
 
 }  // namespace
+
+}  // namespace smt::tests

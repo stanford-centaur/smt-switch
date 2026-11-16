@@ -19,9 +19,7 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_factory.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -49,7 +47,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST(UnitSolverEnumNames, EverySolverEnumPrints)
 {
-  const vector<pair<SolverEnum, string>> names({
+  const std::vector<std::pair<SolverEnum, std::string>> names({
       { BTOR, "BTOR" },
       { BZLA, "BZLA" },
       { CVC5, "CVC5" },
@@ -70,7 +68,7 @@ TEST(UnitSolverEnumNames, EverySolverEnumPrints)
 
 TEST(UnitSolverEnumNames, EverySolverAttributePrints)
 {
-  const vector<pair<SolverAttribute, string>> names({
+  const std::vector<std::pair<SolverAttribute, std::string>> names({
       { LOGGING, "LOGGING" },
       { TERMITER, "TERMITER" },
       { THEORY_BV, "THEORY_BV" },
@@ -122,3 +120,5 @@ TEST(UnitSolverAttributes, InterpolatorsShareTheirSolversAttributes)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

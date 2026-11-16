@@ -31,9 +31,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -48,14 +46,14 @@ struct OwnRange
 };
 
 // What s writes to filename for an asserted x = y
-string dump_equality(SmtSolver s, const string & filename)
+std::string dump_equality(SmtSolver s, const std::string & filename)
 {
   Sort bvsort = s->make_sort(BV, 4);
   s->assert_formula(s->make_term(
       Equal, s->make_symbol("x", bvsort), s->make_symbol("y", bvsort)));
   s->dump_smt2(filename);
-  ifstream in(filename);
-  stringstream contents;
+  std::ifstream in(filename);
+  std::stringstream contents;
   contents << in.rdbuf();
   return contents.str();
 }
@@ -205,13 +203,13 @@ TEST_P(UnitSolveTests, RefusesNonBooleanAndNullAssertions)
 TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
 {
   SolverEnum se = GetParam().solver_enum;
-  string prefix = testing::TempDir() + to_string(se);
-  string plain = dump_equality(create_solver(SolverConfiguration(se, false)),
-                               prefix + "-plain.smt2");
+  std::string prefix = testing::TempDir() + to_string(se);
+  std::string plain = dump_equality(
+      create_solver(SolverConfiguration(se, false)), prefix + "-plain.smt2");
   // a logging configuration wraps the plain solver in a LoggingSolver
   EXPECT_EQ(dump_equality(create_solver(GetParam()), prefix + "-param.smt2"),
             plain);
-  ostringstream printed;
+  std::ostringstream printed;
   EXPECT_EQ(
       dump_equality(create_printing_solver(create_solver(GetParam()), &printed),
                     prefix + "-printing.smt2"),
@@ -226,7 +224,7 @@ TEST_P(UnitSolveTests, DumpRefusesUnopenableFile)
 
 TEST_P(UnitSolveTests, DumpReportsFailedWrite)
 {
-  if (!filesystem::exists("/dev/full"))
+  if (!std::filesystem::exists("/dev/full"))
   {
     GTEST_SKIP() << "this system has no /dev/full to fail writes";
   }
@@ -247,3 +245,5 @@ TEST(Result, ComparesByResultType)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

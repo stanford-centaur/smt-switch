@@ -17,7 +17,9 @@
 #include "smt-switch/z3_factory.h"
 #include "smt-switch/z3_sort.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(Z3Test, DatatypeSortIsZ3Datatype)
 {
@@ -34,3 +36,7 @@ TEST(Z3Test, DatatypeSortIsZ3Datatype)
   EXPECT_TRUE(
       std::static_pointer_cast<Z3Sort>(listsort)->get_z3_type().is_datatype());
 }
+
+}  // namespace
+
+}  // namespace smt::tests

@@ -20,7 +20,7 @@
 #include <string>
 #include <string_view>
 
-namespace smt_tests {
+namespace smt::tests {
 
 namespace {
 
@@ -95,4 +95,4 @@ void dump_and_run(std::string_view executable_path,
   }
 }
 
-}  // namespace smt_tests
+}  // namespace smt::tests

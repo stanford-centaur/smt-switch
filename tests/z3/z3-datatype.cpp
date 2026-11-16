@@ -23,7 +23,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/z3_factory.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -73,3 +73,5 @@ TEST(Z3Datatype, ReusedInDatatypeSorts)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

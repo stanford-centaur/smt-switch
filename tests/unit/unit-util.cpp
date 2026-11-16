@@ -31,9 +31,7 @@
 #include "smt-switch/utils.h"
 #include "term_utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -245,42 +243,42 @@ TEST_P(UnitUtilDimacsTests, cnf_to_dimacs)
 
   // Test 1
 
-  ostringstream y;
+  std::ostringstream y;
   cnf_to_dimacs(cnf, y);  // cnf = ((a v b v ~c) /\ (b v ~c v d) /\ (d v ~c v
                           // a))
-  string ret = y.str();
-  string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
-  ASSERT_TRUE(ret == expected) << ret << " " << expected << endl
-                               << cnf << endl
-                               << s->get_solver_enum() << endl;
+  std::string ret = y.str();
+  std::string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
+  ASSERT_TRUE(ret == expected) << ret << " " << expected << std::endl
+                               << cnf << std::endl
+                               << s->get_solver_enum() << std::endl;
 
   // Test 2
   Term clause4 = a;
   Term clause5 = s->make_term(Not, b);
   Term clause6 = s->make_term(Or, a, b);
   Term cnf2 = s->make_term(And, clause4, s->make_term(And, clause5, clause6));
-  ostringstream y2;
+  std::ostringstream y2;
   cnf_to_dimacs(cnf2, y2);  // cnf2 = ((a) /\ (~b) /\ (a v b))
-  string ret2 = y2.str();
-  string expected2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
+  std::string ret2 = y2.str();
+  std::string expected2 = "p cnf 2 3\n1 2 0\n-1 0\n2 0\n";
   ASSERT_TRUE(ret2 == expected2);
 
   // Testing an empty cnf
   Term cnf3 = s->make_term(true);
-  ostringstream y3;
+  std::ostringstream y3;
   cnf_to_dimacs(cnf3, y3);  // cnf3 = True
-  string ret3 = y3.str();
-  string expected3 = "p cnf 0 0\n";
-  ASSERT_TRUE(ret3 == expected3) << ret3 << endl << expected3 << endl;
+  std::string ret3 = y3.str();
+  std::string expected3 = "p cnf 0 0\n";
+  ASSERT_TRUE(ret3 == expected3) << ret3 << std::endl << expected3 << std::endl;
 
   // Testing empty clause
   Term clause7 = s->make_term(false);
   Term cnf4 = s->make_term(And, clause5, s->make_term(And, clause7, clause1));
-  ostringstream y4;
+  std::ostringstream y4;
   cnf_to_dimacs(cnf4, y4);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
-  string ret4 = y4.str();
-  string expected4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
-  ASSERT_TRUE(ret4 == expected4) << ret4 << endl << cnf4 << endl;
+  std::string ret4 = y4.str();
+  std::string expected4 = "p cnf 3 3\n-1 2 3 0\n0\n-2 0\n";
+  ASSERT_TRUE(ret4 == expected4) << ret4 << std::endl << cnf4 << std::endl;
 }
 
 TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
@@ -289,7 +287,7 @@ TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
   Term b = s->make_symbol("b", boolsort);
   Term c = s->make_symbol("c", boolsort);
   Term x = s->make_symbol("x", s->make_sort(BV, 4));
-  ostringstream y;
+  std::ostringstream y;
   EXPECT_THROW(cnf_to_dimacs(x, y), IncorrectUsageException);
   EXPECT_THROW(cnf_to_dimacs(s->make_term(Implies, a, b), y),
                IncorrectUsageException);
@@ -329,8 +327,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Result r2 = s->check_sat();
   s->pop(1);
   ASSERT_TRUE((r1.is_sat() && r2.is_sat()) || (r1.is_unsat() && r2.is_unsat()));
-  string st = cnf1->to_string();
-  string expected =
+  std::string st = cnf1->to_string();
+  std::string expected =
       "(and tseitin_to_cnf_4 (and (or (not t) (not tseitin_to_cnf_1)) (or t "
       "tseitin_to_cnf_1) (or (not tseitin_to_cnf_2) p q) (and (or "
       "tseitin_to_cnf_2 (not p)) (or tseitin_to_cnf_2 (not q))) (or "
@@ -339,7 +337,9 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "(or (or (not tseitin_to_cnf_3) tseitin_to_cnf_1) (not "
       "tseitin_to_cnf_4)) (or tseitin_to_cnf_3 tseitin_to_cnf_4) (or (not "
       "tseitin_to_cnf_1) tseitin_to_cnf_4)))";
-  ASSERT_TRUE(st == expected) << st << endl << endl << expected << endl;
+  ASSERT_TRUE(st == expected) << st << std::endl
+                              << std::endl
+                              << expected << std::endl;
 
   // b=Not(p xor q)
   Term b = s->make_term(Not, s->make_term(Xor, p, q));
@@ -362,7 +362,10 @@ TEST_P(UnitUtilDimacsTests, tseitin)
       "tseitin_to_cnf_5 q) (not p)) (or (or tseitin_to_cnf_5 p) (not q)) (or "
       "(not tseitin_to_cnf_5) (not tseitin_to_cnf_6)) (or tseitin_to_cnf_5 "
       "tseitin_to_cnf_6)))";
-  ASSERT_TRUE(st == expected) << st << endl << endl << expected << endl << endl;
+  ASSERT_TRUE(st == expected) << st << std::endl
+                              << std::endl
+                              << expected << std::endl
+                              << std::endl;
 
   // c=((not p) and p)
   Term c = s->make_term(And, s->make_term(Not, p), p);
@@ -1159,7 +1162,7 @@ TEST_P(SmtLibApplication, QuantifierListsItsVariableWithItsSort)
   Term body = s->make_term(Ge, p, x);
   // the children's text is given, so the body need not print alike everywhere
   auto term_text = [&](const Term & t) {
-    return t == p ? string("p") : string("body");
+    return t == p ? std::string("p") : std::string("body");
   };
   EXPECT_EQ(smtlib::application(Op(Forall), { p, body }, term_text),
             "(forall ((p Int)) body)");
@@ -1282,7 +1285,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST(SmtLibBenchmark, NothingToDeclare)
 {
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "QF_LIA", {});
   EXPECT_EQ(out.str(), "(set-logic QF_LIA)\n(check-sat)\n");
 }
@@ -1312,7 +1315,7 @@ TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
   Term x = s->make_symbol("x", intsort);
   Term a = s->make_term(Apply, p, u);
   Term b = s->make_term(Gt, x, s->make_term(0, intsort));
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "QF_UFLIA", { a, b });
   EXPECT_EQ(out.str(),
             "(set-logic QF_UFLIA)\n"
@@ -1337,7 +1340,7 @@ TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
   Term u = s->make_symbol("u", usort);
   Term v = s->make_symbol("v", usort);
   Term eq = s->make_term(Equal, u, v);
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "QF_UF", { eq });
   EXPECT_EQ(out.str(),
             "(set-logic QF_UF)\n"
@@ -1369,7 +1372,7 @@ TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
   Term d = s->make_symbol("d", second);
   Term ab = s->make_term(Equal, a, b);
   Term cd = s->make_term(Equal, c, d);
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "QF_UF", { ab, cd });
   EXPECT_EQ(out.str(),
             "(set-logic QF_UF)\n"
@@ -1402,7 +1405,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresTheSortConstructor)
   Term a = s->make_symbol("a", fint);
   Term b = s->make_symbol("b", fint);
   Term eq = s->make_term(Equal, a, b);
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "ALL", { eq });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
@@ -1422,7 +1425,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
       s->make_term(Equal, s->make_symbol("a", fint), s->make_symbol("b", fint));
   Term cd = s->make_term(
       Equal, s->make_symbol("c", fbool), s->make_symbol("d", fbool));
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "ALL", { ab, cd });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
@@ -1458,7 +1461,7 @@ TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
       Equal, s->make_symbol("a", first_int), s->make_symbol("b", first_int));
   Term cd = s->make_term(
       Equal, s->make_symbol("c", second_int), s->make_symbol("d", second_int));
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "ALL", { ab, cd });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
@@ -1498,7 +1501,7 @@ TEST_P(SmtLibBenchmarkDatatypes, DeclaresTheDatatypeWithItsConstructors)
   Term l = s->make_symbol("l", list);
   Term m = s->make_symbol("m", list);
   Term d = s->make_term(Distinct, l, m);
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "ALL", { d });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
@@ -1533,7 +1536,7 @@ TEST_P(SmtLibBenchmarkDatatypes, RefusesTwoDatatypesWithTheSameName)
       Equal, s->make_symbol("a", first), s->make_symbol("b", first));
   Term cd = s->make_term(
       Equal, s->make_symbol("c", second), s->make_symbol("d", second));
-  ostringstream out;
+  std::ostringstream out;
   EXPECT_THROW(smtlib::benchmark(out, "ALL", { ab, cd }),
                NotImplementedException);
 }
@@ -1555,7 +1558,7 @@ TEST_P(SmtLibBenchmarkQuantifiers, LeavesBoundVariablesUndeclared)
   Term x = s->make_symbol("x", intsort);
   Term i = s->make_param("i", intsort);
   Term forall = s->make_term(Forall, i, s->make_term(Le, i, x));
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "ALL", { forall });
   EXPECT_EQ(out.str(),
             "(set-logic ALL)\n"
@@ -1599,7 +1602,7 @@ TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
   Term c = s->make_symbol("c", second);
   Term d = s->make_symbol("d", second);
   Term cd = s->make_term(Equal, c, d);
-  ostringstream out;
+  std::ostringstream out;
   smtlib::benchmark(out, "UF", { forall, cd });
   EXPECT_EQ(out.str(),
             "(set-logic UF)\n"
@@ -1621,3 +1624,5 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests

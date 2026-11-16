@@ -21,9 +21,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -96,3 +94,5 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedTransferUnit,
                              { FULL_TRANSFER, QUANTIFIERS })));
 
 }  // namespace
+
+}  // namespace smt::tests

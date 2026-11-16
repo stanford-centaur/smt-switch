@@ -29,16 +29,14 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
 /** The flags that have a solver's executable read a printed session given
  *  as a file
  */
-string replay_flags(SolverEnum se)
+std::string replay_flags(SolverEnum se)
 {
   switch (se)
   {
@@ -60,10 +58,10 @@ string replay_flags(SolverEnum se)
 /** The configurations with all the attributes whose solver has an
  *  executable
  */
-vector<SolverConfiguration> replayable(
-    const unordered_set<SolverAttribute> & attributes)
+std::vector<SolverConfiguration> replayable(
+    const std::unordered_set<SolverAttribute> & attributes)
 {
-  vector<SolverConfiguration> result;
+  std::vector<SolverConfiguration> result;
   for (SolverConfiguration sc :
        filter_solver_configurations_with_generic(attributes))
   {
@@ -93,14 +91,15 @@ class PrintingTests : public ::testing::Test,
   /** Replays what was printed, and checks that the executable answers with
    *  one of the expected lines for each command that has an answer
    */
-  void expect_replay(const vector<unordered_set<string>> & expected)
+  void expect_replay(
+      const std::vector<std::unordered_set<std::string>> & expected)
   {
     SolverEnum se = GetParam().solver_enum;
     dump_and_run(solver_binary(se), strbuf, expected, replay_flags(se));
   }
 
-  stringbuf strbuf;
-  ostream os{ &strbuf };
+  std::stringbuf strbuf;
+  std::ostream os{ &strbuf };
   SmtSolver s;
 };
 
@@ -116,7 +115,7 @@ TEST_P(PrintingTests, RefusedSetLogicIsNotPrinted)
     accepted = false;
   }
   // printed exactly when the wrapped solver accepted it
-  EXPECT_EQ(strbuf.str().find("NOT_A_LOGIC") != string::npos, accepted);
+  EXPECT_EQ(strbuf.str().find("NOT_A_LOGIC") != std::string::npos, accepted);
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingBitVectorTests);
@@ -343,3 +342,5 @@ INSTANTIATE_TEST_SUITE_P(,
                          ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests

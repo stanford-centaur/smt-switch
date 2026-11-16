@@ -18,7 +18,9 @@
 #include "smt-switch/yices2_factory.h"
 #include "smt-switch/yices2_term.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 /* A Yices term that no smt-switch op describes has to say so. A null op
  * would make it a leaf, which whoever rebuilds the term from its children
@@ -34,3 +36,7 @@ TEST(Yices2Polynomial, AnUnmappedConstructorRefusesToReportAnOp)
   Term unmapped = std::make_shared<Yices2Term>(ceiling);
   EXPECT_THROW(unmapped->get_op(), NotImplementedException);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

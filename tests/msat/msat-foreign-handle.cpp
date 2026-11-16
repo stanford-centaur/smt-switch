@@ -25,7 +25,9 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(MsatForeignHandle, AnotherSolversTermsRefused)
 {
@@ -141,3 +143,7 @@ TEST(MsatForeignHandle, AnotherSolversSortNotEqual)
   EXPECT_NE(other_bv8, bv8);
   EXPECT_NE(bv8 < other_bv8, other_bv8 < bv8);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

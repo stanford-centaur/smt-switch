@@ -21,7 +21,9 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(BzlaOptions, RefusedOnceSolving)
 {
@@ -69,3 +71,7 @@ TEST(BzlaOptions, TakenAgainAfterReset)
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(x), one);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

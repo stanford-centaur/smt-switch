@@ -24,8 +24,7 @@
 #include "smt-switch/term.h"
 #include "test_paths.h"
 
-using namespace smt;
-using namespace smt_tests;
+namespace smt::tests {
 
 namespace {
 
@@ -44,12 +43,11 @@ class BitwuzlaPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_results,
       std::string extra_opts = "")
   {
-    if (smt_tests::bitwuzla_binary.empty())
+    if (bitwuzla_binary.empty())
     {
       GTEST_SKIP() << "configure found no bitwuzla executable";
     }
-    dump_and_run(
-        smt_tests::bitwuzla_binary, strbuf, expected_results, extra_opts);
+    dump_and_run(bitwuzla_binary, strbuf, expected_results, extra_opts);
   }
   std::stringbuf strbuf;
   std::ostream * os = nullptr;
@@ -219,3 +217,5 @@ TEST_F(BitwuzlaPrintingTest, CopiesShareWhatIsAsserted)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

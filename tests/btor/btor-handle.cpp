@@ -18,7 +18,7 @@
 
 #include "smt-switch/boolector_solver.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -57,3 +57,5 @@ TEST(BtorHandle, UsableAfterDestruction)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

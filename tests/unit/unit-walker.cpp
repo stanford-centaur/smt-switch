@@ -26,9 +26,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/tree_walker.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -112,13 +110,13 @@ class IndicatorTreeWalker : public TreeWalker
      * occurrence of a term in the formula (the formula in which it occurs and
      * the path indicating the term's location in the formula)
      */
-    string var_name = string("b") + to_string(b_iter);
+    std::string var_name = std::string("b") + std::to_string(b_iter);
     Term b = solver_->make_symbol(var_name, boolsort);
     b_iter++;
 
     // occurrence of the term represented by the formula in which it is found
     // and the path indicating its placement in the formula
-    pair<Term, vector<int>> occ;
+    std::pair<Term, std::vector<int>> occ;
     occ.first = formula;
     occ.second = path;
 
@@ -224,7 +222,7 @@ TEST_P(UnitWalkerTests, OutlivesTheHandleItWasMadeWith)
 /* helper function to test equivalency of passed_map that TreeWalker builds up
  * against expected_map that should have been built up. gets used for all tests
  * using TreeWalker */
-void mapEqual(map<Term, pair<Term, vector<int>>> & expected_map,
+void mapEqual(std::map<Term, std::pair<Term, std::vector<int>>> & expected_map,
               UnorderedTermPairMap const & passed_map)
 {
   // test equivalence of expected_map and cache populated during the traversal
@@ -257,7 +255,7 @@ TEST_P(UnitWalkerTests, SimpleTree)
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(xp1);
     Term xp11 = p1.first;
     EXPECT_EQ(xp1, xp11);
@@ -266,20 +264,20 @@ TEST_P(UnitWalkerTests, SimpleTree)
     // x+1: <x+1, []>
     // x: <x+1, [0]>
     // 1: <x+1, [1]>
-    map<Term, pair<Term, vector<int>>> expected_map;
-    pair<Term, vector<int>> n0;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = xp1;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[xp1] = n0;
-    pair<Term, vector<int>> n1;
+    std::pair<Term, std::vector<int>> n1;
     n1.first = xp1;
-    vector<int> n1path = { 0 };
+    std::vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[x] = n1;
-    pair<Term, vector<int>> n2;
+    std::pair<Term, std::vector<int>> n2;
     n2.first = xp1;
-    vector<int> n2path = { 1 };
+    std::vector<int> n2path = { 1 };
     n2.second = n2path;
     expected_map[s->make_term(1, bvsort)] = n2;
 
@@ -310,49 +308,49 @@ TEST_P(UnitWalkerTests, PathDecomp)
      * x: <y=x+1+y, [1,0,0]>
      * 1: <y=x+1+y, [1,0,1]>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
     // y=x+1+y -> <y=x+1+y, []>
-    pair<Term, vector<int>> n0;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = yexp1py;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[yexp1py] = n0;
     // y -> <y=x+1+y, [0]>
-    pair<Term, vector<int>> n3;
+    std::pair<Term, std::vector<int>> n3;
     n3.first = yexp1py;
-    vector<int> n3path = { 0 };
+    std::vector<int> n3path = { 0 };
     n3.second = n3path;
     expected_map[y] = n3;
     // x+1+y -> <y=x+1+y, [1]>
-    pair<Term, vector<int>> n1;
+    std::pair<Term, std::vector<int>> n1;
     n1.first = yexp1py;
-    vector<int> n1path = { 1 };
+    std::vector<int> n1path = { 1 };
     n1.second = n1path;
     expected_map[xp1py] = n1;
     // x+1 -> <y=x+1+y, [1,0]
-    pair<Term, vector<int>> n2;
+    std::pair<Term, std::vector<int>> n2;
     n2.first = yexp1py;
-    vector<int> n2path = { 1, 0 };
+    std::vector<int> n2path = { 1, 0 };
     n2.second = n2path;
     expected_map[xp1] = n2;
     // y -> <y=x+1+y, [1,1]> (gets overwritten)
     // x -> <y=x+1+y, [1,0,0]>
-    pair<Term, vector<int>> n4;
+    std::pair<Term, std::vector<int>> n4;
     n4.first = yexp1py;
-    vector<int> n4path = { 1, 0, 0 };
+    std::vector<int> n4path = { 1, 0, 0 };
     n4.second = n4path;
     expected_map[x] = n4;
     // 1 -> <y=x+1+y, [1,0,1]>
-    pair<Term, vector<int>> n5;
+    std::pair<Term, std::vector<int>> n5;
     n5.first = yexp1py;
-    vector<int> n5path = { 1, 0, 1 };
+    std::vector<int> n5path = { 1, 0, 1 };
     n5.second = n5path;
     expected_map[s->make_term(1, bvsort)] = n5;
 
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(yexp1py);
 
     // check that the cache populated by TreeWalker is equivalent to the
@@ -390,66 +388,66 @@ TEST_P(UnitWalkerTests, PathTests1)
      * 2: <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1,0,1]>
      * (x+2)-(x+x): <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1]>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
     // (x+x)={(y+y)+[(x+2)-(x+x)]} -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, []>
-    pair<Term, vector<int>> n0;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = fullform;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // x+x -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [0]>
-    pair<Term, vector<int>> n1;
+    std::pair<Term, std::vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = { 0 };
+    std::vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[xpx] = n1;
     // x -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [0,0]>
-    pair<Term, vector<int>> n2;
+    std::pair<Term, std::vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = { 0, 0 };
+    std::vector<int> n2path = { 0, 0 };
     n2.second = n2path;
     expected_map[x] = n2;
     // (y+y)+[(x+2)-(x+x)] -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1]>
-    pair<Term, vector<int>> n3;
+    std::pair<Term, std::vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = { 1 };
+    std::vector<int> n3path = { 1 };
     n3.second = n3path;
     expected_map[rhs] = n3;
     // y+y -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,0]>
-    pair<Term, vector<int>> n4;
+    std::pair<Term, std::vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = { 1, 0 };
+    std::vector<int> n4path = { 1, 0 };
     n4.second = n4path;
     expected_map[ypy] = n4;
     // y -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,0,0]>
-    pair<Term, vector<int>> n5;
+    std::pair<Term, std::vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = { 1, 0, 0 };
+    std::vector<int> n5path = { 1, 0, 0 };
     n5.second = n5path;
     expected_map[y] = n5;
     // x+2 -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1,0]>
-    pair<Term, vector<int>> n6;
+    std::pair<Term, std::vector<int>> n6;
     n6.first = fullform;
-    vector<int> n6path = { 1, 1, 0 };
+    std::vector<int> n6path = { 1, 1, 0 };
     n6.second = n6path;
     expected_map[xp2] = n6;
     // 2 -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1,0,1]>
-    pair<Term, vector<int>> n7;
+    std::pair<Term, std::vector<int>> n7;
     n7.first = fullform;
-    vector<int> n7path = { 1, 1, 0, 1 };
+    std::vector<int> n7path = { 1, 1, 0, 1 };
     n7.second = n7path;
     expected_map[s->make_term(2, bvsort)] = n7;
     // (x+2)-(x+x) -> <(x+x)={(y+y)+[(x+2)-(x+x)]}, [1,1]>
-    pair<Term, vector<int>> n8;
+    std::pair<Term, std::vector<int>> n8;
     n8.first = fullform;
-    vector<int> n8path = { 1, 1 };
+    std::vector<int> n8path = { 1, 1 };
     n8.second = n8path;
     expected_map[lmt] = n8;
 
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(fullform);
 
     // check the cache populated by TreeWalker is equivalent to the expected map
@@ -468,16 +466,16 @@ TEST_P(UnitWalkerTests, SimplePathTests1)
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(x);
 
     /* expected_map:
      * x: <x, []>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
-    pair<Term, vector<int>> n0;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = x;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[x] = n0;
 
@@ -498,16 +496,16 @@ TEST_P(UnitWalkerTests, SimplePathTests2)
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(bv2);
 
     /* expected_map:
      * 2: <2, []>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
-    pair<Term, vector<int>> n0;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = bv2;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[bv2] = n0;
 
@@ -533,7 +531,7 @@ TEST_P(UnitWalkerTests, PathTests3)
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(fullform);
 
     /* expected_map:
@@ -545,47 +543,47 @@ TEST_P(UnitWalkerTests, PathTests3)
      * 3: <(ite (x=2) x 3) = y, [0,2]>
      * y: <(ite (x=2) x 3) = y, [1]>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
     // (ite (x=2) x 3)=y-> <(ite (x=2) x 3) = y, []>
-    pair<Term, vector<int>> n0;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = fullform;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // (ite (x=2) x 3)-> <(ite (x=2) x 3) = y, [0]>
-    pair<Term, vector<int>> n1;
+    std::pair<Term, std::vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = { 0 };
+    std::vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[lhs] = n1;
     // x=2-> <(ite (x=2) x 3) = y, [0,0]>
-    pair<Term, vector<int>> n2;
+    std::pair<Term, std::vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = { 0, 0 };
+    std::vector<int> n2path = { 0, 0 };
     n2.second = n2path;
     expected_map[xe2] = n2;
     // x-> <(ite (x=2) x 3) = y, [0,0,0]>
-    pair<Term, vector<int>> n3;
+    std::pair<Term, std::vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = { 0, 0, 0 };
+    std::vector<int> n3path = { 0, 0, 0 };
     n3.second = n3path;
     expected_map[x] = n3;
     // 2-> <(ite (x=2) x 3) = y, [0,0,1]>
-    pair<Term, vector<int>> n4;
+    std::pair<Term, std::vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = { 0, 0, 1 };
+    std::vector<int> n4path = { 0, 0, 1 };
     n4.second = n4path;
     expected_map[s->make_term(2, bvsort)] = n4;
     // 3-> <(ite (x=2) x 3) = y, [0,2]>
-    pair<Term, vector<int>> n5;
+    std::pair<Term, std::vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = { 0, 2 };
+    std::vector<int> n5path = { 0, 2 };
     n5.second = n5path;
     expected_map[s->make_term(3, bvsort)] = n5;
     // y-> <(ite (x=2) x 3) = y, [1]>
-    pair<Term, vector<int>> n6;
+    std::pair<Term, std::vector<int>> n6;
     n6.first = fullform;
-    vector<int> n6path = { 1 };
+    std::vector<int> n6path = { 1 };
     n6.second = n6path;
     expected_map[y] = n6;
 
@@ -612,7 +610,7 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(fullform);
 
     /* expected_map:
@@ -623,41 +621,41 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
      * g: <f(x)=g(x), [1,0]>
      * x: <f(x)=g(x), [0,1]>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
-    pair<Term, vector<int>> n0;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
+    std::pair<Term, std::vector<int>> n0;
     // f(x)=g(x)-> <f(x)=g(x), []>
     n0.first = fullform;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // f(x)-> <f(x)=g(x), [0]>
-    pair<Term, vector<int>> n1;
+    std::pair<Term, std::vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = { 0 };
+    std::vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[fx] = n1;
     // g(x)-> <f(x)=g(x), [1]>
-    pair<Term, vector<int>> n2;
+    std::pair<Term, std::vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = { 1 };
+    std::vector<int> n2path = { 1 };
     n2.second = n2path;
     expected_map[gx] = n2;
     // f-> <f(x)=g(x), [0,0]>
-    pair<Term, vector<int>> n3;
+    std::pair<Term, std::vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = { 0, 0 };
+    std::vector<int> n3path = { 0, 0 };
     n3.second = n3path;
     expected_map[f] = n3;
     // g-> <f(x)=g(x), [1,0]>
-    pair<Term, vector<int>> n4;
+    std::pair<Term, std::vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = { 1, 0 };
+    std::vector<int> n4path = { 1, 0 };
     n4.second = n4path;
     expected_map[g] = n4;
     // x-> <f(x)=g(x), [0,1]>
-    pair<Term, vector<int>> n5;
+    std::pair<Term, std::vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = { 0, 1 };
+    std::vector<int> n5path = { 0, 1 };
     n5.second = n5path;
     expected_map[x] = n5;
 
@@ -687,7 +685,7 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = iw.visit(fullform);
 
     /* expected_map:
@@ -700,53 +698,53 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
      * g: <f(y,z) = g(x), [1,0]>
      * x: <f(y,z) = g(x), [1,1]>
      */
-    map<Term, pair<Term, vector<int>>> expected_map;
+    std::map<Term, std::pair<Term, std::vector<int>>> expected_map;
     // f(y,z) = g(x) -> <f(y,z) = g(x), []>
-    pair<Term, vector<int>> n0;
+    std::pair<Term, std::vector<int>> n0;
     n0.first = fullform;
-    vector<int> n0path;
+    std::vector<int> n0path;
     n0.second = n0path;
     expected_map[fullform] = n0;
     // f(y,z) -> <f(y,z) = g(x), [0]>
-    pair<Term, vector<int>> n1;
+    std::pair<Term, std::vector<int>> n1;
     n1.first = fullform;
-    vector<int> n1path = { 0 };
+    std::vector<int> n1path = { 0 };
     n1.second = n1path;
     expected_map[fyz] = n1;
     // f -> <f(y,z) = g(x), [0,0]>
-    pair<Term, vector<int>> n2;
+    std::pair<Term, std::vector<int>> n2;
     n2.first = fullform;
-    vector<int> n2path = { 0, 0 };
+    std::vector<int> n2path = { 0, 0 };
     n2.second = n2path;
     expected_map[f] = n2;
     // y -> <f(y,z) = g(x), [0,1]>
-    pair<Term, vector<int>> n3;
+    std::pair<Term, std::vector<int>> n3;
     n3.first = fullform;
-    vector<int> n3path = { 0, 1 };
+    std::vector<int> n3path = { 0, 1 };
     n3.second = n3path;
     expected_map[y] = n3;
     // z -> <f(y,z) = g(x), [0,2]>
-    pair<Term, vector<int>> n4;
+    std::pair<Term, std::vector<int>> n4;
     n4.first = fullform;
-    vector<int> n4path = { 0, 2 };
+    std::vector<int> n4path = { 0, 2 };
     n4.second = n4path;
     expected_map[z] = n4;
     // g(x) -> <f(y,z) = g(x), [1]>
-    pair<Term, vector<int>> n5;
+    std::pair<Term, std::vector<int>> n5;
     n5.first = fullform;
-    vector<int> n5path = { 1 };
+    std::vector<int> n5path = { 1 };
     n5.second = n5path;
     expected_map[gx] = n5;
     // g -> <f(y,z) = g(x), [1,0]>
-    pair<Term, vector<int>> n6;
+    std::pair<Term, std::vector<int>> n6;
     n6.first = fullform;
-    vector<int> n6path = { 1, 0 };
+    std::vector<int> n6path = { 1, 0 };
     n6.second = n6path;
     expected_map[g] = n6;
     // x -> <f(y,z) = g(x), [1,1]>
-    pair<Term, vector<int>> n7;
+    std::pair<Term, std::vector<int>> n7;
     n7.first = fullform;
-    vector<int> n7path = { 1, 1 };
+    std::vector<int> n7path = { 1, 1 };
     n7.second = n7path;
     expected_map[x] = n7;
 
@@ -775,7 +773,7 @@ TEST_P(UnitWalkerTests, FreshVars)
     UnorderedTermPairMap passed_map;
     IndicatorTreeWalker itw(s, false, &passed_map);
 
-    pair<Term, vector<int>> p1;
+    std::pair<Term, std::vector<int>> p1;
     p1 = itw.visit(fullform);
 
     /* expected map:
@@ -804,10 +802,10 @@ TEST_P(UnitWalkerTests, FreshVars)
     // manually check equivalency of cache populated by IndicatorTreeWalker with
     // the expected map expected_path variable to check against expected path
     // for each node
-    vector<int> expected_path;
+    std::vector<int> expected_path;
     for (auto const & p : passed_map)
     {
-      string name = p.first->to_string();
+      std::string name = p.first->to_string();
       if (name == "b0")
       {
         EXPECT_EQ(p.second.first, fullform);
@@ -964,3 +962,5 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace
+
+}  // namespace smt::tests

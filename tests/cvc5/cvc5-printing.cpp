@@ -26,8 +26,7 @@
 #include "smt-switch/term.h"
 #include "test_paths.h"
 
-using namespace smt;
-using namespace smt_tests;
+namespace smt::tests {
 
 namespace {
 
@@ -40,11 +39,11 @@ class Cvc5PrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-    if (smt_tests::cvc5_binary.empty())
+    if (cvc5_binary.empty())
     {
       GTEST_SKIP() << "configure found no cvc5 executable";
     }
-    dump_and_run(smt_tests::cvc5_binary, strbuf, expected_result, extra_opts);
+    dump_and_run(cvc5_binary, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;
   std::ostream * os;
@@ -176,3 +175,5 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

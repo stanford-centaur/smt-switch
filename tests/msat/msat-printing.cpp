@@ -25,8 +25,7 @@
 #include "smt-switch/term.h"
 #include "test_paths.h"
 
-using namespace smt;
-using namespace smt_tests;
+namespace smt::tests {
 
 namespace {
 
@@ -39,12 +38,11 @@ class MsatPrintingTest : public testing::Test
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
   {
-    if (smt_tests::mathsat_binary.empty())
+    if (mathsat_binary.empty())
     {
       GTEST_SKIP() << "configure found no mathsat executable";
     }
-    dump_and_run(
-        smt_tests::mathsat_binary, strbuf, expected_result, extra_opts);
+    dump_and_run(mathsat_binary, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;
   std::ostream * os;
@@ -154,3 +152,5 @@ TEST_F(MsatPrintingTest, ReusedSequenceInterpolation)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

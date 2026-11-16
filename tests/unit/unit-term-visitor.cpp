@@ -18,7 +18,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/term_visitor.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -114,3 +114,5 @@ INSTANTIATE_TEST_SUITE_P(,
                          SolverName());
 
 }  // namespace
+
+}  // namespace smt::tests

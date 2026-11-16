@@ -24,7 +24,7 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_factory.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -173,3 +173,5 @@ INSTANTIATE_TEST_SUITE_P(SolverFactory,
                          InterpolatorName());
 
 }  // namespace
+
+}  // namespace smt::tests

@@ -20,9 +20,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term_hashtable.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -81,3 +79,5 @@ INSTANTIATE_TEST_SUITE_P(ParametrizedUnitHashTable,
                          testing::ValuesIn(available_solver_enums()));
 
 }  // namespace
+
+}  // namespace smt::tests

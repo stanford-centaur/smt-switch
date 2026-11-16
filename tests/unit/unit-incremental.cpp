@@ -22,9 +22,7 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -117,7 +115,7 @@ TEST_P(UnitIncrementalTests, PushMoreLevelsThanTheSolverTakes)
     GTEST_SKIP() << "This backend pushes one level at a time, so it takes "
                     "any number of levels, and pushing this many would not end";
   }
-  const uint64_t levels = uint64_t{ numeric_limits<uint32_t>::max() } + 2;
+  const uint64_t levels = uint64_t{ std::numeric_limits<uint32_t>::max() } + 2;
   EXPECT_THROW(s->push(levels), IncorrectUsageException);
   EXPECT_EQ(s->get_context_level(), 0);
 }
@@ -128,3 +126,5 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
 }  // namespace
+
+}  // namespace smt::tests

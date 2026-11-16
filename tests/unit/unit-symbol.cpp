@@ -21,9 +21,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -70,8 +68,8 @@ TEST_P(UnitSymbolTests, GetSymbol)
   EXPECT_EQ(f, s->get_symbol("f"));
   EXPECT_EQ(a, s->get_symbol("a"));
 
-  string funky_name = "strange @ name!";
-  string funky_name_fun = "strange Fun _ name$";
+  std::string funky_name = "strange @ name!";
+  std::string funky_name_fun = "strange Fun _ name$";
   Term funky_sym = s->make_symbol(funky_name, boolsort);
   Term funky_sym_fun = s->make_symbol(funky_name_fun, funsort);
 
@@ -207,3 +205,5 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(available_solver_configurations_with_generic()));
 
 }  // namespace
+
+}  // namespace smt::tests

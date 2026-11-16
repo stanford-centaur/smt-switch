@@ -24,8 +24,7 @@
 #include "smt-switch/yices2_factory.h"
 #include "test_paths.h"
 
-using namespace smt;
-using namespace smt_tests;
+namespace smt::tests {
 
 namespace {
 
@@ -48,15 +47,17 @@ TEST(Yices2InterpolationPrinting, ReplaysEachCheckOfAQuery)
   Term p = s->make_symbol("p", s->make_sort(BOOL));
   Term I;
   ASSERT_TRUE(s->get_interpolant(p, s->make_term(Not, p), I).is_unsat());
-  if (smt_tests::yices2_binary.empty())
+  if (yices2_binary.empty())
   {
     GTEST_SKIP() << "configure found no yices-smt2 executable";
   }
   dump_and_run(
-      smt_tests::yices2_binary,
+      yices2_binary,
       strbuf,
       { { "sat" }, { "((p false))" }, { "unsat" }, { "p" }, { "unsat" } },
       "--mcsat --incremental");
 }
 
 }  // namespace
+
+}  // namespace smt::tests

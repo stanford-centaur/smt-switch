@@ -19,7 +19,7 @@
 
 #include "smt-switch/cvc5_solver.h"
 
-using namespace smt;
+namespace smt::tests {
 
 namespace {
 
@@ -52,3 +52,5 @@ TEST(Cvc5Handle, UsableAfterDestruction)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

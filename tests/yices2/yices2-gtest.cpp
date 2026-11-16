@@ -22,8 +22,7 @@
 #include "smt-switch/term.h"
 #include "smt-switch/yices2_factory.h"
 
-using namespace smt;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -215,7 +214,7 @@ TEST(Yices2InstanceRef, StaysWhileATermIsHeld)
 
 TEST(Yices2InstanceRef, StaysWhileAnIteratorIsHeld)
 {
-  vector<string> expected;
+  std::vector<std::string> expected;
   TermIter it, end;
   {
     SmtSolver s = Yices2SolverFactory::create(false);
@@ -231,7 +230,7 @@ TEST(Yices2InstanceRef, StaysWhileAnIteratorIsHeld)
     end = t->end();
   }
   // no term, sort or solver is left, only the iterators
-  vector<string> children;
+  std::vector<std::string> children;
   for (; it != end; ++it)
   {
     children.push_back((*it)->to_string());
@@ -240,3 +239,5 @@ TEST(Yices2InstanceRef, StaysWhileAnIteratorIsHeld)
 }
 
 }  // namespace
+
+}  // namespace smt::tests

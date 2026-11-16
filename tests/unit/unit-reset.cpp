@@ -20,8 +20,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
+namespace smt::tests {
 
 namespace {
 
@@ -159,3 +158,5 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnitReset,
                          testing::ValuesIn(working_reset_configurations()));
 
 }  // namespace
+
+}  // namespace smt::tests

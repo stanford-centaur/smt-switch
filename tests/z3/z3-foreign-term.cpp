@@ -20,7 +20,9 @@
 #include "smt-switch/term.h"
 #include "smt-switch/z3_factory.h"
 
-using namespace smt;
+namespace smt::tests {
+
+namespace {
 
 TEST(Z3ForeignTerm, AnotherSolversTermsRefused)
 {
@@ -60,3 +62,7 @@ TEST(Z3ForeignTerm, AnotherSolversTermsRefused)
   EXPECT_THROW(s->get_value(other_x), IncorrectUsageException);
   EXPECT_THROW(s->get_array_values(other_arr, base), IncorrectUsageException);
 }
+
+}  // namespace
+
+}  // namespace smt::tests

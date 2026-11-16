@@ -29,9 +29,7 @@
 #include "smt-switch/utils.h"
 #include "term_utils.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -98,17 +96,18 @@ class SelfTranslationRealTests
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TranslationTests);
-class TranslationTests : public testing::Test,
-                         public testing::WithParamInterface<
-                             tuple<SolverConfiguration, SolverConfiguration>>
+class TranslationTests
+    : public testing::Test,
+      public testing::WithParamInterface<
+          std::tuple<SolverConfiguration, SolverConfiguration>>
 {
  protected:
   void SetUp() override
   {
-    s1 = create_solver(get<0>(GetParam()));
+    s1 = create_solver(std::get<0>(GetParam()));
     s1->set_opt("produce-models", "true");
 
-    s2 = create_solver(get<1>(GetParam()));
+    s2 = create_solver(std::get<1>(GetParam()));
     s2->set_opt("produce-models", "true");
 
     boolsort = s1->make_sort(BOOL);
@@ -290,7 +289,7 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   // recover symbols
   UnorderedTermSet free_symbols;
   get_free_symbolic_consts(xpymz_transfer, free_symbols);
-  unordered_map<string, Term> s2_symbols;
+  std::unordered_map<std::string, Term> s2_symbols;
   for (auto sym : free_symbols)
   {
     s2_symbols[sym->to_string()] = sym;
@@ -399,7 +398,8 @@ TEST_P(TranslationTests, And)
 
   Term a_and_b_2 = to_s2.transfer_term(a_and_b);
   Term a_and_b_1 = to_s1.transfer_term(a_and_b_2);
-  ASSERT_TRUE(round_trip_matches(get<1>(GetParam()), s1, a_and_b_1, a_and_b));
+  ASSERT_TRUE(
+      round_trip_matches(std::get<1>(GetParam()), s1, a_and_b_1, a_and_b));
 }
 
 // A name SMT-LIB prints in bars keeps its name, and translating it back
@@ -519,7 +519,7 @@ TEST_P(BVTranslationTests, Ite)
   Term a_ite_x_y_2 = to_s2.transfer_term(a_ite_x_y);
   Term a_ite_x_y_1 = to_s1.transfer_term(a_ite_x_y_2);
   ASSERT_TRUE(
-      round_trip_matches(get<1>(GetParam()), s1, a_ite_x_y_1, a_ite_x_y));
+      round_trip_matches(std::get<1>(GetParam()), s1, a_ite_x_y_1, a_ite_x_y));
 }
 
 TEST_P(BVTranslationTests, Concat)
@@ -536,8 +536,8 @@ TEST_P(BVTranslationTests, Concat)
 
   Term concat_term_2 = to_s2.transfer_term(concat_term);
   Term concat_term_1 = to_s1.transfer_term(concat_term_2);
-  ASSERT_TRUE(
-      round_trip_matches(get<1>(GetParam()), s1, concat_term_1, concat_term));
+  ASSERT_TRUE(round_trip_matches(
+      std::get<1>(GetParam()), s1, concat_term_1, concat_term));
 }
 
 TEST_P(BVTranslationTests, Extract)
@@ -593,7 +593,7 @@ TEST_P(TranslationTests, UninterpretedSort)
   EXPECT_EQ(fv_2->get_op(), Apply);
 
   Term fv_1 = to_s1.transfer_term(fv_2);
-  EXPECT_TRUE(round_trip_matches(get<1>(GetParam()), s1, fv_1, fv));
+  EXPECT_TRUE(round_trip_matches(std::get<1>(GetParam()), s1, fv_1, fv));
 }
 
 TEST_P(TranslationTests, ApplicationOfFewerArguments)
@@ -626,8 +626,8 @@ TEST_P(IntTranslationTests, SymbolOfAnotherSort)
 
 TEST_P(BoolArrayTranslationTests, Arrays)
 {
-  if (get<0>(GetParam()).solver_enum == YICES2
-      || get<1>(GetParam()).solver_enum == YICES2)
+  if (std::get<0>(GetParam()).solver_enum == YICES2
+      || std::get<1>(GetParam()).solver_enum == YICES2)
   {
     GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
                     "constant array";
@@ -789,9 +789,10 @@ TEST_P(DatatypeTranslationTests, DatatypeSort)
 
   Datatype dt2 = list2->get_datatype();
   EXPECT_EQ(dt2->get_name(), "list");
-  EXPECT_EQ(dt2->get_constructor_names(), (vector<string>{ "nil", "cons" }));
+  EXPECT_EQ(dt2->get_constructor_names(),
+            (std::vector<std::string>{ "nil", "cons" }));
   EXPECT_EQ(dt2->get_selector_names("cons"),
-            (vector<string>{ "head", "tail" }));
+            (std::vector<std::string>{ "head", "tail" }));
   EXPECT_EQ(dt2->get_selector_sort("cons", "head"), s2->make_sort(INT));
   EXPECT_EQ(dt2->get_selector_sort("cons", "tail"), list2);
 
@@ -1086,3 +1087,5 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigPairName());
 
 }  // namespace
+
+}  // namespace smt::tests

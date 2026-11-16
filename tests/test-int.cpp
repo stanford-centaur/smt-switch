@@ -23,9 +23,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
-using namespace smt;
-using namespace smt_tests;
-using namespace std;
+namespace smt::tests {
 
 namespace {
 
@@ -67,12 +65,12 @@ void check_div_mod_cases(const SmtSolver & s, bool by_symbol)
   for (size_t i = 0; i < std::size(cases); ++i)
   {
     const DivModCase & k = cases[i];
-    Term t = s->make_symbol("t" + to_string(i), intsort);
+    Term t = s->make_symbol("t" + std::to_string(i), intsort);
     s->assert_formula(s->make_term(Equal, t, s->make_term(k.t, intsort)));
     Term c = s->make_term(k.c, intsort);
     if (by_symbol)
     {
-      Term sym = s->make_symbol("c" + to_string(i), intsort);
+      Term sym = s->make_symbol("c" + std::to_string(i), intsort);
       s->assert_formula(s->make_term(Equal, sym, c));
       c = sym;
     }
@@ -83,7 +81,7 @@ void check_div_mod_cases(const SmtSolver & s, bool by_symbol)
   for (size_t i = 0; i < std::size(cases); ++i)
   {
     const DivModCase & k = cases[i];
-    SCOPED_TRACE("t = " + to_string(k.t) + ", c = " + to_string(k.c));
+    SCOPED_TRACE("t = " + std::to_string(k.t) + ", c = " + std::to_string(k.c));
     EXPECT_EQ(s->get_value(divs[i])->to_signed_int(), k.div);
     EXPECT_EQ(s->get_value(mods[i])->to_signed_int(), k.mod);
   }
@@ -493,3 +491,5 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 }  // namespace
+
+}  // namespace smt::tests
