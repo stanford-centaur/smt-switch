@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
@@ -24,6 +25,13 @@ class Cvc5Term : public AbsTerm
 {
  public:
   explicit Cvc5Term(cvc5::Term t);
+  /** The application of op to children, made by tm
+   *  @throws IncorrectUsageException for an operator cvc5 does not support
+   *  @throws cvc5::CVC5ApiException where cvc5 rejects the application
+   */
+  Cvc5Term(cvc5::TermManager & tm,
+           const Op & op,
+           const std::vector<cvc5::Term> & children);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
@@ -58,17 +66,6 @@ class Cvc5Term : public AbsTerm
   friend class Cvc5Solver;
   friend class Cvc5Interpolator;
 };
-
-/** The cvc5 kind of the applications of po
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
- *          value
- */
-cvc5::Kind to_cvc5_kind(PrimOp po);
-
-/** The PrimOp of the applications of kind
- *  @throws NotImplementedException for a kind that no PrimOp stands for
- */
-PrimOp to_primop(cvc5::Kind kind);
 
 }  // namespace smt
 

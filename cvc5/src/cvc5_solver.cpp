@@ -25,6 +25,7 @@
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/numeral_utils.h"
+#include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
@@ -885,32 +886,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       throw NotImplementedException(
           "cvc5 can only raise to a constant non-negative integer exponent");
     }
-    if (op.prim_op == Forall || op.prim_op == Exists)
-    {
-      cvc5::Kind quant_kind = to_cvc5_kind(op.prim_op);
-      cvc5::Term quant_res = cterms.back();
-      cterms.pop_back();
-      // Bind the parameters one at a time, which makes traversal easier
-      // since smt-switch has no VARIABLE_LIST equivalent.
-      while (cterms.size())
-      {
-        cvc5::Term bound_var =
-            instance->tm.mkTerm(cvc5::Kind::VARIABLE_LIST, { cterms.back() });
-        cterms.pop_back();
-        quant_res = instance->tm.mkTerm(quant_kind, { bound_var, quant_res });
-      }
-      return std::make_shared<Cvc5Term>(quant_res);
-    }
-    else if (op.indices.empty())
-    {
-      return std::make_shared<Cvc5Term>(
-          instance->tm.mkTerm(to_cvc5_kind(op.prim_op), cterms));
-    }
-    else
-    {
-      cvc5::Op cvc5_op = make_cvc5_op(op);
-      return std::make_shared<Cvc5Term>(instance->tm.mkTerm(cvc5_op, cterms));
-    }
+    return std::make_shared<Cvc5Term>(instance->tm, op, cterms);
   }
   catch (cvc5::CVC5ApiException & e)
   {
@@ -982,20 +958,6 @@ void Cvc5Solver::dump_smt2(std::string filename) const
   {
     throw SystemException("Cannot write " + filename);
   }
-}
-
-/**
-   Helper function for creating a cvc5 Op from an Op
-   Preconditions: op must be indexed, i.e. op.indices is not empty
-*/
-cvc5::Op Cvc5Solver::make_cvc5_op(Op op) const
-{
-  std::vector<std::uint32_t> indices;
-  for (std::uint64_t index : op.indices)
-  {
-    indices.push_back(narrow_index(op, index));
-  }
-  return instance->tm.mkOp(to_cvc5_kind(op.prim_op), indices);
 }
 
 std::shared_ptr<cvc5::Solver> Cvc5Solver::get_cvc5_solver()

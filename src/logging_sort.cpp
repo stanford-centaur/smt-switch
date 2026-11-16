@@ -20,65 +20,6 @@
 
 namespace smt {
 
-/* Helper functions */
-
-Sort make_uninterpreted_logging_sort(Sort s,
-                                     std::string name,
-                                     std::uint64_t arity)
-{
-  return std::make_shared<UninterpretedLoggingSort>(s, name, arity);
-}
-
-Sort make_uninterpreted_logging_sort(Sort s,
-                                     Sort sort_con,
-                                     const SortVec & sorts)
-{
-  return std::make_shared<UninterpretedLoggingSort>(s, sort_con, sorts);
-}
-
-Sort make_logging_sort(SortKind sk, Sort s)
-{
-  if (sk != BOOL && sk != INT && sk != REAL && sk != STRING)
-  {
-    throw IncorrectUsageException("Can't create sort from " + to_string(sk));
-  }
-  return std::make_shared<LoggingSort>(sk, s);
-}
-
-Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width)
-{
-  if (sk != BV)
-  {
-    throw IncorrectUsageException("Can't create sort from " + to_string(sk)
-                                  + " and " + std::to_string(width));
-  }
-  return std::make_shared<BVLoggingSort>(s, width);
-}
-
-Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts)
-{
-  if (sk == FUNCTION)
-  {
-    Sort return_sort = sorts.back();
-    sorts.pop_back();
-    return std::make_shared<FunctionLoggingSort>(s, sorts, return_sort);
-  }
-  else if (sk == ARRAY && sorts.size() == 2)
-  {
-    return std::make_shared<ArrayLoggingSort>(s, sorts[0], sorts[1]);
-  }
-  else
-  {
-    std::string msg("Can't make sort from ");
-    msg += to_string(sk);
-    for (auto ss : sorts)
-    {
-      msg += " " + ss->to_string();
-    }
-    throw IncorrectUsageException(msg);
-  }
-}
-
 // implementations
 LoggingSort::LoggingSort(SortKind k, Sort s) : sk(k), wrapped_sort(std::move(s))
 {

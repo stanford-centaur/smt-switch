@@ -8,6 +8,7 @@
 #include "smt-switch/z3_context.h"
 
 #include <z3++.h>
+#include <z3_version.h>
 
 #include <cstddef>
 #include <functional>
@@ -20,6 +21,14 @@
 #include "smt-switch/utils.h"
 
 namespace smt {
+
+namespace {
+
+// Whether Z3 makes the power of two Ints a Real, as before Z3 5.4.0
+constexpr bool int_power_is_real =
+    Z3_MAJOR_VERSION < 5 || (Z3_MAJOR_VERSION == 5 && Z3_MINOR_VERSION < 4);
+
+}  // namespace
 
 z3::expr Z3Context::add_param(const std::string & name, const z3::sort & sort)
 {
@@ -109,6 +118,53 @@ void Z3Context::add_datatype_name(const std::string & name)
 bool Z3Context::has_datatype_name(const std::string & name) const
 {
   return datatype_names.count(name) != 0;
+}
+
+z3::expr Z3Context::make_int_power(const z3::expr & base,
+                                   const z3::expr & exponent)
+{
+  if (!int_power_is_real)
+  {
+    return z3::pw(base, exponent);
+  }
+  z3::context & c = *this;
+  z3::expr zero = c.int_val(0);
+  z3::expr one = c.int_val(1);
+  z3::expr minus_one = c.int_val(-1);
+  // an integer for a positive exponent, as a Real
+  z3::expr power(c, Z3_mk_real2int(c, z3::pw(base, exponent)));
+  c.check_error();
+  // a negative exponent leaves an integer only for a base of 1 or -1
+  return z3::ite(
+      exponent >= zero,
+      z3::ite(exponent == zero, one, power),
+      z3::ite(base == one,
+              one,
+              z3::ite(base == minus_one,
+                      z3::ite(z3::mod(exponent, 2) == zero, one, minus_one),
+                      zero)));
+}
+
+bool Z3Context::is_int_power(const z3::expr & term)
+{
+  if (!int_power_is_real || !term.is_app()
+      || term.decl().decl_kind() != Z3_OP_ITE)
+  {
+    return false;
+  }
+  z3::expr nonnegative = term.arg(0);
+  z3::expr negative = term.arg(2);
+  if (!nonnegative.is_app() || nonnegative.decl().decl_kind() != Z3_OP_GE
+      || !negative.is_app() || negative.decl().decl_kind() != Z3_OP_ITE
+      || !negative.arg(0).is_app()
+      || negative.arg(0).decl().decl_kind() != Z3_OP_EQ)
+  {
+    return false;
+  }
+  z3::expr base = negative.arg(0).arg(0);
+  z3::expr exponent = nonnegative.arg(0);
+  return base.is_int() && exponent.is_int()
+         && z3::eq(term, make_int_power(base, exponent));
 }
 
 std::string Z3Context::print_term(const z3::expr & term) const

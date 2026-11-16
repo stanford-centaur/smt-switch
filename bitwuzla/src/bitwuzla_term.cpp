@@ -132,23 +132,9 @@ struct KindTables
 };
 constexpr KindTables kind_tables;
 
-}  // namespace
-
-bitwuzla::Kind to_bitwuzla_kind(PrimOp po)
-{
-  if (po >= NUM_OPS_AND_NULL)
-  {
-    throw IncorrectUsageException("Can't make a term with the operator "
-                                  + to_string(po));
-  }
-  if (kind_tables.rows[po] < 0)
-  {
-    throw NotImplementedException("Bitwuzla does not support the operator "
-                                  + to_string(po));
-  }
-  return primop_kinds[kind_tables.rows[po]].second;
-}
-
+/** The PrimOp of the applications of kind
+ *  @throws NotImplementedException for a kind that no PrimOp stands for
+ */
 PrimOp to_primop(bitwuzla::Kind kind)
 {
   const std::size_t i = static_cast<std::size_t>(kind);
@@ -161,9 +147,40 @@ PrimOp to_primop(bitwuzla::Kind kind)
   return kind_tables.primops[i];
 }
 
-BzlaTerm::BzlaTerm(bitwuzla::Term t,
-                   const std::shared_ptr<BzlaTermManager> & manager)
+/** The Bitwuzla kind of the applications of po
+ *  @throws NotImplementedException for an operator Bitwuzla does not support
+ */
+bitwuzla::Kind to_bitwuzla_kind(PrimOp po)
+{
+  if (po >= NUM_OPS_AND_NULL)
+  {
+    throw IncorrectUsageException("Can't make a term with the operator "
+                                  + smt::to_string(po));
+  }
+  if (kind_tables.rows[po] < 0)
+  {
+    throw NotImplementedException("Bitwuzla does not support the operator "
+                                  + smt::to_string(po));
+  }
+  return primop_kinds[kind_tables.rows[po]].second;
+}
+
+}  // namespace
+
+BzlaTerm::BzlaTerm(const std::shared_ptr<BzlaTermManager> & manager,
+                   bitwuzla::Term t)
     : tm(manager), term(std::move(t))
+{
+}
+
+BzlaTerm::BzlaTerm(const std::shared_ptr<BzlaTermManager> & manager,
+                   const Op & op,
+                   const std::vector<bitwuzla::Term> & children)
+    : tm(manager),
+      term(manager->mk_term(
+          to_bitwuzla_kind(op.prim_op),
+          children,
+          std::vector<std::uint64_t>(op.indices.begin(), op.indices.end())))
 {
 }
 
@@ -314,7 +331,7 @@ std::size_t BzlaTerm::get_num_children() const { return term.num_children(); }
 
 Term BzlaTerm::get_child(std::size_t i) const
 {
-  return std::make_shared<BzlaTerm>(term[i], tm);
+  return std::make_shared<BzlaTerm>(tm, term[i]);
 }
 
 std::string BzlaTerm::print_value_as(SortKind /* sk */) const

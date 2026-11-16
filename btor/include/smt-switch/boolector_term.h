@@ -29,9 +29,6 @@ extern "C" {
 
 namespace smt {
 
-// helpers
-Op lookup_op(Btor * btor, BoolectorNode * n);
-
 class BoolectorTerm : public AbsTerm
 {
  public:

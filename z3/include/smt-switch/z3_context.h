@@ -60,6 +60,15 @@ class Z3Context : public z3::context
   void add_datatype_name(const std::string & name);
   /** Whether add_datatype_name recorded `name` */
   bool has_datatype_name(const std::string & name) const;
+  /** The power of the Ints `base` and `exponent` as SMT-LIB defines it.
+   *  Z3 before 5.4.0 makes a Real of its own power of two Ints, so there
+   *  it is built from that.
+   */
+  z3::expr make_int_power(const z3::expr & base, const z3::expr & exponent);
+  /** Whether `term` is a power make_int_power made, of the base and
+   *  exponent at the positions it keeps them in
+   */
+  bool is_int_power(const z3::expr & term);
   /** `term` in Z3's SMT-LIB */
   std::string print_term(const z3::expr & term) const;
   /** Throws the smt-switch exception for `e`, which a call on this context

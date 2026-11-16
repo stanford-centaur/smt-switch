@@ -114,8 +114,6 @@ struct MallocDeleter
   void operator()(char * p) const { std::free(p); }
 };
 
-}  // namespace
-
 Op lookup_op(Btor * btor, BoolectorNode * n)
 {
   Op op;
@@ -149,6 +147,8 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   }
   return op;
 }
+
+}  // namespace
 
 /* BoolectorTerm implementation */
 

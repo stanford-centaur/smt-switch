@@ -16,7 +16,6 @@
 #include <unordered_map>
 
 #include "smt-switch/cvc5_datatype.h"
-#include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
@@ -88,9 +87,6 @@ class Cvc5Solver : public AbsSmtSolver
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
   void dump_smt2(std::string filename) const override;
-
-  // helpers
-  cvc5::Op make_cvc5_op(Op op) const;
 
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software

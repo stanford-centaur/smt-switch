@@ -70,19 +70,19 @@ LoggingSolver::LoggingSolver(SmtSolver s)
 Sort LoggingSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
   Sort wrapped_sort = wrapped_solver->make_sort(name, arity);
-  return make_uninterpreted_logging_sort(wrapped_sort, name, arity);
+  return std::make_shared<UninterpretedLoggingSort>(wrapped_sort, name, arity);
 }
 
 Sort LoggingSolver::make_sort(const SortKind sk) const
 {
   Sort sort = wrapped_solver->make_sort(sk);
-  return make_logging_sort(sk, sort);
+  return std::make_shared<LoggingSort>(sk, sort);
 }
 
 Sort LoggingSolver::make_sort(const SortKind sk, std::uint64_t size) const
 {
   Sort sort = wrapped_solver->make_sort(sk, size);
-  return make_logging_sort(sk, sort, size);
+  return std::make_shared<BVLoggingSort>(sort, size);
 }
 
 Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
@@ -96,7 +96,22 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
             ->wrapped_sort);
   }
   Sort sort = wrapped_solver->make_sort(sk, sub_sorts);
-  return make_logging_sort(sk, sort, sorts);
+  if (sk == FUNCTION)
+  {
+    SortVec domain(sorts.begin(), sorts.end() - 1);
+    return std::make_shared<FunctionLoggingSort>(sort, domain, sorts.back());
+  }
+  if (sk == ARRAY && sorts.size() == 2)
+  {
+    return std::make_shared<ArrayLoggingSort>(sort, sorts[0], sorts[1]);
+  }
+  std::string msg("Can't make sort from ");
+  msg += to_string(sk);
+  for (const Sort & s : sorts)
+  {
+    msg += " " + s->to_string();
+  }
+  throw IncorrectUsageException(msg);
 }
 
 Sort LoggingSolver::make_sort(const Sort & sort_con,
@@ -116,7 +131,7 @@ Sort LoggingSolver::make_sort(const Sort & sort_con,
   }
 
   Sort ressort = wrapped_solver->make_sort(sub_sort_con, sub_sorts);
-  return make_uninterpreted_logging_sort(ressort, sort_con, sorts);
+  return std::make_shared<UninterpretedLoggingSort>(ressort, sort_con, sorts);
 }
 
 Sort LoggingSolver::make_sort(const DatatypeDecl & d) const
@@ -310,7 +325,7 @@ Term LoggingSolver::make_component(const Term & wrapped,
 Term LoggingSolver::make_term(bool b) const
 {
   Term wrapped_res = wrapped_solver->make_term(b);
-  Sort boolsort = make_logging_sort(BOOL, wrapped_res->get_sort());
+  Sort boolsort = std::make_shared<LoggingSort>(BOOL, wrapped_res->get_sort());
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, boolsort, Op(), TermVec{}, next_term_id);
 

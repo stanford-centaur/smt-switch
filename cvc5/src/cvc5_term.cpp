@@ -22,6 +22,7 @@
 #include "smt-switch/exceptions.h"
 #include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
 
 namespace smt {
@@ -220,18 +221,9 @@ std::uint64_t op_index(cvc5::Op op, std::size_t i)
 // struct for hashing
 std::hash<cvc5::Term> termhash;
 
-}  // namespace
-
-cvc5::Kind to_cvc5_kind(PrimOp po)
-{
-  if (po >= NUM_OPS_AND_NULL)
-  {
-    throw IncorrectUsageException("cvc5 has no kind for the PrimOp "
-                                  + std::to_string(static_cast<int>(po)));
-  }
-  return primop_kinds[po].second;
-}
-
+/** The PrimOp of the applications of kind
+ *  @throws NotImplementedException for a kind that no PrimOp stands for
+ */
 PrimOp to_primop(cvc5::Kind kind)
 {
   const int i = static_cast<int>(kind) - first_kind;
@@ -244,9 +236,66 @@ PrimOp to_primop(cvc5::Kind kind)
   return kind_primops.primops[i];
 }
 
+/** The cvc5 kind of the applications of po
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
+ *          value
+ */
+cvc5::Kind to_cvc5_kind(PrimOp po)
+{
+  if (po >= NUM_OPS_AND_NULL)
+  {
+    throw IncorrectUsageException("cvc5 has no kind for the PrimOp "
+                                  + std::to_string(static_cast<int>(po)));
+  }
+  return primop_kinds[po].second;
+}
+
+/** The application of op to children, made by tm. A quantifier binds its
+ *  parameters one at a time, which makes traversal easier since smt-switch
+ *  has no VARIABLE_LIST equivalent.
+ */
+cvc5::Term make_application(cvc5::TermManager & tm,
+                            const Op & op,
+                            std::vector<cvc5::Term> children)
+{
+  const cvc5::Kind kind = to_cvc5_kind(op.prim_op);
+  if (op.prim_op == Forall || op.prim_op == Exists)
+  {
+    cvc5::Term res = children.back();
+    children.pop_back();
+    while (!children.empty())
+    {
+      cvc5::Term bound_var =
+          tm.mkTerm(cvc5::Kind::VARIABLE_LIST, { children.back() });
+      children.pop_back();
+      res = tm.mkTerm(kind, { bound_var, res });
+    }
+    return res;
+  }
+  if (op.indices.empty())
+  {
+    return tm.mkTerm(kind, children);
+  }
+  std::vector<std::uint32_t> indices;
+  for (std::uint64_t index : op.indices)
+  {
+    indices.push_back(narrow_index(op, index));
+  }
+  return tm.mkTerm(tm.mkOp(kind, indices), children);
+}
+
+}  // namespace
+
 /* Cvc5Term implementation */
 
 Cvc5Term::Cvc5Term(cvc5::Term t) : term(t) {}
+
+Cvc5Term::Cvc5Term(cvc5::TermManager & tm,
+                   const Op & op,
+                   const std::vector<cvc5::Term> & children)
+    : term(make_application(tm, op, children))
+{
+}
 
 std::size_t Cvc5Term::hash() const { return termhash(term); }
 

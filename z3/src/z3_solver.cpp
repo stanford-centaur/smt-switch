@@ -1201,15 +1201,14 @@ try
     }
     return std::make_shared<Z3Term>(ctx, body);
   }
-  else if (detail::z3_int_power_is_real && op.prim_op == Pow && size == 2
+  else if (op.prim_op == Pow && size == 2
            && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[0])) == Z3_INT_SORT
            && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[1]))
                   == Z3_INT_SORT)
   {
     return std::make_shared<Z3Term>(
         ctx,
-        detail::smtlib_int_power(to_expr(*ctx, zargs[0]),
-                                 to_expr(*ctx, zargs[1])));
+        ctx->make_int_power(to_expr(*ctx, zargs[0]), to_expr(*ctx, zargs[1])));
   }
   else if (size == 2)
   {
