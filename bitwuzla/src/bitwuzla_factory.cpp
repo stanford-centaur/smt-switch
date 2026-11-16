@@ -40,7 +40,7 @@ SmtInterpolator BitwuzlaSolverFactory::create_interpolating_solver()
 
 /* end BitwuzlaSolverFactory implementation */
 
-const detail::BackendFactory detail::smt_switch_backend_bitwuzla = {
+const backend::Factory backend::smt_switch_backend_bitwuzla = {
   &BitwuzlaSolverFactory::create,
 #ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
   &BitwuzlaSolverFactory::create_interpolator

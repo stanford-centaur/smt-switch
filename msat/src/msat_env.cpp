@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -35,7 +35,7 @@ std::size_t MsatEnv::InstanceKeyHash::operator()(const InstanceKey & key) const
   std::size_t h = std::hash<std::string>{}(key.first);
   for (std::size_t id : key.second)
   {
-    detail::hash_combine(h, id);
+    backend::hash_combine(h, id);
   }
   return h;
 }
@@ -54,8 +54,8 @@ msat_type MsatEnv::add_instance(const std::string & name,
   {
     return it->second;
   }
-  msat_type t =
-      msat_get_simple_type(*this, internal_name("sort", count++).c_str());
+  msat_type t = msat_get_simple_type(
+      *this, backend::internal_name("sort", count++).c_str());
   uninterp_sort_cache.emplace(std::move(key), t);
   uninterp_sort_info.emplace(msat_type_id(t), SortInstance{ name, params });
   return t;

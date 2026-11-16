@@ -38,7 +38,7 @@ SmtInterpolator Cvc5SolverFactory::create_interpolating_solver()
 }
 /* end Cvc5SolverFactory implementation */
 
-const detail::BackendFactory detail::smt_switch_backend_cvc5 = {
+const backend::Factory backend::smt_switch_backend_cvc5 = {
   &Cvc5SolverFactory::create, &Cvc5SolverFactory::create_interpolator
 };
 

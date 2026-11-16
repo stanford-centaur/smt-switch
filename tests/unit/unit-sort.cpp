@@ -24,9 +24,9 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -592,11 +592,10 @@ TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
   Term f =
       s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ list_e, boolsort }));
   Term forall = s->make_term(Forall, p, s->make_term(Apply, f, p));
-  EXPECT_THAT(
-      forall->to_string(),
-      testing::AllOf(
-          testing::HasSubstr("(List E)"),
-          testing::Not(testing::HasSubstr(std::string(INTERNAL_NAME_PREFIX)))));
+  EXPECT_THAT(forall->to_string(),
+              testing::AllOf(testing::HasSubstr("(List E)"),
+                             testing::Not(testing::HasSubstr(
+                                 std::string(backend::INTERNAL_NAME_PREFIX)))));
 }
 
 TEST_P(QuantifiedSortConstructors, BarredSymbolPrintsAsNamed)
@@ -607,7 +606,7 @@ TEST_P(QuantifiedSortConstructors, BarredSymbolPrintsAsNamed)
                     "binders' sorts";
   }
   Sort list_e = s->make_sort(list, SortVec{ elem });
-  std::string name = "x " + internal_name("sort", 0);
+  std::string name = "x " + backend::internal_name("sort", 0);
   Term x = s->make_symbol(name, list_e);
   Term p = s->make_param("p", list_e);
   Term forall = s->make_term(Forall, p, s->make_term(Equal, p, x));

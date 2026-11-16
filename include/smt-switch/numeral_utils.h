@@ -15,7 +15,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
 
-namespace smt {
+namespace smt::backend {
 
 // Numerals in a base from 2 to 36, as AbsSmtSolver::make_term accepts them
 
@@ -63,8 +63,6 @@ std::string bv_value_to_bits(const std::string & val,
                              std::uint64_t base,
                              const Sort & sort);
 
-namespace detail {
-
 /** The value of c as a digit of a numeral in a base up to 36: 0 to 9,
  *  then a to z in either case
  *  @param c the character
@@ -93,8 +91,6 @@ std::uint64_t bv_value_to_uint64(const std::string & val,
                                  std::uint64_t base,
                                  std::uint64_t width);
 
-}  // namespace detail
-
 // Helpers for implementing AbsTerm::to_int, AbsTerm::to_signed_int and
 // AbsTerm::to_bits. Each throws an IncorrectUsageException if its input is
 // malformed or its value does not fit in the result type.
@@ -106,7 +102,9 @@ std::uint64_t bv_value_to_uint64(const std::string & val,
 std::uint64_t bits_to_uint64(const std::string & bits);
 std::int64_t bits_to_int64(const std::string & bits);
 
-namespace smtlib {
+}  // namespace smt::backend
+
+namespace smt::smtlib {
 
 /** Parses the text of an integer value: `n`, `-n` or `(- n)`, where `n` is
  *  a decimal numeral, optionally followed by a fractional part of zeros
@@ -130,8 +128,6 @@ std::string bv_to_bits(const std::string & s);
 std::uint64_t bv_to_uint64(const std::string & s);
 std::int64_t bv_to_int64(const std::string & s);
 
-}  // namespace smtlib
-
-}  // namespace smt
+}  // namespace smt::smtlib
 
 #endif  // SMT_SWITCH_NUMERAL_UTILS_H

@@ -361,7 +361,7 @@ uint64_t Z3Term::to_int() const
   {
     if (term.is_bv())
     {
-      return bits_to_uint64(to_bits());
+      return backend::bits_to_uint64(to_bits());
     }
     // succeeds for integer values and for real values with an integral
     // value, if they fit
@@ -382,7 +382,7 @@ int64_t Z3Term::to_signed_int() const
   {
     if (term.is_bv())
     {
-      return bits_to_int64(to_bits());
+      return backend::bits_to_int64(to_bits());
     }
     // succeeds for integer values and for real values with an integral
     // value, if they fit
@@ -450,7 +450,7 @@ std::size_t Z3Term::get_num_children() const
 Term Z3Term::get_child(std::size_t i) const
 {
   // the index as Z3 takes an argument index
-  const unsigned pos = detail::narrow<unsigned>(i, "a child position");
+  const unsigned pos = backend::narrow<unsigned>(i, "a child position");
   const PrimOp po = get_op().prim_op;
   // smt-switch lists the first bound variable and then the body, which
   // binds the rest; Z3 binds them all in one quantifier, as de Bruijn

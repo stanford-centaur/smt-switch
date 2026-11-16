@@ -52,11 +52,11 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
                          testing::ValuesIn(available_solver_configurations()));
 
 /** Checks a backend's applications of an operator to more than two arguments
- *  against make_nary_term, which builds them from applications to two as
- *  SMT-LIB defines them. Where the solver applies the operator to more
+ *  against backend::make_nary_term, which builds them from applications to two
+ * as SMT-LIB defines them. Where the solver applies the operator to more
  *  arguments itself, as cvc5 and Bitwuzla do and Z3 and Yices2 do for some
- *  operators, this checks make_nary_term against the solver. Elsewhere the
- *  backend uses make_nary_term, and this checks that it takes the
+ *  operators, this checks backend::make_nary_term against the solver. Elsewhere
+ * the backend uses backend::make_nary_term, and this checks that it takes the
  *  applications.
  */
 class NaryTests : public testing::Test,
@@ -71,7 +71,7 @@ class NaryTests : public testing::Test,
 
   /** Expects the applications of op to three and to four arguments of sort,
    *  and to three through the overload taking three, to be equal to
-   *  make_nary_term's in every model
+   *  backend::make_nary_term's in every model
    */
   void check(PrimOp op)
   {
@@ -80,12 +80,12 @@ class NaryTests : public testing::Test,
     {
       TermVec args = make_args(sort, 4);
       expect_equivalent(s->make_term(op, args),
-                        make_nary_term(s.get(), op, args));
+                        backend::make_nary_term(s.get(), op, args));
       args.pop_back();
       expect_equivalent(s->make_term(op, args),
-                        make_nary_term(s.get(), op, args));
+                        backend::make_nary_term(s.get(), op, args));
       expect_equivalent(s->make_term(op, args[0], args[1], args[2]),
-                        make_nary_term(s.get(), op, args));
+                        backend::make_nary_term(s.get(), op, args));
     }
     catch (std::exception & e)
     {
@@ -189,10 +189,11 @@ TEST_P(BoolNaryTests, MakeNaryTermTooFewArguments)
   TermVec args = make_args(sort, 1);
   for (PrimOp op : { And, Implies, Equal, Distinct })
   {
-    EXPECT_THROW(make_nary_term(s.get(), op, TermVec{}),
+    EXPECT_THROW(backend::make_nary_term(s.get(), op, TermVec{}),
                  IncorrectUsageException)
         << to_string(op);
-    EXPECT_THROW(make_nary_term(s.get(), op, args), IncorrectUsageException)
+    EXPECT_THROW(backend::make_nary_term(s.get(), op, args),
+                 IncorrectUsageException)
         << to_string(op);
   }
 }

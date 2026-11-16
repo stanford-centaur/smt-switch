@@ -203,7 +203,7 @@ std::string digits_to_decimal(const std::string & digits, unsigned base)
   std::string dec = "0";
   for (char c : digits)
   {
-    unsigned digit = detail::numeral_digit(c);
+    unsigned digit = backend::numeral_digit(c);
     if (digit >= base)
     {
       return "";
@@ -227,6 +227,8 @@ std::string digits_to_decimal(const std::string & digits, unsigned base)
 
 }  // namespace
 
+namespace backend {
+
 std::uint64_t bits_to_uint64(const std::string & bits)
 {
   check_bit_string(bits);
@@ -239,7 +241,7 @@ std::int64_t bits_to_int64(const std::string & bits)
   return low_64_bits_signed(bits, bits);
 }
 
-unsigned detail::numeral_digit(char c)
+unsigned numeral_digit(char c)
 {
   return static_cast<unsigned>(c >= '0' && c <= '9'   ? c - '0'
                                : c >= 'a' && c <= 'z' ? c - 'a' + 10
@@ -247,9 +249,9 @@ unsigned detail::numeral_digit(char c)
                                                       : 36);
 }
 
-std::vector<std::uint32_t> detail::bv_value_to_words(const std::string & val,
-                                                     std::uint64_t base,
-                                                     std::uint64_t width)
+std::vector<std::uint32_t> bv_value_to_words(const std::string & val,
+                                             std::uint64_t base,
+                                             std::uint64_t width)
 {
   if (base < 2 || base > 36)
   {
@@ -398,9 +400,9 @@ std::vector<std::uint32_t> detail::bv_value_to_words(const std::string & val,
   return words;
 }
 
-std::uint64_t detail::bv_value_to_uint64(const std::string & val,
-                                         std::uint64_t base,
-                                         std::uint64_t width)
+std::uint64_t bv_value_to_uint64(const std::string & val,
+                                 std::uint64_t base,
+                                 std::uint64_t width)
 {
   std::vector<std::uint32_t> words = bv_value_to_words(val, base, width);
   return words.size() > 1 ? std::uint64_t{ words[1] } << 32 | words[0]
@@ -501,8 +503,7 @@ std::string bv_value_to_bits(const std::string & val,
                                   + " is not a bit-vector sort");
   }
   std::uint64_t width = sort->get_width();
-  std::vector<std::uint32_t> words =
-      detail::bv_value_to_words(val, base, width);
+  std::vector<std::uint32_t> words = bv_value_to_words(val, base, width);
   // bit i is in word i / 32, and the string starts with the highest bit
   std::string bits(width, '0');
   for (std::uint64_t i = 0; i < width; ++i)
@@ -514,6 +515,8 @@ std::string bv_value_to_bits(const std::string & val,
   }
   return bits;
 }
+
+}  // namespace backend
 
 namespace smtlib {
 
@@ -570,7 +573,7 @@ std::string bv_to_bits(const std::string & s)
   {
     for (char c : text.substr(2))
     {
-      const unsigned d = detail::numeral_digit(c);
+      const unsigned d = backend::numeral_digit(c);
       if (d >= 16)
       {
         throw not_a_bv_value(s);
@@ -600,7 +603,7 @@ std::string bv_to_bits(const std::string & s)
     std::vector<std::uint32_t> words;
     try
     {
-      words = detail::bv_value_to_words(numeral, 10, width);
+      words = backend::bv_value_to_words(numeral, 10, width);
     }
     catch (const IncorrectUsageException &)
     {

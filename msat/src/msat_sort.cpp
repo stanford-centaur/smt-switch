@@ -17,7 +17,7 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -46,12 +46,12 @@ std::size_t MsatSort::hash() const
   std::size_t h = std::hash<MsatEnv *>{}(env.get());
   if (is_constructor)
   {
-    detail::hash_combine(h, std::hash<std::string>{}(constructor_name));
-    detail::hash_combine(h, constructor_arity);
+    backend::hash_combine(h, std::hash<std::string>{}(constructor_name));
+    backend::hash_combine(h, constructor_arity);
   }
   else
   {
-    detail::hash_combine(h, msat_type_id(type));
+    backend::hash_combine(h, msat_type_id(type));
   }
   return h;
 }

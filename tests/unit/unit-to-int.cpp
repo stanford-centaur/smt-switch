@@ -469,8 +469,9 @@ TEST(ToIntParsing, WideBV)
   EXPECT_THROW(smtlib::bv_to_int64("#x0ffffffffffffffff"),
                IncorrectUsageException);
   EXPECT_EQ(smtlib::bv_to_int64("#xfffffffffffffffff"), -1);
-  EXPECT_EQ(bits_to_int64(std::string(65, '1')), -1);
-  EXPECT_THROW(bits_to_uint64(std::string(65, '1')), IncorrectUsageException);
+  EXPECT_EQ(backend::bits_to_int64(std::string(65, '1')), -1);
+  EXPECT_THROW(backend::bits_to_uint64(std::string(65, '1')),
+               IncorrectUsageException);
   EXPECT_THROW(smtlib::bv_to_uint64("(_ bv18446744073709551616 65)"),
                IncorrectUsageException);
   // 2^65 - 1 is all ones in 65 bits

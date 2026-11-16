@@ -27,8 +27,8 @@ extern "C" {
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/numeral_utils.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -409,12 +409,12 @@ std::string BoolectorTerm::get_param_name() const
   {
     throw IncorrectUsageException("Only a param has a param name");
   }
-  // make_param names it internal_name("param", n), an underscore, then the
-  // name it was given
+  // make_param names it backend::internal_name("param", n), an underscore, then
+  // the name it was given
   std::string internal =
       btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
   std::size_t number =
-      INTERNAL_NAME_PREFIX.size() + std::string_view("param_").size();
+      backend::INTERNAL_NAME_PREFIX.size() + std::string_view("param_").size();
   return internal.substr(internal.find('_', number) + 1);
 }
 
@@ -434,11 +434,14 @@ std::string BoolectorTerm::get_symbol_name() const
   return btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
 }
 
-uint64_t BoolectorTerm::to_int() const { return bits_to_uint64(to_bits()); }
+uint64_t BoolectorTerm::to_int() const
+{
+  return backend::bits_to_uint64(to_bits());
+}
 
 int64_t BoolectorTerm::to_signed_int() const
 {
-  return bits_to_int64(to_bits());
+  return backend::bits_to_int64(to_bits());
 }
 
 std::string BoolectorTerm::to_bits() const

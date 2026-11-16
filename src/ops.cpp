@@ -18,7 +18,7 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -345,7 +345,7 @@ size_t hash<smt::Op>::operator()(const smt::Op o) const
   size_t h = hash<smt::PrimOp>{}(o.prim_op);
   for (uint64_t index : o.indices)
   {
-    smt::detail::hash_combine(h, index);
+    smt::backend::hash_combine(h, index);
   }
   return h;
 }

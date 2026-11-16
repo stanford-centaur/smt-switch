@@ -20,8 +20,8 @@
 #include "smt-switch/msat_sort.h"
 #include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -125,7 +125,7 @@ size_t MsatTerm::hash() const
   // MathSAT numbers terms per environment, so mix in the environment, as
   // compare checks it
   size_t h = std::hash<MsatEnv *>{}(env.get());
-  detail::hash_combine(h, get_id());
+  backend::hash_combine(h, get_id());
   return h;
 }
 
@@ -531,7 +531,7 @@ uint64_t MsatTerm::to_int() const
 {
   if (!is_uf && msat_is_bv_type(*env, msat_term_get_type(term), nullptr))
   {
-    return bits_to_uint64(to_bits());
+    return backend::bits_to_uint64(to_bits());
   }
   return smtlib::int_to_uint64(number_to_text(*env, term, is_uf));
 }
@@ -540,7 +540,7 @@ int64_t MsatTerm::to_signed_int() const
 {
   if (!is_uf && msat_is_bv_type(*env, msat_term_get_type(term), nullptr))
   {
-    return bits_to_int64(to_bits());
+    return backend::bits_to_int64(to_bits());
   }
   return smtlib::int_to_int64(number_to_text(*env, term, is_uf));
 }

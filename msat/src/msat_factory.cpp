@@ -43,7 +43,7 @@ SmtInterpolator MsatSolverFactory::create_interpolating_solver()
 
 /* end MsatSolverFactory implementation */
 
-const detail::BackendFactory detail::smt_switch_backend_msat = {
+const backend::Factory backend::smt_switch_backend_msat = {
   &MsatSolverFactory::create, &MsatSolverFactory::create_interpolator
 };
 

@@ -17,7 +17,6 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/solver_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -62,8 +61,8 @@ std::size_t GenericDatatypeConstructorDecl::hash() const
   std::size_t h = std::hash<std::string>{}(cons_name);
   for (const SelectorComponents & sel : selector_vector)
   {
-    detail::hash_combine(h, sel.name);
-    detail::hash_combine(h, sel.sort);
+    backend::hash_combine(h, sel.name);
+    backend::hash_combine(h, sel.sort);
   }
   return h;
 }
@@ -83,7 +82,7 @@ bool GenericDatatypeConstructorDecl::compare(
 bool GenericDatatypeConstructorDecl::less(
     const DatatypeConstructorDecl & d) const
 {
-  auto other = backend_pointer_cast<GenericDatatypeConstructorDecl>(d);
+  auto other = backend::pointer_cast<GenericDatatypeConstructorDecl>(d);
   if (cons_name != other->cons_name)
   {
     return cons_name < other->cons_name;
@@ -118,7 +117,7 @@ GenericDatatypeConstructorDecl::get_selector_vector() const
 
 int GenericDatatypeConstructorDecl::get_selector_count() const
 {
-  return detail::narrow<int>(selector_vector.size(), "a number of selectors");
+  return backend::narrow<int>(selector_vector.size(), "a number of selectors");
 }
 
 std::string GenericDatatypeConstructorDecl::get_dt_name() const
@@ -139,8 +138,8 @@ GenericDatatype::GenericDatatype(const DatatypeDecl & dt_declaration)
 
 int GenericDatatype::get_num_constructors() const
 {
-  return detail::narrow<int>(cons_decl_vector.size(),
-                             "a number of constructors");
+  return backend::narrow<int>(cons_decl_vector.size(),
+                              "a number of constructors");
 }
 
 int GenericDatatype::get_num_selectors(std::string cons) const
@@ -240,7 +239,7 @@ void GenericDatatype::add_constructor(
     throw SolverException("Can't add constructor. It already has been added!");
   }
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
-      backend_pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
+      backend::pointer_cast<GenericDatatypeConstructorDecl>(dt_cons_decl);
   // Links the constructor to the datatype_decl of the datatype
   gdt_cons->update_stored_dt(dt_decl);
   // Links the datatype to the new constructor

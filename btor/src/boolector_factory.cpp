@@ -28,7 +28,7 @@ SmtSolver BoolectorSolverFactory::create(bool logging)
 
 /* end BoolectorSolverFactory implementation */
 
-const detail::BackendFactory detail::smt_switch_backend_btor = {
+const backend::Factory backend::smt_switch_backend_btor = {
   &BoolectorSolverFactory::create, nullptr
 };
 

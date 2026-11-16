@@ -9,15 +9,13 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <iterator>
+#include <memory>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
@@ -28,41 +26,6 @@
 #include "smt-switch/term_visitor.h"
 
 namespace smt {
-
-namespace detail {
-
-void throw_foreign_handle(const Term & h)
-{
-  throw IncorrectUsageException("Term " + h->to_string()
-                                + " was made by another solver");
-}
-
-void throw_foreign_handle(const Sort & h)
-{
-  throw IncorrectUsageException("Sort " + h->to_string()
-                                + " was made by another solver");
-}
-
-void throw_foreign_handle(const DatatypeDecl & h)
-{
-  throw IncorrectUsageException("Datatype declaration " + h->get_name()
-                                + " was made by another solver");
-}
-
-void throw_foreign_handle(const DatatypeConstructorDecl & h)
-{
-  throw IncorrectUsageException("Datatype constructor declaration "
-                                + h->get_name()
-                                + " was made by another solver");
-}
-
-void throw_foreign_handle(const Datatype & h)
-{
-  throw IncorrectUsageException("Datatype " + h->get_name()
-                                + " was made by another solver");
-}
-
-}  // namespace detail
 
 namespace {
 
@@ -769,19 +732,6 @@ Term cast_op(const SmtSolver & solver, const Op & op, const TermVec & terms)
     msg += ")";
     throw NotImplementedException(msg);
   }
-}
-
-// -----------------------------------------------------------------------------
-
-std::string internal_name(const std::string & kind, std::uint64_t index)
-{
-  return std::string(INTERNAL_NAME_PREFIX) + kind + "_" + std::to_string(index);
-}
-
-bool is_internal_name(std::string_view name)
-{
-  return name.compare(0, INTERNAL_NAME_PREFIX.size(), INTERNAL_NAME_PREFIX)
-         == 0;
 }
 
 }  // namespace smt

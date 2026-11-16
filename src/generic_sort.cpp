@@ -17,8 +17,8 @@
 #include "smt-switch/exceptions.h"
 #include "smt-switch/generic_datatype.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -406,7 +406,7 @@ std::string GenericDatatypeSort::to_string() const
 DatatypeComponentSort::DatatypeComponentSort(SortKind k, std::string n, Sort dt)
     : GenericSort(k),
       name(std::move(n)),
-      dt_sort(backend_pointer_cast<GenericSort>(dt))
+      dt_sort(backend::pointer_cast<GenericSort>(dt))
 {
   if (k != CONSTRUCTOR && k != SELECTOR && k != TESTER)
   {
@@ -429,8 +429,8 @@ std::size_t DatatypeComponentSort::hash() const
   // the name is unique only within the datatype, so mix in the datatype's
   // name and the kind, as compare checks both
   std::size_t h = str_hash(name);
-  detail::hash_combine(h, dt_sort->to_string());
-  detail::hash_combine(h, sk);
+  backend::hash_combine(h, dt_sort->to_string());
+  backend::hash_combine(h, sk);
   return h;
 }
 

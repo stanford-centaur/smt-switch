@@ -24,17 +24,17 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_hashtable.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
 namespace {
 
-/** Casts a handle as backend_pointer_cast does, but refuses a null one
+/** Casts a handle as backend::pointer_cast does, but refuses a null one
  *  @param h the handle a caller passed to the solver
  *  @param msg the message to throw if h is null
  *  @return h as a T
@@ -49,7 +49,7 @@ std::shared_ptr<T> non_null_cast(const std::shared_ptr<Base> & h,
   {
     throw IncorrectUsageException(msg);
   }
-  return backend_pointer_cast<T>(h);
+  return backend::pointer_cast<T>(h);
 }
 
 }  // namespace
@@ -534,7 +534,7 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
     // hash table, nor is one made before a reset.
     if (!hashtable->contains(tt))
     {
-      detail::throw_foreign_handle(tt);
+      backend::throw_foreign_pointer(tt);
     }
     lterms.push_back(ltt->wrapped_term);
   }

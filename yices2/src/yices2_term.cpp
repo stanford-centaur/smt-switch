@@ -365,7 +365,7 @@ uint64_t Yices2Term::to_int() const
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_BV_CONSTANT)
   {
-    return bits_to_uint64(to_bits());
+    return backend::bits_to_uint64(to_bits());
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
@@ -381,7 +381,7 @@ int64_t Yices2Term::to_signed_int() const
   term_constructor_t tc = yices_term_constructor(term);
   if (tc == YICES_BV_CONSTANT)
   {
-    return bits_to_int64(to_bits());
+    return backend::bits_to_int64(to_bits());
   }
   else if (tc == YICES_ARITH_CONSTANT)
   {
@@ -475,7 +475,7 @@ std::size_t Yices2Term::get_num_children() const
 Term Yices2Term::get_child(std::size_t i) const
 {
   // the index as Yices takes a child index
-  const int32_t pos = detail::narrow<int32_t>(i, "a child position");
+  const int32_t pos = backend::narrow<int32_t>(i, "a child position");
   term_t ret_term;
 
   if (yices_term_is_bvsum(term))

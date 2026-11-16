@@ -279,7 +279,7 @@ cvc5::Term make_application(cvc5::TermManager & tm,
   std::vector<std::uint32_t> indices;
   for (std::uint64_t index : op.indices)
   {
-    indices.push_back(narrow_index(op, index));
+    indices.push_back(backend::narrow_index(op, index));
   }
   return tm.mkTerm(tm.mkOp(kind, indices), children);
 }
@@ -469,7 +469,7 @@ uint64_t Cvc5Term::to_int() const
 {
   if (term.isBitVectorValue())
   {
-    return bits_to_uint64(to_bits());
+    return backend::bits_to_uint64(to_bits());
   }
   // true for integer values and for real values with an integral value
   if (term.isUInt64Value())
@@ -485,7 +485,7 @@ int64_t Cvc5Term::to_signed_int() const
 {
   if (term.isBitVectorValue())
   {
-    return bits_to_int64(to_bits());
+    return backend::bits_to_int64(to_bits());
   }
   // true for integer values and for real values with an integral value
   if (term.isInt64Value())

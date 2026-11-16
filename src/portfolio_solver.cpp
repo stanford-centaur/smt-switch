@@ -200,7 +200,7 @@ Result PortfolioSolver::portfolio_solve()
     // left untracked, neither killed nor reaped.
     std::string label = smt::to_string(solver->get_solver_enum());
     int fds[2];
-    if (int pipe_errno = detail::make_cloexec_pipe(fds); pipe_errno != 0)
+    if (int pipe_errno = backend::make_cloexec_pipe(fds); pipe_errno != 0)
     {
       throw SystemException(
           std::string("Could not create a pipe for a solver: ")
@@ -242,7 +242,7 @@ Result PortfolioSolver::portfolio_solve()
       }
     }
     if (poll(polled.data(),
-             detail::narrow<nfds_t>(polled.size(), "a number of descriptors"),
+             backend::narrow<nfds_t>(polled.size(), "a number of descriptors"),
              -1)
         < 0)
     {
