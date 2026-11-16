@@ -397,6 +397,10 @@ std::chrono::duration<double> AbsSmtSolver::parse_time_limit(
   return std::chrono::duration<double>(std::min(seconds, longest));
 }
 
+// parse_nat_opt, arith_value_to_decimal, bv_value_to_bits, bv_value_to_words
+// and bv_value_to_uint64 are defined in numeral_utils.cpp, beside the
+// smtlib:: parsers they share helpers with.
+
 UnorderedTermMap AbsSmtSolver::store_chain_values(
     const std::vector<std::pair<Term, Term>> & stores)
 {

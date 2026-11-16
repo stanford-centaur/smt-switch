@@ -4,6 +4,9 @@
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
+ *
+ * Besides the smtlib:: parsers, this file defines the numeral readers of
+ * AbsSmtSolver and AbsTerm, which share its helpers.
  */
 #include "smt-switch/numeral_utils.h"
 

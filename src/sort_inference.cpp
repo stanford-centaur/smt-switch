@@ -5,6 +5,9 @@
  * \author Makai Mann
  * \date 2020
  * \copyright See the LICENSE file in the top-level source directory.
+ *
+ * It defines Op::check_sortedness and Op::compute_sort, beside the sort
+ * rules of each operator they look up.
  */
 #include <algorithm>
 #include <cstddef>
