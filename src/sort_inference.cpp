@@ -6,8 +6,6 @@
  * \date 2020
  * \copyright See the LICENSE file in the top-level source directory.
  */
-#include "smt-switch/sort_inference.h"
-
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -17,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "smt-switch/exceptions.h"
@@ -767,10 +766,9 @@ Sort compute(SortComputation computation,
 
 }  // namespace
 
-// main function implementations
-bool check_sortedness(Op op, const TermVec & terms)
+bool Op::check_sortedness(const TermVec & terms) const
 {
-  PrimOp po = op.prim_op;
+  PrimOp po = prim_op;
   if (po == Forall || po == Exists)
   {
     // special-case check terms for quantified ops
@@ -785,12 +783,12 @@ bool check_sortedness(Op op, const TermVec & terms)
   {
     sorts.push_back(t->get_sort());
   }
-  return check_sortedness(op, sorts);
+  return check_sortedness(sorts);
 }
 
-bool check_sortedness(Op op, const SortVec & sorts)
+bool Op::check_sortedness(const SortVec & sorts) const
 {
-  auto min_max_arity = get_arity(op.prim_op);
+  auto min_max_arity = get_arity(prim_op);
   std::size_t num_args = sorts.size();
   if (num_args < min_max_arity.first || num_args > min_max_arity.second)
   {
@@ -798,42 +796,42 @@ bool check_sortedness(Op op, const SortVec & sorts)
     return false;
   }
 
-  return check_sorts(sort_info(op.prim_op, "check_sortedness").check, sorts);
+  return check_sorts(sort_info(prim_op, "check_sortedness").check, sorts);
 }
 
-Sort compute_sort(Op op, const AbsSmtSolver * solver, const TermVec & terms)
+Sort Op::compute_sort(const AbsSmtSolver * solver, const TermVec & terms) const
 {
   SortVec sorts;
   for (auto t : terms)
   {
     sorts.push_back(t->get_sort());
   }
-  return compute_sort(op, solver, sorts);
+  return compute_sort(solver, sorts);
 }
 
-Sort compute_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+Sort Op::compute_sort(const AbsSmtSolver * solver, const SortVec & sorts) const
 {
   // Only too few arguments are refused, since a backend may take more than
   // SMT-LIB defines, such as a quantifier binding several params.
-  std::size_t min_arity = get_arity(op.prim_op).first;
+  std::size_t min_arity = get_arity(prim_op).first;
   if (sorts.size() < min_arity)
   {
     throw IncorrectUsageException(
-        op.to_string() + " takes at least " + std::to_string(min_arity)
+        to_string() + " takes at least " + std::to_string(min_arity)
         + " arguments, but got " + std::to_string(sorts.size()));
   }
   return compute(
-      sort_info(op.prim_op, "compute_sort").computation, op, solver, sorts);
+      sort_info(prim_op, "compute_sort").computation, *this, solver, sorts);
 }
 
-Sort compute_sort(Op op, const SmtSolver solver, const TermVec & terms)
+Sort Op::compute_sort(const SmtSolver & solver, const TermVec & terms) const
 {
-  return compute_sort(op, solver.get(), terms);
+  return compute_sort(solver.get(), terms);
 }
 
-Sort compute_sort(Op op, const SmtSolver solver, const SortVec & sorts)
+Sort Op::compute_sort(const SmtSolver & solver, const SortVec & sorts) const
 {
-  return compute_sort(op, solver.get(), sorts);
+  return compute_sort(solver.get(), sorts);
 }
 
 }  // namespace smt

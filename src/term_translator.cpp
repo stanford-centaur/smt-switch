@@ -11,13 +11,13 @@
 #include "smt-switch/term_translator.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "smt-switch/datatype.h"
@@ -27,7 +27,6 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
 #include "smt-switch/utils.h"
 
@@ -403,7 +402,7 @@ Term TermTranslator::transfer_term(const Term & term)
           cached_children.push_back(cache.at(c));
         }
 
-        if (!check_sortedness(op, cached_children))
+        if (!op.check_sortedness(cached_children))
         {
           /* NOTE: interesting behavior here
              if transferring between two solvers that alias sorts

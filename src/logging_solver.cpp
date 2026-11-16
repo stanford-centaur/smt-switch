@@ -25,7 +25,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_hashtable.h"
 #include "smt-switch/text_utils.h"
@@ -542,7 +541,7 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   Term wrapped_res = wrapped_solver->make_term(op, lterms);
   // Note: for convenience there's a version of compute_sort that takes terms
   // since these are already in a vector, just let it unpack the sorts
-  Sort res_logging_sort = compute_sort(op, this, terms);
+  Sort res_logging_sort = op.compute_sort(this, terms);
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, terms, next_term_id);
 
