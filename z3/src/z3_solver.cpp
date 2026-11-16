@@ -32,6 +32,7 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 #include "smt-switch/z3_datatype.h"

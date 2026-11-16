@@ -10,6 +10,8 @@
 #include <cstddef>
 #include <unordered_set>
 
+#include "smt-switch/term.h"
+
 namespace smt {
 
 /* TermHashTable */

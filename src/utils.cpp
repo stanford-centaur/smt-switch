@@ -126,7 +126,7 @@ class MatchingTermsVisitor : public TermVisitor
 class OpsVisitor : public TermVisitor
 {
  public:
-  explicit OpsVisitor(UnorderedOpSet & out) : out_(out) {}
+  explicit OpsVisitor(std::unordered_set<Op> & out) : out_(out) {}
 
  protected:
   VisitResult visit_term(const Term & term) override
@@ -142,7 +142,7 @@ class OpsVisitor : public TermVisitor
   }
 
  private:
-  UnorderedOpSet & out_;
+  std::unordered_set<Op> & out_;
 };
 
 // Collects the applications of some operators, going below each one too
@@ -422,7 +422,7 @@ void get_free_symbols(const Term & term, UnorderedTermSet & out)
   get_matching_terms(term, out, f);
 }
 
-void get_ops(const Term & term, UnorderedOpSet & out)
+void get_ops(const Term & term, std::unordered_set<Op> & out)
 {
   OpsVisitor(out).visit(term);
 }

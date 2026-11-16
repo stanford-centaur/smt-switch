@@ -14,7 +14,6 @@
 
 #include "smt-switch/bitwuzla_solver.h"
 #include "smt-switch/interpolator.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

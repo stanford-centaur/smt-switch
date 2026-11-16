@@ -9,7 +9,6 @@
 #define SMT_SWITCH_SORTING_NETWORK_H
 
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

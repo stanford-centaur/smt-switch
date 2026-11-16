@@ -22,11 +22,8 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 
 namespace smt {
-
-using TermsPairVec = std::vector<std::pair<Term, Term>>;
 
 /**
    Abstract interpolating solver, to be implemented by each backend that
@@ -183,6 +180,8 @@ class AbsSmtInterpolator : public AbsSmtSolver
       const UnorderedTermMap & substitution_map) const override;
 
  protected:
+  using TermsPairVec = std::vector<std::pair<Term, Term>>;
+
   // ------------------------- Forbidden ------------------------------------
   void do_assert(const Term & t) final;
   Result do_check_sat_assuming(const TermVec & assumptions) final;

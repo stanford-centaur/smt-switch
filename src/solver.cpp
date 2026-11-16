@@ -65,7 +65,8 @@ Result AbsSmtSolver::check_sat_assuming(const TermVec & assumptions)
   return do_check_sat_assuming(assumptions);
 }
 
-Result AbsSmtSolver::check_sat_assuming_list(const TermList & assumptions)
+Result AbsSmtSolver::check_sat_assuming_list(
+    const std::list<Term> & assumptions)
 {
   return check_sat_assuming(assumptions);
 }

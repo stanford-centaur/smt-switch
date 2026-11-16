@@ -10,7 +10,6 @@
 
 #include "smt-switch/identity_walker.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 // class for doing substitutions

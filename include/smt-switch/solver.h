@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <iterator>
+#include <list>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -25,7 +26,6 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 
@@ -97,8 +97,8 @@ class AbsSmtSolver
   Result check_sat_assuming(const TermVec & assumptions);
 
   /* Check satisfiability under the assumptions in any other range of Terms,
-   * such as a TermList or an UnorderedTermSet: any container with begin and
-   * end of one type, and C arrays. They are copied into a TermVec, so
+   * such as a std::deque<Term> or an UnorderedTermSet: any container with begin
+   * and end of one type, and C arrays. They are copied into a TermVec, so
    * solvers only override the TermVec version.
    * A single Term is iterable over its children but is not a collection of
    * assumptions, so it is rejected: write { t } to assume just t.
@@ -120,7 +120,7 @@ class AbsSmtSolver
   }
 
   [[deprecated("use check_sat_assuming")]] Result check_sat_assuming_list(
-      const TermList & assumptions);
+      const std::list<Term> & assumptions);
 
   [[deprecated("use check_sat_assuming")]] Result check_sat_assuming_set(
       const UnorderedTermSet & assumptions);

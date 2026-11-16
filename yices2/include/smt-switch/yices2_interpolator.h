@@ -15,7 +15,6 @@
 #include "smt-switch/interpolator.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

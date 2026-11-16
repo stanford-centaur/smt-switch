@@ -15,7 +15,6 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 #include "smt-switch/term_visitor.h"
 
 namespace smt::tests {

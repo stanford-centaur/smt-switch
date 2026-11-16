@@ -15,9 +15,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <ostream>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "smt-switch/smt_defs.h"
@@ -88,28 +86,6 @@ class AbsSort
   virtual SortKind get_sort_kind() const = 0;
 };
 
-bool operator==(const Sort & s1, const Sort & s2);
-bool operator!=(const Sort & s1, const Sort & s2);
-// A strict weak order that agrees with ==, with a null sort first
-bool operator<(const Sort & s1, const Sort & s2);
-bool operator>(const Sort & s1, const Sort & s2);
-bool operator<=(const Sort & s1, const Sort & s2);
-bool operator>=(const Sort & s1, const Sort & s2);
-std::ostream & operator<<(std::ostream & output, const Sort s);
-
-// Useful typedefs for data structures
-using SortVec = std::vector<Sort>;
-using UnorderedSortSet = std::unordered_set<Sort>;
-
 }  // namespace smt
-
-namespace std {
-
-template <>
-struct hash<smt::Sort>
-{
-  size_t operator()(const smt::Sort & s) const;
-};
-}  // namespace std
 
 #endif  // SMT_SWITCH_SORT_H

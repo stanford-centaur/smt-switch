@@ -20,7 +20,6 @@
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
 
 namespace smt {
@@ -102,7 +101,7 @@ void get_free_symbolic_consts(const Term & term, UnorderedTermSet & out);
 
 void get_free_symbols(const Term & term, UnorderedTermSet & out);
 
-void get_ops(const Term & term, UnorderedOpSet & out);
+void get_ops(const Term & term, std::unordered_set<Op> & out);
 
 /** Collects the subterms built with any of the given operators, including
  *  those below another one

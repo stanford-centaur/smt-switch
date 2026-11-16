@@ -23,7 +23,6 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 #include "smt-switch/yices2_factory.h"
 
 namespace smt::tests {

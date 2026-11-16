@@ -12,7 +12,6 @@
 #include <unordered_map>
 
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

@@ -18,7 +18,6 @@
 #include "smt-switch/interpolator.h"
 #include "smt-switch/printing_solver.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

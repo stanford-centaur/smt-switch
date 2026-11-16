@@ -149,7 +149,7 @@ TEST_P(UnsatCoreTests, UnsatCoreFromList)
   Result r = s->check_sat();
   EXPECT_TRUE(r.is_sat());
 
-  r = s->check_sat_assuming(TermList{ a, b, s->make_term(Not, b) });
+  r = s->check_sat_assuming(std::list<Term>{ a, b, s->make_term(Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;

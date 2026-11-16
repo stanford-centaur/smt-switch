@@ -16,7 +16,6 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
-#include "smt-switch/term.h"
 
 namespace smt::tests {
 

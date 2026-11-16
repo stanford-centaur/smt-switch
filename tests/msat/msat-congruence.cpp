@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <unordered_set>
 
 #include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
@@ -17,7 +18,6 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
 #include "smt-switch/utils.h"
 
@@ -51,7 +51,7 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
                                            itp->make_term(1 - a, intsort)));
     Term I;
     ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
-    UnorderedOpSet ops;
+    std::unordered_set<Op> ops;
     get_ops(I, ops);
     EXPECT_EQ(ops.count(Op(Divisible, 2)), 1u) << I;
 
