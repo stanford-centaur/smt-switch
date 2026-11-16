@@ -299,8 +299,7 @@ Result AbsSmtInterpolator::get_interpolant(const Term & A,
                                            const Term & B,
                                            Term & out_I) const
 {
-  if (!A || !B || A->get_sort()->get_sort_kind() != BOOL
-      || B->get_sort()->get_sort_kind() != BOOL)
+  if (!A || !B || !A->get_sort()->is_boolean() || !B->get_sort()->is_boolean())
   {
     throw IncorrectUsageException("get_interpolant requires boolean terms");
   }
@@ -325,7 +324,7 @@ Result AbsSmtInterpolator::get_sequence_interpolants(const TermVec & formulae,
   }
   for (const Term & f : formulae)
   {
-    if (!f || f->get_sort()->get_sort_kind() != BOOL)
+    if (!f || !f->get_sort()->is_boolean())
     {
       throw IncorrectUsageException(
           "get_sequence_interpolants requires boolean terms");

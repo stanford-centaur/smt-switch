@@ -84,6 +84,10 @@ class AbsSort
   virtual Datatype get_datatype() const = 0;
   virtual bool compare(const Sort & sort) const = 0;
   virtual SortKind get_sort_kind() const = 0;
+  /** Solvers that treat multiple kinds of terms as booleans should override
+   * this.
+   */
+  virtual bool is_boolean() const;
 };
 
 }  // namespace smt

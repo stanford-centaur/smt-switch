@@ -34,14 +34,11 @@ TermVec SortingNetwork::sorting_network(const TermVec & unsorted) const
   }
 
   // check that all the terms in unsorted are boolean sorted
-  // for sort aliasing solvers, best to compare to the object
-  // rather than rely on the SortKind
-  Sort boolsort = solver_->make_sort(BOOL);
   Sort sort;
   for (const auto & tt : unsorted)
   {
     sort = tt->get_sort();
-    if (tt->get_sort() != boolsort)
+    if (!tt->get_sort()->is_boolean())
     {
       throw IncorrectUsageException("Expected all boolean sorts but got "
                                     + tt->to_string() + ":"

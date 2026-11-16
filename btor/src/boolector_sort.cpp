@@ -160,6 +160,8 @@ Sort BoolectorUFSort::get_codomain_sort() const { return codomain_sort; }
 
 std::uint64_t BoolectorBVSort::get_width() const { return width; }
 
+bool BoolectorBVSort::is_boolean() const { return width == 1; }
+
 Sort BoolectorArraySort::get_indexsort() const { return indexsort; }
 
 Sort BoolectorArraySort::get_elemsort() const { return elemsort; }

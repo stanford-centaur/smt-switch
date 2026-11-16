@@ -52,16 +52,14 @@ void AbsSmtSolver::assert_formula(const Term & t)
 Result AbsSmtSolver::check_sat_assuming(const TermVec & assumptions)
 {
   // Every assumption is checked before any is assumed: one assumed before a
-  // refused one would still hold for the next check. The check compares
-  // sorts rather than kinds, as some solvers alias Bool to another sort.
-  const Sort boolsort = make_sort(BOOL);
+  // refused one would still hold for the next check.
   for (const Term & a : assumptions)
   {
     if (!a)
     {
       throw IncorrectUsageException("Cannot assume a null term");
     }
-    if (a->get_sort() != boolsort)
+    if (!a->get_sort()->is_boolean())
     {
       throw IncorrectUsageException("Expecting Boolean assumptions but got: "
                                     + a->to_string());

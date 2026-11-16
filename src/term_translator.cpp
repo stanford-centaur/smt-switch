@@ -403,15 +403,6 @@ Term TermTranslator::transfer_term(const Term & term)
 
         if (!op.check_sortedness(cached_children))
         {
-          /* NOTE: interesting behavior here
-             if transferring between two solvers that alias sorts
-             e.g. two different instances of BTOR
-             the sorted-ness check will still fail for something like
-             Ite(BV{1}, BV{8}, BV{8})
-             so we'll reach this point and cast
-             but the cast won't actually do anything for BTOR
-             in other words, check_sortedness is not guaranteed
-             to hold after casting */
           cache[t] = solver->cast_op(op, cached_children);
         }
         else

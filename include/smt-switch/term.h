@@ -186,20 +186,16 @@ class AbsTerm : public internal::SharedBase<AbsTerm>
   /** returns true iff this term is a literal
    *  e.g. either a boolean symbolic constant or its negation
    *  NOTE will return false for nested negations, i.e. (not (not (not l)))
-   *  @param boolsort a boolean sort from the corresponding solver
-   *         this way sort aliasing solvers are still supported
    *  @return true iff this term is a literal
    */
-  bool is_lit(const Sort & boolsort);
+  bool is_lit();
 
   /** Whether this term is a theory atom: a Boolean application other than a
    *  connective, a quantifier, an extract, or an equality or distinct over
    *  Booleans. Symbols and values are not theory atoms.
-   *  @param boolsort the Boolean sort of the term's solver, so that solvers
-   * that alias Booleans and bit-vectors of width one are supported
    *  @return true iff this term is a theory atom
    */
-  bool is_theory_atom(const Sort & boolsort);
+  bool is_theory_atom();
 
  protected:
   /** Returns the number of children that begin() and end() iterate over */
