@@ -17,7 +17,6 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/msat_extensions.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -103,13 +102,13 @@ SortVec MsatSort::get_domain_sorts() const
                                   + smt::to_string(get_sort_kind())
                                   + " has no domain sorts");
   }
-  std::unique_ptr<msat_type, detail::MsatFreeDeleter> owned(param_types);
   SortVec sorts;
   sorts.reserve(arity);
   for (std::size_t i = 0; i < arity; i++)
   {
     sorts.push_back(std::make_shared<MsatSort>(env, param_types[i]));
   }
+  msat_free(param_types);
   return sorts;
 }
 

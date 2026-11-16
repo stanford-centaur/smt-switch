@@ -55,6 +55,10 @@ class MsatEnv : public msat_env
    *  add_instance did not make it
    */
   std::vector<msat_type> get_instance_params(msat_type t) const;
+  /** The SMT-LIB text of `t`
+   *  @throws SolverException if MathSAT cannot print it
+   */
+  std::string to_smtlib2_term(msat_term t) const;
 
  private:
   /** What an instance of a sort constructor applies */

@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-#include "smt-switch/msat_extensions.h"
+#include "smt-switch/exceptions.h"
 #include "smt-switch/utils.h"
 
 namespace smt {
@@ -71,7 +71,14 @@ std::string MsatEnv::get_instance_name(msat_type t) const
   auto it = uninterp_sort_info.find(msat_type_id(t));
   if (it == uninterp_sort_info.end())
   {
-    return detail::get_msat_string(msat_type_repr(t));
+    char * text = msat_type_repr(t);
+    if (!text)
+    {
+      throw SolverException("MathSAT failed to print a sort");
+    }
+    std::string res(text);
+    msat_free(text);
+    return res;
   }
   return it->second.name;
 }
@@ -84,6 +91,18 @@ std::vector<msat_type> MsatEnv::get_instance_params(msat_type t) const
     return {};
   }
   return it->second.params;
+}
+
+std::string MsatEnv::to_smtlib2_term(msat_term t) const
+{
+  char * text = msat_to_smtlib2_term(*this, t);
+  if (!text)
+  {
+    throw SolverException("MathSAT failed to print a term");
+  }
+  std::string res(text);
+  msat_free(text);
+  return res;
 }
 
 }  // namespace smt

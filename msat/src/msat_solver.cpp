@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/msat_extensions.h"
+#include "smt-switch/msat_env.h"
 #include "smt-switch/msat_sort.h"
 #include "smt-switch/msat_term.h"
 #include "smt-switch/numeral_utils.h"
@@ -82,7 +82,25 @@ msat_term ext_msat_make_divisible(msat_env e, std::uint64_t n, msat_term t)
   return res;
 }
 
-msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
+/** The text MathSAT gives a type
+ *  @throws SolverException if MathSAT cannot print it
+ */
+std::string type_repr(msat_type t)
+{
+  char * repr = msat_type_repr(t);
+  if (!repr)
+  {
+    throw SolverException("MathSAT failed to print a sort");
+  }
+  std::string res(repr);
+  msat_free(repr);
+  return res;
+}
+
+msat_term ext_msat_make_ite(const MsatEnv & e,
+                            msat_term i,
+                            msat_term t,
+                            msat_term el)
 {
   msat_type itype = msat_term_get_type(i);
   msat_type ttype = msat_term_get_type(t);
@@ -91,8 +109,7 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   if (!msat_is_bool_type(e, itype))
   {
     std::string msg("Expecting a Boolean condition for ITE but got ");
-    throw IncorrectUsageException(
-        msg + detail::get_msat_string(msat_to_smtlib2_term(e, i)));
+    throw IncorrectUsageException(msg + e.to_smtlib2_term(i));
   }
 
   // msat_make_term_ite takes no Bool branches
@@ -108,9 +125,9 @@ msat_term ext_msat_make_ite(msat_env e, msat_term i, msat_term t, msat_term el)
   if (MSAT_ERROR_TERM(res))
   {
     std::string msg("Expecting ITE branches of matching sorts but got ");
-    msg += detail::get_msat_string(msat_type_repr(ttype));
+    msg += type_repr(ttype);
     msg += " and ";
-    msg += detail::get_msat_string(msat_type_repr(eltype));
+    msg += type_repr(eltype);
     throw IncorrectUsageException(msg);
   }
   return res;
@@ -473,12 +490,12 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
   {
     // MathSAT also takes 1 and 0 for it, which SMT-LIB does not.
     env_wrapper_.set_option(
-        detail::msat_option_name(option),
+        "model_generation",
         bool_option_value(option, value) ? "true" : "false");
     return;
   }
 
-  env_wrapper_.set_option(detail::msat_option_name(option), value);
+  env_wrapper_.set_option(option, value);
 }
 
 void MsatSolver::set_logic(const std::string logic_name)
@@ -526,7 +543,9 @@ Result MsatSolver::check_sat()
   }
   else
   {
-    const std::string error = detail::last_error_message(*env);
+    // MathSAT sets a message for every unknown result, terminations
+    // included, and keeps it until the next error replaces it
+    const std::string error = msat_last_error_message(*env);
     return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
@@ -576,7 +595,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
   }
   else
   {
-    const std::string error = detail::last_error_message(*env);
+    const std::string error = msat_last_error_message(*env);
     return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
   }
 }
@@ -588,7 +607,7 @@ void MsatSolver::do_push(uint64_t num)
   {
     if (msat_push_backtrack_point(*env))
     {
-      std::string error = detail::last_error_message(*env);
+      std::string error = msat_last_error_message(*env);
       // undo the levels this call pushed before the refused one
       for (uint64_t j = 0; j < i; j++)
       {
@@ -606,8 +625,8 @@ void MsatSolver::do_pop(uint64_t num)
   {
     if (msat_pop_backtrack_point(*env))
     {
-      throw SolverException("MathSAT refused to pop: "
-                            + detail::last_error_message(*env));
+      throw SolverException(std::string("MathSAT refused to pop: ")
+                            + msat_last_error_message(*env));
     }
   }
 }
@@ -702,12 +721,13 @@ void MsatSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   size_t core_size;
-  std::unique_ptr<msat_term, detail::MsatFreeDeleter> mcore(
-      msat_get_unsat_assumptions(*env, &core_size));
+  std::unique_ptr<msat_term, decltype(&msat_free)> mcore(
+      msat_get_unsat_assumptions(*env, &core_size), &msat_free);
   if (!mcore)
   {
-    throw IncorrectUsageException("MathSAT gave no unsat assumptions: "
-                                  + detail::last_error_message(*env));
+    throw IncorrectUsageException(
+        std::string("MathSAT gave no unsat assumptions: ")
+        + msat_last_error_message(*env));
   }
   for (size_t i = 0; i < core_size; ++i)
   {
@@ -1208,8 +1228,7 @@ void MsatSolver::dump_smt2(std::string filename) const
                                      ? env_wrapper_.get_env()
                                      : EnvWrapper().get_env();
   size_t num_asserted;
-  std::unique_ptr<msat_term, detail::MsatFreeDeleter> assertions(
-      msat_get_asserted_formulas(*env, &num_asserted));
+  msat_term * assertions = msat_get_asserted_formulas(*env, &num_asserted);
   if (!assertions)
   {
     throw SolverException("Failed to gather all assertions");
@@ -1217,8 +1236,9 @@ void MsatSolver::dump_smt2(std::string filename) const
   msat_term all_asserts = msat_make_true(*env);
   for (size_t i = 0; i < num_asserted; ++i)
   {
-    all_asserts = msat_make_and(*env, all_asserts, assertions.get()[i]);
+    all_asserts = msat_make_and(*env, all_asserts, assertions[i]);
   }
+  msat_free(assertions);
   if (MSAT_ERROR_TERM(all_asserts))
   {
     throw SolverException("Failed to gather all assertions");

@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/msat_extensions.h"
+#include "smt-switch/msat_env.h"
 #include "smt-switch/msat_sort.h"
 #include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
@@ -26,6 +26,21 @@
 namespace smt {
 
 namespace {
+
+/** The name MathSAT gives a declaration
+ *  @throws SolverException if MathSAT cannot give it
+ */
+std::string decl_name(msat_decl d)
+{
+  char * name = msat_decl_get_name(d);
+  if (!name)
+  {
+    throw SolverException("MathSAT failed to give a declaration's name");
+  }
+  std::string res(name);
+  msat_free(name);
+  return res;
+}
 
 // MathSAT's congruence t1 = t2 mod n, i.e. n divides t1 - t2, is smt-switch's
 // (_ divisible n) with the one child t1 - t2. t2 can't be dropped: MathSAT
@@ -39,7 +54,7 @@ bool is_congruence(msat_env e, msat_term t)
 /** The modulus n of a congruence t1 = t2 mod n
  *  @throws NotImplementedException if n does not fit in an op index
  */
-uint64_t congruence_modulus(msat_env e, msat_term t)
+uint64_t congruence_modulus(const MsatEnv & e, msat_term t)
 {
   mpz_t modulus;
   mpz_init(modulus);
@@ -55,7 +70,7 @@ uint64_t congruence_modulus(msat_env e, msat_term t)
   if (!fits)
   {
     std::string msg("The modulus of the MathSAT term ");
-    msg += detail::get_msat_string(msat_to_smtlib2_term(e, t));
+    msg += e.to_smtlib2_term(t);
     msg += " does not fit in an op index";
     throw NotImplementedException(msg);
   }
@@ -65,7 +80,7 @@ uint64_t congruence_modulus(msat_env e, msat_term t)
 /** Returns the value of a MathSAT arithmetic number term as n or n/d in
  *  decimal, as GMP writes it, or throws if the term is not a number.
  */
-std::string number_to_text(msat_env env, msat_term term, bool is_uf)
+std::string number_to_text(const MsatEnv & env, msat_term term, bool is_uf)
 {
   if (is_uf)
   {
@@ -74,10 +89,8 @@ std::string number_to_text(msat_env env, msat_term term, bool is_uf)
   }
   if (!msat_term_is_number(env, term))
   {
-    throw IncorrectUsageException(
-        "Can't convert "
-        + detail::get_msat_string(msat_to_smtlib2_term(env, term))
-        + " to an integer: it is not a number");
+    throw IncorrectUsageException("Can't convert " + env.to_smtlib2_term(term)
+                                  + " to an integer: it is not a number");
   }
   mpq_t value;
   mpq_init(value);
@@ -355,7 +368,7 @@ Op MsatTerm::get_op() const
     else
     {
       std::string msg("smt-switch has no PrimOp for the MathSAT term ");
-      msg += detail::get_msat_string(msat_to_smtlib2_term(*env, term));
+      msg += env->to_smtlib2_term(term);
       throw NotImplementedException(msg);
     }
   }
@@ -458,8 +471,7 @@ bool MsatTerm::is_value() const
   {
     return false;
   }
-  std::string name =
-      detail::get_msat_string(msat_decl_get_name(msat_term_get_decl(term)));
+  std::string name = decl_name(msat_term_get_decl(term));
   return name[0] == '@';
 }
 
@@ -479,7 +491,7 @@ std::string MsatTerm::to_string() const
     {
       throw IncorrectUsageException("Can't print a MathSAT error term");
     }
-    return detail::get_msat_string(msat_to_smtlib2_term(*env, term));
+    return env->to_smtlib2_term(term);
   }
 }
 
@@ -496,8 +508,7 @@ std::string MsatTerm::get_param_name() const
     throw IncorrectUsageException("Only a param has a param name");
   }
   // MathSAT names a variable with a quote before the name it was made with
-  return detail::get_msat_string(msat_decl_get_name(msat_term_get_decl(term)))
-      .substr(1);
+  return decl_name(msat_term_get_decl(term)).substr(1);
 }
 
 std::string MsatTerm::get_selector_name() const
@@ -513,8 +524,7 @@ std::string MsatTerm::get_symbol_name() const
     throw IncorrectUsageException(
         "Only a symbol that is not a param has a symbol name");
   }
-  return detail::get_msat_string(
-      msat_decl_get_name(is_uf ? decl : msat_term_get_decl(term)));
+  return decl_name(is_uf ? decl : msat_term_get_decl(term));
 }
 
 uint64_t MsatTerm::to_int() const
