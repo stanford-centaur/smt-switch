@@ -47,7 +47,7 @@ class Cvc5Term : public AbsTerm
 
   // Getters for solver-specific objects
   // for interacting with third-party cvc5-specific software
-  ::cvc5::Term get_cvc5_term() const;
+  cvc5::Term get_cvc5_term() const;
 
  protected:
   std::size_t get_num_children() const override;

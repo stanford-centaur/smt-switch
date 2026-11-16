@@ -114,7 +114,7 @@ std::string reader_input_name(const testing::TestParamInfo<ReaderInput> & info)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Benchmark);
-class Benchmark : public ::testing::TestWithParam<ReaderInput>
+class Benchmark : public testing::TestWithParam<ReaderInput>
 {
 };
 
@@ -242,8 +242,8 @@ class AnswerRecorder : public SmtLibReader
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Dump);
-class Dump : public ::testing::Test,
-             public ::testing::WithParamInterface<SolverConfiguration>
+class Dump : public testing::Test,
+             public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -449,8 +449,8 @@ TEST(UnorderedScopedSymbolMap, PopOutermostScope)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Scopes);
-class Scopes : public ::testing::Test,
-               public ::testing::WithParamInterface<SolverConfiguration>
+class Scopes : public testing::Test,
+               public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -517,8 +517,8 @@ INSTANTIATE_TEST_SUITE_P(SmtLibReader,
                          ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Input);
-class Input : public ::testing::Test,
-              public ::testing::WithParamInterface<SolverConfiguration>
+class Input : public testing::Test,
+              public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -644,8 +644,8 @@ INSTANTIATE_TEST_SUITE_P(SmtLibReader,
                          ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Logics);
-class Logics : public ::testing::Test,
-               public ::testing::WithParamInterface<SolverConfiguration>
+class Logics : public testing::Test,
+               public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -718,9 +718,8 @@ class InfoRecorder : public SmtLibReader
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(AttributeValues);
-class AttributeValues
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class AttributeValues : public testing::Test,
+                        public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -862,8 +861,8 @@ class CommandRecorder : public SmtLibReader
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Commands);
-class Commands : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverConfiguration>
+class Commands : public testing::Test,
+                 public testing::WithParamInterface<SolverConfiguration>
 {
 };
 

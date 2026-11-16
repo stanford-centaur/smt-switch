@@ -36,8 +36,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilTests);
-class UnitUtilTests : public ::testing::Test,
-                      public ::testing::WithParamInterface<SolverConfiguration>
+class UnitUtilTests : public testing::Test,
+                      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -56,8 +56,8 @@ class UnitUtilTests : public ::testing::Test,
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilDimacsTests);
-class UnitUtilDimacsTests : public ::testing::Test,
-                            public ::testing::WithParamInterface<SolverEnum>
+class UnitUtilDimacsTests : public testing::Test,
+                            public testing::WithParamInterface<SolverEnum>
 {
  protected:
   void SetUp() override
@@ -537,8 +537,8 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ToCnf);
-class ToCnf : public ::testing::Test,
-              public ::testing::WithParamInterface<SolverConfiguration>
+class ToCnf : public testing::Test,
+              public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -676,7 +676,7 @@ void expect_equivalent(const SmtSolver & s, const Term & a, const Term & b)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastTerm);
-class CastTerm : public ::testing::TestWithParam<SolverConfiguration>
+class CastTerm : public testing::TestWithParam<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -721,7 +721,7 @@ TEST_P(CastTerm, RefusesOtherSorts)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastTermArithmetic);
-class CastTermArithmetic : public ::testing::TestWithParam<SolverConfiguration>
+class CastTermArithmetic : public testing::TestWithParam<SolverConfiguration>
 {
 };
 
@@ -820,7 +820,7 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(available_solver_enums_with_generic()));
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IsTheoryAtom);
-class IsTheoryAtom : public ::testing::TestWithParam<SolverEnum>
+class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
 {
  protected:
   void SetUp() override
@@ -900,7 +900,7 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          testing::PrintToStringParamName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetJustifyingSymbols);
-class GetJustifyingSymbols : public ::testing::TestWithParam<SolverEnum>
+class GetJustifyingSymbols : public testing::TestWithParam<SolverEnum>
 {
  protected:
   void SetUp() override
@@ -1128,8 +1128,8 @@ TEST(SmtLibArithValue, FractionIsADivision)
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibApplication);
 class SmtLibApplication
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -1189,9 +1189,8 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareFun);
-class SmtLibDeclareFun
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class SmtLibDeclareFun : public testing::Test,
+                         public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -1231,8 +1230,8 @@ TEST(SmtLibDeclareDatatypes, NoDatatypeIsRefused)
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareDatatypes);
 class SmtLibDeclareDatatypes
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -1292,8 +1291,8 @@ TEST(SmtLibBenchmark, NothingToDeclare)
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkDeclarations);
 class SmtLibBenchmarkDeclarations
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

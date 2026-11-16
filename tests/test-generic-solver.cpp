@@ -192,7 +192,7 @@ std::string param_name(const testing::TestParamInfo<GenericSolverParam> & info)
 // they are instantiated with must support. A build without such a binary
 // leaves a suite uninstantiated.
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GenericSolverTests);
-class GenericSolverTests : public ::testing::TestWithParam<GenericSolverParam>
+class GenericSolverTests : public testing::TestWithParam<GenericSolverParam>
 {
  protected:
   void SetUp() override

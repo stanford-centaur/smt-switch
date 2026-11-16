@@ -78,20 +78,19 @@ UnorderedTermMap assignment(const SmtSolver & solver,
 
 }  // namespace
 
-::testing::AssertionResult round_trip_matches(
-    const SolverConfiguration & config,
-    const SmtSolver & solver,
-    const Term & read_back,
-    const Term & original)
+testing::AssertionResult round_trip_matches(const SolverConfiguration & config,
+                                            const SmtSolver & solver,
+                                            const Term & read_back,
+                                            const Term & original)
 {
   if (read_back == original)
   {
-    return ::testing::AssertionSuccess();
+    return testing::AssertionSuccess();
   }
 
   if (config.is_logging_solver)
   {
-    return ::testing::AssertionFailure()
+    return testing::AssertionFailure()
            << "a logging solver records the term it was given, so it had to "
               "come back unchanged\n  put in:   "
            << original << "\n  got back: " << read_back;
@@ -123,7 +122,7 @@ UnorderedTermMap assignment(const SmtSolver & solver,
         where +=
             " " + entry.first->to_string() + "=" + entry.second->to_string();
       }
-      return ::testing::AssertionFailure()
+      return testing::AssertionFailure()
              << "the terms are not equivalent\n  put in:   " << original
              << " = " << want << "\n  got back: " << read_back << " = " << got
              << "\n  under" << where;
@@ -131,16 +130,16 @@ UnorderedTermMap assignment(const SmtSolver & solver,
   }
   if (count > 0)
   {
-    return ::testing::AssertionSuccess();
+    return testing::AssertionSuccess();
   }
 
   // only it knows what it rewrote the term into
   solver->assert_formula(solver->make_term(Distinct, read_back, original));
   if (solver->check_sat().is_unsat())
   {
-    return ::testing::AssertionSuccess();
+    return testing::AssertionSuccess();
   }
-  return ::testing::AssertionFailure()
+  return testing::AssertionFailure()
          << "the solver does not make the terms equal\n  put in:   " << original
          << "\n  got back: " << read_back;
 }

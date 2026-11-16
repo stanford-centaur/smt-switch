@@ -27,9 +27,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ArrayModelTests);
-class ArrayModelTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class ArrayModelTests : public testing::Test,
+                        public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -102,8 +101,8 @@ INSTANTIATE_TEST_SUITE_P(
         filter_solver_configurations_with_generic({ ARRAY_MODELS })));
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ArrayTests);
-class ArrayTests : public ::testing::Test,
-                   public ::testing::WithParamInterface<SolverConfiguration>
+class ArrayTests : public testing::Test,
+                   public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }
@@ -170,9 +169,8 @@ INSTANTIATE_TEST_SUITE_P(
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ConstArrayTests);
-class ConstArrayTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class ConstArrayTests : public testing::Test,
+                        public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

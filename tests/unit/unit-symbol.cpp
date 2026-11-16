@@ -26,7 +26,7 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSymbolTests);
-class UnitSymbolTests : public ::testing::Test,
+class UnitSymbolTests : public testing::Test,
                         public testing::WithParamInterface<SolverConfiguration>
 {
  protected:

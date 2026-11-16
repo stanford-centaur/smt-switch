@@ -74,8 +74,8 @@ std::vector<SolverConfiguration> replayable(
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PrintingTests);
-class PrintingTests : public ::testing::Test,
-                      public ::testing::WithParamInterface<SolverConfiguration>
+class PrintingTests : public testing::Test,
+                      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

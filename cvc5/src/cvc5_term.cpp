@@ -312,18 +312,18 @@ Sort Cvc5Term::get_sort() const
 bool Cvc5Term::is_symbol() const
 {
   // functions, parameters, and symbolic constants are all symbols
-  ::cvc5::Kind k = term.getKind();
-  return (k == ::cvc5::Kind::CONSTANT || k == ::cvc5::Kind::VARIABLE);
+  cvc5::Kind k = term.getKind();
+  return (k == cvc5::Kind::CONSTANT || k == cvc5::Kind::VARIABLE);
 }
 
 bool Cvc5Term::is_param() const
 {
-  return (term.getKind() == ::cvc5::Kind::VARIABLE);
+  return (term.getKind() == cvc5::Kind::VARIABLE);
 }
 
 bool Cvc5Term::is_symbolic_const() const
 {
-  return (term.getKind() == ::cvc5::Kind::CONSTANT
+  return (term.getKind() == cvc5::Kind::CONSTANT
           && !term.getSort().isFunction());
 }
 
@@ -408,7 +408,7 @@ std::string Cvc5Term::get_selector_name() const
 
 std::string Cvc5Term::get_symbol_name() const
 {
-  if (term.getKind() != ::cvc5::Kind::CONSTANT)
+  if (term.getKind() != cvc5::Kind::CONSTANT)
   {
     throw IncorrectUsageException(
         "Only a symbol that is not a param has a symbol name");
@@ -472,20 +472,20 @@ bool Cvc5Term::to_bool() const
 std::size_t Cvc5Term::get_num_children() const
 {
   std::size_t n = term.getNumChildren();
-  return term.getKind() == ::cvc5::Kind::CONST_ARRAY ? n + 1 : n;
+  return term.getKind() == cvc5::Kind::CONST_ARRAY ? n + 1 : n;
 }
 
 Term Cvc5Term::get_child(std::size_t i) const
 {
-  if (i == term.getNumChildren() && term.getKind() == ::cvc5::Kind::CONST_ARRAY)
+  if (i == term.getNumChildren() && term.getKind() == cvc5::Kind::CONST_ARRAY)
   {
     return std::make_shared<Cvc5Term>(term.getConstArrayBase());
   }
   // special-case for VARIABLE_LIST -- parameters bound by a quantifier
   // smt-switch cvc5 backend guarantees that the length is only one by
   // construction
-  ::cvc5::Term t = term[i];
-  if (t.getKind() == ::cvc5::Kind::VARIABLE_LIST)
+  cvc5::Term t = term[i];
+  if (t.getKind() == cvc5::Kind::VARIABLE_LIST)
   {
     if (t.getNumChildren() != 1)
     {
@@ -510,7 +510,7 @@ std::string Cvc5Term::print_value_as(SortKind /* sk */) const
   return term.toString();
 }
 
-::cvc5::Term Cvc5Term::get_cvc5_term() const { return term; }
+cvc5::Term Cvc5Term::get_cvc5_term() const { return term; }
 
 /* end Cvc5Term implementation */
 

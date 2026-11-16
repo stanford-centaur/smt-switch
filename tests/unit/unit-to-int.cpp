@@ -38,8 +38,8 @@ const uint64_t uint64_max = std::numeric_limits<uint64_t>::max();
 const int64_t int64_max = std::numeric_limits<int64_t>::max();
 const int64_t int64_min = std::numeric_limits<int64_t>::min();
 
-class ToIntTests : public ::testing::Test,
-                   public ::testing::WithParamInterface<SolverConfiguration>
+class ToIntTests : public testing::Test,
+                   public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

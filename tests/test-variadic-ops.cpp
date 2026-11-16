@@ -31,9 +31,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(VariadicOpsTests);
-class VariadicOpsTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class VariadicOpsTests : public testing::Test,
+                         public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }
@@ -61,8 +60,8 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
  *  backend uses make_nary_term, and this checks that it takes the
  *  applications.
  */
-class NaryTests : public ::testing::Test,
-                  public ::testing::WithParamInterface<SolverConfiguration>
+class NaryTests : public testing::Test,
+                  public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

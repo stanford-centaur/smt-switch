@@ -50,8 +50,8 @@ std::ostream & operator<<(std::ostream & o, const ItpParam & p)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ItpTests);
-class ItpTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<ItpParam>
+class ItpTests : public testing::Test,
+                 public testing::WithParamInterface<ItpParam>
 {
  protected:
   void SetUp() override

@@ -34,7 +34,7 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTermTests);
-class UnitTermTests : public ::testing::Test,
+class UnitTermTests : public testing::Test,
                       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
@@ -437,7 +437,7 @@ INSTANTIATE_TEST_SUITE_P(
         { THEORY_INT, THEORY_REAL })));
 
 class NegativeValueTests
-    : public ::testing::Test,
+    : public testing::Test,
       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:

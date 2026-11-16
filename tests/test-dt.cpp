@@ -59,8 +59,8 @@ void expect_order_agrees_with_equality(const std::vector<T> & xs)
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Datatypes);
-class Datatypes : public ::testing::Test,
-                  public ::testing::WithParamInterface<SolverConfiguration>
+class Datatypes : public testing::Test,
+                  public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

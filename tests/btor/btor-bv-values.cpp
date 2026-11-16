@@ -24,7 +24,7 @@ namespace smt::tests {
 
 namespace {
 
-class BtorBvValues : public ::testing::Test
+class BtorBvValues : public testing::Test
 {
  protected:
   void SetUp() override

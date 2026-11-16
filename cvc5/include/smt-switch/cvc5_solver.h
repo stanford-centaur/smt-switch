@@ -90,7 +90,7 @@ class Cvc5Solver : public AbsSmtSolver
   void dump_smt2(std::string filename) const override;
 
   // helpers
-  ::cvc5::Op make_cvc5_op(Op op) const;
+  cvc5::Op make_cvc5_op(Op op) const;
 
   // getters for solver-specific objects
   // for interacting with third-party cvc5-specific software

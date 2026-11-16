@@ -30,8 +30,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TimeLimitTests);
-class TimeLimitTests : public ::testing::Test,
-                       public ::testing::WithParamInterface<SolverConfiguration>
+class TimeLimitTests : public testing::Test,
+                       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

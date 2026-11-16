@@ -83,7 +83,7 @@ static_assert(AcceptsAssumptions<TermVec>::value
               "check_sat_assuming accepts ranges of Terms");
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSolveTests);
-class UnitSolveTests : public ::testing::Test,
+class UnitSolveTests : public testing::Test,
                        public testing::WithParamInterface<SolverConfiguration>
 {
  protected:

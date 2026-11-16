@@ -60,10 +60,9 @@ Result Cvc5Interpolator::compute_interpolant(const Term & A,
                                              Term & out_I) const
 {
   std::shared_ptr<cvc5::Solver> solver = cvc5_solver->get_cvc5_solver();
-  ::cvc5::Term notB =
-      std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term;
+  cvc5::Term notB = std::static_pointer_cast<Cvc5Term>(make_term(Not, B))->term;
   Result r;
-  ::cvc5::Term I;
+  cvc5::Term I;
   solver->push();
   try
   {
@@ -76,7 +75,7 @@ Result Cvc5Interpolator::compute_interpolant(const Term & A,
       I = solver->getInterpolant(notB);
     }
   }
-  catch (::cvc5::CVC5ApiException & e)
+  catch (cvc5::CVC5ApiException & e)
   {
     solver->pop();
     throw SolverException(e.what());
