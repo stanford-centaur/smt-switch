@@ -8,6 +8,7 @@
 #include "smt-switch/numeral_utils.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -16,7 +17,9 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 
@@ -33,6 +36,12 @@ std::string trim_spaces(const std::string & s)
   return s.substr(begin, end - begin + 1);
 }
 
+/* std::isdigit for a char, which std::all_of cannot take directly */
+bool is_decimal_digit(char c)
+{
+  return std::isdigit(static_cast<unsigned char>(c)) != 0;
+}
+
 /** Accumulates the decimal numeral `digits` into `value`.
  *  Returns false if it is empty, has a non-digit or overflows.
  */
@@ -46,7 +55,7 @@ bool decimal_to_uint64(const std::string & digits, std::uint64_t & value)
   value = 0;
   for (char c : digits)
   {
-    if (c < '0' || c > '9')
+    if (!is_decimal_digit(c))
     {
       return false;
     }
@@ -191,6 +200,19 @@ IncorrectUsageException not_a_numeral(const std::string & val,
                                  + std::to_string(base) + " numeral");
 }
 
+/* The value of c as a digit of a numeral in a base up to 36: 0 to 9,
+ *  then a to z in either case
+ *  @param c the character
+ *  @return its value, or 36 if c is no such digit
+ */
+unsigned numeral_digit(char c)
+{
+  return static_cast<unsigned>(c >= '0' && c <= '9'   ? c - '0'
+                               : c >= 'a' && c <= 'z' ? c - 'a' + 10
+                               : c >= 'A' && c <= 'Z' ? c - 'A' + 10
+                                                      : 36);
+}
+
 /** The decimal numeral of the non-empty string of base-`base` digits
  *  `digits`, 0 to 9 then a to z in either case, or "" if digits is not one
  */
@@ -203,7 +225,7 @@ std::string digits_to_decimal(const std::string & digits, unsigned base)
   std::string dec = "0";
   for (char c : digits)
   {
-    unsigned digit = backend::numeral_digit(c);
+    unsigned digit = numeral_digit(c);
     if (digit >= base)
     {
       return "";
@@ -225,33 +247,10 @@ std::string digits_to_decimal(const std::string & digits, unsigned base)
   return dec;
 }
 
-}  // namespace
-
-namespace backend {
-
-std::uint64_t bits_to_uint64(const std::string & bits)
-{
-  check_bit_string(bits);
-  return low_64_bits(bits, bits);
-}
-
-std::int64_t bits_to_int64(const std::string & bits)
-{
-  check_bit_string(bits);
-  return low_64_bits_signed(bits, bits);
-}
-
-unsigned numeral_digit(char c)
-{
-  return static_cast<unsigned>(c >= '0' && c <= '9'   ? c - '0'
-                               : c >= 'a' && c <= 'z' ? c - 'a' + 10
-                               : c >= 'A' && c <= 'Z' ? c - 'A' + 10
-                                                      : 36);
-}
-
-std::vector<std::uint32_t> bv_value_to_words(const std::string & val,
-                                             std::uint64_t base,
-                                             std::uint64_t width)
+/* AbsSmtSolver::bv_value_to_words, which smtlib::bv_to_bits also needs */
+std::vector<std::uint32_t> value_words(const std::string & val,
+                                       std::uint64_t base,
+                                       std::uint64_t width)
 {
   if (base < 2 || base > 36)
   {
@@ -400,20 +399,17 @@ std::vector<std::uint32_t> bv_value_to_words(const std::string & val,
   return words;
 }
 
-std::uint64_t bv_value_to_uint64(const std::string & val,
-                                 std::uint64_t base,
-                                 std::uint64_t width)
-{
-  std::vector<std::uint32_t> words = bv_value_to_words(val, base, width);
-  return words.size() > 1 ? std::uint64_t{ words[1] } << 32 | words[0]
-                          : words[0];
-}
-
+/* Whether s is a non-empty string of decimal digits */
 bool is_decimal_numeral(const std::string & s)
 {
-  return !s.empty() && s.find_first_not_of("0123456789") == std::string::npos;
+  return !s.empty() && std::all_of(s.begin(), s.end(), is_decimal_digit);
 }
 
+/* Whether val is a number a value of sort kind sk, INT or REAL, can be
+ * made from, with an optional leading minus: a decimal numeral, or for a
+ * REAL also a decimal or a fraction of numerals, with spaces allowed
+ * around the slash
+ */
 bool is_arith_number(SortKind sk, const std::string & val)
 {
   std::string magnitude = val.find('-') == 0 ? val.substr(1) : val;
@@ -437,16 +433,65 @@ bool is_arith_number(SortKind sk, const std::string & val)
   return is_decimal_numeral(whole) && is_decimal_numeral(part);
 }
 
-std::string arith_value_to_decimal(SortKind sk,
-                                   const std::string & val,
-                                   std::uint64_t base)
+}  // namespace
+
+std::uint64_t AbsTerm::bits_to_uint64(const std::string & bits)
+{
+  check_bit_string(bits);
+  return low_64_bits(bits, bits);
+}
+
+std::int64_t AbsTerm::bits_to_int64(const std::string & bits)
+{
+  check_bit_string(bits);
+  return low_64_bits_signed(bits, bits);
+}
+
+std::vector<std::uint32_t> AbsSmtSolver::bv_value_to_words(
+    const std::string & val, std::uint64_t base, std::uint64_t width)
+{
+  return value_words(val, base, width);
+}
+
+std::uint64_t AbsSmtSolver::bv_value_to_uint64(const std::string & val,
+                                               std::uint64_t base,
+                                               std::uint64_t width)
+{
+  std::vector<std::uint32_t> words = bv_value_to_words(val, base, width);
+  return words.size() > 1 ? std::uint64_t{ words[1] } << 32 | words[0]
+                          : words[0];
+}
+
+std::uint64_t AbsSmtSolver::parse_nat_opt(const std::string & option,
+                                          const std::string & value)
+{
+  std::uint64_t number = 0;
+  if (!decimal_to_uint64(value, number))
+  {
+    throw IncorrectUsageException("The option " + option
+                                  + " takes a natural number below 2^64, not "
+                                  + value);
+  }
+  return number;
+}
+
+std::string AbsSmtSolver::arith_value_to_decimal(SortKind sk,
+                                                 const std::string & val,
+                                                 std::uint64_t base)
 {
   bool negative = val.find('-') == 0;
   std::string magnitude = negative || val.find('+') == 0 ? val.substr(1) : val;
   if (base == 10)
   {
-    // a second sign is left in, for the caller's check to refuse
-    return negative || magnitude.find_first_of("+-") == 0 ? val : magnitude;
+    // a second sign is left in, for the check to refuse
+    std::string decimal =
+        negative || magnitude.find_first_of("+-") == 0 ? val : magnitude;
+    if (!is_arith_number(sk, decimal))
+    {
+      throw IncorrectUsageException("Value " + val + " is not a number of sort "
+                                    + to_string(sk));
+    }
+    return decimal;
   }
   if (base < 2 || base > 36)
   {
@@ -493,9 +538,9 @@ std::string arith_value_to_decimal(SortKind sk,
   return negative ? "-" + decimal : decimal;
 }
 
-std::string bv_value_to_bits(const std::string & val,
-                             std::uint64_t base,
-                             const Sort & sort)
+std::string AbsSmtSolver::bv_value_to_bits(const std::string & val,
+                                           std::uint64_t base,
+                                           const Sort & sort)
 {
   if (sort->get_sort_kind() != BV)
   {
@@ -515,8 +560,6 @@ std::string bv_value_to_bits(const std::string & val,
   }
   return bits;
 }
-
-}  // namespace backend
 
 namespace smtlib {
 
@@ -573,7 +616,7 @@ std::string bv_to_bits(const std::string & s)
   {
     for (char c : text.substr(2))
     {
-      const unsigned d = backend::numeral_digit(c);
+      const unsigned d = numeral_digit(c);
       if (d >= 16)
       {
         throw not_a_bv_value(s);
@@ -603,7 +646,7 @@ std::string bv_to_bits(const std::string & s)
     std::vector<std::uint32_t> words;
     try
     {
-      words = backend::bv_value_to_words(numeral, 10, width);
+      words = value_words(numeral, 10, width);
     }
     catch (const IncorrectUsageException &)
     {

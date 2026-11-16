@@ -531,7 +531,7 @@ uint64_t MsatTerm::to_int() const
 {
   if (!is_uf && msat_is_bv_type(*env, msat_term_get_type(term), nullptr))
   {
-    return backend::bits_to_uint64(to_bits());
+    return bits_to_uint64(to_bits());
   }
   return smtlib::int_to_uint64(number_to_text(*env, term, is_uf));
 }
@@ -540,7 +540,7 @@ int64_t MsatTerm::to_signed_int() const
 {
   if (!is_uf && msat_is_bv_type(*env, msat_term_get_type(term), nullptr))
   {
-    return backend::bits_to_int64(to_bits());
+    return bits_to_int64(to_bits());
   }
   return smtlib::int_to_int64(number_to_text(*env, term, is_uf));
 }

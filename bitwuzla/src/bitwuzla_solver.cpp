@@ -28,7 +28,6 @@
 #include "smt-switch/bitwuzla_sort.h"
 #include "smt-switch/bitwuzla_term.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
@@ -137,12 +136,11 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     try
     {
       // Bitwuzla checks a number against the option's range only when given
-      // it as a number. Up to 19 digits always fit in 64 bits.
+      // it as a number.
       bitwuzla::Option opt = options.option(option.c_str());
-      if (options.is_numeric(opt) && backend::is_decimal_numeral(value)
-          && value.size() <= 19)
+      if (options.is_numeric(opt))
       {
-        options.set(opt, std::stoull(value));
+        options.set(opt, parse_nat_opt(option, value));
       }
       else
       {
@@ -568,10 +566,9 @@ Term BzlaSolver::make_term(const std::string val,
     return std::make_shared<BzlaTerm>(
         tm,
         width <= 64
-            ? tm->mk_bv_value_uint64(
-                  bsort, backend::bv_value_to_uint64(val, base, width))
-            : tm->mk_bv_value(
-                  bsort, backend::bv_value_to_bits(val, base, sort), 2));
+            ? tm->mk_bv_value_uint64(bsort,
+                                     bv_value_to_uint64(val, base, width))
+            : tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2));
   }
   catch (bitwuzla::Exception & e)
   {

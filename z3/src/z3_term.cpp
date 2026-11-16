@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
@@ -361,7 +360,7 @@ uint64_t Z3Term::to_int() const
   {
     if (term.is_bv())
     {
-      return backend::bits_to_uint64(to_bits());
+      return bits_to_uint64(to_bits());
     }
     // succeeds for integer values and for real values with an integral
     // value, if they fit
@@ -382,7 +381,7 @@ int64_t Z3Term::to_signed_int() const
   {
     if (term.is_bv())
     {
-      return backend::bits_to_int64(to_bits());
+      return bits_to_int64(to_bits());
     }
     // succeeds for integer values and for real values with an integral
     // value, if they fit

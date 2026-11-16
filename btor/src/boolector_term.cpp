@@ -26,7 +26,6 @@ extern "C" {
 
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
 
@@ -434,14 +433,11 @@ std::string BoolectorTerm::get_symbol_name() const
   return btor_node_get_symbol(btor.get(), BTOR_IMPORT_BOOLECTOR_NODE(node));
 }
 
-uint64_t BoolectorTerm::to_int() const
-{
-  return backend::bits_to_uint64(to_bits());
-}
+uint64_t BoolectorTerm::to_int() const { return bits_to_uint64(to_bits()); }
 
 int64_t BoolectorTerm::to_signed_int() const
 {
-  return backend::bits_to_int64(to_bits());
+  return bits_to_int64(to_bits());
 }
 
 std::string BoolectorTerm::to_bits() const

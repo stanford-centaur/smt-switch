@@ -24,7 +24,6 @@
 
 #include "smt-switch/bitwuzla_sort.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 
 namespace smt {
@@ -300,14 +299,11 @@ std::string BzlaTerm::get_symbol_name() const
   return term.symbol().value();
 }
 
-std::uint64_t BzlaTerm::to_int() const
-{
-  return backend::bits_to_uint64(to_bits());
-}
+std::uint64_t BzlaTerm::to_int() const { return bits_to_uint64(to_bits()); }
 
 std::int64_t BzlaTerm::to_signed_int() const
 {
-  return backend::bits_to_int64(to_bits());
+  return bits_to_int64(to_bits());
 }
 
 std::string BzlaTerm::to_bits() const

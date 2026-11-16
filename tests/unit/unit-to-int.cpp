@@ -106,6 +106,16 @@ class ToIntRealTests : public ToIntTests
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ToBits);
 class ToBits : public ToIntTests
 {
+ protected:
+  /** The bits of the value of a bit-vector sort of the given width that val
+   *  names in base `base`
+   */
+  std::string bits(const std::string & val,
+                   std::uint64_t base,
+                   std::uint64_t width)
+  {
+    return s->make_term(val, s->make_sort(BV, width), base)->to_bits();
+  }
 };
 
 TEST_P(ToIntBVTests, Unsigned)
@@ -382,6 +392,41 @@ TEST_P(ToBits, NotAValue)
   EXPECT_THROW(x->to_bits(), IncorrectUsageException);
 }
 
+TEST_P(ToBits, DecimalAcrossLimbs)
+{
+  // 2^32 - 1 and 2^32, either side of one 32-bit chunk
+  EXPECT_EQ(bits("4294967295", 10, 33), "0" + std::string(32, '1'));
+  EXPECT_EQ(bits("4294967296", 10, 33), "1" + std::string(32, '0'));
+  // ten digits, so the first group of nine is a single digit
+  EXPECT_EQ(bits("1000000000", 10, 30), "111011100110101100101000000000");
+  EXPECT_EQ(bits("000000000000000000005", 10, 4), "0101");
+  EXPECT_EQ(bits("340282366920938463463374607431768211455", 10, 128),
+            std::string(128, '1'));
+}
+
+TEST_P(ToBits, DecimalAtTheBounds)
+{
+  EXPECT_EQ(bits("18446744073709551615", 10, 64), std::string(64, '1'));
+  EXPECT_EQ(bits("-9223372036854775808", 10, 64), "1" + std::string(63, '0'));
+  EXPECT_THROW(bits("18446744073709551616", 10, 64), IncorrectUsageException);
+  EXPECT_THROW(bits("-9223372036854775809", 10, 64), IncorrectUsageException);
+  // the lowest 32 bits of 2^32 are all zero, which must not read as 0
+  EXPECT_THROW(bits("4294967296", 10, 8), IncorrectUsageException);
+}
+
+TEST_P(ToBits, PowerOfTwoBases)
+{
+  EXPECT_EQ(bits("777", 8, 9), std::string(9, '1'));
+  EXPECT_EQ(bits("-1", 4, 3), "111");
+  EXPECT_EQ(bits("vV", 32, 10), std::string(10, '1'));
+  // leading zero digits add no bits
+  EXPECT_EQ(bits("000000000000000f", 16, 4), "1111");
+  EXPECT_EQ(bits("-1000", 2, 4), "1000");
+  EXPECT_THROW(bits("10000", 2, 4), IncorrectUsageException);
+  EXPECT_THROW(bits("-1001", 2, 4), IncorrectUsageException);
+  EXPECT_THROW(bits("8", 8, 4), IncorrectUsageException);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     UnitToInt,
     ToBits,
@@ -469,9 +514,6 @@ TEST(ToIntParsing, WideBV)
   EXPECT_THROW(smtlib::bv_to_int64("#x0ffffffffffffffff"),
                IncorrectUsageException);
   EXPECT_EQ(smtlib::bv_to_int64("#xfffffffffffffffff"), -1);
-  EXPECT_EQ(backend::bits_to_int64(std::string(65, '1')), -1);
-  EXPECT_THROW(backend::bits_to_uint64(std::string(65, '1')),
-               IncorrectUsageException);
   EXPECT_THROW(smtlib::bv_to_uint64("(_ bv18446744073709551616 65)"),
                IncorrectUsageException);
   // 2^65 - 1 is all ones in 65 bits

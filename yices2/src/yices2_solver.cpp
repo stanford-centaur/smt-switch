@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
@@ -632,21 +631,15 @@ Term Yices2Solver::make_term(const std::string val,
   {
     std::uint64_t width = sort->get_width();
     y_term = width <= 64
-                 ? yices_bvconst_uint64(
-                       backend::narrow_width(width),
-                       backend::bv_value_to_uint64(val, base, width))
-                 : yices_parse_bvbin(
-                       backend::bv_value_to_bits(val, base, sort).c_str());
+                 ? yices_bvconst_uint64(backend::narrow_width(width),
+                                        bv_value_to_uint64(val, base, width))
+                 : yices_parse_bvbin(bv_value_to_bits(val, base, sort).c_str());
   }
   else if (sk == REAL)
   {
-    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!backend::is_arith_number(REAL, decimal))
-    {
-      throw IncorrectUsageException(msg);
-    }
     // yices_parse_float reads only a leading number, so "1/2" as 1, while
     // yices_parse_rational reads no decimals
     y_term = decimal.find('/') == std::string::npos
@@ -661,14 +654,10 @@ Term Yices2Solver::make_term(const std::string val,
   }
   else if (sk == INT)
   {
-    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
     // yices_parse_rational reads "+-5"
-    if (!backend::is_arith_number(INT, decimal))
-    {
-      throw IncorrectUsageException(msg);
-    }
     // reads an integer of any size
     y_term = yices_parse_rational(decimal.c_str());
     if (y_term == NULL_TERM)

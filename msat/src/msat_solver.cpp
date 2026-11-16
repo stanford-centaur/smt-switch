@@ -24,7 +24,6 @@
 #include "smt-switch/msat_env.h"
 #include "smt-switch/msat_sort.h"
 #include "smt-switch/msat_term.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
@@ -264,15 +263,13 @@ msat_term ext_msat_make_uf(msat_env e,
   return res;
 }
 
-/** The bit-vector of width bits that val, a numeral in base `base`, names,
- *  as AbsSmtSolver::make_term accepts it
+/** The bit-vector of width bits whose 32-bit words, least significant
+ *  first, are words, as AbsSmtSolver::bv_value_to_words gives them
  */
 msat_term make_bv_value(msat_env e,
-                        const std::string & val,
-                        uint64_t base,
+                        const std::vector<uint32_t> & words,
                         uint64_t width)
 {
-  std::vector<uint32_t> words = backend::bv_value_to_words(val, base, width);
   // msat_make_bv_number reads a string far more slowly
   mpz_t value;
   mpz_init(value);
@@ -889,8 +886,10 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
     SortKind sk = sort->get_sort_kind();
     if (sk == BV)
     {
-      msat_term mval =
-          make_bv_value(*env, std::to_string(i), 10, sort->get_width());
+      msat_term mval = make_bv_value(
+          *env,
+          bv_value_to_words(std::to_string(i), 10, sort->get_width()),
+          sort->get_width());
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
@@ -933,7 +932,10 @@ Term MsatSolver::make_term(const std::string val,
     SortKind sk = sort->get_sort_kind();
     if (sk == BV)
     {
-      msat_term mval = make_bv_value(*env, val, base, sort->get_width());
+      msat_term mval =
+          make_bv_value(*env,
+                        bv_value_to_words(val, base, sort->get_width()),
+                        sort->get_width());
       if (MSAT_ERROR_TERM(mval))
       {
         throw IncorrectUsageException("");
@@ -942,14 +944,7 @@ Term MsatSolver::make_term(const std::string val,
     }
     else if (sk == REAL || sk == INT)
     {
-      std::string decimal = backend::arith_value_to_decimal(sk, val, base);
-      // msat_make_number reads "" and "-" as 0, and "1/2" as a Real even
-      // for an INT
-      if (!backend::is_arith_number(sk, decimal))
-      {
-        throw IncorrectUsageException("");
-      }
-
+      std::string decimal = arith_value_to_decimal(sk, val, base);
       msat_term mval = msat_make_number(*env, decimal.c_str());
       if (MSAT_ERROR_TERM(mval))
       {

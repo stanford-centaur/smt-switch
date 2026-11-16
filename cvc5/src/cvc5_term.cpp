@@ -20,7 +20,6 @@
 
 #include "smt-switch/cvc5_sort.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
@@ -469,7 +468,7 @@ uint64_t Cvc5Term::to_int() const
 {
   if (term.isBitVectorValue())
   {
-    return backend::bits_to_uint64(to_bits());
+    return bits_to_uint64(to_bits());
   }
   // true for integer values and for real values with an integral value
   if (term.isUInt64Value())
@@ -485,7 +484,7 @@ int64_t Cvc5Term::to_signed_int() const
 {
   if (term.isBitVectorValue())
   {
-    return backend::bits_to_int64(to_bits());
+    return bits_to_int64(to_bits());
   }
   // true for integer values and for real values with an integral value
   if (term.isInt64Value())
