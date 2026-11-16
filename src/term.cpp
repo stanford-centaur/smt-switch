@@ -27,9 +27,6 @@ std::wstring AbsTerm::getStringValue() const
   throw NotImplementedException("Strings not supported for this solver.");
 }
 
-// bits_to_uint64 and bits_to_int64 are defined in numeral_utils.cpp, beside
-// the smtlib:: parsers they share helpers with.
-
 std::int64_t AbsTerm::to_signed_int() const
 {
   const std::string repr = to_string();

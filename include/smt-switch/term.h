@@ -147,15 +147,18 @@ class AbsTerm : public internal::SharedBase<AbsTerm>
    */
   virtual Term get_child(std::size_t i) const = 0;
 
-  // Helpers for implementing to_int, to_signed_int and to_bits. Each throws an
-  // IncorrectUsageException if its input is malformed or its value does not fit
-  // in the result type.
+  // Helpers for implementing to_int, to_signed_int and to_bits, defined in
+  // numeral_utils.cpp. Each throws an IncorrectUsageException if its input is
+  // malformed or its value does not fit in the result type.
 
-  /** Interprets a string of 0s and 1s, most significant bit first, as a
-   *  bit-vector of the string's length, which may be any: unsigned, or in
-   *  two's complement.
+  /** Interprets a string of 0s and 1s, most significant bit first, as an
+   *  unsigned bit-vector of the string's length, which may be any
    */
   static std::uint64_t bits_to_uint64(const std::string & bits);
+
+  /** Interprets a string of 0s and 1s, most significant bit first, as a
+   *  bit-vector in two's complement of the string's length, which may be any
+   */
   static std::int64_t bits_to_int64(const std::string & bits);
 
   friend class TermIter;

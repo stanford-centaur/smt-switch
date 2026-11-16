@@ -183,6 +183,9 @@ struct Op
   std::string to_string() const;
   bool is_null() const;
 
+  // Sort checking and inference for applications of the operator, defined
+  // in sort_inference.cpp
+
   /** Checks if applying the operator to the terms is well-sorted
    *  @param terms the vector of terms to apply it to
    *  @return true iff this is a well-sorted operation

@@ -480,7 +480,8 @@ class AbsSmtSolver : public internal::SharedBase<AbsSmtSolver>
    */
   virtual void dump_smt2(std::string filename) const;
 
-  // Built from the methods above, and not overridden
+  // Casts of terms between Bool and bit-vectors and between Int and Real,
+  // defined in term_casts.cpp
 
   /** A term as another sort, between Bool and bit-vectors or between Int and
    *  Real. A bit-vector is true when it equals 1; a value cast between Bool
@@ -504,6 +505,9 @@ class AbsSmtSolver : public internal::SharedBase<AbsSmtSolver>
    *          number of arguments
    */
   Term cast_op(const Op & op, const TermVec & terms) const;
+
+  // Analyses of terms: the theory atoms of a formula and the symbols that
+  // justify a value in the model, defined in term_analysis.cpp
 
   /** Collects the theory atoms of a Boolean formula, as is_theory_atom
    *  defines them, without looking inside an atom
@@ -592,6 +596,9 @@ class AbsSmtSolver : public internal::SharedBase<AbsSmtSolver>
   static bool parse_bool_opt(const std::string & option,
                              const std::string & value);
 
+  // The parser of options that take a natural number, defined in
+  // numeral_utils.cpp
+
   /** The value of an option that takes a natural number
    *  @param option the option, used in the error message
    *  @param value the value given for it
@@ -622,7 +629,8 @@ class AbsSmtSolver : public internal::SharedBase<AbsSmtSolver>
   static UnorderedTermMap store_chain_values(
       const std::vector<std::pair<Term, Term>> & stores);
 
-  // Numerals in a base from 2 to 36, as make_term accepts them
+  // Readers of the numerals in a base from 2 to 36 that make_term accepts,
+  // defined in numeral_utils.cpp
 
   /** The number val names in base `base`, in base 10: val itself in base
    *  10, less a leading plus, and otherwise the same number in decimal, a
