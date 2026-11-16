@@ -17,9 +17,9 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -161,7 +161,7 @@ TEST_P(UnitSymbolTests, AtSignSymbolName)
 
 TEST_P(UnitSymbolTests, InternalSymbolName)
 {
-  std::string name = internal_name("assump", 1);
+  std::string name = backend::internal_name("assump", 1);
   SolverEnum se = GetParam().solver_enum;
   if (se == BTOR || se == GENERIC_SOLVER || se == MSAT || se == Z3)
   {

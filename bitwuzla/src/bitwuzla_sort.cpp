@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -41,7 +41,7 @@ std::size_t BzlaSort::hash() const
   if (is_constructor)
   {
     std::size_t h = std::hash<BzlaTermManager *>{}(tm.get());
-    detail::hash_combine(h, constructor_id);
+    backend::hash_combine(h, constructor_id);
     return h;
   }
   return std::hash<bitwuzla::Sort>{}(sort);

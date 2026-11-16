@@ -31,7 +31,6 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -52,7 +51,7 @@ namespace {
 // and goes on with it, so it is refused here.
 cvc5::Sort term_sort(const Sort & s)
 {
-  auto cs = backend_pointer_cast<Cvc5Sort>(s)->get_cvc5_sort();
+  auto cs = backend::pointer_cast<Cvc5Sort>(s)->get_cvc5_sort();
   if (cs.isUninterpretedSortConstructor())
   {
     throw IncorrectUsageException("Sort constructor "
@@ -94,7 +93,7 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
   if (option == "time-limit")
   {
     cvc5option = "tlimit-per";
-    cvc5value = std::to_string(time_limit_milliseconds(value));
+    cvc5value = std::to_string(backend::time_limit_milliseconds(value));
   }
 
   try
@@ -184,7 +183,8 @@ try
     // cvc5 uses unsigned integers for mkBitVector
     // to avoid casting issues, always use a string in base 10
     std::string sval = std::to_string(i);
-    c = instance->tm.mkBitVector(narrow_width(sort->get_width()), sval, 10);
+    c = instance->tm.mkBitVector(
+        backend::narrow_width(sort->get_width()), sval, 10);
   }
   else
   {
@@ -258,7 +258,7 @@ try
 
   if ((sk == INT) || (sk == REAL))
   {
-    std::string decimal = arith_value_to_decimal(sk, val, base);
+    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
     if (sk == INT)
     {
       c = instance->tm.mkInteger(decimal);
@@ -270,11 +270,11 @@ try
   }
   else if (sk == BV)
   {
-    std::uint32_t width = narrow_width(sort->get_width());
+    std::uint32_t width = backend::narrow_width(sort->get_width());
     c = width <= 64 ? instance->tm.mkBitVector(
-                          width, detail::bv_value_to_uint64(val, base, width))
+                          width, backend::bv_value_to_uint64(val, base, width))
                     : instance->tm.mkBitVector(
-                          width, bv_value_to_bits(val, base, sort), 2);
+                          width, backend::bv_value_to_bits(val, base, sort), 2);
   }
   else
   {
@@ -292,8 +292,8 @@ catch (cvc5::CVC5ApiException & e)
 
 Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
 {
-  std::shared_ptr<Cvc5Term> cterm = backend_pointer_cast<Cvc5Term>(val);
-  std::shared_ptr<Cvc5Sort> csort = backend_pointer_cast<Cvc5Sort>(sort);
+  std::shared_ptr<Cvc5Term> cterm = backend::pointer_cast<Cvc5Term>(val);
+  std::shared_ptr<Cvc5Sort> csort = backend::pointer_cast<Cvc5Sort>(sort);
   cvc5::Term const_arr = instance->tm.mkConstArray(csort->sort, cterm->term);
   return std::make_shared<Cvc5Term>(const_arr);
 }
@@ -301,7 +301,7 @@ Term Cvc5Solver::make_term(const Term & val, const Sort & sort) const
 void Cvc5Solver::do_assert(const Term & t)
 try
 {
-  std::shared_ptr<Cvc5Term> cterm = backend_pointer_cast<Cvc5Term>(t);
+  std::shared_ptr<Cvc5Term> cterm = backend::pointer_cast<Cvc5Term>(t);
   instance->solver.assertFormula(cterm->term);
 }
 catch (cvc5::CVC5ApiException & e)
@@ -345,7 +345,7 @@ try
   cvc5assumps.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    cvc5assumps.push_back(backend_pointer_cast<Cvc5Term>(a)->term);
+    cvc5assumps.push_back(backend::pointer_cast<Cvc5Term>(a)->term);
   }
 
   cvc5::Result r = instance->solver.checkSatAssuming(cvc5assumps);
@@ -377,7 +377,7 @@ catch (cvc5::CVC5ApiException & e)
 void Cvc5Solver::do_push(uint64_t num)
 try
 {
-  instance->solver.push(narrow_levels(num));
+  instance->solver.push(backend::narrow_levels(num));
 }
 catch (cvc5::CVC5ApiException & e)
 {
@@ -387,7 +387,7 @@ catch (cvc5::CVC5ApiException & e)
 void Cvc5Solver::do_pop(uint64_t num)
 try
 {
-  instance->solver.pop(narrow_levels(num));
+  instance->solver.pop(backend::narrow_levels(num));
 }
 catch (cvc5::CVC5ApiException & e)
 {
@@ -397,7 +397,7 @@ catch (cvc5::CVC5ApiException & e)
 Term Cvc5Solver::get_value(const Term & t) const
 try
 {
-  std::shared_ptr<Cvc5Term> cterm = backend_pointer_cast<Cvc5Term>(t);
+  std::shared_ptr<Cvc5Term> cterm = backend::pointer_cast<Cvc5Term>(t);
   return std::make_shared<Cvc5Term>(instance->solver.getValue(cterm->term));
 }
 catch (cvc5::CVC5ApiException & e)
@@ -410,7 +410,7 @@ UnorderedTermMap Cvc5Solver::get_array_values(const Term & arr,
 try
 {
   out_const_base = nullptr;
-  cvc5::Term carr = backend_pointer_cast<Cvc5Term>(arr)->term;
+  cvc5::Term carr = backend::pointer_cast<Cvc5Term>(arr)->term;
   // get the array value
   // cvc5 returns a sequence of stores
   carr = instance->solver.getValue(carr);
@@ -428,7 +428,7 @@ try
     out_const_base = Term(new Cvc5Term(carr.getConstArrayBase()));
   }
 
-  return store_chain_values(stores);
+  return backend::store_chain_values(stores);
 }
 catch (cvc5::CVC5ApiException & e)
 {
@@ -460,7 +460,7 @@ Sort Cvc5Solver::make_sort(const std::string name, uint64_t arity) const
 try
 {
   return std::make_shared<Cvc5Sort>(instance->solver.declareSort(
-      name, detail::narrow<uint32_t>(arity, "a number of sort parameters")));
+      name, backend::narrow<uint32_t>(arity, "a number of sort parameters")));
 }
 catch (cvc5::CVC5ApiException & e)
 {
@@ -503,7 +503,7 @@ try
   if (sk == BV)
   {
     return std::make_shared<Cvc5Sort>(
-        instance->tm.mkBitVectorSort(narrow_width(size)));
+        instance->tm.mkBitVectorSort(backend::narrow_width(size)));
   }
   else
   {
@@ -561,7 +561,7 @@ catch (cvc5::CVC5ApiException & e)
 
 Sort Cvc5Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  cvc5::Sort csort_con = backend_pointer_cast<Cvc5Sort>(sort_con)->sort;
+  cvc5::Sort csort_con = backend::pointer_cast<Cvc5Sort>(sort_con)->sort;
   if (!csort_con.isUninterpretedSortConstructor())
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
@@ -671,9 +671,9 @@ void Cvc5Solver::add_constructor(DatatypeDecl & dt,
 try
 {
   std::shared_ptr<Cvc5DatatypeDecl> cdt =
-      backend_pointer_cast<Cvc5DatatypeDecl>(dt);
+      backend::pointer_cast<Cvc5DatatypeDecl>(dt);
   std::shared_ptr<Cvc5DatatypeConstructorDecl> ccon =
-      backend_pointer_cast<Cvc5DatatypeConstructorDecl>(con);
+      backend::pointer_cast<Cvc5DatatypeConstructorDecl>(con);
   cdt->datatypedecl.addConstructor(ccon->datatypeconstructordecl);
   cdt->constructors.push_back(ccon);
 }
@@ -688,7 +688,7 @@ void Cvc5Solver::add_selector(DatatypeConstructorDecl & dt,
 try
 {
   std::shared_ptr<Cvc5DatatypeConstructorDecl> cdt =
-      backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
+      backend::pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
   auto cs = term_sort(s);
   cdt->datatypeconstructordecl.addSelector(name, cs);
   cdt->selectors.emplace_back(name, cs);
@@ -703,7 +703,7 @@ void Cvc5Solver::add_selector_self(DatatypeConstructorDecl & dt,
 try
 {
   std::shared_ptr<Cvc5DatatypeConstructorDecl> cdt =
-      backend_pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
+      backend::pointer_cast<Cvc5DatatypeConstructorDecl>(dt);
   cdt->datatypeconstructordecl.addSelectorSelf(name);
   cdt->selectors.emplace_back(name, cvc5::Sort());
 }
@@ -715,7 +715,7 @@ catch (cvc5::CVC5ApiException & e)
 Term Cvc5Solver::get_constructor(const Sort & s, std::string name) const
 try
 {
-  std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
+  std::shared_ptr<Cvc5Sort> cs = backend::pointer_cast<Cvc5Sort>(s);
   cvc5::Datatype dt = cs->get_cvc5_datatype();
   for (size_t i = 0; i != dt.getNumConstructors(); i++)
   {
@@ -736,7 +736,7 @@ catch (cvc5::CVC5ApiException & e)
 Term Cvc5Solver::get_tester(const Sort & s, std::string name) const
 try
 {
-  std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
+  std::shared_ptr<Cvc5Sort> cs = backend::pointer_cast<Cvc5Sort>(s);
   cvc5::Datatype dt = cs->get_cvc5_datatype();
   for (size_t i = 0; i != dt.getNumConstructors(); i++)
   {
@@ -759,7 +759,7 @@ Term Cvc5Solver::get_selector(const Sort & s,
                               std::string name) const
 try
 {
-  std::shared_ptr<Cvc5Sort> cs = backend_pointer_cast<Cvc5Sort>(s);
+  std::shared_ptr<Cvc5Sort> cs = backend::pointer_cast<Cvc5Sort>(s);
   cvc5::Datatype dt = cs->get_cvc5_datatype();
   for (size_t i = 0; i != dt.getNumConstructors(); i++)
   {
@@ -820,7 +820,7 @@ try
   cvc5_decls.reserve(decls.size());
   for (const auto & d : decls)
   {
-    auto cd = backend_pointer_cast<Cvc5DatatypeDecl>(d);
+    auto cd = backend::pointer_cast<Cvc5DatatypeDecl>(d);
     // as SMT-LIB declares a datatype once
     if (cd->used)
     {
@@ -855,7 +855,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    check_quantifier_binders(op, terms);
+    backend::check_quantifier_binders(op, terms);
   }
   else if (op.prim_op == Divisible && op.indices[0] < 1)
   {
@@ -866,7 +866,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   // only applies to two
   else if (terms.size() > 2 && (op.prim_op == StrLt || op.prim_op == StrLeq))
   {
-    return make_nary_term(this, op, terms);
+    return backend::make_nary_term(this, op, terms);
   }
 
   try
@@ -876,7 +876,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     std::shared_ptr<Cvc5Term> cterm;
     for (auto t : terms)
     {
-      cterm = backend_pointer_cast<Cvc5Term>(t);
+      cterm = backend::pointer_cast<Cvc5Term>(t);
       cterms.push_back(cterm->term);
     }
     // cvc5 solves a power only for a constant nonnegative exponent
@@ -926,11 +926,11 @@ try
 
   for (const auto & elem : substitution_map)
   {
-    keys.push_back(backend_pointer_cast<Cvc5Term>(elem.first)->term);
-    values.push_back(backend_pointer_cast<Cvc5Term>(elem.second)->term);
+    keys.push_back(backend::pointer_cast<Cvc5Term>(elem.first)->term);
+    values.push_back(backend::pointer_cast<Cvc5Term>(elem.second)->term);
   }
 
-  cvc5::Term cterm = backend_pointer_cast<Cvc5Term>(term)->term;
+  cvc5::Term cterm = backend::pointer_cast<Cvc5Term>(term)->term;
   return std::make_shared<Cvc5Term>(cterm.substitute(keys, values));
 }
 catch (const cvc5::CVC5ApiException & e)

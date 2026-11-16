@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -38,7 +38,7 @@ std::size_t BoolectorSortBase::hash() const
   // Boolector numbers sorts per instance, so mix in the instance, as compare
   // checks it
   std::size_t h = std::hash<Btor *>{}(btor.get());
-  detail::hash_combine(h, sort);
+  backend::hash_combine(h, sort);
   return h;
 }
 

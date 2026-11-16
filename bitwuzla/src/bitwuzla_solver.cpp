@@ -34,7 +34,6 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -78,7 +77,7 @@ bool BzlaSolver::is_initialized() const { return instance != nullptr; }
 
 bitwuzla::Term BzlaSolver::bzla_term(const Term & t) const
 {
-  std::shared_ptr<BzlaTerm> bterm = backend_pointer_cast<BzlaTerm>(t);
+  std::shared_ptr<BzlaTerm> bterm = backend::pointer_cast<BzlaTerm>(t);
   if (bterm->tm != tm)
   {
     throw IncorrectUsageException("Term " + t->to_string()
@@ -89,7 +88,7 @@ bitwuzla::Term BzlaSolver::bzla_term(const Term & t) const
 
 bitwuzla::Sort BzlaSolver::bzla_sort(const Sort & s) const
 {
-  std::shared_ptr<BzlaSort> bsort = backend_pointer_cast<BzlaSort>(s);
+  std::shared_ptr<BzlaSort> bsort = backend::pointer_cast<BzlaSort>(s);
   if (bsort->tm != tm)
   {
     throw IncorrectUsageException("Sort " + s->to_string()
@@ -102,7 +101,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (!bool_option_value(option, value))
+    if (!backend::bool_option_value(option, value))
     {
       throw NotImplementedException("Bitwuzla cannot turn off " + option);
     }
@@ -118,7 +117,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   {
     // Bitwuzla expects this in milliseconds, but smt-switch uses seconds.
     options.set(bitwuzla::Option::TIME_LIMIT_PER,
-                time_limit_milliseconds(value));
+                backend::time_limit_milliseconds(value));
   }
   else if (!options.is_valid(option))
   {
@@ -131,14 +130,14 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     std::string bzla_value = value;
     if (option == "produce-models" || option == "produce-unsat-assumptions")
     {
-      bzla_value = bool_option_value(option, value) ? "true" : "false";
+      bzla_value = backend::bool_option_value(option, value) ? "true" : "false";
     }
     try
     {
       // Bitwuzla checks a number against the option's range only when given
       // it as a number. Up to 19 digits always fit in 64 bits.
       bitwuzla::Option opt = options.option(option.c_str());
-      if (options.is_numeric(opt) && is_decimal_numeral(value)
+      if (options.is_numeric(opt) && backend::is_decimal_numeral(value)
           && value.size() <= 19)
       {
         options.set(opt, std::stoull(value));
@@ -283,7 +282,7 @@ Result BzlaSolver::do_check_sat_assuming(const TermVec & assumptions)
 void BzlaSolver::do_push(std::uint64_t num)
 try
 {
-  get_bitwuzla()->push(narrow_levels(num));
+  get_bitwuzla()->push(backend::narrow_levels(num));
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -293,7 +292,7 @@ catch (const bitwuzla::Exception & e)
 void BzlaSolver::do_pop(std::uint64_t num)
 try
 {
-  get_bitwuzla()->pop(narrow_levels(num));
+  get_bitwuzla()->pop(backend::narrow_levels(num));
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -346,7 +345,7 @@ try
   }
   out_const_base = std::make_shared<BzlaTerm>(tm, bval.children()[0]);
 
-  return store_chain_values(stores);
+  return backend::store_chain_values(stores);
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -381,10 +380,10 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 
 Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
 {
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException("Sort name " + name + " starts with "
-                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + std::string(backend::INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
   if (arity)
@@ -403,7 +402,7 @@ Sort BzlaSolver::make_sort(const std::string name, std::uint64_t arity) const
 
 Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  std::shared_ptr<BzlaSort> bcon = backend_pointer_cast<BzlaSort>(sort_con);
+  std::shared_ptr<BzlaSort> bcon = backend::pointer_cast<BzlaSort>(sort_con);
   if (bcon->tm != tm)
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
@@ -568,8 +567,9 @@ Term BzlaSolver::make_term(const std::string val,
         tm,
         width <= 64
             ? tm->mk_bv_value_uint64(
-                  bsort, detail::bv_value_to_uint64(val, base, width))
-            : tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2));
+                  bsort, backend::bv_value_to_uint64(val, base, width))
+            : tm->mk_bv_value(
+                  bsort, backend::bv_value_to_bits(val, base, sort), 2));
   }
   catch (bitwuzla::Exception & e)
   {
@@ -638,7 +638,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    check_quantifier_binders(op, terms);
+    backend::check_quantifier_binders(op, terms);
   }
   // Bitwuzla 0.9.1 and older make a term of width 0 instead of refusing.
   if (op.prim_op == Repeat && op.indices[0] == 0)

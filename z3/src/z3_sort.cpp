@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/z3_datatype.h"
 
 namespace smt {
@@ -80,22 +80,22 @@ std::size_t Z3Sort::hash() const
   std::size_t h = std::hash<Z3Context *>{}(ctx.get());
   if (is_constructor)
   {
-    detail::hash_combine(h, std::hash<std::string>{}(constructor_name));
-    detail::hash_combine(h, constructor_arity);
+    backend::hash_combine(h, std::hash<std::string>{}(constructor_name));
+    backend::hash_combine(h, constructor_arity);
   }
   else if (function_kind.has_value())
   {
     // hash only the signature, to agree with compare
-    detail::hash_combine(h, range.id());
+    backend::hash_combine(h, range.id());
     for (const z3::sort & d : domain)
     {
-      detail::hash_combine(h, d.id());
+      backend::hash_combine(h, d.id());
     }
   }
   else
   {
     // unique within the context, unlike Z3's structural hash
-    detail::hash_combine(h, type.id());
+    backend::hash_combine(h, type.id());
   }
   return h;
 }

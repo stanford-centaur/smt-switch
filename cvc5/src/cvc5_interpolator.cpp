@@ -18,8 +18,8 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -66,7 +66,7 @@ Result Cvc5Interpolator::compute_interpolant(const Term & A,
   solver->push();
   try
   {
-    solver->assertFormula(backend_pointer_cast<Cvc5Term>(A)->term);
+    solver->assertFormula(backend::pointer_cast<Cvc5Term>(A)->term);
     r = cvc5_solver->check_sat_assuming(TermVec{ B });
     // an interpolant proves unsat, so one is still worth asking for when
     // the check answers unknown

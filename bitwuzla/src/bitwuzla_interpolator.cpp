@@ -25,7 +25,6 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -98,7 +97,7 @@ Result BzlaInterpolator::compute_seq_interpolants(
 
   // pop formulas that cannot be reused
   bzla_solver->get_bitwuzla()->pop(
-      narrow_levels(last_itp_query_assertions.size() - num_reused));
+      backend::narrow_levels(last_itp_query_assertions.size() - num_reused));
 
   // update the interpolation groups and assertions
   last_itp_query_assertions.resize(num_reused);
@@ -175,7 +174,7 @@ Result BzlaInterpolator::compute_seq_interpolants(
   }
   // the interpolants belong to the term manager of the formulae
   const std::shared_ptr<BzlaTermManager> & formulae_tm =
-      backend_pointer_cast<BzlaTerm>(formulae.at(0))->tm;
+      backend::pointer_cast<BzlaTerm>(formulae.at(0))->tm;
   for (const auto & itp : itps)
   {
     if (itp.is_null())

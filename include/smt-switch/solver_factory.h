@@ -52,12 +52,12 @@ std::vector<SolverEnum> available_solver_enums();
  */
 std::vector<SolverEnum> available_interpolator_enums();
 
-namespace detail {
+namespace backend {
 
 /** What a backend library provides for create_solver and
  *  create_interpolator
  */
-struct BackendFactory
+struct Factory
 {
   SmtSolver (*create)(bool logging);
   /** Null for a backend that cannot interpolate */
@@ -67,15 +67,15 @@ struct BackendFactory
 // Each backend library defines its own, under these names, which the
 // loader looks up.
 extern "C" {
-extern const BackendFactory smt_switch_backend_bitwuzla;
-extern const BackendFactory smt_switch_backend_btor;
-extern const BackendFactory smt_switch_backend_cvc5;
-extern const BackendFactory smt_switch_backend_msat;
-extern const BackendFactory smt_switch_backend_yices2;
-extern const BackendFactory smt_switch_backend_z3;
+extern const Factory smt_switch_backend_bitwuzla;
+extern const Factory smt_switch_backend_btor;
+extern const Factory smt_switch_backend_cvc5;
+extern const Factory smt_switch_backend_msat;
+extern const Factory smt_switch_backend_yices2;
+extern const Factory smt_switch_backend_z3;
 }
 
-}  // namespace detail
+}  // namespace backend
 
 }  // namespace smt
 

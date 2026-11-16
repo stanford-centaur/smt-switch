@@ -27,7 +27,7 @@ SmtSolver Z3SolverFactory::create(bool logging)
 }
 /* end Z3SolverFactory implementation */
 
-const detail::BackendFactory detail::smt_switch_backend_z3 = {
+const backend::Factory backend::smt_switch_backend_z3 = {
   &Z3SolverFactory::create, nullptr
 };
 

@@ -53,7 +53,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -279,15 +278,15 @@ std::string & trim(std::string & str)
  * @param name the name chosen
  * @param what what is being named, for the message
  * @throws IncorrectUsageException if the name starts with
- * INTERNAL_NAME_PREFIX
+ * backend::INTERNAL_NAME_PREFIX
  */
 void refuse_internal_name(const std::string & name, const std::string & what)
 {
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException(
         what + " name " + name + " starts with "
-        + std::string(INTERNAL_NAME_PREFIX)
+        + std::string(backend::INTERNAL_NAME_PREFIX)
         + ", which the generic solver keeps for names of its own");
   }
 }
@@ -410,12 +409,12 @@ void GenericSolver::launch_binary() const
 
   // Any exec closes every end, so that another child's program, such as a
   // second solver's binary, cannot hold this solver's pipes open.
-  if (int pipe_errno = detail::make_cloexec_pipe(inpipefd); pipe_errno != 0)
+  if (int pipe_errno = backend::make_cloexec_pipe(inpipefd); pipe_errno != 0)
   {
     throw SystemException("Failed to create a pipe from the solver binary at "
                           + path + ": " + strerror(pipe_errno));
   }
-  if (int pipe_errno = detail::make_cloexec_pipe(outpipefd); pipe_errno != 0)
+  if (int pipe_errno = backend::make_cloexec_pipe(outpipefd); pipe_errno != 0)
   {
     close_fd(inpipefd[0]);
     close_fd(inpipefd[1]);
@@ -425,7 +424,7 @@ void GenericSolver::launch_binary() const
   // a third pipe tells the parent how execv() went: a successful exec
   // closes the write end, so end-of-file means started, an errno means not
   int execpipefd[2] = { -1, -1 };
-  if (int pipe_errno = detail::make_cloexec_pipe(execpipefd); pipe_errno != 0)
+  if (int pipe_errno = backend::make_cloexec_pipe(execpipefd); pipe_errno != 0)
   {
     close_fd(inpipefd[0]);
     close_fd(inpipefd[1]);
@@ -642,8 +641,9 @@ void GenericSolver::await_response(
                               + " ms to the command: " + cmd);
       }
       // poll() takes an int, so a distant deadline is waited out in slices
-      timeout_ms = detail::fits_in<int>(left) ? static_cast<int>(left)
-                                              : std::numeric_limits<int>::max();
+      timeout_ms = backend::fits_in<int>(left)
+                       ? static_cast<int>(left)
+                       : std::numeric_limits<int>::max();
     }
     struct pollfd pfd;
     pfd.fd = inpipefd[0];
@@ -1093,7 +1093,7 @@ std::string GenericSolver::query_text(const Term & term,
                                     + term->to_string() + ": it uses " + unknown
                                     + ", declared since the last check");
     }
-    std::shared_ptr<GenericTerm> gt = backend_pointer_cast<GenericTerm>(t);
+    std::shared_ptr<GenericTerm> gt = backend::pointer_cast<GenericTerm>(t);
     if (!pending && gt->is_ground())
     {
       continue;
@@ -1182,7 +1182,7 @@ std::string GenericSolver::term_name(const Term & term) const
 
 std::string GenericSolver::to_smtlib_def(Term term) const
 {
-  std::shared_ptr<GenericTerm> gt = backend_pointer_cast<GenericTerm>(term);
+  std::shared_ptr<GenericTerm> gt = backend::pointer_cast<GenericTerm>(term);
   // a term without an op is its name
   if (gt->get_op().is_null())
   {
@@ -1345,11 +1345,11 @@ SortVec GenericSolver::make_datatype_sorts(
   dt_names.reserve(decls.size());
   for (const DatatypeDecl & d : decls)
   {
-    auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(d);
+    auto gdt_decl = backend::pointer_cast<GenericDatatypeDecl>(d);
     auto dt_it = decl_datatype_map.find(gdt_decl);
     if (dt_it == decl_datatype_map.end())
     {
-      detail::throw_foreign_handle(d);
+      backend::throw_foreign_pointer(d);
     }
     auto name = gdt_decl->get_name();
     if (name_sort_map.find(name) != name_sort_map.end()
@@ -1447,11 +1447,11 @@ DatatypeConstructorDecl GenericSolver::make_datatype_constructor_decl(
 void GenericSolver::add_constructor(DatatypeDecl & dt,
                                     const DatatypeConstructorDecl & con) const
 {
-  auto gdt_decl = backend_pointer_cast<GenericDatatypeDecl>(dt);
+  auto gdt_decl = backend::pointer_cast<GenericDatatypeDecl>(dt);
   auto dt_it = decl_datatype_map.find(gdt_decl);
   if (dt_it == decl_datatype_map.end())
   {
-    detail::throw_foreign_handle(dt);
+    backend::throw_foreign_pointer(dt);
   }
   // a sort the datatype was used for holds this same datatype, and the
   // binary has its declaration already
@@ -1476,7 +1476,7 @@ void GenericSolver::add_selector(DatatypeConstructorDecl & dt,
   newSelector->sort = s;
   newSelector->finalized = true;
   std::shared_ptr<GenericDatatypeConstructorDecl> gdtc =
-      backend_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+      backend::pointer_cast<GenericDatatypeConstructorDecl>(dt);
   gdtc->add_new_selector(*newSelector);
 }
 
@@ -1487,7 +1487,7 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
   std::shared_ptr<SelectorComponents> newSelector =
       std::make_shared<SelectorComponents>();
   std::shared_ptr<GenericDatatypeConstructorDecl> gdt_cons =
-      backend_pointer_cast<GenericDatatypeConstructorDecl>(dt);
+      backend::pointer_cast<GenericDatatypeConstructorDecl>(dt);
 
   newSelector->name = name;
   // The constructor may not belong to a datatype yet, so the sort is left
@@ -1499,7 +1499,7 @@ void GenericSolver::add_selector_self(DatatypeConstructorDecl & dt,
 Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      backend_pointer_cast<GenericSort>(s)->get_generic_datatype();
+      backend::pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
@@ -1527,7 +1527,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
 Term GenericSolver::get_tester(const Sort & s, std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      backend_pointer_cast<GenericSort>(s)->get_generic_datatype();
+      backend::pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
@@ -1559,7 +1559,7 @@ Term GenericSolver::get_selector(const Sort & s,
                                  std::string name) const
 {
   std::shared_ptr<GenericDatatype> dt =
-      backend_pointer_cast<GenericSort>(s)->get_generic_datatype();
+      backend::pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
   Sort cons_sort = std::make_shared<DatatypeComponentSort>(SELECTOR, name, s);
   for (int i = 0; i < dt->get_num_constructors(); ++i)
@@ -1594,7 +1594,7 @@ Term GenericSolver::get_selector(const Sort & s,
 Term GenericSolver::store_term(Term term) const
 {
   // cast the term to a GenericTerm
-  std::shared_ptr<GenericTerm> gterm = backend_pointer_cast<GenericTerm>(term);
+  std::shared_ptr<GenericTerm> gterm = backend::pointer_cast<GenericTerm>(term);
   // store the term in the maps in case it is not there already
   if (term_name_map.find(gterm) == term_name_map.end())
   {
@@ -1630,7 +1630,7 @@ Term GenericSolver::store_term(Term term) const
       // good, so they are names no user can take: make_symbol and
       // make_param refuse them.
       term_counter++;
-      name = internal_name("term", term_counter);
+      name = backend::internal_name("term", term_counter);
       define_fun(name, SortVec{}, gterm->get_sort(), gterm);
       // The binary can name the definition back, in an unsat core.
       name_term_map[name] = gterm;
@@ -1649,7 +1649,7 @@ Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
                                                std::uint64_t width) const
 {
   Sort bvsort = make_sort(BV, width);
-  std::string repr = "#b" + bv_value_to_bits(abs_decimal, 10, bvsort);
+  std::string repr = "#b" + backend::bv_value_to_bits(abs_decimal, 10, bvsort);
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
   return store_term(term);
 }
@@ -1700,7 +1700,8 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
   else
   {
     // sk == BV
-    std::string repr = "#b" + bv_value_to_bits(std::to_string(i), 10, sort);
+    std::string repr =
+        "#b" + backend::bv_value_to_bits(std::to_string(i), 10, sort);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1723,11 +1724,11 @@ Term GenericSolver::make_value(const std::string val,
   std::string repr;
   if (sk == INT || sk == REAL)
   {
-    std::string decimal = arith_value_to_decimal(sk, val, base);
+    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
     // a solver binary reads some other strings, such as the name of a
     // symbol or a decimal for an INT, without an error but not as the
     // number meant
-    if (!is_arith_number(sk, decimal))
+    if (!backend::is_arith_number(sk, decimal))
     {
       throw IncorrectUsageException("Value " + val + " is not a number of sort "
                                     + sort->to_string());
@@ -1749,7 +1750,7 @@ Term GenericSolver::make_value(const std::string val,
   else
   {
     // sk == BV
-    repr = "#b" + bv_value_to_bits(val, base, sort);
+    repr = "#b" + backend::bv_value_to_bits(val, base, sort);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1809,7 +1810,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
 Term GenericSolver::get_symbol(const std::string & name) const
 {
   // The map holds the binary's own names too, which no symbol can have.
-  auto it = is_internal_name(name)
+  auto it = backend::is_internal_name(name)
                 ? name_term_map.end()
                 : name_term_map.find(smtlib::quote_symbol(name));
   if (it == name_term_map.end())
@@ -1834,7 +1835,7 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort) const
   Term term = std::make_shared<GenericTerm>(
       sort, Op(), TermVec{}, smtlib::quote_symbol(name), false);
   term_counter++;
-  term_name_map[term] = internal_name("param", term_counter);
+  term_name_map[term] = backend::internal_name("param", term_counter);
   return term;
 }
 
@@ -1842,7 +1843,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    check_quantifier_binders(op, terms);
+    backend::check_quantifier_binders(op, terms);
   }
   else if (op.prim_op == Divisible && op.indices[0] < 1)
   {
@@ -2154,7 +2155,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
   }
   out_const_base = store_term(value_from_string((*parts)[1], elemsort));
 
-  return store_chain_values(stores);
+  return backend::store_chain_values(stores);
 }
 
 void GenericSolver::do_reset()
@@ -2189,7 +2190,7 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
     run_command(CommandKind::OPTION,
                 smtlib::SET_OPTION_STR,
                 ":" + option,
-                bool_option_value(option, value) ? "true" : "false");
+                backend::bool_option_value(option, value) ? "true" : "false");
     return;
   }
   run_command(CommandKind::OPTION, smtlib::SET_OPTION_STR, ":" + option, value);
@@ -2240,7 +2241,7 @@ void GenericSolver::set_logic(const std::string logic)
 void GenericSolver::do_assert(const Term & t)
 {
   // cast to generic term, as we need to print it to the solver
-  std::shared_ptr<GenericTerm> lt = backend_pointer_cast<GenericTerm>(t);
+  std::shared_ptr<GenericTerm> lt = backend::pointer_cast<GenericTerm>(t);
 
   // obtain the name of the term from the internal map
   std::string name = term_name(lt);
@@ -2318,7 +2319,7 @@ std::string GenericSolver::assumption_name(const Term & assumption)
   if (it == assumption_labels.end())
   {
     std::string label_name =
-        internal_name("assump", assumption_labels.size() + 1);
+        backend::internal_name("assump", assumption_labels.size() + 1);
     Term label = std::make_shared<GenericTerm>(
         assumption->get_sort(), Op(), TermVec{}, label_name, true);
     name_term_map[label_name] = label;

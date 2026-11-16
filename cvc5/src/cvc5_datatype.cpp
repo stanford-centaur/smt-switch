@@ -18,7 +18,6 @@
 #include "smt-switch/cvc5_sort.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/solver_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -55,8 +54,8 @@ std::size_t Cvc5DatatypeConstructorDecl::hash() const
   std::size_t h = std::hash<std::string>{}(name);
   for (const std::pair<std::string, cvc5::Sort> & sel : selectors)
   {
-    detail::hash_combine(h, sel.first);
-    detail::hash_combine(h, sel.second);
+    backend::hash_combine(h, sel.first);
+    backend::hash_combine(h, sel.second);
   }
   return h;
 }
@@ -72,7 +71,7 @@ bool Cvc5DatatypeConstructorDecl::compare(
 bool Cvc5DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
 {
   std::shared_ptr<Cvc5DatatypeConstructorDecl> cd =
-      backend_pointer_cast<Cvc5DatatypeConstructorDecl>(d);
+      backend::pointer_cast<Cvc5DatatypeConstructorDecl>(d);
   return std::tie(name, selectors) < std::tie(cd->name, cd->selectors);
 }
 
@@ -80,8 +79,8 @@ Cvc5Datatype::Cvc5Datatype(cvc5::Datatype t) : datatype(t) {}
 
 int Cvc5Datatype::get_num_constructors() const
 {
-  return detail::narrow<int>(datatype.getNumConstructors(),
-                             "a number of constructors");
+  return backend::narrow<int>(datatype.getNumConstructors(),
+                              "a number of constructors");
 }
 
 int Cvc5Datatype::get_num_selectors(std::string cons) const
@@ -91,7 +90,8 @@ int Cvc5Datatype::get_num_selectors(std::string cons) const
     cvc5::DatatypeConstructor ct = datatype[i];
     if (ct.getName() == cons)
     {
-      return detail::narrow<int>(ct.getNumSelectors(), "a number of selectors");
+      return backend::narrow<int>(ct.getNumSelectors(),
+                                  "a number of selectors");
     }
   }
   throw IncorrectUsageException(datatype.getName() + "." + cons + " not found");
@@ -168,7 +168,7 @@ bool Cvc5Datatype::compare(const Datatype & d) const
 bool Cvc5Datatype::less(const Datatype & d) const
 {
   return sort_of(datatype)
-         < sort_of(backend_pointer_cast<Cvc5Datatype>(d)->datatype);
+         < sort_of(backend::pointer_cast<Cvc5Datatype>(d)->datatype);
 }
 
 }  // namespace smt

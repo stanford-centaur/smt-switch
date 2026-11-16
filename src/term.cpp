@@ -38,7 +38,7 @@ std::int64_t AbsTerm::to_signed_int() const
   SortKind sk = get_sort()->get_sort_kind();
   if (sk == BV)
   {
-    return bits_to_int64(to_bits());
+    return backend::bits_to_int64(to_bits());
   }
   if (sk == INT || sk == REAL)
   {

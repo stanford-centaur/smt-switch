@@ -34,7 +34,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 #include "smt-switch/z3_datatype.h"
 #include "smt-switch/z3_sort.h"
 #include "smt-switch/z3_term.h"
@@ -155,29 +154,30 @@ Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
     case Is_Int: return Z3_mk_is_int(c, a);
     case Extract:
       return Z3_mk_extract(c,
-                           narrow_index(op, op.indices[0]),
-                           narrow_index(op, op.indices[1]),
+                           backend::narrow_index(op, op.indices[0]),
+                           backend::narrow_index(op, op.indices[1]),
                            a);
     case BVNot: return Z3_mk_bvnot(c, a);
     case BVNeg: return Z3_mk_bvneg(c, a);
     case Zero_Extend:
-      return Z3_mk_zero_ext(c, narrow_index(op, op.indices[0]), a);
+      return Z3_mk_zero_ext(c, backend::narrow_index(op, op.indices[0]), a);
     case Sign_Extend:
-      return Z3_mk_sign_ext(c, narrow_index(op, op.indices[0]), a);
+      return Z3_mk_sign_ext(c, backend::narrow_index(op, op.indices[0]), a);
     case Repeat:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      return Z3_mk_repeat(c, narrow_index(op, op.indices[0]), a);
+      return Z3_mk_repeat(c, backend::narrow_index(op, op.indices[0]), a);
     case Rotate_Left:
-      return Z3_mk_rotate_left(c, narrow_index(op, op.indices[0]), a);
+      return Z3_mk_rotate_left(c, backend::narrow_index(op, op.indices[0]), a);
     case Rotate_Right:
-      return Z3_mk_rotate_right(c, narrow_index(op, op.indices[0]), a);
+      return Z3_mk_rotate_right(c, backend::narrow_index(op, op.indices[0]), a);
     case BV_To_Nat:
     case UBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ false);
     case SBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ true);
-    case Int_To_BV: return Z3_mk_int2bv(c, narrow_index(op, op.indices[0]), a);
+    case Int_To_BV:
+      return Z3_mk_int2bv(c, backend::narrow_index(op, op.indices[0]), a);
     case Divisible:
       if (op.indices[0] < 1)
       {
@@ -187,7 +187,7 @@ Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
       return Z3_mk_divides(
           c,
           Z3_mk_int(c,
-                    detail::narrow<int>(op.indices[0], "a divisible index"),
+                    backend::narrow<int>(op.indices[0], "a divisible index"),
                     Z3_mk_int_sort(c)),
           a);
     default: throw_unsupported(op.prim_op, 1);
@@ -252,7 +252,8 @@ Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
 }
 
 /** The term of op applied to terms, three or more, whose Z3 terms are args,
- *  in a single Z3 call where Z3 has one and through make_nary_term otherwise
+ *  in a single Z3 call where Z3 has one and through backend::make_nary_term
+ * otherwise
  */
 Term variadic_term(const AbsSmtSolver * solver,
                    const std::shared_ptr<Z3Context> & ctx,
@@ -260,7 +261,7 @@ Term variadic_term(const AbsSmtSolver * solver,
                    const TermVec & terms,
                    const std::vector<Z3_ast> & args)
 {
-  const unsigned n = narrow_num_args(args.size());
+  const unsigned n = backend::narrow_num_args(args.size());
   Z3_ast res;
   switch (op.prim_op)
   {
@@ -270,7 +271,7 @@ Term variadic_term(const AbsSmtSolver * solver,
     case Plus: res = Z3_mk_add(*ctx, n, args.data()); break;
     case Minus: res = Z3_mk_sub(*ctx, n, args.data()); break;
     case Mult: res = Z3_mk_mul(*ctx, n, args.data()); break;
-    default: return make_nary_term(solver, op, terms);
+    default: return backend::make_nary_term(solver, op, terms);
   }
   return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
 }
@@ -305,14 +306,14 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (!bool_option_value(option, value))
+    if (!backend::bool_option_value(option, value))
     {
       throw NotImplementedException("Z3 cannot turn off " + option);
     }
   }
   else if (option == "produce-models")
   {
-    bool on = bool_option_value(option, value);
+    bool on = backend::bool_option_value(option, value);
     solver_params.set("model", on);
     models_off = !on;
   }
@@ -322,16 +323,17 @@ void Z3Solver::set_opt(const std::string option, const std::string value)
     // value means none.
     solver_params.set("timeout",
                       static_cast<unsigned>(std::min<std::uint64_t>(
-                          time_limit_milliseconds(value),
+                          backend::time_limit_milliseconds(value),
                           std::numeric_limits<unsigned>::max())));
   }
   else if (option == "produce-unsat-assumptions")
   {
-    solver_params.set("unsat_core", bool_option_value(option, value));
+    solver_params.set("unsat_core", backend::bool_option_value(option, value));
   }
   else if (option == "produce-proofs")
   {
-    solver_params.set(option.c_str(), bool_option_value(option, value));
+    solver_params.set(option.c_str(),
+                      backend::bool_option_value(option, value));
   }
   else
   {
@@ -409,7 +411,7 @@ void Z3Solver::add_constructor(z3::sort dtsort,
   }
   cs->add(ctx->str_symbol(cname.c_str()),
           ctx->str_symbol(recognizer.c_str()),
-          detail::narrow<unsigned>(fieldnames.size(), "a number of fields"),
+          backend::narrow<unsigned>(fieldnames.size(), "a number of fields"),
           fieldnames.data(),
           sorts.data());
 }
@@ -417,7 +419,7 @@ void Z3Solver::add_constructor(z3::sort dtsort,
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
 try
 {
-  std::shared_ptr<Z3DatatypeDecl> cd = backend_pointer_cast<Z3DatatypeDecl>(d);
+  std::shared_ptr<Z3DatatypeDecl> cd = backend::pointer_cast<Z3DatatypeDecl>(d);
   // as SMT-LIB declares a datatype once
   if (cd->used)
   {
@@ -459,7 +461,7 @@ SortVec Z3Solver::make_datatype_sorts(
   for (auto & absdecl : decls)
   {
     std::shared_ptr<Z3DatatypeDecl> decl =
-        backend_pointer_cast<Z3DatatypeDecl>(absdecl);
+        backend::pointer_cast<Z3DatatypeDecl>(absdecl);
     // as SMT-LIB declares a datatype once
     if (decl->used)
     {
@@ -482,7 +484,7 @@ SortVec Z3Solver::make_datatype_sorts(
     consvec.push_back(std::move(cs));
   }
   auto raw_sorts = ctx->datatypes(
-      detail::narrow<unsigned>(decls.size(), "a number of datatypes"),
+      backend::narrow<unsigned>(decls.size(), "a number of datatypes"),
       syms.data(),
       clpvec.data());
   for (const auto & decl : z3_decls)
@@ -520,9 +522,9 @@ void Z3Solver::add_constructor(DatatypeDecl & dt,
                                const DatatypeConstructorDecl & cons) const
 try
 {
-  auto z3dt = backend_pointer_cast<Z3DatatypeDecl>(dt);
+  auto z3dt = backend::pointer_cast<Z3DatatypeDecl>(dt);
   z3dt->consvec.push_back(
-      backend_pointer_cast<Z3DatatypeConstructorDecl>(cons));
+      backend::pointer_cast<Z3DatatypeConstructorDecl>(cons));
 }
 catch (const z3::exception & e)
 {
@@ -534,7 +536,7 @@ void Z3Solver::add_selector(DatatypeConstructorDecl & dt,
                             const Sort & s) const
 try
 {
-  auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
+  auto cdt = backend::pointer_cast<Z3DatatypeConstructorDecl>(dt);
   cdt->selectors.emplace_back(name, get_z3_sort(s)->get_z3_type());
 }
 catch (const z3::exception & e)
@@ -546,7 +548,7 @@ void Z3Solver::add_selector_self(DatatypeConstructorDecl & dt,
                                  const std::string & name) const
 try
 {
-  auto cdt = backend_pointer_cast<Z3DatatypeConstructorDecl>(dt);
+  auto cdt = backend::pointer_cast<Z3DatatypeConstructorDecl>(dt);
   cdt->selectors.emplace_back(name, z3::sort(*ctx));
 }
 catch (const z3::exception & e)
@@ -592,7 +594,7 @@ Term Z3Solver::get_selector(const Sort & s,
                             std::string name) const
 {
   auto cons = get_constructor(s, con);
-  auto func = backend_pointer_cast<Z3Term>(cons)->get_z3_func_decl();
+  auto func = backend::pointer_cast<Z3Term>(cons)->get_z3_func_decl();
   for (auto field : func.accessors())
   {
     if (field.name().str() == name) return std::make_shared<Z3Term>(ctx, field);
@@ -614,7 +616,7 @@ Term Z3Solver::make_term(int64_t i, const Sort & sort) const
   }
   else if (sk == BV)
   {
-    z_term = ctx->bv_val(i, narrow_width(sort->get_width()));
+    z_term = ctx->bv_val(i, backend::narrow_width(sort->get_width()));
   }
   else
   {
@@ -640,29 +642,29 @@ Term Z3Solver::make_term(const std::string val,
     std::uint64_t width = sort->get_width();
     if (width <= 64)
     {
-      z_term = ctx->bv_val(detail::bv_value_to_uint64(val, base, width),
-                           narrow_width(width));
+      z_term = ctx->bv_val(backend::bv_value_to_uint64(val, base, width),
+                           backend::narrow_width(width));
     }
     else
     {
       std::vector<std::uint32_t> words =
-          detail::bv_value_to_words(val, base, width);
+          backend::bv_value_to_words(val, base, width);
       // Z3 reads bits[0] as the lowest bit
       std::valarray<bool> bits(false, width);
       for (std::uint64_t i = 0; i < width; ++i)
       {
         bits[i] = (words[i / 32] >> (i % 32)) & 1;
       }
-      z_term = ctx->bv_val(narrow_width(width), &bits[0]);
+      z_term = ctx->bv_val(backend::narrow_width(width), &bits[0]);
     }
   }
   else if (sk == REAL || sk == INT)
   {
-    std::string decimal = arith_value_to_decimal(sk, val, base);
+    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
     // Z3 reads "" and "-" as 0, and "1.2.3" as some Real
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!is_arith_number(sk, decimal))
+    if (!backend::is_arith_number(sk, decimal))
     {
       throw IncorrectUsageException(msg);
     }
@@ -811,7 +813,7 @@ catch (const z3::exception & e)
 void Z3Solver::do_pop(uint64_t num)
 try
 {
-  get_z3_solver()->pop(narrow_levels(num));
+  get_z3_solver()->pop(backend::narrow_levels(num));
 }
 catch (const z3::exception & e)
 {
@@ -889,7 +891,7 @@ try
                                   + ", which has no constant base");
   }
 
-  return store_chain_values(stores);
+  return backend::store_chain_values(stores);
 }
 catch (const z3::exception & e)
 {
@@ -924,10 +926,10 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
 {
   // an instance of a sort constructor is an uninterpreted Z3 sort of an
   // internal name, which a user sort of that name would be
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException("Sort name " + name + " starts with "
-                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + std::string(backend::INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
   if (arity)
@@ -997,7 +999,8 @@ try
 {
   if (sk == BV)
   {
-    return std::make_shared<Z3Sort>(ctx, ctx->bv_sort(narrow_width(size)));
+    return std::make_shared<Z3Sort>(ctx,
+                                    ctx->bv_sort(backend::narrow_width(size)));
   }
   else
   {
@@ -1020,7 +1023,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     // arity is one less, because last sort is return sort
-    unsigned arity = narrow_num_args(sorts.size() - 1);
+    unsigned arity = backend::narrow_num_args(sorts.size() - 1);
 
     std::vector<z3::sort> zsorts;
     zsorts.reserve(arity);
@@ -1061,10 +1064,10 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   }
   // print_term writes an instance's internal name as the applied sort, so a
   // symbol of that name would print as the sort
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException("Symbol name " + name + " starts with "
-                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + std::string(backend::INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
 
@@ -1076,10 +1079,11 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   if (zsort->get_sort_kind() == FUNCTION)
   {
     // nb this is creating a func_decl
-    z3::func_decl z_func = ctx->function(c,
-                                         narrow_num_args(zsort->domain.size()),
-                                         zsort->domain.data(),
-                                         zsort->range);
+    z3::func_decl z_func =
+        ctx->function(c,
+                      backend::narrow_num_args(zsort->domain.size()),
+                      zsort->domain.data(),
+                      zsort->range);
     sym = std::make_shared<Z3Term>(ctx, z_func);
   }
   else
@@ -1129,7 +1133,7 @@ try
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    check_quantifier_binders(op, terms);
+    backend::check_quantifier_binders(op, terms);
   }
 
   if (size == 1)
@@ -1185,8 +1189,8 @@ try
       msg += terms[0]->to_string();
       throw IncorrectUsageException(msg);
     }
-    res =
-        Z3_mk_app(*ctx, zfun->z_func, narrow_num_args(size - 1), zargs.data());
+    res = Z3_mk_app(
+        *ctx, zfun->z_func, backend::narrow_num_args(size - 1), zargs.data());
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
@@ -1339,20 +1343,20 @@ std::shared_ptr<z3::solver> Z3Solver::get_z3_solver()
 
 std::shared_ptr<Z3Sort> Z3Solver::get_z3_sort(const Sort & s) const
 {
-  std::shared_ptr<Z3Sort> zs = backend_pointer_cast<Z3Sort>(s);
+  std::shared_ptr<Z3Sort> zs = backend::pointer_cast<Z3Sort>(s);
   if (zs->ctx != ctx)
   {
-    detail::throw_foreign_handle(s);
+    backend::throw_foreign_pointer(s);
   }
   return zs;
 }
 
 std::shared_ptr<Z3Term> Z3Solver::get_z3_term(const Term & t) const
 {
-  std::shared_ptr<Z3Term> zt = backend_pointer_cast<Z3Term>(t);
+  std::shared_ptr<Z3Term> zt = backend::pointer_cast<Z3Term>(t);
   if (zt->ctx != ctx)
   {
-    detail::throw_foreign_handle(t);
+    backend::throw_foreign_pointer(t);
   }
   return zt;
 }

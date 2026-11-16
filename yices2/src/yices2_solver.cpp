@@ -33,7 +33,6 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 #include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_sort.h"
 #include "smt-switch/yices2_term.h"
@@ -304,20 +303,21 @@ term_t unary_term(const Op & op, term_t a)
       return yices_divides_atom(
           yices_parse_rational(std::to_string(op.indices[0]).c_str()), a);
     case Extract:
-      return yices_bvextract(
-          a, narrow_index(op, op.indices[1]), narrow_index(op, op.indices[0]));
+      return yices_bvextract(a,
+                             backend::narrow_index(op, op.indices[1]),
+                             backend::narrow_index(op, op.indices[0]));
     case BVNot: return yices_bvnot(a);
     case BVNeg: return yices_bvneg(a);
     case Zero_Extend:
-      return yices_zero_extend(a, narrow_index(op, op.indices[0]));
+      return yices_zero_extend(a, backend::narrow_index(op, op.indices[0]));
     case Sign_Extend:
-      return yices_sign_extend(a, narrow_index(op, op.indices[0]));
+      return yices_sign_extend(a, backend::narrow_index(op, op.indices[0]));
     case Repeat:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      return yices_bvrepeat(a, narrow_index(op, op.indices[0]));
+      return yices_bvrepeat(a, backend::narrow_index(op, op.indices[0]));
     case Rotate_Left:
     case Rotate_Right: {
       if (!yices_term_is_bitvector(a))
@@ -326,7 +326,8 @@ term_t unary_term(const Op & op, term_t a)
                                       + " to a non-bit-vector term");
       }
       // Yices2 rotates by at most the width, SMT-LIB by any amount
-      std::uint32_t n = narrow_index(op, op.indices[0] % yices_term_bitsize(a));
+      std::uint32_t n =
+          backend::narrow_index(op, op.indices[0] % yices_term_bitsize(a));
       return op.prim_op == Rotate_Left ? yices_rotate_left(a, n)
                                        : yices_rotate_right(a, n);
     }
@@ -358,7 +359,7 @@ term_t unary_term(const Op & op, term_t a)
         throw NotImplementedException(
             "Yices2 has no int_to_bv, so it can only apply it to an Int value");
       }
-      const uint32_t width = narrow_index(op, op.indices[0]);
+      const uint32_t width = backend::narrow_index(op, op.indices[0]);
       mpq_t value;
       mpq_init(value);
       yices_rational_const_value(a, value);
@@ -431,7 +432,7 @@ term_t binary_term(PrimOp po, term_t a, term_t b)
 
 /** The term of op applied to terms, three or more, whose Yices2 terms are
  *  args, in a single Yices2 call where Yices2 has one and through
- *  make_nary_term otherwise
+ *  backend::make_nary_term otherwise
  *
  *  Some of the calls may modify args.
  */
@@ -440,7 +441,7 @@ Term variadic_term(const AbsSmtSolver * solver,
                    const TermVec & terms,
                    std::vector<term_t> & args)
 {
-  const uint32_t n = narrow_num_args(args.size());
+  const uint32_t n = backend::narrow_num_args(args.size());
   term_t * a = args.data();
   term_t res;
   switch (op.prim_op)
@@ -466,7 +467,7 @@ Term variadic_term(const AbsSmtSolver * solver,
       break;
     case BVAdd: res = yices_bvsum(n, a); break;
     case BVMul: res = yices_bvproduct(n, a); break;
-    default: return make_nary_term(solver, op, terms);
+    default: return backend::make_nary_term(solver, op, terms);
   }
   return checked_term(res);
 }
@@ -485,7 +486,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models" || option == "produce-unsat-assumptions")
   {
-    if (!bool_option_value(option, value))
+    if (!backend::bool_option_value(option, value))
     {
       throw NotImplementedException("Yices2 cannot turn off " + option);
     }
@@ -501,11 +502,11 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
     yices_set_config(
         config,
         "mode",
-        bool_option_value(option, value) ? "push-pop" : "one-shot");
+        backend::bool_option_value(option, value) ? "push-pop" : "one-shot");
   }
   else if (option == "time-limit")
   {
-    time_limit = time_limit_seconds(value);
+    time_limit = backend::time_limit_seconds(value);
   }
   else if (option == "produce-unsat-model-interpolants")
   {
@@ -516,7 +517,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "first assertion, check or push");
     }
     const char * yices_value =
-        bool_option_value(option, value) ? "true" : "false";
+        backend::bool_option_value(option, value) ? "true" : "false";
     if (yices_set_config(config, "model-interpolation", yices_value) < 0)
     {
       Yices2InstanceRef::throw_error();
@@ -612,7 +613,7 @@ Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
   }
   else if (sk == BV)
   {
-    y_term = yices_bvconst_int64(narrow_width(sort->get_width()), i);
+    y_term = yices_bvconst_int64(backend::narrow_width(sort->get_width()), i);
   }
   else
   {
@@ -636,18 +637,19 @@ Term Yices2Solver::make_term(const std::string val,
   if (sk == BV)
   {
     std::uint64_t width = sort->get_width();
-    y_term =
-        width <= 64
-            ? yices_bvconst_uint64(narrow_width(width),
-                                   detail::bv_value_to_uint64(val, base, width))
-            : yices_parse_bvbin(bv_value_to_bits(val, base, sort).c_str());
+    y_term = width <= 64
+                 ? yices_bvconst_uint64(
+                       backend::narrow_width(width),
+                       backend::bv_value_to_uint64(val, base, width))
+                 : yices_parse_bvbin(
+                       backend::bv_value_to_bits(val, base, sort).c_str());
   }
   else if (sk == REAL)
   {
-    std::string decimal = arith_value_to_decimal(sk, val, base);
+    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!is_arith_number(REAL, decimal))
+    if (!backend::is_arith_number(REAL, decimal))
     {
       throw IncorrectUsageException(msg);
     }
@@ -665,11 +667,11 @@ Term Yices2Solver::make_term(const std::string val,
   }
   else if (sk == INT)
   {
-    std::string decimal = arith_value_to_decimal(sk, val, base);
+    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
     // yices_parse_rational reads "+-5"
-    if (!is_arith_number(INT, decimal))
+    if (!backend::is_arith_number(INT, decimal))
     {
       throw IncorrectUsageException(msg);
     }
@@ -705,8 +707,8 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
                                   + sort->to_string()
                                   + ", which is not an array sort");
   }
-  std::shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
-  std::shared_ptr<Yices2Term> yval = backend_pointer_cast<Yices2Term>(val);
+  std::shared_ptr<Yices2Sort> ysort = backend::pointer_cast<Yices2Sort>(sort);
+  std::shared_ptr<Yices2Term> yval = backend::pointer_cast<Yices2Term>(val);
 
   // a variable, not an uninterpreted term, as yices_lambda takes only the
   // first; the same one each time, so Yices finds an equal lambda it made
@@ -722,7 +724,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
 
 void Yices2Solver::do_assert(const Term & t)
 {
-  std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
+  std::shared_ptr<Yices2Term> yterm = backend::pointer_cast<Yices2Term>(t);
   yices_assert_formula(get_context().get(), yterm->term);
   if (yices_error_code() != 0)
   {
@@ -766,12 +768,12 @@ Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
   y_assumps.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    y_assumps.push_back(backend_pointer_cast<Yices2Term>(a)->term);
+    y_assumps.push_back(backend::pointer_cast<Yices2Term>(a)->term);
   }
 
   // Narrowed before the timer is claimed, which a throw would leave claimed
   const uint32_t num_assumps =
-      detail::narrow<uint32_t>(y_assumps.size(), "a number of assumptions");
+      backend::narrow<uint32_t>(y_assumps.size(), "a number of assumptions");
   timelimit_start();
   smt_status_t res = yices_check_context_with_assumptions(
       get_context().get(), NULL, num_assumps, y_assumps.data());
@@ -844,7 +846,7 @@ void Yices2Solver::do_pop(uint64_t num)
 
 Term Yices2Solver::get_value(const Term & t) const
 {
-  std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
+  std::shared_ptr<Yices2Term> yterm = backend::pointer_cast<Yices2Term>(t);
   std::unique_ptr<model_t, decltype(&yices_free_model)> model(
       ctx ? yices_get_model(ctx.get(), true) : nullptr, &yices_free_model);
   if (!model)
@@ -895,7 +897,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
                                                 Term & out_const_base) const
 {
   out_const_base = nullptr;
-  std::shared_ptr<Yices2Term> yarr = backend_pointer_cast<Yices2Term>(arr);
+  std::shared_ptr<Yices2Term> yarr = backend::pointer_cast<Yices2Term>(arr);
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
@@ -1011,7 +1013,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
 {
   if (arity)
   {
-    std::uint32_t n = detail::narrow<std::uint32_t>(arity, "an arity");
+    std::uint32_t n = backend::narrow<std::uint32_t>(arity, "an arity");
     std::int32_t constructor_id = yices_type_constructor(name.c_str(), n);
     if (constructor_id < 0)
     {
@@ -1032,7 +1034,8 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
 
 Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
-  std::shared_ptr<Yices2Sort> ycon = backend_pointer_cast<Yices2Sort>(sort_con);
+  std::shared_ptr<Yices2Sort> ycon =
+      backend::pointer_cast<Yices2Sort>(sort_con);
   if (ycon->get_sort_kind() != UNINTERPRETED_CONS)
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
@@ -1048,7 +1051,7 @@ Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
   std::vector<type_t> params;
   for (const Sort & s : sorts)
   {
-    params.push_back(backend_pointer_cast<Yices2Sort>(s)->get_ytype());
+    params.push_back(backend::pointer_cast<Yices2Sort>(s)->get_ytype());
   }
   // Yices gives back the type it made for the same arguments
   type_t y_sort = yices_instance_type(
@@ -1097,7 +1100,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
 
   if (sk == BV)
   {
-    y_sort = yices_bv_type(narrow_width(size));
+    y_sort = yices_bv_type(backend::narrow_width(size));
   }
   else
   {
@@ -1125,7 +1128,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     }
 
     // arity is one less, because last sort is return sort
-    uint32_t arity = narrow_num_args(sorts.size() - 1);
+    uint32_t arity = backend::narrow_num_args(sorts.size() - 1);
 
     std::vector<type_t> ysorts;
 
@@ -1134,19 +1137,21 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     type_t ys;
     for (uint32_t i = 0; i < arity; i++)
     {
-      ys = backend_pointer_cast<Yices2Sort>(sorts[i])->get_ytype();
+      ys = backend::pointer_cast<Yices2Sort>(sorts[i])->get_ytype();
       ysorts.push_back(ys);
     }
 
     Sort sort = sorts.back();
-    ys = backend_pointer_cast<Yices2Sort>(sort)->get_ytype();
+    ys = backend::pointer_cast<Yices2Sort>(sort)->get_ytype();
 
     y_sort = yices_function_type(arity, ysorts.data(), ys);
   }
   else if (sk == ARRAY && sorts.size() == 2)
   {
-    std::shared_ptr<Yices2Sort> s1 = backend_pointer_cast<Yices2Sort>(sorts[0]);
-    std::shared_ptr<Yices2Sort> s2 = backend_pointer_cast<Yices2Sort>(sorts[1]);
+    std::shared_ptr<Yices2Sort> s1 =
+        backend::pointer_cast<Yices2Sort>(sorts[0]);
+    std::shared_ptr<Yices2Sort> s2 =
+        backend::pointer_cast<Yices2Sort>(sorts[1]);
     y_sort = yices_function_type1(s1->get_ytype(), s2->get_ytype());
   }
   else
@@ -1171,7 +1176,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
     throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
 
-  std::shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
+  std::shared_ptr<Yices2Sort> ysort = backend::pointer_cast<Yices2Sort>(sort);
   term_t y_term = yices_new_uninterpreted_term(ysort->get_ytype());
   yices_set_term_name(y_term, name.c_str());
 
@@ -1196,7 +1201,7 @@ Term Yices2Solver::get_symbol(const std::string & name) const
 
 Term Yices2Solver::make_param(const std::string name, const Sort & sort) const
 {
-  std::shared_ptr<Yices2Sort> ysort = backend_pointer_cast<Yices2Sort>(sort);
+  std::shared_ptr<Yices2Sort> ysort = backend::pointer_cast<Yices2Sort>(sort);
   // a variable, not an uninterpreted term: this is the one a quantifier can
   // bind, and the only one yices_forall and yices_lambda accept
   term_t y_term = yices_new_variable(ysort->get_ytype());
@@ -1217,7 +1222,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   yterms.reserve(size);
   for (const auto & t : terms)
   {
-    yterms.push_back(backend_pointer_cast<Yices2Term>(t)->term);
+    yterms.push_back(backend::pointer_cast<Yices2Term>(t)->term);
   }
 
   term_t res;
@@ -1242,7 +1247,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
     }
     // the first term is the function, applied to the rest
     res = yices_application(
-        yterms[0], narrow_num_args(size - 1), yterms.data() + 1);
+        yterms[0], backend::narrow_num_args(size - 1), yterms.data() + 1);
   }
   else if (size == 2)
   {
@@ -1308,7 +1313,7 @@ void Yices2Solver::dump_smt2(std::string filename) const
 Term Yices2Solver::substitute(const Term term,
                               const UnorderedTermMap & substitution_map) const
 {
-  std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(term);
+  std::shared_ptr<Yices2Term> yterm = backend::pointer_cast<Yices2Term>(term);
 
   std::vector<term_t> to_subst;
   std::vector<term_t> values;
@@ -1318,7 +1323,7 @@ Term Yices2Solver::substitute(const Term term,
 
   for (auto elem : substitution_map)
   {
-    tmp_key = backend_pointer_cast<Yices2Term>(elem.first);
+    tmp_key = backend::pointer_cast<Yices2Term>(elem.first);
     // Yices2 keeps arithmetic as normalised polynomials, so another key need
     // not occur in the term even where it was used to build it
     term_constructor_t tc = yices_term_constructor(tmp_key->term);
@@ -1330,13 +1335,13 @@ Term Yices2Solver::substitute(const Term term,
     }
 
     to_subst.push_back(tmp_key->term);
-    tmp_val = backend_pointer_cast<Yices2Term>(elem.second);
+    tmp_val = backend::pointer_cast<Yices2Term>(elem.second);
 
     values.push_back(tmp_val->term);
   }
 
   term_t res = yices_subst_term(
-      detail::narrow<uint32_t>(to_subst.size(), "a number of substitutions"),
+      backend::narrow<uint32_t>(to_subst.size(), "a number of substitutions"),
       to_subst.data(),
       values.data(),
       yterm->term);

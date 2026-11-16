@@ -26,10 +26,10 @@
 #include "smt-switch/datatype.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -85,8 +85,9 @@ bool PrintingDatatypeConstructorDecl::compare(
 bool PrintingDatatypeConstructorDecl::less(
     const DatatypeConstructorDecl & d) const
 {
-  return wrapped_decl < backend_pointer_cast<PrintingDatatypeConstructorDecl>(d)
-                            ->wrapped_decl;
+  return wrapped_decl
+         < backend::pointer_cast<PrintingDatatypeConstructorDecl>(d)
+               ->wrapped_decl;
 }
 
 PrintingDatatypeDecl::PrintingDatatypeDecl(DatatypeDecl wrapped, std::string n)
@@ -131,7 +132,7 @@ Sort PrintingSolver::make_sort(const std::string name,
 Sort PrintingSolver::make_sort(const DatatypeDecl & d) const
 {
   std::shared_ptr<PrintingDatatypeDecl> pd =
-      backend_pointer_cast<PrintingDatatypeDecl>(d);
+      backend::pointer_cast<PrintingDatatypeDecl>(d);
   Sort res = wrapped_solver->make_sort(pd->wrapped_decl);
   (*out_stream) << smtlib::declare_datatypes({ res }) << std::endl;
   return res;
@@ -145,7 +146,7 @@ SortVec PrintingSolver::make_datatype_sorts(
   for (const DatatypeDecl & d : decls)
   {
     wrapped_decls.push_back(
-        backend_pointer_cast<PrintingDatatypeDecl>(d)->wrapped_decl);
+        backend::pointer_cast<PrintingDatatypeDecl>(d)->wrapped_decl);
   }
   SortVec res = wrapped_solver->make_datatype_sorts(wrapped_decls);
   (*out_stream) << smtlib::declare_datatypes(res) << std::endl;
@@ -169,9 +170,9 @@ void PrintingSolver::add_constructor(DatatypeDecl & dt,
                                      const DatatypeConstructorDecl & con) const
 {
   std::shared_ptr<PrintingDatatypeDecl> pdt =
-      backend_pointer_cast<PrintingDatatypeDecl>(dt);
+      backend::pointer_cast<PrintingDatatypeDecl>(dt);
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
-      backend_pointer_cast<PrintingDatatypeConstructorDecl>(con);
+      backend::pointer_cast<PrintingDatatypeConstructorDecl>(con);
   wrapped_solver->add_constructor(pdt->wrapped_decl, pcon->wrapped_decl);
 }
 
@@ -180,7 +181,7 @@ void PrintingSolver::add_selector(DatatypeConstructorDecl & dt,
                                   const Sort & s) const
 {
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
-      backend_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
+      backend::pointer_cast<PrintingDatatypeConstructorDecl>(dt);
   wrapped_solver->add_selector(pcon->wrapped_decl, name, s);
 }
 
@@ -188,7 +189,7 @@ void PrintingSolver::add_selector_self(DatatypeConstructorDecl & dt,
                                        const std::string & name) const
 {
   std::shared_ptr<PrintingDatatypeConstructorDecl> pcon =
-      backend_pointer_cast<PrintingDatatypeConstructorDecl>(dt);
+      backend::pointer_cast<PrintingDatatypeConstructorDecl>(dt);
   wrapped_solver->add_selector_self(pcon->wrapped_decl, name);
 }
 

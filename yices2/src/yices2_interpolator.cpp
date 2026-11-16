@@ -47,7 +47,7 @@ void Yices2Interpolator::do_set_opt(const std::string & option,
 {
   if (option == "produce-unsat-model-interpolants")
   {
-    if (!bool_option_value(option, value))
+    if (!backend::bool_option_value(option, value))
     {
       throw IncorrectUsageException(
           "Yices2 interpolator cannot set " + option + " to " + value
@@ -113,7 +113,7 @@ Result Yices2Interpolator::compute_interpolant(const Term & A,
     // unsat with no model interpolant: B has no model left
     if (!model_interpolant)
     {
-      term_t I = yices_and(narrow_num_args(model_interpolants.size()),
+      term_t I = yices_and(backend::narrow_num_args(model_interpolants.size()),
                            model_interpolants.data());
       if (I == NULL_TERM)
       {
@@ -210,7 +210,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
       ctx_a,
       nullptr,
       model_b.get(),
-      detail::narrow<uint32_t>(shared.size(), "a number of shared symbols"),
+      backend::narrow<uint32_t>(shared.size(), "a number of shared symbols"),
       shared.data());
   if (status_a == YICES_STATUS_SAT)
   {

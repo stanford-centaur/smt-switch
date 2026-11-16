@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -43,7 +43,7 @@ bool LoggingDatatypeConstructorDecl::compare(
 bool LoggingDatatypeConstructorDecl::less(
     const DatatypeConstructorDecl & d) const
 {
-  return wrapped_decl < backend_pointer_cast<LoggingDatatypeConstructorDecl>(d)
+  return wrapped_decl < backend::pointer_cast<LoggingDatatypeConstructorDecl>(d)
                             ->wrapped_decl;
 }
 
@@ -127,7 +127,7 @@ bool LoggingDatatype::compare(const Datatype & d) const
 bool LoggingDatatype::less(const Datatype & d) const
 {
   return wrapped_datatype
-         < backend_pointer_cast<LoggingDatatype>(d)->wrapped_datatype;
+         < backend::pointer_cast<LoggingDatatype>(d)->wrapped_datatype;
 }
 
 }  // namespace smt

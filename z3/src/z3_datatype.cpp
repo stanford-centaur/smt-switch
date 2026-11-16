@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/z3_sort.h"
 
 namespace smt {
@@ -61,8 +61,8 @@ std::size_t Z3DatatypeConstructorDecl::hash() const
     // a self selector's null sort has no id
     std::size_t sort_id =
         static_cast<Z3_sort>(sel.second) == nullptr ? 0 : sel.second.id();
-    detail::hash_combine(h, sel.first);
-    detail::hash_combine(h, sort_id);
+    backend::hash_combine(h, sel.first);
+    backend::hash_combine(h, sort_id);
   }
   return h;
 }
@@ -89,7 +89,7 @@ bool Z3DatatypeConstructorDecl::compare(const DatatypeConstructorDecl & d) const
 
 bool Z3DatatypeConstructorDecl::less(const DatatypeConstructorDecl & d) const
 {
-  auto other = backend_pointer_cast<Z3DatatypeConstructorDecl>(d);
+  auto other = backend::pointer_cast<Z3DatatypeConstructorDecl>(d);
   if (constructorname != other->constructorname)
   {
     return constructorname < other->constructorname;
@@ -205,7 +205,7 @@ bool Z3Datatype::compare(const Datatype & d) const
 bool Z3Datatype::less(const Datatype & d) const
 {
   // Ids are unique only within a context, so the context comes first.
-  auto other = backend_pointer_cast<Z3Datatype>(d);
+  auto other = backend::pointer_cast<Z3Datatype>(d);
   if (c != other->c)
   {
     return std::less<Z3Context *>{}(c.get(), other->c.get());

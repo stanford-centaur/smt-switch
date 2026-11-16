@@ -12,7 +12,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -21,7 +23,7 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 
-namespace smt {
+namespace smt::backend {
 
 /** Apply an operator to more than two arguments as SMT-LIB defines it in
  *  terms of applications to two, for a solver that takes no more: fold a
@@ -108,8 +110,6 @@ double time_limit_seconds(const std::string & value);
 std::uint64_t time_limit_milliseconds(const std::string & value);
 
 // The general forms of the checks above, for the kinds no wrapper covers
-namespace detail {
-
 /** Whether an integer of any type has the same value as a T
  *  @param value the value to check
  *  @return true iff value is in T's range
@@ -190,8 +190,6 @@ T narrow(U value, const char * what)
  */
 int make_cloexec_pipe(int (&fds)[2]);
 
-}  // namespace detail
-
 /** The index-value map that a chain of stores over a constant base stands
  *  for, given the index and value each store along it writes. A backend
  *  reads its model by peeling the outer store first, so that is the order
@@ -203,6 +201,66 @@ int make_cloexec_pipe(int (&fds)[2]);
 UnorderedTermMap store_chain_values(
     const std::vector<std::pair<Term, Term>> & stores);
 
-}  // namespace smt
+/** Throws the IncorrectUsageException that pointer_cast raises for
+ *  a pointer made by another solver
+ *  @param h the foreign pointer, named in the message
+ */
+[[noreturn]] void throw_foreign_pointer(const Term & h);
+[[noreturn]] void throw_foreign_pointer(const Sort & h);
+[[noreturn]] void throw_foreign_pointer(const DatatypeDecl & h);
+[[noreturn]] void throw_foreign_pointer(const DatatypeConstructorDecl & h);
+[[noreturn]] void throw_foreign_pointer(const Datatype & h);
+
+/** Mixes a part's hash into one being built up, as Boost's hash_combine
+ *  does: 0x9e3779b9 is 2^32 / golden ratio, whose irregular bits spread
+ *  the value, and the shifts mix in the hash so far, so the order of the
+ *  parts matters and equal parts don't cancel out
+ *  @param h the hash so far, updated in place
+ *  @param v the next part, hashed with std::hash
+ */
+template <class T>
+void hash_combine(std::size_t & h, const T & v)
+{
+  h ^= std::hash<T>{}(v) + 0x9e3779b9 + (h << 6) + (h >> 2);
+}
+
+/** Casts a handle to the class the solver made it as
+ *  @param h the handle a caller passed to the solver
+ *  @return h as a T, or null for a null handle
+ *  @throws IncorrectUsageException if h was made by another solver, or by a
+ *          wrapper around this one
+ */
+template <class T, class Base>
+std::shared_ptr<T> pointer_cast(const std::shared_ptr<Base> & h)
+{
+  std::shared_ptr<T> cast = std::dynamic_pointer_cast<T>(h);
+  if (h && !cast)
+  {
+    throw_foreign_pointer(h);
+  }
+  return cast;
+}
+
+/** The start of every name internal_name makes. A solver that makes such
+ *  names refuses a user name with this start, so the two never meet.
+ */
+inline constexpr std::string_view INTERNAL_NAME_PREFIX = "smt_switch_internal_";
+
+/** A name smt-switch makes up for its own use, such as
+ *  `smt_switch_internal_assump_3`
+ *  @param kind what the name is for, which keeps names of different kinds
+ *  apart
+ *  @param index which name of that kind it is
+ *  @return INTERNAL_NAME_PREFIX, then `kind`, an underscore and `index`
+ */
+std::string internal_name(const std::string & kind, std::uint64_t index);
+
+/** Whether a name starts with INTERNAL_NAME_PREFIX
+ *  @param name the name to check
+ *  @return true if internal_name could have made it
+ */
+bool is_internal_name(std::string_view name);
+
+}  // namespace smt::backend
 
 #endif  // SMT_SWITCH_SOLVER_UTILS_H

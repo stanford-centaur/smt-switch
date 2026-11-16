@@ -33,7 +33,7 @@ namespace {
  * only finds the library already loaded. A static libsmt-switch loads
  * none.
  */
-[[maybe_unused]] const detail::BackendFactory & load_backend(
+[[maybe_unused]] const backend::Factory & load_backend(
     const std::string & suffix)
 {
 #ifdef SMT_SWITCH_LOAD_BACKENDS
@@ -78,7 +78,7 @@ namespace {
                             + dlerror());
     }
   }
-  return *static_cast<const detail::BackendFactory *>(symbol);
+  return *static_cast<const backend::Factory *>(symbol);
 #else
   throw NotImplementedException("smt-switch was built without the " + suffix
                                 + " backend");
@@ -86,48 +86,48 @@ namespace {
 }
 
 /* The backend of a solver or its interpolator */
-const detail::BackendFactory & backend(SolverEnum se)
+const backend::Factory & factory_for(SolverEnum se)
 {
   // no default, so that -Wswitch reports an enumerator without a case
   switch (se)
   {
     case BTOR:
 #ifdef SMT_SWITCH_STATIC_BACKEND_BTOR
-      return detail::smt_switch_backend_btor;
+      return backend::smt_switch_backend_btor;
 #else
       return load_backend("btor");
 #endif
     case BZLA:
     case BZLA_INTERPOLATOR:
 #ifdef SMT_SWITCH_STATIC_BACKEND_BITWUZLA
-      return detail::smt_switch_backend_bitwuzla;
+      return backend::smt_switch_backend_bitwuzla;
 #else
       return load_backend("bitwuzla");
 #endif
     case CVC5:
     case CVC5_INTERPOLATOR:
 #ifdef SMT_SWITCH_STATIC_BACKEND_CVC5
-      return detail::smt_switch_backend_cvc5;
+      return backend::smt_switch_backend_cvc5;
 #else
       return load_backend("cvc5");
 #endif
     case MSAT:
     case MSAT_INTERPOLATOR:
 #ifdef SMT_SWITCH_STATIC_BACKEND_MSAT
-      return detail::smt_switch_backend_msat;
+      return backend::smt_switch_backend_msat;
 #else
       return load_backend("msat");
 #endif
     case YICES2:
     case YICES2_INTERPOLATOR:
 #ifdef SMT_SWITCH_STATIC_BACKEND_YICES2
-      return detail::smt_switch_backend_yices2;
+      return backend::smt_switch_backend_yices2;
 #else
       return load_backend("yices2");
 #endif
     case Z3:
 #ifdef SMT_SWITCH_STATIC_BACKEND_Z3
-      return detail::smt_switch_backend_z3;
+      return backend::smt_switch_backend_z3;
 #else
       return load_backend("z3");
 #endif
@@ -149,7 +149,7 @@ SmtSolver create_solver(SolverEnum se, bool logging)
                                   + " is an interpolator; use "
                                     "create_interpolator");
   }
-  return backend(se).create(logging);
+  return factory_for(se).create(logging);
 }
 
 SmtInterpolator create_interpolator(SolverEnum se)
@@ -160,7 +160,7 @@ SmtInterpolator create_interpolator(SolverEnum se)
                                   + " is not an interpolator; use "
                                     "create_solver");
   }
-  const detail::BackendFactory & factory = backend(se);
+  const backend::Factory & factory = factory_for(se);
   if (!factory.create_interpolator)
   {
     throw NotImplementedException("This build of " + to_string(se)
@@ -176,7 +176,7 @@ std::vector<SolverEnum> available_solver_enums()
   {
     try
     {
-      backend(se);
+      factory_for(se);
       available.push_back(se);
     }
     catch (const NotImplementedException &)

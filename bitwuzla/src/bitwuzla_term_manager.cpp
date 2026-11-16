@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -26,7 +26,7 @@ std::size_t BzlaTermManager::InstanceKeyHash::operator()(
   std::size_t h = std::hash<std::uint64_t>{}(key.first);
   for (std::uint64_t id : key.second)
   {
-    detail::hash_combine(h, id);
+    backend::hash_combine(h, id);
   }
   return h;
 }

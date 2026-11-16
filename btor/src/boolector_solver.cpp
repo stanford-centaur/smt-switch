@@ -35,7 +35,6 @@ extern "C" {
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -71,24 +70,25 @@ BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
     case Extract:
       return boolector_slice(btor,
                              a,
-                             narrow_index(op, op.indices[0]),
-                             narrow_index(op, op.indices[1]));
+                             backend::narrow_index(op, op.indices[0]),
+                             backend::narrow_index(op, op.indices[1]));
     case BVNot: return boolector_not(btor, a);
     case BVNeg: return boolector_neg(btor, a);
     case Zero_Extend:
-      return boolector_uext(btor, a, narrow_index(op, op.indices[0]));
+      return boolector_uext(btor, a, backend::narrow_index(op, op.indices[0]));
     case Sign_Extend:
-      return boolector_sext(btor, a, narrow_index(op, op.indices[0]));
+      return boolector_sext(btor, a, backend::narrow_index(op, op.indices[0]));
     case Repeat:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
-      return boolector_repeat(btor, a, narrow_index(op, op.indices[0]));
+      return boolector_repeat(
+          btor, a, backend::narrow_index(op, op.indices[0]));
     case Rotate_Left:
-      return boolector_roli(btor, a, narrow_index(op, op.indices[0]));
+      return boolector_roli(btor, a, backend::narrow_index(op, op.indices[0]));
     case Rotate_Right:
-      return boolector_rori(btor, a, narrow_index(op, op.indices[0]));
+      return boolector_rori(btor, a, backend::narrow_index(op, op.indices[0]));
     default: throw_unsupported(op.prim_op, 1);
   }
 }
@@ -221,10 +221,10 @@ std::shared_ptr<Btor> BoolectorSolver::get_btor() { return btor; }
 BoolectorSort BoolectorSolver::btor_sort(const Sort & s) const
 {
   std::shared_ptr<BoolectorSortBase> bs =
-      backend_pointer_cast<BoolectorSortBase>(s);
+      backend::pointer_cast<BoolectorSortBase>(s);
   if (bs->btor != btor)
   {
-    detail::throw_foreign_handle(s);
+    backend::throw_foreign_pointer(s);
   }
   return bs->sort;
 }
@@ -243,12 +243,13 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models")
   {
-    boolector_set_opt(
-        btor.get(), BTOR_OPT_MODEL_GEN, bool_option_value(option, value));
+    boolector_set_opt(btor.get(),
+                      BTOR_OPT_MODEL_GEN,
+                      backend::bool_option_value(option, value));
   }
   else if (option == "incremental")
   {
-    bool on = bool_option_value(option, value);
+    bool on = backend::bool_option_value(option, value);
     if (!on && unsat_assumptions)
     {
       throw NotImplementedException(
@@ -263,7 +264,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     // Boolector gives unsat assumptions whenever it is incremental, so
     // turning them off leaves Boolector as it is and get_unsat_assumptions
     // refuses instead.
-    if (!bool_option_value(option, value))
+    if (!backend::bool_option_value(option, value))
     {
       unsat_assumptions = false;
       return;
@@ -279,7 +280,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "base-context-1")
   {
-    if (bool_option_value(option, value))
+    if (backend::bool_option_value(option, value))
     {
       base_context_1 = true;
       // pushed directly, so that the context level counts only the caller's
@@ -288,7 +289,8 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "time-limit")
   {
-    time_limit = std::chrono::duration<double>(time_limit_seconds(value));
+    time_limit =
+        std::chrono::duration<double>(backend::time_limit_seconds(value));
   }
   else
   {
@@ -317,11 +319,11 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     else if (value != "false")
     {
       // more digits than the largest 32-bit value has are too many
-      number = is_decimal_numeral(value) && value.size() <= 10
+      number = backend::is_decimal_numeral(value) && value.size() <= 10
                    ? std::stoull(value)
                    : std::numeric_limits<std::uint64_t>::max();
     }
-    if (!detail::fits_in<std::uint32_t>(number))
+    if (!backend::fits_in<std::uint32_t>(number))
     {
       throw IncorrectUsageException(
           "Boolector takes true, false or a number from 0 to 4294967295 for "
@@ -382,7 +384,7 @@ Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 {
   BoolectorSort bs = btor_sort(sort);
   // note: give the constant value a null PrimOp
-  if (detail::fits_in<int32_t>(i))
+  if (backend::fits_in<int32_t>(i))
   {
     return std::make_shared<BoolectorTerm>(
         btor, boolector_int(btor.get(), static_cast<int32_t>(i), bs));
@@ -407,7 +409,7 @@ Term BoolectorSolver::make_term(std::string val,
   // Boolector's own string constructors ignore the sort in base 2, read a
   // minus differently in base 16 and accept malformed numerals, so write
   // out the bits of the value and build that
-  std::string bits = bv_value_to_bits(val, base, sort);
+  std::string bits = backend::bv_value_to_bits(val, base, sort);
   return std::make_shared<BoolectorTerm>(
       btor, boolector_const(btor.get(), bits.c_str()));
 }
@@ -417,7 +419,7 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
   if (sort->get_sort_kind() == ARRAY)
   {
     std::shared_ptr<BoolectorTerm> bt =
-        backend_pointer_cast<BoolectorTerm>(val);
+        backend::pointer_cast<BoolectorTerm>(val);
     return std::make_shared<BoolectorTerm>(
         btor, boolector_const_array(btor.get(), btor_sort(sort), bt->node));
   }
@@ -431,7 +433,7 @@ Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 
 void BoolectorSolver::do_assert(const Term & t)
 {
-  std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(t);
+  std::shared_ptr<BoolectorTerm> bt = backend::pointer_cast<BoolectorTerm>(t);
   boolector_assert(btor.get(), bt->node);
   assertions.push_back(t);
 }
@@ -446,7 +448,7 @@ Result BoolectorSolver::do_check_sat_assuming(const TermVec & assumptions)
   nodes.reserve(assumptions.size());
   for (const Term & a : assumptions)
   {
-    nodes.push_back(backend_pointer_cast<BoolectorTerm>(a)->node);
+    nodes.push_back(backend::pointer_cast<BoolectorTerm>(a)->node);
   }
   // SMT-LIB allows one check_sat_assuming without incremental
   if (!boolector_get_opt(btor.get(), BTOR_OPT_INCREMENTAL))
@@ -509,13 +511,13 @@ void BoolectorSolver::do_push(uint64_t num)
   {
     throw NotImplementedException("Boolector can only push when incremental");
   }
-  boolector_push(btor.get(), narrow_levels(num));
+  boolector_push(btor.get(), backend::narrow_levels(num));
   scope_starts.insert(scope_starts.end(), num, assertions.size());
 }
 
 void BoolectorSolver::do_pop(uint64_t num)
 {
-  boolector_pop(btor.get(), narrow_levels(num));
+  boolector_pop(btor.get(), backend::narrow_levels(num));
   assertions.resize(scope_starts[scope_starts.size() - num]);
   scope_starts.resize(scope_starts.size() - num);
 }
@@ -523,7 +525,7 @@ void BoolectorSolver::do_pop(uint64_t num)
 Term BoolectorSolver::get_value(const Term & t) const
 {
   Term result;
-  std::shared_ptr<BoolectorTerm> bt = backend_pointer_cast<BoolectorTerm>(t);
+  std::shared_ptr<BoolectorTerm> bt = backend::pointer_cast<BoolectorTerm>(t);
   Sort sort = t->get_sort();
   SortKind sk = sort->get_sort_kind();
   if ((sk == BV) || (sk == BOOL))
@@ -578,7 +580,7 @@ UnorderedTermMap BoolectorSolver::get_array_values(const Term & arr,
   UnorderedTermMap assignments;
 
   std::shared_ptr<BoolectorTerm> barr =
-      backend_pointer_cast<BoolectorTerm>(arr);
+      backend::pointer_cast<BoolectorTerm>(arr);
 
   ScopedArrayModel model(btor.get(), barr->node);
   for (uint32_t i = 0; i < model.size; i++)
@@ -642,7 +644,9 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
   if (sk == BV)
   {
     return std::make_shared<BoolectorBVSort>(
-        btor, boolector_bitvec_sort(btor.get(), narrow_width(size)), size);
+        btor,
+        boolector_bitvec_sort(btor.get(), backend::narrow_width(size)),
+        size);
   }
   else
   {
@@ -664,7 +668,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     BoolectorSort btor_return_sort = btor_sort(returnsort);
 
     // arity is one less, because last sort is return sort
-    uint32_t arity = narrow_num_args(sorts.size() - 1);
+    uint32_t arity = backend::narrow_num_args(sorts.size() - 1);
     std::vector<BoolectorSort> btor_sorts;
     btor_sorts.reserve(arity);
     for (size_t i = 0; i < arity; i++)
@@ -707,10 +711,10 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
     throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
   // params are named this way, in the table symbols share
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException("Symbol name " + name + " starts with "
-                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + std::string(backend::INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
 
@@ -762,7 +766,7 @@ Term BoolectorSolver::make_param(const std::string name,
   Term param = std::make_shared<BoolectorTerm>(btor, n);
   // a new node is never negated, so its id is positive
   std::string internal =
-      internal_name(
+      backend::internal_name(
           "param",
           static_cast<std::uint64_t>(boolector_get_node_id(btor.get(), n)))
       + "_" + name;
@@ -781,14 +785,14 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    check_quantifier_binders(op, terms);
+    backend::check_quantifier_binders(op, terms);
   }
 
   std::vector<BoolectorNode *> nodes;
   nodes.reserve(size);
   for (const auto & t : terms)
   {
-    nodes.push_back(backend_pointer_cast<BoolectorTerm>(t)->node);
+    nodes.push_back(backend::pointer_cast<BoolectorTerm>(t)->node);
   }
 
   BoolectorNode * btor_res = nullptr;
@@ -799,8 +803,10 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   else if (op.prim_op == Apply)
   {
     // the first term is the function, applied to the rest
-    btor_res = boolector_apply(
-        btor.get(), nodes.data() + 1, narrow_num_args(size - 1), nodes[0]);
+    btor_res = boolector_apply(btor.get(),
+                               nodes.data() + 1,
+                               backend::narrow_num_args(size - 1),
+                               nodes[0]);
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
@@ -811,7 +817,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     const BtorNodeKind kind =
         op.prim_op == Forall ? BTOR_FORALL_NODE : BTOR_EXISTS_NODE;
     uint32_t num_params =
-        detail::narrow<uint32_t>(size - 1, "a number of params");
+        backend::narrow<uint32_t>(size - 1, "a number of params");
     BtorNode * body = BTOR_IMPORT_BOOLECTOR_NODE(nodes.back());
     while (num_params > 0)
     {
@@ -874,7 +880,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    return make_nary_term(this, op, terms);
+    return backend::make_nary_term(this, op, terms);
   }
 
   return std::make_shared<BoolectorTerm>(btor, btor_res);
@@ -913,7 +919,7 @@ void BoolectorSolver::do_reset_assertions()
   else
   {
     // pop the contexts, and the hidden base context under them
-    boolector_pop(btor.get(), narrow_levels(get_context_level() + 1));
+    boolector_pop(btor.get(), backend::narrow_levels(get_context_level() + 1));
     // push the base context back
     boolector_push(btor.get(), 1);
     assertions.clear();

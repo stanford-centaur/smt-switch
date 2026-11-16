@@ -96,7 +96,7 @@ void AbsSmtInterpolator::set_opt(const std::string option,
     return;
   }
   // no interpolator passes it on to its regular solver
-  incremental_mode = bool_option_value(option, value);
+  incremental_mode = backend::bool_option_value(option, value);
 }
 
 void AbsSmtInterpolator::do_reset_assertions()

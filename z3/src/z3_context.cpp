@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/solver_utils.h"
 
 namespace smt {
 
@@ -56,7 +56,7 @@ std::size_t Z3Context::InstanceKeyHash::operator()(
   std::size_t h = std::hash<std::string>{}(key.first);
   for (unsigned id : key.second)
   {
-    detail::hash_combine(h, id);
+    backend::hash_combine(h, id);
   }
   return h;
 }
@@ -76,7 +76,7 @@ z3::sort Z3Context::add_instance(const std::string & name,
   {
     return it->second;
   }
-  std::string symbol = internal_name("sort", count++);
+  std::string symbol = backend::internal_name("sort", count++);
   z3::sort sort = uninterpreted_sort(symbol.c_str());
   uninterp_sort_cache.emplace(std::move(key), sort);
   uninterp_sort_info.emplace(sort.id(), SortInstance{ name, params });

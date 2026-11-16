@@ -31,7 +31,6 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -273,7 +272,7 @@ msat_term make_bv_value(msat_env e,
                         uint64_t base,
                         uint64_t width)
 {
-  std::vector<uint32_t> words = detail::bv_value_to_words(val, base, width);
+  std::vector<uint32_t> words = backend::bv_value_to_words(val, base, width);
   // msat_make_bv_number reads a string far more slowly
   mpz_t value;
   mpz_init(value);
@@ -474,7 +473,7 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
 
   if (option == "incremental" || option == "produce-unsat-assumptions")
   {
-    if (!bool_option_value(option, value))
+    if (!backend::bool_option_value(option, value))
     {
       throw NotImplementedException("MathSAT cannot turn off " + option);
     }
@@ -482,7 +481,8 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
   }
   if (option == "time-limit")
   {
-    time_limit = std::chrono::duration<double>(time_limit_seconds(value));
+    time_limit =
+        std::chrono::duration<double>(backend::time_limit_seconds(value));
     return;
   }
   if (option == "produce-models")
@@ -490,7 +490,7 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
     // MathSAT also takes 1 and 0 for it, which SMT-LIB does not.
     env_wrapper_.set_option(
         "model_generation",
-        bool_option_value(option, value) ? "true" : "false");
+        backend::bool_option_value(option, value) ? "true" : "false");
     return;
   }
 
@@ -744,10 +744,10 @@ Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 {
   // an instance of a sort constructor is an uninterpreted MathSAT type of an
   // internal name, which a user sort of that name would be
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException("Sort name " + name + " starts with "
-                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + std::string(backend::INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
@@ -944,10 +944,10 @@ Term MsatSolver::make_term(const std::string val,
     }
     else if (sk == REAL || sk == INT)
     {
-      std::string decimal = arith_value_to_decimal(sk, val, base);
+      std::string decimal = backend::arith_value_to_decimal(sk, val, base);
       // msat_make_number reads "" and "-" as 0, and "1/2" as a Real even
       // for an INT
-      if (!is_arith_number(sk, decimal))
+      if (!backend::is_arith_number(sk, decimal))
       {
         throw IncorrectUsageException("");
       }
@@ -1003,10 +1003,10 @@ Term MsatSolver::make_symbol(const std::string name, const Sort & sort)
         "start with it");
   }
   // assumption labels are named this way, in the table symbols share
-  if (is_internal_name(name))
+  if (backend::is_internal_name(name))
   {
     throw IncorrectUsageException("Symbol name " + name + " starts with "
-                                  + std::string(INTERNAL_NAME_PREFIX)
+                                  + std::string(backend::INTERNAL_NAME_PREFIX)
                                   + ", which is reserved for internal use");
   }
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
@@ -1110,7 +1110,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Apply)
   {
-    std::shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(terms[0]);
+    std::shared_ptr<MsatTerm> mterm = backend::pointer_cast<MsatTerm>(terms[0]);
     if (!mterm->is_uf)
     {
       std::string msg(
@@ -1136,7 +1136,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    return make_nary_term(this, op, terms);
+    return backend::make_nary_term(this, op, terms);
   }
 
   if (MSAT_ERROR_TERM(res))
@@ -1268,7 +1268,7 @@ msat_term MsatSolver::label(msat_term p) const
   // contradict an assumed constant that occurs in no remaining clause (e.g.,
   // a = false after (assert c) and assuming a). The label clause keeps the
   // constant in the formula.
-  std::string name = internal_name("assump", msat_term_id(p));
+  std::string name = backend::internal_name("assump", msat_term_id(p));
   msat_decl d =
       msat_declare_function(*env, name.c_str(), msat_get_bool_type(*env));
   // if it already existed, mathsat gives the same symbol
@@ -1334,20 +1334,20 @@ bool MsatSolver::is_initialized() const
 
 std::shared_ptr<MsatTerm> MsatSolver::get_msat_term(const Term & t) const
 {
-  std::shared_ptr<MsatTerm> mterm = backend_pointer_cast<MsatTerm>(t);
+  std::shared_ptr<MsatTerm> mterm = backend::pointer_cast<MsatTerm>(t);
   if (!env_wrapper_.owns(mterm->env))
   {
-    detail::throw_foreign_handle(t);
+    backend::throw_foreign_pointer(t);
   }
   return mterm;
 }
 
 std::shared_ptr<MsatSort> MsatSolver::get_msat_sort(const Sort & s) const
 {
-  std::shared_ptr<MsatSort> msort = backend_pointer_cast<MsatSort>(s);
+  std::shared_ptr<MsatSort> msort = backend::pointer_cast<MsatSort>(s);
   if (!env_wrapper_.owns(msort->env))
   {
-    detail::throw_foreign_handle(s);
+    backend::throw_foreign_pointer(s);
   }
   return msort;
 }

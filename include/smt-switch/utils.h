@@ -9,61 +9,12 @@
 #ifndef SMT_SWITCH_UTILS_H
 #define SMT_SWITCH_UTILS_H
 
-#include <cstddef>
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <string_view>
 #include <unordered_set>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 
 namespace smt {
-
-namespace detail {
-
-/** Throws the IncorrectUsageException that backend_pointer_cast raises for
- *  a handle made by another solver
- *  @param h the foreign handle, named in the message
- */
-[[noreturn]] void throw_foreign_handle(const Term & h);
-[[noreturn]] void throw_foreign_handle(const Sort & h);
-[[noreturn]] void throw_foreign_handle(const DatatypeDecl & h);
-[[noreturn]] void throw_foreign_handle(const DatatypeConstructorDecl & h);
-[[noreturn]] void throw_foreign_handle(const Datatype & h);
-
-/** Mixes a part's hash into one being built up, as Boost's hash_combine
- *  does: 0x9e3779b9 is 2^32 / golden ratio, whose irregular bits spread
- *  the value, and the shifts mix in the hash so far, so the order of the
- *  parts matters and equal parts don't cancel out
- *  @param h the hash so far, updated in place
- *  @param v the next part, hashed with std::hash
- */
-template <class T>
-void hash_combine(std::size_t & h, const T & v)
-{
-  h ^= std::hash<T>{}(v) + 0x9e3779b9 + (h << 6) + (h >> 2);
-}
-
-}  // namespace detail
-
-/** Casts a handle to the class the solver made it as
- *  @param h the handle a caller passed to the solver
- *  @return h as a T, or null for a null handle
- *  @throws IncorrectUsageException if h was made by another solver, or by a
- *          wrapper around this one
- */
-template <class T, class Base>
-std::shared_ptr<T> backend_pointer_cast(const std::shared_ptr<Base> & h)
-{
-  std::shared_ptr<T> cast = std::dynamic_pointer_cast<T>(h);
-  if (h && !cast)
-  {
-    detail::throw_foreign_handle(h);
-  }
-  return cast;
-}
 
 // term helper methods
 void op_partition(PrimOp o, const Term & term, TermVec & out);
@@ -185,26 +136,6 @@ Term cast_term(const SmtSolver & solver, const Term & term, const Sort & sort);
  *          number of arguments
  */
 Term cast_op(const SmtSolver & solver, const Op & op, const TermVec & terms);
-
-/** The start of every name internal_name makes. A solver that makes such
- *  names refuses a user name with this start, so the two never meet.
- */
-inline constexpr std::string_view INTERNAL_NAME_PREFIX = "smt_switch_internal_";
-
-/** A name smt-switch makes up for its own use, such as
- *  `smt_switch_internal_assump_3`
- *  @param kind what the name is for, which keeps names of different kinds
- *  apart
- *  @param index which name of that kind it is
- *  @return INTERNAL_NAME_PREFIX, then `kind`, an underscore and `index`
- */
-std::string internal_name(const std::string & kind, std::uint64_t index);
-
-/** Whether a name starts with INTERNAL_NAME_PREFIX
- *  @param name the name to check
- *  @return true if internal_name could have made it
- */
-bool is_internal_name(std::string_view name);
 
 }  // namespace smt
 

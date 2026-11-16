@@ -30,10 +30,10 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_factory.h"
+#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -369,7 +369,7 @@ TEST_P(GenericSolverTests, SymbolAfterDefinedTerm)
 TEST_P(GenericSolverTests, InternalNamesRefused)
 {
   Sort bool_sort = gs->make_sort(BOOL);
-  std::string name = internal_name("term", 1);
+  std::string name = backend::internal_name("term", 1);
   EXPECT_THROW(gs->make_symbol(name, bool_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_param(name, bool_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_datatype_constructor_decl(name),

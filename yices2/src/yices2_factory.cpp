@@ -52,7 +52,7 @@ SmtInterpolator Yices2SolverFactory::create_interpolating_solver()
   return create_interpolator();
 }
 
-const detail::BackendFactory detail::smt_switch_backend_yices2 = {
+const backend::Factory backend::smt_switch_backend_yices2 = {
   &Yices2SolverFactory::create, &Yices2SolverFactory::create_interpolator
 };
 
