@@ -102,17 +102,17 @@ msat_term unary_term(msat_env e, const Op & op, msat_term a)
   switch (op.prim_op)
   {
     case Not: return msat_make_not(e, a);
-    case Negate: return ext_msat_make_negate(e, a);
-    case Abs: return ext_msat_make_abs(e, a);
-    case To_Real: return ext_msat_make_nop(e, a);
+    case Negate: return detail::ext_msat_make_negate(e, a);
+    case Abs: return detail::ext_msat_make_abs(e, a);
+    case To_Real: return detail::ext_msat_make_nop(e, a);
     case To_Int: return msat_make_floor(e, a);
-    case Is_Int: return ext_msat_is_int(e, a);
+    case Is_Int: return detail::ext_msat_is_int(e, a);
     case Divisible:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
       }
-      return ext_msat_make_divisible(e, op.indices[0], a);
+      return detail::ext_msat_make_divisible(e, op.indices[0], a);
     case Extract:
       return msat_make_bv_extract(e, op.indices[0], op.indices[1], a);
     case BVNot: return msat_make_bv_not(e, a);
@@ -174,28 +174,28 @@ msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
   {
     case And: return msat_make_and(e, a, b);
     case Or: return msat_make_or(e, a, b);
-    case Xor: return ext_msat_make_xor(e, a, b);
-    case Implies: return ext_msat_make_implies(e, a, b);
+    case Xor: return detail::ext_msat_make_xor(e, a, b);
+    case Implies: return detail::ext_msat_make_implies(e, a, b);
     case Equal: return msat_make_eq(e, a, b);
-    case Distinct: return ext_msat_make_distinct(e, a, b);
+    case Distinct: return detail::ext_msat_make_distinct(e, a, b);
     case Plus: return msat_make_plus(e, a, b);
-    case Minus: return ext_msat_make_minus(e, a, b);
+    case Minus: return detail::ext_msat_make_minus(e, a, b);
     case Mult: return msat_make_times(e, a, b);
     case Div: return msat_make_divide(e, a, b);
-    case IntDiv: return ext_msat_make_intdiv(e, a, b);
-    case Lt: return ext_msat_make_lt(e, a, b);
+    case IntDiv: return detail::ext_msat_make_intdiv(e, a, b);
+    case Lt: return detail::ext_msat_make_lt(e, a, b);
     case Le: return msat_make_leq(e, a, b);
-    case Gt: return ext_msat_make_gt(e, a, b);
-    case Ge: return ext_msat_make_geq(e, a, b);
-    case Mod: return ext_msat_make_mod(e, a, b);
-    case Pow: return ext_msat_make_pow(e, a, b);
+    case Gt: return detail::ext_msat_make_gt(e, a, b);
+    case Ge: return detail::ext_msat_make_geq(e, a, b);
+    case Mod: return detail::ext_msat_make_mod(e, a, b);
+    case Pow: return detail::ext_msat_make_pow(e, a, b);
     case Concat: return msat_make_bv_concat(e, a, b);
     case BVAnd: return msat_make_bv_and(e, a, b);
     case BVOr: return msat_make_bv_or(e, a, b);
     case BVXor: return msat_make_bv_xor(e, a, b);
-    case BVNand: return ext_msat_make_bv_nand(e, a, b);
-    case BVNor: return ext_msat_make_bv_nor(e, a, b);
-    case BVXnor: return ext_msat_make_bv_xnor(e, a, b);
+    case BVNand: return detail::ext_msat_make_bv_nand(e, a, b);
+    case BVNor: return detail::ext_msat_make_bv_nor(e, a, b);
+    case BVXnor: return detail::ext_msat_make_bv_xnor(e, a, b);
     case BVComp: return msat_make_bv_comp(e, a, b);
     case BVAdd: return msat_make_bv_plus(e, a, b);
     case BVSub: return msat_make_bv_minus(e, a, b);
@@ -204,18 +204,18 @@ msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
     case BVSdiv: return msat_make_bv_sdiv(e, a, b);
     case BVUrem: return msat_make_bv_urem(e, a, b);
     case BVSrem: return msat_make_bv_srem(e, a, b);
-    case BVSmod: return ext_msat_make_bv_smod(e, a, b);
+    case BVSmod: return detail::ext_msat_make_bv_smod(e, a, b);
     case BVShl: return msat_make_bv_lshl(e, a, b);
     case BVAshr: return msat_make_bv_ashr(e, a, b);
     case BVLshr: return msat_make_bv_lshr(e, a, b);
     case BVUlt: return msat_make_bv_ult(e, a, b);
     case BVUle: return msat_make_bv_uleq(e, a, b);
-    case BVUgt: return ext_msat_make_bv_ugt(e, a, b);
-    case BVUge: return ext_msat_make_bv_ugeq(e, a, b);
+    case BVUgt: return detail::ext_msat_make_bv_ugt(e, a, b);
+    case BVUge: return detail::ext_msat_make_bv_ugeq(e, a, b);
     case BVSlt: return msat_make_bv_slt(e, a, b);
     case BVSle: return msat_make_bv_sleq(e, a, b);
-    case BVSgt: return ext_msat_make_bv_sgt(e, a, b);
-    case BVSge: return ext_msat_make_bv_sgeq(e, a, b);
+    case BVSgt: return detail::ext_msat_make_bv_sgt(e, a, b);
+    case BVSge: return detail::ext_msat_make_bv_sgeq(e, a, b);
     case Select: return msat_make_array_read(e, a, b);
     default: throw_unsupported(po, 2);
   }
@@ -882,7 +882,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     }
     // the first term is the function, applied to the rest
     std::vector<msat_term> margs(mterms.begin() + 1, mterms.end());
-    res = ext_msat_make_uf(*env, mterm->decl, margs);
+    res = detail::ext_msat_make_uf(*env, mterm->decl, margs);
   }
   else if (size == 2)
   {
@@ -890,7 +890,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 3 && op.prim_op == Ite)
   {
-    res = ext_msat_make_ite(*env, mterms[0], mterms[1], mterms[2]);
+    res = detail::ext_msat_make_ite(*env, mterms[0], mterms[1], mterms[2]);
   }
   else if (size == 3 && op.prim_op == Store)
   {
