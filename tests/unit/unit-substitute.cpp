@@ -29,8 +29,8 @@ namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSubstituteTests);
 class UnitSubstituteTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

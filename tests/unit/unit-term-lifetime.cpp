@@ -31,8 +31,8 @@ namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TermLifetimeTests);
 class TermLifetimeTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
 };
 

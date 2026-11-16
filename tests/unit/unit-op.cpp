@@ -33,15 +33,15 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitPrimOpTests);
-class UnitPrimOpTests : public ::testing::Test,
+class UnitPrimOpTests : public testing::Test,
                         // passing the PrimOp enum as a size_t
-                        public ::testing::WithParamInterface<size_t>
+                        public testing::WithParamInterface<size_t>
 {
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTests);
-class UnitTests : public ::testing::Test,
-                  public ::testing::WithParamInterface<SolverConfiguration>
+class UnitTests : public testing::Test,
+                  public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
@@ -80,7 +80,7 @@ TEST_P(UnitPrimOpTests, NaryArity)
 TEST_P(UnitPrimOpTests, ToString)
 {
   PrimOp po = static_cast<PrimOp>(GetParam());
-  ASSERT_NO_THROW(::smt::to_string(po));
+  ASSERT_NO_THROW(smt::to_string(po));
 }
 
 TEST_P(UnitPrimOpTests, IndicesFitOp)

@@ -43,11 +43,10 @@ namespace smt::tests {
  *  @param read_back the term that came back out
  *  @param original the term that went in
  */
-::testing::AssertionResult round_trip_matches(
-    const SolverConfiguration & config,
-    const smt::SmtSolver & solver,
-    const smt::Term & read_back,
-    const smt::Term & original);
+testing::AssertionResult round_trip_matches(const SolverConfiguration & config,
+                                            const smt::SmtSolver & solver,
+                                            const smt::Term & read_back,
+                                            const smt::Term & original);
 
 }  // namespace smt::tests
 

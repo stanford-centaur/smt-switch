@@ -25,8 +25,8 @@ namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitSolverEnumTests);
 class UnitSolverEnumTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }

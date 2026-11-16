@@ -58,7 +58,7 @@ struct SolverName
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TermVisitor);
-class TermVisitor : public ::testing::TestWithParam<SolverEnum>
+class TermVisitor : public testing::TestWithParam<SolverEnum>
 {
  protected:
   void SetUp() override

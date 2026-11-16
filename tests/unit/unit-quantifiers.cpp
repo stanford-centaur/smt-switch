@@ -49,7 +49,7 @@ Term recover_quant(const Term & quant_term, TermVec & out_vars)
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitQuantifierTests);
 class UnitQuantifierTests
-    : public ::testing::Test,
+    : public testing::Test,
       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
@@ -67,7 +67,7 @@ class UnitQuantifierTests
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitQuantifierIterTests);
 class UnitQuantifierIterTests
-    : public ::testing::Test,
+    : public testing::Test,
       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:

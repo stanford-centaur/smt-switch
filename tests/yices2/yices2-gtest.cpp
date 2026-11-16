@@ -26,7 +26,7 @@ namespace smt::tests {
 
 namespace {
 
-class Yices2Pow : public ::testing::Test
+class Yices2Pow : public testing::Test
 {
  protected:
   void SetUp() override

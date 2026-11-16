@@ -53,7 +53,7 @@ void assert_pigeonhole(const SmtSolver & s)
   }
 }
 
-class Yices2TimeLimit : public ::testing::Test
+class Yices2TimeLimit : public testing::Test
 {
  protected:
   void SetUp() override

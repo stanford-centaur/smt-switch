@@ -31,7 +31,7 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ForeignHandle);
-class ForeignHandle : public ::testing::TestWithParam<SolverConfiguration>
+class ForeignHandle : public testing::TestWithParam<SolverConfiguration>
 {
  protected:
   void SetUp() override

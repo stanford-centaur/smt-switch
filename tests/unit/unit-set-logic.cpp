@@ -32,8 +32,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SetLogic);
-class SetLogic : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverConfiguration>
+class SetLogic : public testing::Test,
+                 public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }

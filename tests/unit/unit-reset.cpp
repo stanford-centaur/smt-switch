@@ -25,8 +25,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitResetTests);
-class UnitResetTests : public ::testing::Test,
-                       public ::testing::WithParamInterface<SolverConfiguration>
+class UnitResetTests : public testing::Test,
+                       public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override { s = create_solver(GetParam()); }

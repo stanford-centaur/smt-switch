@@ -128,7 +128,7 @@ struct SolverAndLoggingName
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CreateSolver);
-class CreateSolver : public ::testing::TestWithParam<SolverAndLogging>
+class CreateSolver : public testing::TestWithParam<SolverAndLogging>
 {
 };
 
@@ -150,7 +150,7 @@ struct InterpolatorName
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CreateInterpolator);
-class CreateInterpolator : public ::testing::TestWithParam<SolverEnum>
+class CreateInterpolator : public testing::TestWithParam<SolverEnum>
 {
 };
 

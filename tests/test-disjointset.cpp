@@ -24,9 +24,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DisjointSetTests);
-class DisjointSetTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class DisjointSetTests : public testing::Test,
+                         public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

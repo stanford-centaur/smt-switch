@@ -25,8 +25,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(StrTests);
-class StrTests : public ::testing::Test,
-                 public ::testing::WithParamInterface<SolverConfiguration>
+class StrTests : public testing::Test,
+                 public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

@@ -28,9 +28,8 @@ namespace smt::tests {
 
 namespace {
 
-class OpRoundTripTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class OpRoundTripTests : public testing::Test,
+                         public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

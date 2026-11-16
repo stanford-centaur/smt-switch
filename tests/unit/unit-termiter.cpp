@@ -31,7 +31,7 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTests);
-class UnitTests : public ::testing::Test,
+class UnitTests : public testing::Test,
                   public testing::WithParamInterface<SolverConfiguration>
 {
  protected:

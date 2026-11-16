@@ -31,9 +31,8 @@ namespace smt::tests {
 namespace {
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitWalkerTests);
-class UnitWalkerTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+class UnitWalkerTests : public testing::Test,
+                        public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override

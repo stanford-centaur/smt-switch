@@ -31,8 +31,8 @@ namespace smt::tests {
 namespace {
 
 class OpDefinitionTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<SolverConfiguration>
+    : public testing::Test,
+      public testing::WithParamInterface<SolverConfiguration>
 {
  protected:
   void SetUp() override
