@@ -23,12 +23,6 @@ from .cppapi cimport (
     c_UnorderedTermMap,
     c_UnorderedTermSet
 )
-from .cpputils cimport (
-    conjunctive_partition as c_conjunctive_partition,
-    get_free_symbolic_consts as c_get_free_symbolic_consts,
-    get_free_symbols as c_get_free_symbols,
-    op_partition as c_op_partition,
-)
 from .cppenums cimport c_SortKind, c_BOOL
 from .enums cimport PrimOp, SortKind
 
@@ -560,7 +554,7 @@ def get_free_symbolic_consts(Term term):
     '''
 
     cdef c_UnorderedTermSet out_symbols
-    c_get_free_symbolic_consts(term.ct, out_symbols)
+    dref(term.ct).get_free_symbolic_consts(out_symbols)
 
     python_out_set = set()
     for s in out_symbols:
@@ -577,7 +571,7 @@ def get_free_symbols(Term term):
     '''
 
     cdef c_UnorderedTermSet out_symbols
-    c_get_free_symbols(term.ct, out_symbols)
+    dref(term.ct).get_free_symbols(out_symbols)
 
     python_out_set = set()
     for s in out_symbols:
@@ -598,7 +592,7 @@ def op_partition(PrimOp po, Term term):
     '''
 
     cdef c_TermVec out
-    c_op_partition(po.po, term.ct, out)
+    dref(term.ct).op_partition(po.po, out)
 
     python_out_list = []
     for s in out:
@@ -615,7 +609,7 @@ def conjunctive_partition(Term term, bint include_bvand=False):
     '''
 
     cdef c_TermVec out
-    c_conjunctive_partition(term.ct, out, include_bvand)
+    dref(term.ct).conjunctive_partition(out, include_bvand)
 
     python_out_list = []
     for s in out:

@@ -30,7 +30,6 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -563,7 +562,7 @@ TEST_P(Datatypes, ComponentsAndApplications)
 
   // only the declared constant is free, not the constructor it is compared to
   UnorderedTermSet free_consts;
-  get_free_symbolic_consts(s->make_term(Equal, l, nil), free_consts);
+  s->make_term(Equal, l, nil)->get_free_symbolic_consts(free_consts);
   EXPECT_EQ(free_consts, UnorderedTermSet{ l });
 }
 

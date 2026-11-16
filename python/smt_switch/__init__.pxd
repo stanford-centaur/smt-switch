@@ -19,11 +19,5 @@ from .cppenums cimport (
     c_SolverEnum,
     c_SortKind,
 )
-from .cpputils cimport (
-    conjunctive_partition,
-    get_free_symbolic_consts,
-    get_free_symbols,
-    op_partition,
-)
 from .enums cimport PrimOp, SolverAttribute, SolverEnum, SortKind
 from .smt_solvers cimport *

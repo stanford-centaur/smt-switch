@@ -169,7 +169,6 @@ set(
   "${PROJECT_SOURCE_DIR}/src/term_visitor.cpp"
   "${PROJECT_SOURCE_DIR}/src/text_utils.cpp"
   "${PROJECT_SOURCE_DIR}/src/unsat_core_reducer.cpp"
-  "${PROJECT_SOURCE_DIR}/src/utils.cpp"
 )
 
 add_library(smt-switch "${SMT_SWITCH_LIB_TYPE}" ${SOURCES})

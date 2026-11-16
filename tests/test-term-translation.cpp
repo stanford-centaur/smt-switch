@@ -26,7 +26,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
-#include "smt-switch/utils.h"
 #include "term_utils.h"
 
 namespace smt::tests {
@@ -288,7 +287,7 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   Term xpymz_transfer = tt.transfer_term(xpymz);
   // recover symbols
   UnorderedTermSet free_symbols;
-  get_free_symbolic_consts(xpymz_transfer, free_symbols);
+  xpymz_transfer->get_free_symbolic_consts(free_symbols);
   std::unordered_map<std::string, Term> s2_symbols;
   for (auto sym : free_symbols)
   {
