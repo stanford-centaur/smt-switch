@@ -12,7 +12,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -161,23 +160,6 @@ bool is_lit(const Term & l, const Sort & boolsort);
  *  @return true iff t is a theory atom
  */
 bool is_theory_atom(const Term & t, const Sort & boolsort);
-
-/** Writes a CNF formula in DIMACS format
- *  @param cnf a Boolean term that is true or a conjunction of clauses, each
- *         a disjunction of symbols, negated symbols and false
- *  @param y the stream to write to
- *  @throws IncorrectUsageException if cnf is not Boolean or not in CNF
- */
-void cnf_to_dimacs(const Term & cnf, std::ostringstream & y);
-
-// Converts any boolean formula to cnf, formula is the formula to be converted
-// to a cnf. Only the connectives not, and, or, xor, => and Boolean = are
-// encoded; any other subterm, such as an ite or (bvult x y), is kept whole as
-// an atom
-Term to_cnf(Term formula, SmtSolver s);
-
-// Returns true if the formula is in cnf form, else false
-bool is_cnf(Term formula);
 
 /** A term as another sort, between Bool and bit-vectors or between Int and
  *  Real. A bit-vector is true when it equals 1; a value cast between Bool
