@@ -30,8 +30,6 @@ struct PipeCloser
   void operator()(FILE * f) const { pclose(f); }
 };
 
-}  // namespace
-
 /**
  * A function for running a process
  * Taken from:
@@ -52,6 +50,8 @@ std::string exec(const char * cmd)
   }
   return result;
 }
+
+}  // namespace
 
 void dump_and_run(std::string_view executable_path,
                   std::stringbuf & strbuf,

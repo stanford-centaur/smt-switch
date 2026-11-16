@@ -659,7 +659,7 @@ set(
   -Wmissing-attributes # declarations that may be missing attributes their related entities have
   -Wmissing-braces # possibly missing braces around initializers
   -Wmissing-constinit # 'constinit' specifier missing on initializing declaration of X
-  # -Wmissing-declarations # global functions without previous declarations
+  -Wmissing-declarations # global functions without previous declarations
   -Wmissing-designated-field-initializers # missing field X initializer
   -Wmissing-exception-spec # X is missing exception specification 'Y'
   -Wmissing-field-initializers # missing fields in struct initializers
@@ -674,7 +674,7 @@ set(
   -Wmissing-sysroot # no such sysroot directory: 'X'
   -Wmissing-template-arg-list-after-template-kw # template keyword not followed by an argument list
   -Wmissing-template-keyword # the template keyword is missing after a member access token
-  # -Wmissing-variable-declarations # global variables without previous declarations
+  -Wmissing-variable-declarations # global variables without previous declarations
   -Wmisspelled-assumption # unknown assumption string 'X' may be misspelled
   -Wmix-packoffset # cannot mix packoffset elements with nonpackoffset elements in a cbuffer
   -Wmmap-deprecated-symlink-to-modular-header # header 'X' may be a symlink to modular header 'Y'
