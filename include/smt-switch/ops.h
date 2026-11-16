@@ -20,6 +20,8 @@
 #include <string>
 #include <utility>
 
+#include "smt-switch/smt_defs.h"
+
 namespace smt {
 
 // Primitive SMT operations (and identifiers for building indexed operators)
@@ -180,6 +182,46 @@ struct Op
   Op(PrimOp o, std::uint64_t index0, std::uint64_t index1);
   std::string to_string() const;
   bool is_null() const;
+
+  /** Checks if applying the operator to the terms is well-sorted
+   *  @param terms the vector of terms to apply it to
+   *  @return true iff this is a well-sorted operation
+   */
+  bool check_sortedness(const TermVec & terms) const;
+
+  /** Checks if applying the operator to the terms of these sorts is
+   *  well-sorted
+   *  @param sorts the vector of sorts it would be applied to
+   *  @return true iff this is a well-sorted operation
+   */
+  bool check_sortedness(const SortVec & sorts) const;
+
+  /** Compute the expected sort of applying the operator to these terms
+   *  @param solver the solver to use to make the new sort
+   *         assumed that the passed sorts belong to this solver
+   *  @param terms the vector of terms the op would be applied to
+   *  @return the expected sort
+   *  @throws IncorrectUsageException if there are fewer terms than the op
+   *          accepts, the indices of an extract are outside its argument, or
+   *          the resulting width does not fit in 64 bits
+   */
+  Sort compute_sort(const AbsSmtSolver * solver, const TermVec & terms) const;
+
+  /** Compute the expected sort of applying the operator to terms of these
+   *  sorts
+   *  @param solver the solver to use to make the new sort
+   *         assumed that the passed sorts belong to this solver
+   *  @param sorts a vector of sorts corresponding to the op arguments
+   *  @return the expected sort
+   *  @throws IncorrectUsageException if there are fewer sorts than the op
+   *          accepts, the indices of an extract are outside its argument, or
+   *          the resulting width does not fit in 64 bits
+   */
+  Sort compute_sort(const AbsSmtSolver * solver, const SortVec & sorts) const;
+
+  Sort compute_sort(const SmtSolver & solver, const TermVec & terms) const;
+  Sort compute_sort(const SmtSolver & solver, const SortVec & sorts) const;
+
   PrimOp prim_op = NUM_OPS_AND_NULL;
   Indices indices = {};
 };

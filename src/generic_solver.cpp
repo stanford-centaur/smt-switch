@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <cerrno>
 #include <chrono>
-#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -52,7 +51,6 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
@@ -1854,7 +1852,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   // A power to a constant exponent is unfolded, as not all solvers support it.
   if (op.prim_op == Pow && terms.size() == 2 && terms[1]->is_value())
   {
-    if (!check_sortedness(op, terms))
+    if (!op.check_sortedness(terms))
     {
       throw IncorrectUsageException(
           "Pow takes an Int base and an Int exponent");
@@ -1888,7 +1886,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
     }
     return body;
   }
-  Sort sort = compute_sort(op, this, terms);
+  Sort sort = op.compute_sort(this, terms);
   std::string repr = "(" + op.to_string();
   for (size_t i = 0; i < terms.size(); i++)
   {

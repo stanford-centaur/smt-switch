@@ -30,7 +30,6 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/sort_inference.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_visitor.h"
 
@@ -1376,7 +1375,7 @@ Term cast_term(const SmtSolver & solver, const Term & term, const Sort & sort)
 
 Term cast_op(const SmtSolver & solver, const Op & op, const TermVec & terms)
 {
-  if (check_sortedness(op, terms))
+  if (op.check_sortedness(terms))
   {
     return solver->make_term(op, terms);
   }
