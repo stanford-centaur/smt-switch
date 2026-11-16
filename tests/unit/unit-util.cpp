@@ -693,20 +693,20 @@ class CastTerm : public testing::TestWithParam<SolverConfiguration>
 
 TEST_P(CastTerm, BoolToBitAndBack)
 {
-  Term bit = cast_term(s, x, bv1sort);
+  Term bit = s->cast_term(x, bv1sort);
   EXPECT_EQ(bit->get_sort(), bv1sort);
-  Term back = cast_term(s, bit, boolsort);
+  Term back = s->cast_term(bit, boolsort);
   EXPECT_EQ(back->get_sort(), boolsort);
   expect_equivalent(s, back, x);
 }
 
 TEST_P(CastTerm, Values)
 {
-  Term bit = cast_term(s, s->make_term(true), bv1sort);
+  Term bit = s->cast_term(s->make_term(true), bv1sort);
   EXPECT_EQ(bit->get_sort(), bv1sort);
   EXPECT_TRUE(bit->is_value());
   EXPECT_EQ(bit->to_int(), 1);
-  Term b = cast_term(s, s->make_term(0, bv1sort), boolsort);
+  Term b = s->cast_term(s->make_term(0, bv1sort), boolsort);
   EXPECT_EQ(b->get_sort(), boolsort);
   EXPECT_TRUE(b->is_value());
   EXPECT_FALSE(b->to_bool());
@@ -716,7 +716,7 @@ TEST_P(CastTerm, RefusesOtherSorts)
 {
   Sort bv8sort = s->make_sort(BV, 8);
   Term a = s->make_symbol("a", s->make_sort(ARRAY, bv8sort, bv8sort));
-  EXPECT_THROW(cast_term(s, a, boolsort), NotImplementedException);
+  EXPECT_THROW(s->cast_term(a, boolsort), NotImplementedException);
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastTermArithmetic);
@@ -729,7 +729,7 @@ TEST_P(CastTermArithmetic, IntToReal)
   SmtSolver s = create_solver(GetParam());
   Sort realsort = s->make_sort(REAL);
   Term n = s->make_symbol("n", s->make_sort(INT));
-  Term r = cast_term(s, n, realsort);
+  Term r = s->cast_term(n, realsort);
   // only a logging solver keeps the sort it built: MathSAT and Yices2 give
   // an integer-valued Real the sort Int
   if (GetParam().is_logging_solver)
@@ -753,7 +753,7 @@ class CastOp : public CastTerm
 
 TEST_P(CastOp, BitVectorOpOverBooleans)
 {
-  Term t = cast_op(s, BVAnd, { x, y });
+  Term t = s->cast_op(BVAnd, { x, y });
   EXPECT_EQ(t->get_sort(), boolsort);
   expect_equivalent(s, t, s->make_term(And, x, y));
 }
@@ -761,14 +761,14 @@ TEST_P(CastOp, BitVectorOpOverBooleans)
 TEST_P(CastOp, BooleansUnderBitVectorOp)
 {
   Term z = s->make_symbol("z", bv1sort);
-  Term t = cast_op(s, BVAdd, { x, z });
+  Term t = s->cast_op(BVAdd, { x, z });
   EXPECT_EQ(t->get_sort(), bv1sort);
-  expect_equivalent(s, t, s->make_term(BVAdd, cast_term(s, x, bv1sort), z));
+  expect_equivalent(s, t, s->make_term(BVAdd, s->cast_term(x, bv1sort), z));
 }
 
 TEST_P(CastOp, LeavesAWellSortedApplicationAlone)
 {
-  Term t = cast_op(s, And, { x, y });
+  Term t = s->cast_op(And, { x, y });
   EXPECT_EQ(t->get_sort(), boolsort);
   // only a logging solver keeps the operator it was given
   if (GetParam().is_logging_solver)
@@ -870,7 +870,7 @@ TEST_P(GetTheoryAtoms, StopsAtAtoms)
                         s->make_term(Or, less, b),
                         s->make_term(Not, s->make_term(Equal, c, equal)));
   UnorderedTermSet atoms;
-  get_theory_atoms(s, f, atoms);
+  s->get_theory_atoms(f, atoms);
   EXPECT_EQ(atoms, (UnorderedTermSet{ less, equal }));
 }
 
@@ -878,11 +878,11 @@ TEST_P(GetTheoryAtoms, SplitsIfThenElse)
 {
   Term f = s->make_term(BVUlt, s->make_term(Ite, less, x, y), z);
   UnorderedTermSet whole;
-  get_theory_atoms(s, f, whole);
+  s->get_theory_atoms(f, whole);
   EXPECT_EQ(whole, (UnorderedTermSet{ f }));
 
   UnorderedTermSet split;
-  get_theory_atoms(s, f, split, /* split_ites */ true);
+  s->get_theory_atoms(f, split, /* split_ites */ true);
   EXPECT_EQ(split,
             (UnorderedTermSet{
                 less, s->make_term(BVUlt, x, z), s->make_term(BVUlt, y, z) }));
@@ -925,7 +925,7 @@ class GetJustifyingSymbols : public testing::TestWithParam<SolverEnum>
     }
     EXPECT_TRUE(s->check_sat().is_sat());
     UnorderedTermSet out;
-    get_justifying_symbols(s, t, out);
+    s->get_justifying_symbols(t, out);
     return out;
   }
 

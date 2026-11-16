@@ -28,7 +28,6 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -332,7 +331,7 @@ Term TermTranslator::transfer_term(const Term & term)
           Sort cast_sort;
           try
           {
-            cast_sort = cast_term(solver, sym, s)->get_sort();
+            cast_sort = solver->cast_term(sym, s)->get_sort();
           }
           catch (NotImplementedException & e)
           {
@@ -413,7 +412,7 @@ Term TermTranslator::transfer_term(const Term & term)
              but the cast won't actually do anything for BTOR
              in other words, check_sortedness is not guaranteed
              to hold after casting */
-          cache[t] = cast_op(solver, op, cached_children);
+          cache[t] = solver->cast_op(op, cached_children);
         }
         else
         {
@@ -453,27 +452,27 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   if (transferred_sk == BV && transferred_sort->get_width() == 1 && sk == BOOL)
   {
     Sort sort = solver->make_sort(BOOL);
-    return cast_term(solver, transferred_term, sort);
+    return solver->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == BOOL && sk == BV)
   {
     Sort sort = solver->make_sort(BV, 1);
-    return cast_term(solver, transferred_term, sort);
+    return solver->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == INT && sk == REAL)
   {
     Sort sort = solver->make_sort(REAL);
-    return cast_term(solver, transferred_term, sort);
+    return solver->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == REAL && sk == INT)
   {
     Sort sort = solver->make_sort(INT);
-    return cast_term(solver, transferred_term, sort);
+    return solver->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == STRING)
   {
     Sort sort = solver->make_sort(STRING);
-    return cast_term(solver, transferred_term, sort);
+    return solver->cast_term(transferred_term, sort);
   }
   else
   {
@@ -669,7 +668,7 @@ void TermTranslator::widen_ints(TermVec & terms) const
     {
       if (t->get_sort()->get_sort_kind() == INT)
       {
-        t = cast_term(solver, t, realsort);
+        t = solver->cast_term(t, realsort);
       }
     }
   }
