@@ -24,7 +24,6 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 #include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_solver.h"
 #include "smt-switch/yices2_term.h"
@@ -144,8 +143,8 @@ Result Yices2Interpolator::refute_model(const Term & A,
   };
 
   UnorderedTermSet symbols_a, symbols_b;
-  get_free_symbolic_consts(A, symbols_a);
-  get_free_symbolic_consts(B, symbols_b);
+  A->get_free_symbolic_consts(symbols_a);
+  B->get_free_symbolic_consts(symbols_b);
   TermVec shared_symbols;
   std::vector<term_t> shared;
   for (const Term & symbol : symbols_a)

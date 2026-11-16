@@ -28,8 +28,8 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_factory.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -95,7 +95,7 @@ TEST_P(ItpTests, Interpolant)
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet free_symbols;
-  get_free_symbolic_consts(I, free_symbols);
+  I->get_free_symbolic_consts(free_symbols);
 
   EXPECT_EQ(free_symbols.count(y), 0);
   EXPECT_EQ(free_symbols.count(z), 0);
@@ -334,9 +334,9 @@ TEST_P(ItpTests, ReuseKeepsResults)
         UnorderedTermSet before, after, in_itp;
         for (std::size_t k = 0; k < queries[q].size(); ++k)
         {
-          get_free_symbolic_consts(queries[q][k], k <= i ? before : after);
+          queries[q][k]->get_free_symbolic_consts(k <= i ? before : after);
         }
-        get_free_symbolic_consts(itps[i], in_itp);
+        itps[i]->get_free_symbolic_consts(in_itp);
         for (const Term & sym : in_itp)
         {
           EXPECT_TRUE(before.count(sym) && after.count(sym))
@@ -554,7 +554,7 @@ TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
     Term I;
     ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat()) << A << " / " << B;
     UnorderedTermSet free_symbols;
-    get_free_symbolic_consts(I, free_symbols);
+    I->get_free_symbolic_consts(free_symbols);
     for (const Term & symbol : free_symbols)
     {
       EXPECT_TRUE(shared.count(symbol)) << I << " mentions " << symbol;
@@ -597,7 +597,7 @@ TEST_P(ItpTests, NonlinearInterpolant)
   Result r = itp->get_interpolant(A, B, I);
   ASSERT_TRUE(r.is_unsat()) << r;
   UnorderedTermSet free_symbols;
-  get_free_symbolic_consts(I, free_symbols);
+  I->get_free_symbolic_consts(free_symbols);
   EXPECT_EQ(free_symbols.count(x), 0u) << I;
   // a regular Yices2 solves nonlinear arithmetic only in a nonlinear logic
   expect_chain(

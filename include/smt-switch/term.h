@@ -18,6 +18,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
@@ -138,6 +139,67 @@ class AbsTerm : public internal::SharedBase<AbsTerm>
    *  throws an exception if the term is not a value
    */
   virtual std::string print_value_as(SortKind sk) const = 0;
+
+  // Queries of this term and its subterms
+
+  /** Collects the terms where the applications of o from this term down
+   *  stop: the arguments of the outermost application of o, split again where
+   *  they apply o themselves
+   *  @param o the operator
+   *  @param out the vector the terms are added to
+   */
+  void op_partition(PrimOp o, TermVec & out);
+
+  /** Populates a vector with conjuncts from a term
+   *  @param out the output vector
+   *  @param include_bvand also split on BVAnd over 1-bit signals
+   *         Note: this is mainly for use with Boolector which treats
+   *         booleans as 1-bit bit-vectors. Using this option on a term
+   *         that is known to be boolean will give you the expected
+   *         partition.
+   */
+  void conjunctive_partition(TermVec & out, bool include_bvand = false);
+
+  /** Populates a vector with disjuncts from a term
+   *  @param out the output vector
+   *  @param include_bvor also split on BVOr over 1-bit signals
+   */
+  void disjunctive_partition(TermVec & out, bool include_bvor = false);
+
+  void get_matching_terms(UnorderedTermSet & out,
+                          bool (*matching_fun)(const Term & term));
+
+  void get_free_symbolic_consts(UnorderedTermSet & out);
+
+  void get_free_symbols(UnorderedTermSet & out);
+
+  void get_ops(std::unordered_set<Op> & out);
+
+  /** Collects the subterms built with any of the given operators, including
+   *  those below another one
+   *  @param ops the operators to look for
+   *  @param out the set the subterms are added to
+   */
+  void get_terms_with_ops(const std::unordered_set<PrimOp> & ops,
+                          UnorderedTermSet & out);
+
+  /** returns true iff this term is a literal
+   *  e.g. either a boolean symbolic constant or its negation
+   *  NOTE will return false for nested negations, i.e. (not (not (not l)))
+   *  @param boolsort a boolean sort from the corresponding solver
+   *         this way sort aliasing solvers are still supported
+   *  @return true iff this term is a literal
+   */
+  bool is_lit(const Sort & boolsort);
+
+  /** Whether this term is a theory atom: a Boolean application other than a
+   *  connective, a quantifier, an extract, or an equality or distinct over
+   *  Booleans. Symbols and values are not theory atoms.
+   *  @param boolsort the Boolean sort of the term's solver, so that solvers
+   * that alias Booleans and bit-vectors of width one are supported
+   *  @return true iff this term is a theory atom
+   */
+  bool is_theory_atom(const Sort & boolsort);
 
  protected:
   /** Returns the number of children that begin() and end() iterate over */

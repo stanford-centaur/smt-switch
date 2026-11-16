@@ -20,7 +20,6 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt::cnf {
 
@@ -87,7 +86,7 @@ void to_dimacs(const Term & cnf, std::ostringstream & y)
           before_or_elimination.push_back(child);
         }
       }
-      else if (is_lit(t, sort) || (t->is_value() && !t->to_bool()))
+      else if (t->is_lit(sort) || (t->is_value() && !t->to_bool()))
       {
         after_or_elimination.push_back(t);
       }

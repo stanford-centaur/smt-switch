@@ -19,7 +19,6 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -97,8 +96,8 @@ testing::AssertionResult round_trip_matches(const SolverConfiguration & config,
   }
 
   UnorderedTermSet symbol_set;
-  get_free_symbolic_consts(original, symbol_set);
-  get_free_symbolic_consts(read_back, symbol_set);
+  original->get_free_symbolic_consts(symbol_set);
+  read_back->get_free_symbolic_consts(symbol_set);
   TermVec symbols(symbol_set.begin(), symbol_set.end());
 
   constexpr uint64_t cap = 1024;

@@ -18,8 +18,8 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -52,7 +52,7 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
     Term I;
     ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
     std::unordered_set<Op> ops;
-    get_ops(I, ops);
+    I->get_ops(ops);
     EXPECT_EQ(ops.count(Op(Divisible, 2)), 1u) << I;
 
     // a solver can take the interpolant over, as an engine does, and it is

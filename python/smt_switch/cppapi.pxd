@@ -79,6 +79,10 @@ cdef extern from "smt-switch/term.h" namespace "smt":
         int64_t to_signed_int() except +
         c_TermIter begin() except +
         c_TermIter end() except +
+        void op_partition(c_PrimOp po, c_TermVec & out) except +
+        void conjunctive_partition(c_TermVec & out, bint include_bvand) except +
+        void get_free_symbolic_consts(c_UnorderedTermSet & out) except +
+        void get_free_symbols(c_UnorderedTermSet & out) except +
 
     bint operator==(const c_Term& t1, const c_Term& t2) except +
     bint operator!=(const c_Term& t1, const c_Term& t2) except +

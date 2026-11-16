@@ -19,7 +19,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_visitor.h"
-#include "smt-switch/utils.h"
 
 namespace smt {
 
@@ -88,7 +87,7 @@ class TheoryAtomsVisitor : public TermVisitor
         return VisitResult::Continue;
       }
     }
-    if (is_theory_atom(term, boolsort_))
+    if (term->is_theory_atom(boolsort_))
     {
       out_.insert(term);
       return VisitResult::Skip;

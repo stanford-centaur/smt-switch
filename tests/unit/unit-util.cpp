@@ -27,7 +27,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/utils.h"
 #include "term_utils.h"
 
 namespace smt::tests {
@@ -98,7 +97,7 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
   // boolean argument means to include BVAnd
   // if over 1-bit variables
   // then this will work for Boolector even without logging
-  conjunctive_partition(conjunction, conjuncts, true);
+  conjunction->conjunctive_partition(conjuncts, true);
   ASSERT_FALSE(conjuncts.empty());
 
   if (GetParam().is_logging_solver)
@@ -144,7 +143,7 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
   // boolean argument means to include BVOr
   // if over 1-bit variables
   // then this will work for Boolector even without logging
-  disjunctive_partition(disjunction, disjuncts, true);
+  disjunction->disjunctive_partition(disjuncts, true);
   ASSERT_EQ(symbols.size(), disjuncts.size());
 
   // order not necessarily maintained
@@ -163,11 +162,11 @@ TEST_P(UnitUtilTests, TermsWithOps)
   Term outer = s->make_term(And, symbols[0], disjunction);
 
   UnorderedTermSet conjunctions;
-  get_terms_with_ops(outer, { And }, conjunctions);
+  outer->get_terms_with_ops({ And }, conjunctions);
   UnorderedTermSet connectives;
-  get_terms_with_ops(outer, { And, Or }, connectives);
+  outer->get_terms_with_ops({ And, Or }, connectives);
   UnorderedTermSet none;
-  get_terms_with_ops(outer, {}, none);
+  outer->get_terms_with_ops({}, none);
 
   EXPECT_TRUE(none.empty());
   for (const Term & t : connectives)
@@ -209,7 +208,7 @@ TEST_P(UnitUtilIntTests, Oracles)
     UnorderedTermSet expected_symbols, concrete_symbols;
     expected_symbols.insert(int1);
     expected_symbols.insert(bv1);
-    get_free_symbolic_consts(term, concrete_symbols);
+    term->get_free_symbolic_consts(concrete_symbols);
 
     std::unordered_set<Op> expected_ops, concrete_ops;
     expected_ops.insert(Op(And));
@@ -219,7 +218,7 @@ TEST_P(UnitUtilIntTests, Oracles)
     expected_ops.insert(Op(BVAdd));
     expected_ops.insert(Op(BVMul));
     expected_ops.insert(Op(BVUlt));
-    get_ops(term, concrete_ops);
+    term->get_ops(concrete_ops);
 
     ASSERT_EQ(expected_symbols, concrete_symbols);
     ASSERT_EQ(expected_ops, concrete_ops);
@@ -843,20 +842,20 @@ class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
 
 TEST_P(IsTheoryAtom, TheoryRelations)
 {
-  EXPECT_TRUE(is_theory_atom(less, boolsort));
-  EXPECT_TRUE(is_theory_atom(equal, boolsort));
-  EXPECT_TRUE(is_theory_atom(s->make_term(Distinct, x, y, z), boolsort));
+  EXPECT_TRUE(less->is_theory_atom(boolsort));
+  EXPECT_TRUE(equal->is_theory_atom(boolsort));
+  EXPECT_TRUE(s->make_term(Distinct, x, y, z)->is_theory_atom(boolsort));
 }
 
 TEST_P(IsTheoryAtom, ConnectivesAndLeaves)
 {
-  EXPECT_FALSE(is_theory_atom(b, boolsort));
-  EXPECT_FALSE(is_theory_atom(s->make_term(true), boolsort));
-  EXPECT_FALSE(is_theory_atom(x, boolsort));
-  EXPECT_FALSE(is_theory_atom(s->make_term(And, b, less), boolsort));
-  EXPECT_FALSE(is_theory_atom(s->make_term(Not, less), boolsort));
-  EXPECT_FALSE(is_theory_atom(s->make_term(Ite, b, less, c), boolsort));
-  EXPECT_FALSE(is_theory_atom(s->make_term(Equal, b, less), boolsort));
+  EXPECT_FALSE(b->is_theory_atom(boolsort));
+  EXPECT_FALSE(s->make_term(true)->is_theory_atom(boolsort));
+  EXPECT_FALSE(x->is_theory_atom(boolsort));
+  EXPECT_FALSE(s->make_term(And, b, less)->is_theory_atom(boolsort));
+  EXPECT_FALSE(s->make_term(Not, less)->is_theory_atom(boolsort));
+  EXPECT_FALSE(s->make_term(Ite, b, less, c)->is_theory_atom(boolsort));
+  EXPECT_FALSE(s->make_term(Equal, b, less)->is_theory_atom(boolsort));
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetTheoryAtoms);

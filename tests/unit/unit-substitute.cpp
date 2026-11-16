@@ -21,7 +21,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/substitution_walker.h"
 #include "smt-switch/term.h"
-#include "smt-switch/utils.h"
 
 namespace smt::tests {
 
@@ -119,7 +118,7 @@ TEST_P(UnitSubstituteIterTests, SimpleSubstitution)
   Term apb = s->substitute(xpy, subs_map);
 
   UnorderedTermSet free_syms;
-  get_free_symbolic_consts(apb, free_syms);
+  apb->get_free_symbolic_consts(free_syms);
   EXPECT_EQ(free_syms.size(), 2);
 
   for (auto v : { a, b })
