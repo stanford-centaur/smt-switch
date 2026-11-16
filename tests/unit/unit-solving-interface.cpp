@@ -75,7 +75,7 @@ struct AcceptsAssumptions<
 static_assert(!AcceptsAssumptions<Term>::value,
               "check_sat_assuming rejects a single Term");
 static_assert(AcceptsAssumptions<TermVec>::value
-                  && AcceptsAssumptions<TermList>::value
+                  && AcceptsAssumptions<std::list<Term>>::value
                   && AcceptsAssumptions<UnorderedTermSet>::value
                   && AcceptsAssumptions<std::set<Term>>::value
                   && AcceptsAssumptions<Term[2]>::value
@@ -117,7 +117,7 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   r = s->check_sat_assuming(TermVec{ b1, nb2 });
   EXPECT_TRUE(r.is_unsat());
 
-  r = s->check_sat_assuming(TermList{ b1, nb2 });
+  r = s->check_sat_assuming(std::list<Term>{ b1, nb2 });
   EXPECT_TRUE(r.is_unsat());
 
   r = s->check_sat_assuming(UnorderedTermSet{ b1, nb2 });

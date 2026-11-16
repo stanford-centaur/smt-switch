@@ -20,7 +20,6 @@
 #include "smt-switch/msat_term.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

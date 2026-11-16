@@ -13,6 +13,7 @@
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

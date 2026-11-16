@@ -10,12 +10,14 @@
 
 #include <cstddef>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
 
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/smt_defs.h"
 #include "smt-switch/text_utils.h"
 
 namespace smt {

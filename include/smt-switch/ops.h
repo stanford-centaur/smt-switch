@@ -18,7 +18,6 @@
 #include <cstdint>
 #include <ostream>
 #include <string>
-#include <unordered_set>
 #include <utility>
 
 namespace smt {
@@ -184,7 +183,6 @@ struct Op
   PrimOp prim_op = NUM_OPS_AND_NULL;
   Indices indices = {};
 };
-using UnorderedOpSet = std::unordered_set<Op>;
 
 /** Looks up the expected arity of a PrimOp
  *  @return a tuple with the minimum and maximum

@@ -79,29 +79,6 @@ class AbsDatatype
   virtual bool less(const Datatype & d) const;
 };
 
-// Overloaded equivalence operators for two datatype constructor declarations
-bool operator==(const DatatypeConstructorDecl & d1,
-                const DatatypeConstructorDecl & d2);
-bool operator!=(const DatatypeConstructorDecl & d1,
-                const DatatypeConstructorDecl & d2);
-// Ordered by class, then by less, with a null declaration first
-bool operator<(const DatatypeConstructorDecl & d1,
-               const DatatypeConstructorDecl & d2);
-bool operator>(const DatatypeConstructorDecl & d1,
-               const DatatypeConstructorDecl & d2);
-bool operator<=(const DatatypeConstructorDecl & d1,
-                const DatatypeConstructorDecl & d2);
-bool operator>=(const DatatypeConstructorDecl & d1,
-                const DatatypeConstructorDecl & d2);
-
-// Same operators for datatypes themselves
-bool operator==(const Datatype & d1, const Datatype & d2);
-bool operator!=(const Datatype & d1, const Datatype & d2);
-bool operator<(const Datatype & d1, const Datatype & d2);
-bool operator>(const Datatype & d1, const Datatype & d2);
-bool operator<=(const Datatype & d1, const Datatype & d2);
-bool operator>=(const Datatype & d1, const Datatype & d2);
-
 }  // namespace smt
 
 #endif  // SMT_SWITCH_DATATYPE_H

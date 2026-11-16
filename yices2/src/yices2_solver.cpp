@@ -31,6 +31,7 @@
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
 #include "smt-switch/yices2_instance_ref.h"

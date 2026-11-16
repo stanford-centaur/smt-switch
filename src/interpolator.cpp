@@ -18,6 +18,7 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/term.h"
 
 namespace smt {
 

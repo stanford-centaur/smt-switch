@@ -16,13 +16,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-#include <list>
 #include <memory>
-#include <ostream>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
@@ -171,16 +166,6 @@ class AbsTerm : public detail::SharedTermBase
   friend class TermIter;
 };
 
-// A null term equals only another null term and sorts before every term
-bool operator==(const Term & t1, const Term & t2);
-bool operator!=(const Term & t1, const Term & t2);
-bool operator<(const Term & t1, const Term & t2);
-bool operator>(const Term & t1, const Term & t2);
-bool operator<=(const Term & t1, const Term & t2);
-bool operator>=(const Term & t1, const Term & t2);
-
-std::ostream & operator<<(std::ostream & output, const Term t);
-
 // iterates over a term's children, keeping the term alive
 class TermIter
 {
@@ -226,12 +211,6 @@ class TermIter
 
   friend class AbsTerm;
 };
-
-// useful typedefs for data structures
-using TermVec = std::vector<Term>;
-using TermList = std::list<Term>;
-using UnorderedTermSet = std::unordered_set<Term>;
-using UnorderedTermMap = std::unordered_map<Term, Term>;
 
 // range-based iteration
 TermIter begin(const Term & t);

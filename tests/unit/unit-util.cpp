@@ -212,7 +212,7 @@ TEST_P(UnitUtilIntTests, Oracles)
     expected_symbols.insert(bv1);
     get_free_symbolic_consts(term, concrete_symbols);
 
-    UnorderedOpSet expected_ops, concrete_ops;
+    std::unordered_set<Op> expected_ops, concrete_ops;
     expected_ops.insert(Op(And));
     expected_ops.insert(Op(Plus));
     expected_ops.insert(Op(Mult));

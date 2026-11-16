@@ -13,7 +13,6 @@
 #define SMT_SWITCH_TERM_VISITOR_H
 
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 

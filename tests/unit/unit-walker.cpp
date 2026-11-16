@@ -222,7 +222,7 @@ TEST_P(UnitWalkerTests, OutlivesTheHandleItWasMadeWith)
  * against expected_map that should have been built up. gets used for all tests
  * using TreeWalker */
 void mapEqual(std::map<Term, std::pair<Term, std::vector<int>>> & expected_map,
-              UnorderedTermPairMap const & passed_map)
+              TreeWalker::UnorderedTermPairMap const & passed_map)
 {
   // test equivalence of expected_map and cache populated during the traversal
   for (auto const & x : passed_map)
@@ -251,7 +251,7 @@ TEST_P(UnitWalkerTests, SimpleTree)
     Term x = s->make_symbol("x", bvsort);
     Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -346,7 +346,7 @@ TEST_P(UnitWalkerTests, PathDecomp)
     n5.second = n5path;
     expected_map[s->make_term(1, bvsort)] = n5;
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -443,7 +443,7 @@ TEST_P(UnitWalkerTests, PathTests1)
     n8.second = n8path;
     expected_map[lmt] = n8;
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -462,7 +462,7 @@ TEST_P(UnitWalkerTests, SimplePathTests1)
   {
     Term x = s->make_symbol("x", bvsort);
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -492,7 +492,7 @@ TEST_P(UnitWalkerTests, SimplePathTests2)
   {
     Term bv2 = s->make_term(2, bvsort);
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -527,7 +527,7 @@ TEST_P(UnitWalkerTests, PathTests3)
     Term lhs = s->make_term(Ite, xe2, x, s->make_term(3, bvsort));
     Term fullform = s->make_term(Equal, lhs, y);
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -606,7 +606,7 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
     Term gx = s->make_term(Apply, g, x);
     Term fullform = s->make_term(Equal, fx, gx);
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -681,7 +681,7 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     Term gx = s->make_term(Apply, g, x);
     Term fullform = s->make_term(Equal, fyz, gx);
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;
@@ -769,7 +769,7 @@ TEST_P(UnitWalkerTests, FreshVars)
     Term rhs = s->make_term(BVAdd, ypy, lmt);
     Term fullform = s->make_term(Equal, xpx, rhs);
 
-    UnorderedTermPairMap passed_map;
+    TreeWalker::UnorderedTermPairMap passed_map;
     IndicatorTreeWalker itw(s, false, &passed_map);
 
     std::pair<Term, std::vector<int>> p1;

@@ -17,26 +17,8 @@
 #include <vector>
 
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/term.h"
 
 namespace smt {
-/* vector of pairs holding terms and ints that gets used within visit in the
- * vector to_visit as a means of storing what terms we need to visit along with
- * each term's child number relative to its parent node or a "-1 flag" that
- * indicates all of a node's children have already been visited.
- */
-using TermPairVec = std::vector<std::pair<Term, int>>;
-/* used to map from terms to their occurrences, represented as a pair of the
- * formula it is found in and the path indicating the terms placement in the
- * formula it is found in. A term's path is built up as list of indices where
- * each index is a child number telling which path to follow from the topmost
- * node to the term's place in the formula represented as a tree. For example,
- * in the formula x+1=2, each term and its respective path is: x+1=2: []; x+1:
- * [0]; x: [0,0]; 1: [0,1]; 2: [1]
- */
-using UnorderedTermPairMap =
-    std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
-
 /** \enum
  * Walker_Continue : rebuild the current term and continue
  * Walker_Skip     : skip this term and all subterms
@@ -65,6 +47,23 @@ enum TreeWalkerStepResult
 class TreeWalker
 {
  public:
+  /* vector of pairs holding terms and ints that gets used within visit in the
+   * vector to_visit as a means of storing what terms we need to visit along
+   * with each term's child number relative to its parent node or a "-1 flag"
+   * that indicates all of a node's children have already been visited.
+   */
+  using TermPairVec = std::vector<std::pair<Term, int>>;
+  /* used to map from terms to their occurrences, represented as a pair of the
+   * formula it is found in and the path indicating the terms placement in the
+   * formula it is found in. A term's path is built up as list of indices where
+   * each index is a child number telling which path to follow from the topmost
+   * node to the term's place in the formula represented as a tree. For example,
+   * in the formula x+1=2, each term and its respective path is: x+1=2: []; x+1:
+   * [0]; x: [0,0]; 1: [0,1]; 2: [1]
+   */
+  using UnorderedTermPairMap =
+      std::unordered_map<Term, std::pair<Term, std::vector<int>>>;
+
   TreeWalker(const SmtSolver & solver,
              bool clear_cache,
              UnorderedTermPairMap * ext_cache = nullptr);
