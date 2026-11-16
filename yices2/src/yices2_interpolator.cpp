@@ -24,7 +24,7 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/utils.h"
-#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_solver.h"
 #include "smt-switch/yices2_term.h"
 
@@ -76,7 +76,7 @@ SmtSolver Yices2Interpolator::new_solver() const
   // smt-switch has no option for the solver type
   if (yices_set_config(solver->get_config(), "solver-type", "mcsat") < 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   solver->set_opt("incremental", "true");
   solver->set_opt("produce-unsat-model-interpolants", "true");
@@ -116,7 +116,7 @@ Result Yices2Interpolator::compute_interpolant(const Term & A,
                            model_interpolants.data());
       if (I == NULL_TERM)
       {
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       out_I = std::make_shared<Yices2Term>(I);
       return r;
@@ -184,10 +184,11 @@ Result Yices2Interpolator::refute_model(const Term & A,
   {
     return r_b;
   }
-  detail::Yices2ModelPtr model_b(yices_get_model(ctx_b, 1));
+  std::unique_ptr<model_t, decltype(&yices_free_model)> model_b(
+      yices_get_model(ctx_b, 1), &yices_free_model);
   if (!model_b)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   for (std::size_t i = 0; i < shared.size(); ++i)
   {
@@ -216,7 +217,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
   }
   if (status_a == YICES_STATUS_ERROR)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   if (status_a != YICES_STATUS_UNSAT)
   {
@@ -226,7 +227,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
   term_t refutation = yices_get_model_interpolant(ctx_a);
   if (refutation == NULL_TERM)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   model_interpolant = std::make_shared<Yices2Term>(refutation);
   solver_b->assert_formula(model_interpolant);

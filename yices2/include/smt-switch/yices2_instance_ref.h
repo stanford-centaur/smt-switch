@@ -72,6 +72,11 @@ class Yices2InstanceRef
    * term
    */
   static term_t get_index_variable(type_t index_type);
+
+  /** Throws the smt-switch exception for Yices' last error, chosen by its
+   *  error code, and clears the error
+   */
+  [[noreturn]] static void throw_error();
 };
 
 }  // namespace smt

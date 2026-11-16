@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "smt-switch/exceptions.h"
-#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_instance_ref.h"
 
 namespace smt {
 
@@ -233,9 +233,15 @@ SortKind Yices2Sort::get_sort_kind() const
   }
   else
   {
+    char * text = yices_type_to_string(type, 120, 1, 0);
+    if (!text)
+    {
+      Yices2InstanceRef::throw_error();
+    }
     std::string msg("smt-switch has no SortKind for the Yices2 sort ");
-    msg += detail::get_yices2_string(yices_type_to_string(type, 120, 1, 0));
-    throw NotImplementedException(msg.c_str());
+    msg += text;
+    yices_free_string(text);
+    throw NotImplementedException(msg);
   }
 }
 

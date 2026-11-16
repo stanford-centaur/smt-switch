@@ -21,7 +21,7 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
-#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_sort.h"
 
 namespace smt {
@@ -33,8 +33,14 @@ namespace {
  */
 std::string yices2_to_string(term_t term)
 {
-  return detail::get_yices2_string(
-      yices_term_to_string(term, UINT32_MAX, 1, 0));
+  char * text = yices_term_to_string(term, UINT32_MAX, 1, 0);
+  if (!text)
+  {
+    Yices2InstanceRef::throw_error();
+  }
+  std::string res(text);
+  yices_free_string(text);
+  return res;
 }
 
 /** Returns the value of an arithmetic constant as GMP writes it, n or n/d
@@ -106,9 +112,8 @@ term_t extract_argument(term_t term, uint32_t & low, uint32_t & high)
  */
 [[noreturn]] void no_smt_switch_op(term_t term)
 {
-  throw NotImplementedException(
-      "smt-switch has no op for the Yices2 term "
-      + detail::get_yices2_string(yices_term_to_string(term, 120, 1, 0)));
+  throw NotImplementedException("smt-switch has no op for the Yices2 term "
+                                + yices2_to_string(term));
 }
 
 /* (divides n t) is (_ divisible n) applied to t, where n is a positive integer
@@ -261,7 +266,7 @@ Op Yices2Term::get_op() const
     case YICES_VARIABLE: return Op();
     case YICES_UNINTERPRETED_TERM: return Op();
     // reported for a term that is not valid, which this one is
-    case YICES_CONSTRUCTOR_ERROR: detail::throw_yices2_error();
+    case YICES_CONSTRUCTOR_ERROR: Yices2InstanceRef::throw_error();
   }
   // unreachable, and here so that a constructor Yices adds is a -Wswitch
   // warning rather than a term silently without an op
@@ -487,7 +492,7 @@ Term Yices2Term::get_child(std::size_t i) const
             term, one_component ? 0 : pos, coeff.data(), &component)
         < 0)
     {
-      detail::throw_yices2_error();
+      Yices2InstanceRef::throw_error();
     }
     term_t y_coeff = yices_bvconst_from_array(width, coeff.data());
     if (one_component)
@@ -511,7 +516,7 @@ Term Yices2Term::get_child(std::size_t i) const
       if (yices_sum_component(term, 0, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       ret_term = pos == 0 ? yices_mpq(coeff) : component;
     }
@@ -520,7 +525,7 @@ Term Yices2Term::get_child(std::size_t i) const
       if (yices_sum_component(term, pos, coeff, &component) < 0)
       {
         mpq_clear(coeff);
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       ret_term = component == NULL_TERM
                      ? yices_mpq(coeff)
@@ -537,7 +542,7 @@ Term Yices2Term::get_child(std::size_t i) const
             term, one_component ? 0 : pos, &component, &exponent)
         < 0)
     {
-      detail::throw_yices2_error();
+      Yices2InstanceRef::throw_error();
     }
     bool is_bv = yices_term_is_bitvector(term);
     if (one_component && is_bv)
@@ -624,7 +629,7 @@ Term Yices2Term::get_child(std::size_t i) const
 
   if (ret_term == NULL_TERM)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   return std::make_shared<Yices2Term>(ret_term);
 }
