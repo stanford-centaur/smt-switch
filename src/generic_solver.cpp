@@ -1649,7 +1649,7 @@ Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
                                                std::uint64_t width) const
 {
   Sort bvsort = make_sort(BV, width);
-  std::string repr = "#b" + backend::bv_value_to_bits(abs_decimal, 10, bvsort);
+  std::string repr = "#b" + bv_value_to_bits(abs_decimal, 10, bvsort);
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
   return store_term(term);
 }
@@ -1700,8 +1700,7 @@ Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
   else
   {
     // sk == BV
-    std::string repr =
-        "#b" + backend::bv_value_to_bits(std::to_string(i), 10, sort);
+    std::string repr = "#b" + bv_value_to_bits(std::to_string(i), 10, sort);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }
@@ -1724,15 +1723,7 @@ Term GenericSolver::make_value(const std::string val,
   std::string repr;
   if (sk == INT || sk == REAL)
   {
-    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
-    // a solver binary reads some other strings, such as the name of a
-    // symbol or a decimal for an INT, without an error but not as the
-    // number meant
-    if (!backend::is_arith_number(sk, decimal))
-    {
-      throw IncorrectUsageException("Value " + val + " is not a number of sort "
-                                    + sort->to_string());
-    }
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     // no binary reads a number with spaces in it
     std::string number = decimal;
     number.erase(std::remove(number.begin(), number.end(), ' '), number.end());
@@ -1750,7 +1741,7 @@ Term GenericSolver::make_value(const std::string val,
   else
   {
     // sk == BV
-    repr = "#b" + backend::bv_value_to_bits(val, base, sort);
+    repr = "#b" + bv_value_to_bits(val, base, sort);
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
     return term;
   }

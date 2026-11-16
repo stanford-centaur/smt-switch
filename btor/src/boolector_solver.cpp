@@ -19,7 +19,6 @@ extern "C" {
 #include <cstdint>
 #include <cstdio>
 #include <initializer_list>
-#include <limits>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -28,7 +27,6 @@ extern "C" {
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/boolector_term.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
@@ -316,10 +314,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     }
     else if (value != "false")
     {
-      // more digits than the largest 32-bit value has are too many
-      number = backend::is_decimal_numeral(value) && value.size() <= 10
-                   ? std::stoull(value)
-                   : std::numeric_limits<std::uint64_t>::max();
+      number = parse_nat_opt(option, value);
     }
     if (!backend::fits_in<std::uint32_t>(number))
     {
@@ -407,7 +402,7 @@ Term BoolectorSolver::make_term(std::string val,
   // Boolector's own string constructors ignore the sort in base 2, read a
   // minus differently in base 16 and accept malformed numerals, so write
   // out the bits of the value and build that
-  std::string bits = backend::bv_value_to_bits(val, base, sort);
+  std::string bits = bv_value_to_bits(val, base, sort);
   return std::make_shared<BoolectorTerm>(
       btor, boolector_const(btor.get(), bits.c_str()));
 }

@@ -535,6 +535,16 @@ class AbsSmtSolver
   static bool parse_bool_opt(const std::string & option,
                              const std::string & value);
 
+  /** The value of an option that takes a natural number
+   *  @param option the option, used in the error message
+   *  @param value the value given for it
+   *  @return the number
+   *  @throws IncorrectUsageException for a value that is not a decimal
+   *  numeral below 2^64
+   */
+  static std::uint64_t parse_nat_opt(const std::string & option,
+                                     const std::string & value);
+
   /** The value of the time-limit option
    *  @param value the value given for it, in seconds
    *  @return the limit
@@ -554,6 +564,58 @@ class AbsSmtSolver
    */
   static UnorderedTermMap store_chain_values(
       const std::vector<std::pair<Term, Term>> & stores);
+
+  // Numerals in a base from 2 to 36, as make_term accepts them
+
+  /** The number val names in base `base`, in base 10: val itself in base
+   *  10, less a leading plus, and otherwise the same number in decimal, a
+   *  REAL with a point as a fraction. val is a numeral, or for a REAL also a
+   *  decimal or a fraction of numerals, of digits in that base (0 to 9, then
+   *  a to z in either case), with an optional leading sign. The slash of a
+   *  fraction may have spaces around it, as TermTranslator writes one.
+   *  @param sk the sort kind of the value, INT or REAL
+   *  @param val the number in base `base`
+   *  @param base from 2 to 36
+   *  @return the number in base 10
+   *  @throws IncorrectUsageException for another base, or a val that is not
+   *  such a number
+   */
+  static std::string arith_value_to_decimal(SortKind sk,
+                                            const std::string & val,
+                                            std::uint64_t base);
+
+  /** The bits, most significant first, of the value of bit-vector sort `sort`
+   *  that `val` names: a numeral in a base from 2 to 36 with an optional
+   *  leading minus, as passed to make_term. A short value is
+   *  zero-extended, and a negative one is written in two's complement.
+   *  Throws an IncorrectUsageException for another base, a malformed
+   *  numeral, a value outside the smallest signed and the largest unsigned
+   *  value of the sort, or a sort that is not a bit-vector sort.
+   */
+  static std::string bv_value_to_bits(const std::string & val,
+                                      std::uint64_t base,
+                                      const Sort & sort);
+
+  /** The two's complement of the bit-vector value val, a numeral in base
+   *  `base` with an optional leading sign, as make_term accepts
+   *  it
+   *  @param val the value
+   *  @param base from 2 to 36
+   *  @param width the width of the bit-vector
+   *  @return its bits in 32-bit words, least significant first, as many as
+   *  width bits take; bits of the last word above width are zero
+   *  @throws IncorrectUsageException for another base, a val that is not
+   *  such a numeral, or a value outside the smallest signed and the largest
+   *  unsigned value of width bits
+   */
+  static std::vector<std::uint32_t> bv_value_to_words(const std::string & val,
+                                                      std::uint64_t base,
+                                                      std::uint64_t width);
+
+  /** bv_value_to_words as one number, for a width of at most 64 */
+  static std::uint64_t bv_value_to_uint64(const std::string & val,
+                                          std::uint64_t base,
+                                          std::uint64_t width);
 
   SolverEnum solver_enum;  ///< an enum identifying the underlying solver
 

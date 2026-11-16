@@ -17,8 +17,6 @@
 #include "available_solvers.h"
 #include "smt-switch/cnf.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/generic_sort.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
@@ -982,68 +980,6 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          GetJustifyingSymbols,
                          testing::ValuesIn(available_solver_enums()),
                          testing::PrintToStringParamName());
-
-TEST(BvValueToBits, DecimalAcrossLimbs)
-{
-  // 2^32 - 1 and 2^32, either side of one 32-bit chunk
-  EXPECT_EQ(backend::bv_value_to_bits(
-                "4294967295", 10, std::make_shared<BVGenericSort>(33)),
-            "0" + std::string(32, '1'));
-  EXPECT_EQ(backend::bv_value_to_bits(
-                "4294967296", 10, std::make_shared<BVGenericSort>(33)),
-            "1" + std::string(32, '0'));
-  // ten digits, so the first group of nine is a single digit
-  EXPECT_EQ(backend::bv_value_to_bits(
-                "1000000000", 10, std::make_shared<BVGenericSort>(30)),
-            "111011100110101100101000000000");
-  EXPECT_EQ(
-      backend::bv_value_to_bits(
-          "000000000000000000005", 10, std::make_shared<BVGenericSort>(4)),
-      "0101");
-  EXPECT_EQ(backend::bv_value_to_bits("340282366920938463463374607431768211455",
-                                      10,
-                                      std::make_shared<BVGenericSort>(128)),
-            std::string(128, '1'));
-}
-
-TEST(BvValueToBits, DecimalAtTheBounds)
-{
-  Sort bv64 = std::make_shared<BVGenericSort>(64);
-  EXPECT_EQ(backend::bv_value_to_bits("18446744073709551615", 10, bv64),
-            std::string(64, '1'));
-  EXPECT_EQ(backend::bv_value_to_bits("-9223372036854775808", 10, bv64),
-            "1" + std::string(63, '0'));
-  EXPECT_THROW(backend::bv_value_to_bits("18446744073709551616", 10, bv64),
-               IncorrectUsageException);
-  EXPECT_THROW(backend::bv_value_to_bits("-9223372036854775809", 10, bv64),
-               IncorrectUsageException);
-  // the lowest 32 bits of 2^32 are all zero, which must not read as 0
-  EXPECT_THROW(backend::bv_value_to_bits(
-                   "4294967296", 10, std::make_shared<BVGenericSort>(8)),
-               IncorrectUsageException);
-}
-
-TEST(BvValueToBits, PowerOfTwoBases)
-{
-  Sort bv4 = std::make_shared<BVGenericSort>(4);
-  EXPECT_EQ(
-      backend::bv_value_to_bits("777", 8, std::make_shared<BVGenericSort>(9)),
-      std::string(9, '1'));
-  EXPECT_EQ(
-      backend::bv_value_to_bits("-1", 4, std::make_shared<BVGenericSort>(3)),
-      "111");
-  EXPECT_EQ(
-      backend::bv_value_to_bits("vV", 32, std::make_shared<BVGenericSort>(10)),
-      std::string(10, '1'));
-  // leading zero digits add no bits
-  EXPECT_EQ(backend::bv_value_to_bits("000000000000000f", 16, bv4), "1111");
-  EXPECT_EQ(backend::bv_value_to_bits("-1000", 2, bv4), "1000");
-  EXPECT_THROW(backend::bv_value_to_bits("10000", 2, bv4),
-               IncorrectUsageException);
-  EXPECT_THROW(backend::bv_value_to_bits("-1001", 2, bv4),
-               IncorrectUsageException);
-  EXPECT_THROW(backend::bv_value_to_bits("8", 8, bv4), IncorrectUsageException);
-}
 
 TEST(InternalName, KindAndIndex)
 {

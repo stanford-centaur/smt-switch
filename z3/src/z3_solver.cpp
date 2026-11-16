@@ -26,7 +26,6 @@
 
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
@@ -642,13 +641,12 @@ Term Z3Solver::make_term(const std::string val,
     std::uint64_t width = sort->get_width();
     if (width <= 64)
     {
-      z_term = ctx->bv_val(backend::bv_value_to_uint64(val, base, width),
+      z_term = ctx->bv_val(bv_value_to_uint64(val, base, width),
                            backend::narrow_width(width));
     }
     else
     {
-      std::vector<std::uint32_t> words =
-          backend::bv_value_to_words(val, base, width);
+      std::vector<std::uint32_t> words = bv_value_to_words(val, base, width);
       // Z3 reads bits[0] as the lowest bit
       std::valarray<bool> bits(false, width);
       for (std::uint64_t i = 0; i < width; ++i)
@@ -660,14 +658,9 @@ Term Z3Solver::make_term(const std::string val,
   }
   else if (sk == REAL || sk == INT)
   {
-    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
-    // Z3 reads "" and "-" as 0, and "1.2.3" as some Real
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
-    if (!backend::is_arith_number(sk, decimal))
-    {
-      throw IncorrectUsageException(msg);
-    }
     try
     {
       z_term = sk == REAL ? ctx->real_val(decimal.c_str())

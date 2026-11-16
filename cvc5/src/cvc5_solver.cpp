@@ -25,7 +25,6 @@
 #include "smt-switch/cvc5_term.h"
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"
-#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
@@ -262,7 +261,7 @@ try
 
   if ((sk == INT) || (sk == REAL))
   {
-    std::string decimal = backend::arith_value_to_decimal(sk, val, base);
+    std::string decimal = arith_value_to_decimal(sk, val, base);
     if (sk == INT)
     {
       c = instance->tm.mkInteger(decimal);
@@ -276,9 +275,9 @@ try
   {
     std::uint32_t width = backend::narrow_width(sort->get_width());
     c = width <= 64 ? instance->tm.mkBitVector(
-                          width, backend::bv_value_to_uint64(val, base, width))
+                          width, bv_value_to_uint64(val, base, width))
                     : instance->tm.mkBitVector(
-                          width, backend::bv_value_to_bits(val, base, sort), 2);
+                          width, bv_value_to_bits(val, base, sort), 2);
   }
   else
   {
