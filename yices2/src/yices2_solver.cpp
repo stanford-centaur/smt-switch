@@ -33,13 +33,30 @@
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/text_utils.h"
 #include "smt-switch/utils.h"
-#include "smt-switch/yices2_extensions.h"
+#include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_sort.h"
 #include "smt-switch/yices2_term.h"
 
 namespace smt {
 
 namespace {
+
+/** Yices' description of its last error, freeing the string it returns and
+ *  clearing the error, which later calls would otherwise report again
+ */
+std::string get_yices2_error()
+{
+  char * reason = yices_error_string();
+  std::string msg(reason);
+  yices_free_string(reason);
+  yices_clear_error();
+  // Yices2 ends a few of its error messages with a newline.
+  if (!msg.empty() && msg.back() == '\n')
+  {
+    msg.pop_back();
+  }
+  return msg;
+}
 
 term_t ext_yices_select(term_t arr, term_t idx)
 {
@@ -110,7 +127,7 @@ Term checked_term(term_t res)
 {
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   return std::make_shared<Yices2Term>(res);
 }
@@ -130,7 +147,7 @@ Term term_from_yval(const Yices2Solver & solver,
       int32_t b = 0;
       if (yices_val_get_bool(model, &node, &b) < 0)
       {
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       return solver.make_term(b != 0);
     }
@@ -139,7 +156,7 @@ Term term_from_yval(const Yices2Solver & solver,
       std::vector<int32_t> bits(width);
       if (yices_val_get_bv(model, &node, bits.data()) < 0)
       {
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       // bits[0] is the low-order bit, so read the array back to front
       std::string digits;
@@ -154,7 +171,7 @@ Term term_from_yval(const Yices2Solver & solver,
       uint64_t den = 0;
       if (yices_val_get_rational64(model, &node, &num, &den) < 0)
       {
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       if (den != 1)
       {
@@ -501,7 +518,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
         bool_option_value(option, value) ? "true" : "false";
     if (yices_set_config(config, "model-interpolation", yices_value) < 0)
     {
-      detail::throw_yices2_error();
+      Yices2InstanceRef::throw_error();
     }
   }
   else
@@ -543,7 +560,7 @@ void Yices2Solver::set_logic(const std::string logic)
       return;
     }
     throw NotImplementedException("Yices2 cannot use logic " + logic + ": "
-                                  + detail::get_yices2_error());
+                                  + get_yices2_error());
   }
   yices_free_context(scratch_ctx);
 
@@ -560,7 +577,7 @@ std::shared_ptr<context_t> Yices2Solver::get_context()
     {
       throw IncorrectUsageException(
           "Yices2 cannot create a context with the logic and options set: "
-          + detail::get_yices2_error());
+          + get_yices2_error());
     }
     ctx = std::shared_ptr<context_t>(c, ContextDeleter());
   }
@@ -697,7 +714,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
   term_t y_term = yices_lambda(1, &index, yval->term);
   if (y_term == NULL_TERM)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   return std::make_shared<Yices2Term>(y_term);
 }
@@ -708,7 +725,7 @@ void Yices2Solver::do_assert(const Term & t)
   yices_assert_formula(get_context().get(), yterm->term);
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   assertions.push_back(t);
 }
@@ -721,7 +738,7 @@ Result Yices2Solver::check_sat()
 
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
 
   if (res == YICES_STATUS_SAT)
@@ -761,7 +778,7 @@ Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
 
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
 
   if (res == YICES_STATUS_SAT)
@@ -800,7 +817,7 @@ void Yices2Solver::do_push(uint64_t num)
       {
         yices_pop(get_context().get());
       }
-      detail::throw_yices2_error();
+      Yices2InstanceRef::throw_error();
     }
   }
   scope_starts.insert(scope_starts.end(), num, assertions.size());
@@ -817,7 +834,7 @@ void Yices2Solver::do_pop(uint64_t num)
     }
     if (yices_pop(get_context().get()) < 0)
     {
-      detail::throw_yices2_error();
+      Yices2InstanceRef::throw_error();
     }
   }
   assertions.resize(scope_starts[scope_starts.size() - num]);
@@ -827,8 +844,8 @@ void Yices2Solver::do_pop(uint64_t num)
 Term Yices2Solver::get_value(const Term & t) const
 {
   std::shared_ptr<Yices2Term> yterm = backend_pointer_cast<Yices2Term>(t);
-  detail::Yices2ModelPtr model(ctx ? yices_get_model(ctx.get(), true)
-                                   : nullptr);
+  std::unique_ptr<model_t, decltype(&yices_free_model)> model(
+      ctx ? yices_get_model(ctx.get(), true) : nullptr, &yices_free_model);
   if (!model)
   {
     yices_clear_error();
@@ -844,8 +861,8 @@ Term Yices2Solver::get_value(const Term & t) const
       // the model declines some terms, one containing a lambda among them,
       // and a term built from NULL_TERM only fails later and further away
       throw NotImplementedException("Yices2 cannot evaluate "
-                                    + yterm->to_string() + " in a model: "
-                                    + detail::get_yices2_error());
+                                    + yterm->to_string()
+                                    + " in a model: " + get_yices2_error());
     }
     return std::make_shared<Yices2Term>(value);
   }
@@ -881,8 +898,8 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   Sort arrsort = arr->get_sort();
   Sort idxsort = arrsort->get_indexsort();
   Sort elemsort = arrsort->get_elemsort();
-  detail::Yices2ModelPtr model(ctx ? yices_get_model(ctx.get(), true)
-                                   : nullptr);
+  std::unique_ptr<model_t, decltype(&yices_free_model)> model(
+      ctx ? yices_get_model(ctx.get(), true) : nullptr, &yices_free_model);
   if (!model)
   {
     yices_clear_error();
@@ -907,7 +924,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   yval_t node;
   if (yices_get_value(model.get(), yarr->term, &node) < 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   if (yices_val_function_arity(model.get(), &node) != 1)
   {
@@ -921,7 +938,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
   if (yices_val_expand_function(model.get(), &node, &def, &mappings) < 0)
   {
     yices_delete_yval_vector(&mappings);
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
 
   UnorderedTermMap assignments;
@@ -936,7 +953,7 @@ UnorderedTermMap Yices2Solver::get_array_values(const Term & arr,
               model.get(), &mappings.data[m], &index, &value)
           < 0)
       {
-        detail::throw_yices2_error();
+        Yices2InstanceRef::throw_error();
       }
       assignments[term_from_yval(*this, model.get(), index, idxsort)] =
           term_from_yval(*this, model.get(), value, elemsort);
@@ -997,7 +1014,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
     std::int32_t constructor_id = yices_type_constructor(name.c_str(), n);
     if (constructor_id < 0)
     {
-      detail::throw_yices2_error();
+      Yices2InstanceRef::throw_error();
     }
     Yices2InstanceRef::add_constructor(constructor_id, name, n);
     return std::make_shared<Yices2Sort>(NULL_TYPE, false, constructor_id);
@@ -1007,7 +1024,7 @@ Sort Yices2Solver::make_sort(const std::string name, uint64_t arity) const
   yices_set_type_name(y_sort, name.c_str());
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   return std::make_shared<Yices2Sort>(y_sort);
 }
@@ -1037,7 +1054,7 @@ Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
       ycon->constructor_id, static_cast<std::uint32_t>(arity), params.data());
   if (y_sort == NULL_TYPE)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
   Yices2InstanceRef::add_instance(y_sort, ycon->constructor_id, params);
   return std::make_shared<Yices2Sort>(y_sort);
@@ -1067,7 +1084,7 @@ Sort Yices2Solver::make_sort(SortKind sk) const
 
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
 
   return std::make_shared<Yices2Sort>(y_sort);
@@ -1089,7 +1106,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
 
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
 
   return std::make_shared<Yices2Sort>(y_sort);
@@ -1140,7 +1157,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
   if (yices_error_code() != 0)
   {
-    detail::throw_yices2_error();
+    Yices2InstanceRef::throw_error();
   }
 
   return std::make_shared<Yices2Sort>(y_sort, sk == FUNCTION);
