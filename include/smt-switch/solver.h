@@ -35,8 +35,12 @@ namespace smt {
 
    Terms and sorts keep alive the backend state they point into, so they can
    still be used after their solver is destroyed.
+
+   A solver is used through an SmtSolver, as a term is through a Term:
+   cast_term, cast_op, get_theory_atoms and get_justifying_symbols hand the
+   solver on with shared_from_this.
  */
-class AbsSmtSolver
+class AbsSmtSolver : public internal::SharedBase<AbsSmtSolver>
 {
  public:
   /** SolverEnum identifies which underlying solver is being used.
@@ -319,6 +323,7 @@ class AbsSmtSolver
   {
     return make_term(op, TermVec{ t, ts... });
   }
+
   /* Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts
    * SMTLIB: (reset)
@@ -445,7 +450,7 @@ class AbsSmtSolver
   Sort make_datatype_sort(const DatatypeDecl & decl) const;
 
   // Methods implemented at the abstract level
-  // Note: These can be overloaded in the specific solver implementation for
+  // Note: These can be overridden in the specific solver implementation for
   //       performance improvements
 
   /** Replaces each key of substitution_map in term with its value. A key
@@ -474,6 +479,58 @@ class AbsSmtSolver
    * @throws SystemException if the file cannot be opened or written
    */
   virtual void dump_smt2(std::string filename) const;
+
+  // Built from the methods above, and not overridden
+
+  /** A term as another sort, between Bool and bit-vectors or between Int and
+   *  Real. A bit-vector is true when it equals 1; a value cast between Bool
+   *  and a bit-vector must have width one.
+   *  @param term the term to cast
+   *  @param sort the sort to cast it to
+   *  @return term itself if it has that sort already, else a term of sort
+   *  @throws NotImplementedException for any other pair of sorts
+   */
+  Term cast_term(const Term & term, const Sort & sort) const;
+
+  /** An operator applied to terms, cast where the operator does not accept
+   *  them as they are: the terms are cast as cast_term does, or the operator
+   *  is swapped for its Boolean or bit-vector counterpart, such as And for
+   *  BVAnd
+   *  @param op the operator
+   *  @param terms the terms to apply it to
+   *  @return a well-sorted application of op or its counterpart
+   *  @throws NotImplementedException if no such cast makes it well sorted
+   *  @throws IncorrectUsageException for a function applied to the wrong
+   *          number of arguments
+   */
+  Term cast_op(const Op & op, const TermVec & terms) const;
+
+  /** Collects the theory atoms of a Boolean formula, as is_theory_atom
+   *  defines them, without looking inside an atom
+   *  @param formula the formula to search
+   *  @param out the set the atoms are added to
+   *  @param split_ites if true, an atom with if-then-else arguments is
+   *         replaced by the atoms obtained by putting each branch in place
+   *         of each if-then-else, and the if-then-else conditions are
+   *         searched too; e.g. (= y (ite c a b)) gives (= y a), (= y b) and
+   *         the atoms of c
+   */
+  void get_theory_atoms(const Term & formula,
+                        UnorderedTermSet & out,
+                        bool split_ites = false) const;
+
+  /** Collects symbolic constants whose values in the solver's model alone
+   *  fix the value of a term. Below a subterm whose value one child decides,
+   *  only that child counts: the condition and the taken branch of an
+   *  if-then-else, a false child of a conjunction, a true child of a
+   *  disjunction, a false premise or true conclusion of an implication, an
+   *  all-zero child of a bit-vector and, nand or multiplication, and an
+   *  all-one child of a bit-vector or or nor. The last check must have been
+   *  sat.
+   *  @param term the term whose value to justify
+   *  @param out the set the symbolic constants are added to
+   */
+  void get_justifying_symbols(const Term & term, UnorderedTermSet & out) const;
 
   /** @return an enum identifying the underlying solver */
   SolverEnum get_solver_enum() const;

@@ -23,6 +23,32 @@
 
 namespace smt {
 
+namespace internal {
+
+// Gives a class shared_from_this. Deleting an object through a base whose
+// destructor is not virtual would skip the object's own destructors, and
+// enable_shared_from_this's is not virtual and can be reached by its friend
+// classes.
+template <class T>
+class SharedBase : public std::enable_shared_from_this<T>
+{
+ protected:
+  // Protected so no object can be deleted through it
+  ~SharedBase() = default;
+
+  // A declared destructor deprecates the implicit copies and suppresses the
+  // implicit moves, so they are declared too, which in turn takes away the
+  // implicit default constructor. Like enable_shared_from_this's, they leave
+  // a copy without the original's shared_from_this.
+  SharedBase() = default;
+  SharedBase(const SharedBase & other) = default;
+  SharedBase(SharedBase && other) = default;
+  SharedBase & operator=(const SharedBase & other) = default;
+  SharedBase & operator=(SharedBase && other) = default;
+};
+
+}  // namespace internal
+
 /* Sorts, terms, solvers */
 
 class AbsSort;
