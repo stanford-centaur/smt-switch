@@ -22,7 +22,7 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/utils.h"
+#include "smt-switch/unsat_core_reducer.h"
 
 namespace smt::tests {
 
