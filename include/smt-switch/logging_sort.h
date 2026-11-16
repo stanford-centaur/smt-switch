@@ -20,19 +20,6 @@
 
 namespace smt {
 
-/* Helper functions for creating logging sorts */
-// Sort s is the underlying sort
-// all other sorts are LoggingSorts
-Sort make_uninterpreted_logging_sort(Sort s,
-                                     std::string name,
-                                     std::uint64_t arity);
-Sort make_uninterpreted_logging_sort(Sort s,
-                                     Sort sort_con,
-                                     const SortVec & sorts);
-Sort make_logging_sort(SortKind sk, Sort s);
-Sort make_logging_sort(SortKind sk, Sort s, std::uint64_t width);
-Sort make_logging_sort(SortKind sk, Sort s, SortVec sorts);
-
 /** \class LoggingSort
  *  An abstract class for logging created Sorts
  */

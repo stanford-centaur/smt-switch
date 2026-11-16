@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "smt-switch/bitwuzla_term_manager.h"
 #include "smt-switch/ops.h"
@@ -27,7 +28,14 @@ namespace smt {
 class BzlaTerm : public AbsTerm
 {
  public:
-  BzlaTerm(bitwuzla::Term n, const std::shared_ptr<BzlaTermManager> & manager);
+  BzlaTerm(const std::shared_ptr<BzlaTermManager> & manager, bitwuzla::Term n);
+  /** The application of op to children
+   *  @throws NotImplementedException for an operator Bitwuzla does not support
+   *  @throws bitwuzla::Exception where Bitwuzla rejects the application
+   */
+  BzlaTerm(const std::shared_ptr<BzlaTermManager> & manager,
+           const Op & op,
+           const std::vector<bitwuzla::Term> & children);
   std::size_t hash() const override;
   std::size_t get_id() const override;
   bool compare(const Term & absterm) const override;
@@ -66,16 +74,6 @@ class BzlaTerm : public AbsTerm
   friend class BzlaSolver;
   friend class BzlaInterpolator;
 };
-
-/** The Bitwuzla kind of the applications of po
- *  @throws NotImplementedException for an operator Bitwuzla does not support
- */
-bitwuzla::Kind to_bitwuzla_kind(PrimOp po);
-
-/** The PrimOp of the applications of kind
- *  @throws NotImplementedException for a kind that no PrimOp stands for
- */
-PrimOp to_primop(bitwuzla::Kind kind);
 
 }  // namespace smt
 

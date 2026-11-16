@@ -39,23 +39,6 @@ namespace smt {
 
 namespace {
 
-/** Apply kind to args with Bitwuzla, throwing an IncorrectUsageException
- *  where Bitwuzla rejects the application, e.g. for the number or the sorts
- *  of its arguments
- */
-Term make_bzla_term(const std::shared_ptr<BzlaTermManager> & tm,
-                    bitwuzla::Kind kind,
-                    const std::vector<bitwuzla::Term> & args,
-                    const std::vector<std::uint64_t> & indices = {})
-try
-{
-  return std::make_shared<BzlaTerm>(tm->mk_term(kind, args, indices), tm);
-}
-catch (const bitwuzla::Exception & e)
-{
-  throw IncorrectUsageException(e.what());
-}
-
 }  // namespace
 
 struct BzlaSolver::Instance
@@ -323,7 +306,7 @@ try
   {
     throw IncorrectUsageException("Bitwuzla has no model before a check_sat");
   }
-  return std::make_shared<BzlaTerm>(instance->bzla.get_value(bzla_term(t)), tm);
+  return std::make_shared<BzlaTerm>(tm, instance->bzla.get_value(bzla_term(t)));
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -347,8 +330,8 @@ try
   while (bval.kind() == bitwuzla::Kind::ARRAY_STORE)
   {
     std::vector<bitwuzla::Term> children = bval.children();
-    stores.push_back({ std::make_shared<BzlaTerm>(children[1], tm),
-                       std::make_shared<BzlaTerm>(children[2], tm) });
+    stores.push_back({ std::make_shared<BzlaTerm>(tm, children[1]),
+                       std::make_shared<BzlaTerm>(tm, children[2]) });
     bval = children[0];
   }
 
@@ -360,7 +343,7 @@ try
                                   + bval.str()
                                   + ", which has no constant base");
   }
-  out_const_base = std::make_shared<BzlaTerm>(bval.children()[0], tm);
+  out_const_base = std::make_shared<BzlaTerm>(tm, bval.children()[0]);
 
   return store_chain_values(stores);
 }
@@ -391,7 +374,7 @@ void BzlaSolver::get_unsat_assumptions(UnorderedTermSet & out) const
   }
   for (auto && elt : bcore)
   {
-    out.insert(std::make_shared<BzlaTerm>(elt, tm));
+    out.insert(std::make_shared<BzlaTerm>(tm, elt));
   }
 }
 
@@ -529,11 +512,11 @@ Term BzlaSolver::make_term(bool b) const
 {
   if (b)
   {
-    return std::make_shared<BzlaTerm>(tm->mk_true(), tm);
+    return std::make_shared<BzlaTerm>(tm, tm->mk_true());
   }
   else
   {
-    return std::make_shared<BzlaTerm>(tm->mk_false(), tm);
+    return std::make_shared<BzlaTerm>(tm, tm->mk_false());
   }
 }
 
@@ -552,8 +535,8 @@ try
                                   + " with sort " + sort->to_string());
   }
 
-  return std::make_shared<BzlaTerm>(tm->mk_bv_value_int64(bzla_sort(sort), i),
-                                    tm);
+  return std::make_shared<BzlaTerm>(tm,
+                                    tm->mk_bv_value_int64(bzla_sort(sort), i));
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -581,11 +564,11 @@ Term BzlaSolver::make_term(const std::string val,
   try
   {
     return std::make_shared<BzlaTerm>(
+        tm,
         width <= 64
             ? tm->mk_bv_value_uint64(
                   bsort, detail::bv_value_to_uint64(val, base, width))
-            : tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2),
-        tm);
+            : tm->mk_bv_value(bsort, bv_value_to_bits(val, base, sort), 2));
   }
   catch (bitwuzla::Exception & e)
   {
@@ -610,7 +593,7 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
         "The value of a constant array must have the array's element sort");
   }
 
-  return std::make_shared<BzlaTerm>(tm->mk_const_array(bsort, bterm), tm);
+  return std::make_shared<BzlaTerm>(tm, tm->mk_const_array(bsort, bterm));
 }
 
 Term BzlaSolver::make_symbol(const std::string name, const Sort & sort)
@@ -621,7 +604,7 @@ try
     throw IncorrectUsageException("Symbol " + name + " has already been used");
   }
   Term sym =
-      std::make_shared<BzlaTerm>(tm->mk_const(bzla_sort(sort), name), tm);
+      std::make_shared<BzlaTerm>(tm, tm->mk_const(bzla_sort(sort), name));
   symbol_table[name] = sym;
   return sym;
 }
@@ -643,7 +626,7 @@ Term BzlaSolver::get_symbol(const std::string & name) const
 Term BzlaSolver::make_param(const std::string name, const Sort & sort) const
 try
 {
-  return std::make_shared<BzlaTerm>(tm->mk_var(bzla_sort(sort), name), tm);
+  return std::make_shared<BzlaTerm>(tm, tm->mk_var(bzla_sort(sort), name));
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -668,13 +651,16 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
     bitwuzla_terms.push_back(bzla_term(t));
   }
 
-  const bitwuzla::Kind bkind = to_bitwuzla_kind(op.prim_op);
-
-  return make_bzla_term(
-      tm,
-      bkind,
-      bitwuzla_terms,
-      std::vector<std::uint64_t>(op.indices.begin(), op.indices.end()));
+  // Bitwuzla rejects an application for, e.g., the number or the sorts of
+  // its arguments
+  try
+  {
+    return std::make_shared<BzlaTerm>(tm, op, bitwuzla_terms);
+  }
+  catch (const bitwuzla::Exception & e)
+  {
+    throw IncorrectUsageException(e.what());
+  }
 }
 
 void BzlaSolver::do_reset()
@@ -707,7 +693,7 @@ try
         { bzla_term(elem.first), bzla_term(elem.second) });
   }
   return std::make_shared<BzlaTerm>(
-      tm->substitute_term(bterm, substitution_bterms_map), tm);
+      tm, tm->substitute_term(bterm, substitution_bterms_map));
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -738,7 +724,7 @@ try
   res.reserve(terms_size);
   for (auto && t : bterms)
   {
-    res.push_back(std::make_shared<BzlaTerm>(t, tm));
+    res.push_back(std::make_shared<BzlaTerm>(tm, t));
   }
   return res;
 }
@@ -755,7 +741,7 @@ void BzlaSolver::dump_smt2(std::string filename) const
   {
     for (const bitwuzla::Term & a : instance->bzla.get_assertions())
     {
-      assertions.push_back(std::make_shared<BzlaTerm>(a, tm));
+      assertions.push_back(std::make_shared<BzlaTerm>(tm, a));
     }
   }
   std::ofstream out(filename);

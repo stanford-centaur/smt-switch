@@ -188,7 +188,7 @@ Result BzlaInterpolator::compute_seq_interpolants(
     }
     else
     {
-      out_I.push_back(std::make_shared<BzlaTerm>(itp, formulae_tm));
+      out_I.push_back(std::make_shared<BzlaTerm>(formulae_tm, itp));
     }
   }
 

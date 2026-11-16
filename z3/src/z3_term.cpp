@@ -53,51 +53,7 @@ bool is_z3_value(const z3::expr & term)
              && term.decl().num_parameters() != 0);
 }
 
-// Whether a Z3 expression is the power smtlib_int_power makes, of the base and
-// exponent at the positions it keeps them in
-bool is_smtlib_int_power(const z3::expr & term)
-{
-  if (!term.is_app() || term.decl().decl_kind() != Z3_OP_ITE)
-  {
-    return false;
-  }
-  z3::expr nonnegative = term.arg(0);
-  z3::expr negative = term.arg(2);
-  if (!nonnegative.is_app() || nonnegative.decl().decl_kind() != Z3_OP_GE
-      || !negative.is_app() || negative.decl().decl_kind() != Z3_OP_ITE
-      || !negative.arg(0).is_app()
-      || negative.arg(0).decl().decl_kind() != Z3_OP_EQ)
-  {
-    return false;
-  }
-  z3::expr base = negative.arg(0).arg(0);
-  z3::expr exponent = nonnegative.arg(0);
-  return base.is_int() && exponent.is_int()
-         && z3::eq(term, detail::smtlib_int_power(base, exponent));
-}
-
 }  // namespace
-
-z3::expr detail::smtlib_int_power(const z3::expr & base,
-                                  const z3::expr & exponent)
-{
-  z3::context & c = base.ctx();
-  z3::expr zero = c.int_val(0);
-  z3::expr one = c.int_val(1);
-  z3::expr minus_one = c.int_val(-1);
-  // an integer for a positive exponent, as a Real
-  z3::expr power(c, Z3_mk_real2int(c, z3::pw(base, exponent)));
-  c.check_error();
-  // a negative exponent leaves an integer only for a base of 1 or -1
-  return z3::ite(
-      exponent >= zero,
-      z3::ite(exponent == zero, one, power),
-      z3::ite(base == one,
-              one,
-              z3::ite(base == minus_one,
-                      z3::ite(z3::mod(exponent, 2) == zero, one, minus_one),
-                      zero)));
-}
 
 // Z3Term implementation
 
@@ -175,7 +131,7 @@ Op Z3Term::get_op() const
   {
     return Op();
   }
-  else if (detail::z3_int_power_is_real && is_smtlib_int_power(term))
+  else if (ctx->is_int_power(term))
   {
     return Op(Pow);
   }
@@ -545,9 +501,8 @@ Term Z3Term::get_child(std::size_t i) const
         ctx,
         term.is_forall() ? z3::forall(rest, body) : z3::exists(rest, body));
   }
-  // the base and exponent of the power smtlib_int_power makes
-  if (detail::z3_int_power_is_real && pos < 2 && po == Pow
-      && term.decl().decl_kind() == Z3_OP_ITE)
+  // the base and exponent of the power Z3Context::make_int_power makes
+  if (pos < 2 && po == Pow && term.decl().decl_kind() == Z3_OP_ITE)
   {
     return std::make_shared<Z3Term>(
         ctx, pos == 0 ? term.arg(2).arg(0).arg(0) : term.arg(0).arg(0));
