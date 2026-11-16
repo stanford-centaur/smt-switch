@@ -17,7 +17,6 @@
 #include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_enums.h"
-#include "smt-switch/solver_utils.h"
 #include "smt-switch/term.h"
 
 namespace smt {
@@ -96,7 +95,7 @@ void AbsSmtInterpolator::set_opt(const std::string option,
     return;
   }
   // no interpolator passes it on to its regular solver
-  incremental_mode = backend::bool_option_value(option, value);
+  incremental_mode = parse_bool_opt(option, value);
 }
 
 void AbsSmtInterpolator::do_reset_assertions()

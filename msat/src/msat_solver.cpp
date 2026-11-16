@@ -473,7 +473,7 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
 
   if (option == "incremental" || option == "produce-unsat-assumptions")
   {
-    if (!backend::bool_option_value(option, value))
+    if (!parse_bool_opt(option, value))
     {
       throw NotImplementedException("MathSAT cannot turn off " + option);
     }
@@ -481,16 +481,14 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
   }
   if (option == "time-limit")
   {
-    time_limit =
-        std::chrono::duration<double>(backend::time_limit_seconds(value));
+    time_limit = parse_time_limit(value);
     return;
   }
   if (option == "produce-models")
   {
     // MathSAT also takes 1 and 0 for it, which SMT-LIB does not.
-    env_wrapper_.set_option(
-        "model_generation",
-        backend::bool_option_value(option, value) ? "true" : "false");
+    env_wrapper_.set_option("model_generation",
+                            parse_bool_opt(option, value) ? "true" : "false");
     return;
   }
 
@@ -1136,7 +1134,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else
   {
-    return backend::make_nary_term(this, op, terms);
+    return make_nary_term(op, terms);
   }
 
   if (MSAT_ERROR_TERM(res))

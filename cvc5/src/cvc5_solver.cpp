@@ -8,6 +8,7 @@
  */
 #include "smt-switch/cvc5_solver.h"
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -93,7 +94,10 @@ void Cvc5Solver::set_opt(const std::string option, const std::string value)
   if (option == "time-limit")
   {
     cvc5option = "tlimit-per";
-    cvc5value = std::to_string(backend::time_limit_milliseconds(value));
+    cvc5value =
+        std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
+                           parse_time_limit(value))
+                           .count());
   }
 
   try
@@ -428,7 +432,7 @@ try
     out_const_base = Term(new Cvc5Term(carr.getConstArrayBase()));
   }
 
-  return backend::store_chain_values(stores);
+  return store_chain_values(stores);
 }
 catch (cvc5::CVC5ApiException & e)
 {
@@ -855,7 +859,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    backend::check_quantifier_binders(op, terms);
+    check_quantifier_binders(op, terms);
   }
   else if (op.prim_op == Divisible && op.indices[0] < 1)
   {
@@ -866,7 +870,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
   // only applies to two
   else if (terms.size() > 2 && (op.prim_op == StrLt || op.prim_op == StrLeq))
   {
-    return backend::make_nary_term(this, op, terms);
+    return make_nary_term(op, terms);
   }
 
   try

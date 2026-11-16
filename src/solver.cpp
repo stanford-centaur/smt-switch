@@ -9,11 +9,18 @@
  */
 #include "smt-switch/solver.h"
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <list>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/result.h"
@@ -277,5 +284,128 @@ void AbsSmtSolver::dump_smt2(std::string /* filename */) const
 }
 
 SolverEnum AbsSmtSolver::get_solver_enum() const { return solver_enum; }
+
+Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
+{
+  std::size_t size = terms.size();
+  if (size < 2)
+  {
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
+                                  + std::to_string(size) + " terms.");
+  }
+  if (is_left_assoc(op.prim_op))
+  {
+    Term res = terms[0];
+    for (std::size_t i = 1; i < size; ++i)
+    {
+      res = make_term(op, res, terms[i]);
+    }
+    return res;
+  }
+  else if (is_right_assoc(op.prim_op))
+  {
+    Term res = terms[size - 1];
+    for (std::size_t i = 1; i < size; ++i)
+    {
+      res = make_term(op, terms[size - 1 - i], res);
+    }
+    return res;
+  }
+
+  TermVec conjuncts;
+  if (is_chainable(op.prim_op))
+  {
+    for (std::size_t i = 0; i + 1 < size; ++i)
+    {
+      conjuncts.push_back(make_term(op, terms[i], terms[i + 1]));
+    }
+  }
+  else if (is_pairwise(op.prim_op))
+  {
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      for (std::size_t j = i + 1; j < size; ++j)
+      {
+        conjuncts.push_back(make_term(op, terms[i], terms[j]));
+      }
+    }
+  }
+  else
+  {
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
+                                  + std::to_string(size) + " terms.");
+  }
+  return conjuncts.size() == 1 ? conjuncts[0] : make_term(And, conjuncts);
+}
+
+void AbsSmtSolver::check_quantifier_binders(const Op & op,
+                                            const TermVec & terms)
+{
+  if (terms.size() < 2)
+  {
+    throw IncorrectUsageException(op.to_string()
+                                  + " takes one or more params and a body");
+  }
+  for (std::size_t i = 0; i + 1 < terms.size(); ++i)
+  {
+    if (!terms[i]->is_param())
+    {
+      throw IncorrectUsageException(op.to_string() + " can only bind a param, "
+                                    + "but got " + terms[i]->to_string());
+    }
+  }
+}
+
+bool AbsSmtSolver::parse_bool_opt(const std::string & option,
+                                  const std::string & value)
+{
+  if (value != "true" && value != "false")
+  {
+    throw IncorrectUsageException("The option " + option
+                                  + " takes true or false, not " + value);
+  }
+  return value == "true";
+}
+
+std::chrono::duration<double> AbsSmtSolver::parse_time_limit(
+    const std::string & value)
+{
+  double seconds = 0;
+  std::size_t end = 0;
+  try
+  {
+    seconds = std::stod(value, &end);
+  }
+  catch (const std::logic_error &)
+  {
+    // std::stod failed, so end is still zero
+  }
+  if (end == 0 || end != value.size() || !std::isfinite(seconds) || seconds < 0)
+  {
+    throw IncorrectUsageException(
+        "The option time-limit takes a nonnegative number of seconds, not "
+        + value);
+  }
+  // Half of what a clock counting nanoseconds in 64 bits holds, so that a
+  // solver adding the limit to the time now cannot overflow; a longer limit
+  // is as good as none.
+  constexpr double longest =
+      std::chrono::duration<double>(std::chrono::nanoseconds::max()).count()
+      / 2;
+  return std::chrono::duration<double>(std::min(seconds, longest));
+}
+
+UnorderedTermMap AbsSmtSolver::store_chain_values(
+    const std::vector<std::pair<Term, Term>> & stores)
+{
+  UnorderedTermMap assignments;
+  for (const auto & store : stores)
+  {
+    // insert keeps the assignment already in the map, so the outermost
+    // store, which comes first, is the one that stands
+    assignments.insert(store);
+  }
+  return assignments;
+}
 
 }  // namespace smt

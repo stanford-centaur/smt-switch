@@ -1843,7 +1843,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    backend::check_quantifier_binders(op, terms);
+    check_quantifier_binders(op, terms);
   }
   else if (op.prim_op == Divisible && op.indices[0] < 1)
   {
@@ -2155,7 +2155,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
   }
   out_const_base = store_term(value_from_string((*parts)[1], elemsort));
 
-  return backend::store_chain_values(stores);
+  return store_chain_values(stores);
 }
 
 void GenericSolver::do_reset()
@@ -2190,7 +2190,7 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
     run_command(CommandKind::OPTION,
                 smtlib::SET_OPTION_STR,
                 ":" + option,
-                backend::bool_option_value(option, value) ? "true" : "false");
+                parse_bool_opt(option, value) ? "true" : "false");
     return;
   }
   run_command(CommandKind::OPTION, smtlib::SET_OPTION_STR, ":" + option, value);

@@ -13,6 +13,7 @@
 #include <yices.h>
 #include <yices_types.h>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -111,7 +112,8 @@ class Yices2Solver : public AbsSmtSolver
   uint64_t pushes_after_unsat = 0;  ///< how many pushes after trivial unsat
                                     ///< context status
 
-  double time_limit = 0.0;  ///< in seconds, 0 for none
+  std::chrono::duration<double> time_limit =
+      std::chrono::duration<double>::zero();  ///< zero means no limit
 
   // Yices cannot list a context's assertions, so dump_smt2 writes these:
   // the logic given to set_logic, ALL for none, since SMT-LIB declares

@@ -22,7 +22,6 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
-#include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 
 namespace smt::tests {
@@ -52,12 +51,9 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
                          testing::ValuesIn(available_solver_configurations()));
 
 /** Checks a backend's applications of an operator to more than two arguments
- *  against backend::make_nary_term, which builds them from applications to two
- * as SMT-LIB defines them. Where the solver applies the operator to more
- *  arguments itself, as cvc5 and Bitwuzla do and Z3 and Yices2 do for some
- *  operators, this checks backend::make_nary_term against the solver. Elsewhere
- * the backend uses backend::make_nary_term, and this checks that it takes the
- *  applications.
+ *  against the applications to two that SMT-LIB defines them as, whether the
+ *  solver applies the operator to more arguments itself or the backend builds
+ *  them from applications to two.
  */
 class NaryTests : public testing::Test,
                   public testing::WithParamInterface<SolverConfiguration>
@@ -70,8 +66,8 @@ class NaryTests : public testing::Test,
   }
 
   /** Expects the applications of op to three and to four arguments of sort,
-   *  and to three through the overload taking three, to be equal to
-   *  backend::make_nary_term's in every model
+   *  and to three through the overload taking three, to be equal in every
+   *  model to the applications to two that SMT-LIB defines them as
    */
   void check(PrimOp op)
   {
@@ -79,18 +75,70 @@ class NaryTests : public testing::Test,
     try
     {
       TermVec args = make_args(sort, 4);
-      expect_equivalent(s->make_term(op, args),
-                        backend::make_nary_term(s.get(), op, args));
+      expect_equivalent(s->make_term(op, args), from_binary(op, args));
       args.pop_back();
-      expect_equivalent(s->make_term(op, args),
-                        backend::make_nary_term(s.get(), op, args));
+      expect_equivalent(s->make_term(op, args), from_binary(op, args));
       expect_equivalent(s->make_term(op, args[0], args[1], args[2]),
-                        backend::make_nary_term(s.get(), op, args));
+                        from_binary(op, args));
     }
     catch (std::exception & e)
     {
       ADD_FAILURE() << e.what();
     }
+  }
+
+  /** The application of op to args, three or more, as SMT-LIB defines it
+   *  from applications to two: folded from the right for =>, the
+   *  conjunction of the applications to each pair for distinct, of those to
+   *  each argument and the next for the :chainable operators, and folded
+   *  from the left for the rest, which are :left-assoc
+   */
+  Term from_binary(PrimOp op, const TermVec & args)
+  {
+    std::size_t n = args.size();
+    if (op == Implies)
+    {
+      Term result = args[n - 1];
+      for (std::size_t i = n - 1; i > 0; --i)
+      {
+        result = s->make_term(op, args[i - 1], result);
+      }
+      return result;
+    }
+    TermVec conjuncts;
+    if (op == Distinct)
+    {
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        for (std::size_t j = i + 1; j < n; ++j)
+        {
+          conjuncts.push_back(s->make_term(op, args[i], args[j]));
+        }
+      }
+    }
+    else if (op == Equal || op == Lt || op == Le || op == Gt || op == Ge
+             || op == StrLt || op == StrLeq)
+    {
+      for (std::size_t i = 0; i + 1 < n; ++i)
+      {
+        conjuncts.push_back(s->make_term(op, args[i], args[i + 1]));
+      }
+    }
+    else
+    {
+      Term result = args[0];
+      for (std::size_t i = 1; i < n; ++i)
+      {
+        result = s->make_term(op, result, args[i]);
+      }
+      return result;
+    }
+    Term conjunction = conjuncts[0];
+    for (std::size_t i = 1; i < conjuncts.size(); ++i)
+    {
+      conjunction = s->make_term(And, conjunction, conjuncts[i]);
+    }
+    return conjunction;
   }
 
   /** Makes n new symbols of the given sort */
@@ -176,7 +224,7 @@ class StrNaryTests : public NaryTests
   }
 };
 
-TEST_P(BoolNaryTests, MakeNaryTerm)
+TEST_P(BoolNaryTests, MatchesSmtLibDefinition)
 {
   for (PrimOp op : { And, Or, Xor, Implies, Equal, Distinct })
   {
@@ -184,21 +232,17 @@ TEST_P(BoolNaryTests, MakeNaryTerm)
   }
 }
 
-TEST_P(BoolNaryTests, MakeNaryTermTooFewArguments)
+TEST_P(BoolNaryTests, OneArgument)
 {
   TermVec args = make_args(sort, 1);
   for (PrimOp op : { And, Implies, Equal, Distinct })
   {
-    EXPECT_THROW(backend::make_nary_term(s.get(), op, TermVec{}),
-                 IncorrectUsageException)
-        << to_string(op);
-    EXPECT_THROW(backend::make_nary_term(s.get(), op, args),
-                 IncorrectUsageException)
+    EXPECT_THROW(s->make_term(op, args), IncorrectUsageException)
         << to_string(op);
   }
 }
 
-TEST_P(IntNaryTests, MakeNaryTerm)
+TEST_P(IntNaryTests, MatchesSmtLibDefinition)
 {
   for (PrimOp op :
        { Plus, Minus, Mult, IntDiv, Lt, Le, Gt, Ge, Equal, Distinct })
@@ -207,7 +251,7 @@ TEST_P(IntNaryTests, MakeNaryTerm)
   }
 }
 
-TEST_P(RealNaryTests, MakeNaryTerm)
+TEST_P(RealNaryTests, MatchesSmtLibDefinition)
 {
   for (PrimOp op : { Minus, Div, Lt })
   {
@@ -215,7 +259,7 @@ TEST_P(RealNaryTests, MakeNaryTerm)
   }
 }
 
-TEST_P(BVNaryTests, MakeNaryTerm)
+TEST_P(BVNaryTests, MatchesSmtLibDefinition)
 {
   for (PrimOp op : { BVAnd, BVOr, BVXor, BVAdd, BVMul, Equal, Distinct })
   {
@@ -223,7 +267,7 @@ TEST_P(BVNaryTests, MakeNaryTerm)
   }
 }
 
-TEST_P(StrNaryTests, MakeNaryTerm)
+TEST_P(StrNaryTests, MatchesSmtLibDefinition)
 {
   for (PrimOp op : { StrConcat, StrLt, StrLeq })
   {

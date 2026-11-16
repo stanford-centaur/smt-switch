@@ -11,6 +11,7 @@
 
 #include <bitwuzla/cpp/bitwuzla.h>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -101,7 +102,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
 {
   if (option == "incremental")
   {
-    if (!backend::bool_option_value(option, value))
+    if (!parse_bool_opt(option, value))
     {
       throw NotImplementedException("Bitwuzla cannot turn off " + option);
     }
@@ -115,9 +116,10 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
   }
   if (option == "time-limit")
   {
-    // Bitwuzla expects this in milliseconds, but smt-switch uses seconds.
     options.set(bitwuzla::Option::TIME_LIMIT_PER,
-                backend::time_limit_milliseconds(value));
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                    parse_time_limit(value))
+                    .count());
   }
   else if (!options.is_valid(option))
   {
@@ -130,7 +132,7 @@ void BzlaSolver::set_opt(const std::string option, const std::string value)
     std::string bzla_value = value;
     if (option == "produce-models" || option == "produce-unsat-assumptions")
     {
-      bzla_value = backend::bool_option_value(option, value) ? "true" : "false";
+      bzla_value = parse_bool_opt(option, value) ? "true" : "false";
     }
     try
     {
@@ -345,7 +347,7 @@ try
   }
   out_const_base = std::make_shared<BzlaTerm>(tm, bval.children()[0]);
 
-  return backend::store_chain_values(stores);
+  return store_chain_values(stores);
 }
 catch (const bitwuzla::Exception & e)
 {
@@ -638,7 +640,7 @@ Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
   if (op.prim_op == Forall || op.prim_op == Exists)
   {
-    backend::check_quantifier_binders(op, terms);
+    check_quantifier_binders(op, terms);
   }
   // Bitwuzla 0.9.1 and older make a term of width 0 instead of refusing.
   if (op.prim_op == Repeat && op.indices[0] == 0)

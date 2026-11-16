@@ -13,6 +13,7 @@
 // IWYU pragma: private, include "smt-switch/smt.h"
 #endif
 
+#include <chrono>
 #include <cstdint>
 #include <iterator>
 #include <list>
@@ -499,6 +500,60 @@ class AbsSmtSolver
    * reset_assertions
    */
   virtual void do_reset_assertions() = 0;
+
+  // Helpers for subclasses
+
+  /** Apply an operator to more than two arguments as SMT-LIB defines it in
+   *  terms of applications to two, for a solver that takes no more: fold a
+   *  :left-assoc or :right-assoc operator from that side, and conjoin the
+   *  applications to each argument and the next for a :chainable one, or to
+   *  each pair of arguments for a :pairwise one.
+   *  @param op the operator
+   *  @param terms the arguments, at least two
+   *  @return the application
+   *  @throws IncorrectUsageException if SMT-LIB defines no such application
+   */
+  Term make_nary_term(const Op & op, const TermVec & terms) const;
+
+  /** Check the arguments of a quantifier: one or more params, then the body.
+   *  A solver whose API would bind a term of another kind, crash on one, or
+   *  return the body unchanged when there are none checks with this first.
+   *  @param op the quantifier, Forall or Exists, used in the error message
+   *  @param terms the arguments
+   *  @throws IncorrectUsageException if there is no param, or a term other
+   *  than the body is not a param
+   */
+  static void check_quantifier_binders(const Op & op, const TermVec & terms);
+
+  /** The value of a Boolean option that smt-switch interprets itself, such as
+   *  produce-models or incremental
+   *  @param option the option, used in the error message
+   *  @param value the value given for it
+   *  @return whether value is true
+   *  @throws IncorrectUsageException for a value other than true or false
+   */
+  static bool parse_bool_opt(const std::string & option,
+                             const std::string & value);
+
+  /** The value of the time-limit option
+   *  @param value the value given for it, in seconds
+   *  @return the limit
+   *  @throws IncorrectUsageException for a value that is not a nonnegative
+   *  number
+   */
+  static std::chrono::duration<double> parse_time_limit(
+      const std::string & value);
+
+  /** The index-value map that a chain of stores over a constant base stands
+   *  for, given the index and value each store along it writes. A backend
+   *  reads its model by peeling the outer store first, so that is the order
+   *  these come in, and since an outer store shadows an inner one at the same
+   *  index, an index written more than once keeps the outermost assignment.
+   *  @param stores the index and value each store writes, outermost first
+   *  @return the map from index to value
+   */
+  static UnorderedTermMap store_chain_values(
+      const std::vector<std::pair<Term, Term>> & stores);
 
   SolverEnum solver_enum;  ///< an enum identifying the underlying solver
 

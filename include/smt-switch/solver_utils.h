@@ -16,39 +16,12 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <utility>
-#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 
 namespace smt::backend {
-
-/** Apply an operator to more than two arguments as SMT-LIB defines it in
- *  terms of applications to two, for a solver that takes no more: fold a
- *  :left-assoc or :right-assoc operator from that side, and conjoin the
- *  applications to each argument and the next for a :chainable one, or to
- *  each pair of arguments for a :pairwise one.
- *  @param solver the solver to build the terms with
- *  @param op the operator
- *  @param terms the arguments, at least two
- *  @return the application
- *  @throws IncorrectUsageException if SMT-LIB defines no such application
- */
-Term make_nary_term(const AbsSmtSolver * solver,
-                    const Op & op,
-                    const TermVec & terms);
-
-/** Check the arguments of a quantifier: one or more params, then the body.
- *  A solver whose API would bind a term of another kind, crash on one, or
- *  return the body unchanged when there are none checks with this first.
- *  @param op the quantifier, Forall or Exists, used in the error message
- *  @param terms the arguments
- *  @throws IncorrectUsageException if there is no param, or a term other
- *  than the body is not a param
- */
-void check_quantifier_binders(const Op & op, const TermVec & terms);
 
 /** Narrow an operator index to the 32 bits that most solver APIs take.
  *  Op stores indices as 64-bit, so without this the conversion is silent and
@@ -82,32 +55,6 @@ std::uint32_t narrow_levels(std::uint64_t levels);
  *  @throws IncorrectUsageException if num_args does not fit
  */
 std::uint32_t narrow_num_args(std::size_t num_args);
-
-/** The value of a Boolean option that smt-switch interprets itself, such as
- *  produce-models or incremental
- *  @param option the option, used in the error message
- *  @param value the value given for it
- *  @return whether value is true
- *  @throws IncorrectUsageException for a value other than true or false
- */
-bool bool_option_value(const std::string & option, const std::string & value);
-
-/** The value of the time-limit option
- *  @param value the value given for it
- *  @return the limit in seconds
- *  @throws IncorrectUsageException for a value that is not a nonnegative
- *  number
- */
-double time_limit_seconds(const std::string & value);
-
-/** The value of the time-limit option, for a solver that takes it in whole
- *  milliseconds
- *  @param value the value given for it
- *  @return the limit in milliseconds
- *  @throws IncorrectUsageException for a value that is not a nonnegative
- *  number
- */
-std::uint64_t time_limit_milliseconds(const std::string & value);
 
 // The general forms of the checks above, for the kinds no wrapper covers
 /** Whether an integer of any type has the same value as a T
@@ -189,17 +136,6 @@ T narrow(U value, const char * what)
  *  @return 0, or the errno of the call that failed
  */
 int make_cloexec_pipe(int (&fds)[2]);
-
-/** The index-value map that a chain of stores over a constant base stands
- *  for, given the index and value each store along it writes. A backend
- *  reads its model by peeling the outer store first, so that is the order
- *  these come in, and since an outer store shadows an inner one at the same
- *  index, an index written more than once keeps the outermost assignment.
- *  @param stores the index and value each store writes, outermost first
- *  @return the map from index to value
- */
-UnorderedTermMap store_chain_values(
-    const std::vector<std::pair<Term, Term>> & stores);
 
 /** Throws the IncorrectUsageException that pointer_cast raises for
  *  a pointer made by another solver

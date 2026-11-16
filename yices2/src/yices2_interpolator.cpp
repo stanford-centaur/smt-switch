@@ -47,7 +47,7 @@ void Yices2Interpolator::do_set_opt(const std::string & option,
 {
   if (option == "produce-unsat-model-interpolants")
   {
-    if (!backend::bool_option_value(option, value))
+    if (!parse_bool_opt(option, value))
     {
       throw IncorrectUsageException(
           "Yices2 interpolator cannot set " + option + " to " + value
