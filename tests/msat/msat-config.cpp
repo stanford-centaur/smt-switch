@@ -35,7 +35,7 @@ namespace {
 TEST(MsatConfig, AllAcceptedAfterTerm)
 {
   SmtSolver s = std::make_shared<MsatSolver>();
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   EXPECT_NO_THROW(s->set_logic("ALL"));
   EXPECT_THROW(s->set_logic("QF_BV"), IncorrectUsageException);
   // the plain configuration has every theory, as ALL asks
@@ -51,7 +51,7 @@ TEST(MsatConfig, SameLogicAccepted)
   SmtSolver s = std::make_shared<MsatSolver>();
   s->set_logic("QF_BV");
   EXPECT_NO_THROW(s->set_logic("QF_BV"));
-  s->make_sort(BV, 4);
+  s->make_sort(SortKind::BV, 4);
   EXPECT_NO_THROW(s->set_logic("QF_BV"));
   EXPECT_THROW(s->set_logic("ALL"), IncorrectUsageException);
 }
@@ -59,7 +59,7 @@ TEST(MsatConfig, SameLogicAccepted)
 TEST(MsatConfig, DumpNamesTheLogic)
 {
   SmtSolver s = std::make_shared<MsatSolver>();
-  s->assert_formula(s->make_symbol("b", s->make_sort(BOOL)));
+  s->assert_formula(s->make_symbol("b", s->make_sort(SortKind::BOOL)));
   std::string filename = testing::TempDir() + "msat-config-logic.smt2";
   s->dump_smt2(filename);
   std::ifstream in(filename);
@@ -85,9 +85,9 @@ TEST(MsatConfig, RefusedConfigThrows)
 {
   SmtSolver s = std::make_shared<MsatSolver>();
   s->set_opt("theory.bv.bit_blast_mode", "99");
-  EXPECT_THROW(s->make_sort(BV, 4), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(SortKind::BV, 4), IncorrectUsageException);
   // no environment is kept, so the next call is refused too
-  EXPECT_THROW(s->make_sort(BV, 4), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(SortKind::BV, 4), IncorrectUsageException);
 }
 
 TEST(MsatConfig, OptionAcceptedAfterContextLevel)

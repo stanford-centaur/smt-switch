@@ -31,7 +31,7 @@ namespace {
  */
 TermVec pigeonhole(AbsSmtSolver & s)
 {
-  Sort bvsort = s.make_sort(BV, 6);
+  Sort bvsort = s.make_sort(SortKind::BV, 6);
   TermVec vars;
   for (size_t i = 0; i < 65; ++i)
   {
@@ -79,7 +79,7 @@ TEST(MsatTimeLimit, StopsAnInterpolationQuery)
   EXPECT_EQ(r.get_explanation(), "Time limit reached.");
 
   // the interpolator still answers once a query is cut off
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   EXPECT_TRUE(

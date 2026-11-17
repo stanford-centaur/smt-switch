@@ -35,7 +35,7 @@ class IntTests : public testing::Test,
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
   SmtSolver s;
   Sort intsort;
@@ -59,7 +59,7 @@ void check_div_mod_cases(const SmtSolver & s, bool by_symbol)
     { 7, 3, 2, 1 }, { -7, 3, -3, 2 }, { 7, -3, -2, 1 }, { -7, -3, 3, 2 },
     { 6, 3, 2, 0 }, { -6, 3, -2, 0 }, { 6, -3, -2, 0 }, { -6, -3, 2, 0 },
   };
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   TermVec divs, mods;
   for (size_t i = 0; i < std::size(cases); ++i)
   {
@@ -102,7 +102,7 @@ TEST_P(IntTests, Divisible)
 {
   Term x = s->make_symbol("x", intsort);
   Term divisible = s->make_term(Op(Divisible, 3), x);
-  EXPECT_EQ(divisible->get_sort(), s->make_sort(BOOL));
+  EXPECT_EQ(divisible->get_sort(), s->make_sort(SortKind::BOOL));
   EXPECT_EQ(divisible->get_op(), Op(Divisible, 3));
   // SMT-LIB requires a positive index
   EXPECT_THROW(s->make_term(Op(Divisible, 0), x), IncorrectUsageException);
@@ -122,7 +122,7 @@ TEST_P(IntTests, DivAndModSigns) { check_div_mod_cases(s, false); }
 
 TEST_P(IntTests, BvToNatIsInt)
 {
-  Sort bvsort = s->make_sort(BV, 8);
+  Sort bvsort = s->make_sort(SortKind::BV, 8);
   Term bvx = s->make_symbol("bvx", bvsort);
   Term natx;
   try
@@ -138,7 +138,7 @@ TEST_P(IntTests, BvToNatIsInt)
 
 TEST_P(IntTests, Bv2Int)
 {
-  Sort bvsort = s->make_sort(BV, 8);
+  Sort bvsort = s->make_sort(SortKind::BV, 8);
   Term bvx = s->make_symbol("bvx", bvsort);
 
   Term intx;
@@ -192,7 +192,7 @@ class IntArithmeticTests
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
   SmtSolver s;
   Sort intsort;
@@ -320,8 +320,8 @@ class IntBVArithmeticTests
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
     s->set_opt("incremental", "true");
-    intsort = s->make_sort(INT);
-    bvsort = s->make_sort(BV, 8);
+    intsort = s->make_sort(SortKind::INT);
+    bvsort = s->make_sort(SortKind::BV, 8);
   }
 
   /** Expects constraint to be satisfiable */
@@ -398,8 +398,8 @@ class IntRealArithmeticTests
   void SetUp() override
   {
     s = create_solver(GetParam());
-    intsort = s->make_sort(INT);
-    realsort = s->make_sort(REAL);
+    intsort = s->make_sort(SortKind::INT);
+    realsort = s->make_sort(SortKind::REAL);
   }
   SmtSolver s;
   Sort intsort, realsort;

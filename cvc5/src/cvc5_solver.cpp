@@ -170,18 +170,18 @@ catch (cvc5::CVC5ApiException & e)
 Term Cvc5Solver::make_term(int64_t i, const Sort & sort) const
 try
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   cvc5::Term c;
 
-  if (sk == INT)
+  if (sk == SortKind::INT)
   {
     c = instance->tm.mkInteger(i);
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     c = instance->tm.mkReal(i);
   }
-  else if (sk == BV)
+  else if (sk == SortKind::BV)
   {
     // cvc5 uses unsigned integers for mkBitVector
     // to avoid casting issues, always use a string in base 10
@@ -208,10 +208,10 @@ Term Cvc5Solver::make_term(const std::string & s,
                            const Sort & sort) const
 try
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   cvc5::Term c;
 
-  if (sk == STRING)
+  if (sk == SortKind::STRING)
   {
     c = instance->tm.mkString(s, useEscSequences);
   }
@@ -231,10 +231,10 @@ catch (cvc5::CVC5ApiException & e)
 Term Cvc5Solver::make_term(const std::wstring & s, const Sort & sort) const
 try
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   cvc5::Term c;
 
-  if (sk == STRING)
+  if (sk == SortKind::STRING)
   {
     c = instance->tm.mkString(std::u32string(s.begin(), s.end()));
   }
@@ -256,13 +256,13 @@ Term Cvc5Solver::make_term(std::string val,
                            uint64_t base) const
 try
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   cvc5::Term c;
 
-  if ((sk == INT) || (sk == REAL))
+  if ((sk == SortKind::INT) || (sk == SortKind::REAL))
   {
     std::string decimal = arith_value_to_decimal(sk, val, base);
-    if (sk == INT)
+    if (sk == SortKind::INT)
     {
       c = instance->tm.mkInteger(decimal);
     }
@@ -271,7 +271,7 @@ try
       c = instance->tm.mkReal(decimal);
     }
   }
-  else if (sk == BV)
+  else if (sk == SortKind::BV)
   {
     std::uint32_t width = backend::narrow_width(sort->get_width());
     c = width <= 64 ? instance->tm.mkBitVector(
@@ -473,19 +473,19 @@ catch (cvc5::CVC5ApiException & e)
 Sort Cvc5Solver::make_sort(SortKind sk) const
 try
 {
-  if (sk == BOOL)
+  if (sk == SortKind::BOOL)
   {
     return std::make_shared<Cvc5Sort>(instance->tm.getBooleanSort());
   }
-  else if (sk == INT)
+  else if (sk == SortKind::INT)
   {
     return std::make_shared<Cvc5Sort>(instance->tm.getIntegerSort());
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     return std::make_shared<Cvc5Sort>(instance->tm.getRealSort());
   }
-  else if (sk == STRING)
+  else if (sk == SortKind::STRING)
   {
     return std::make_shared<Cvc5Sort>(instance->tm.getStringSort());
   }
@@ -503,7 +503,7 @@ catch (cvc5::CVC5ApiException & e)
 Sort Cvc5Solver::make_sort(SortKind sk, uint64_t size) const
 try
 {
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     return std::make_shared<Cvc5Sort>(
         instance->tm.mkBitVectorSort(backend::narrow_width(size)));
@@ -522,7 +522,7 @@ catch (cvc5::CVC5ApiException & e)
 Sort Cvc5Solver::make_sort(SortKind sk, const SortVec & sorts) const
 try
 {
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     if (sorts.size() < 2)
     {
@@ -545,7 +545,7 @@ try
     cvc5::Sort cfunsort = instance->tm.mkFunctionSort(csorts, csort);
     return std::make_shared<Cvc5Sort>(cfunsort);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     return std::make_shared<Cvc5Sort>(
         instance->tm.mkArraySort(term_sort(sorts[0]), term_sort(sorts[1])));

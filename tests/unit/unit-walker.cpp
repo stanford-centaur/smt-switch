@@ -39,11 +39,12 @@ class UnitWalkerTests : public testing::Test,
   {
     s = create_solver(GetParam());
 
-    bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
-    fun2sort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort });
-    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
-    boolsort = s->make_sort(BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
+    fun2sort =
+        s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, bvsort });
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
+    boolsort = s->make_sort(SortKind::BOOL);
   }
   SmtSolver s;
   Sort bvsort, funsort, fun2sort, arrsort, boolsort;
@@ -103,7 +104,7 @@ class IndicatorTreeWalker : public TreeWalker
       EXPECT_EQ(at_path, term);
     }
 
-    Sort boolsort = solver_->make_sort(BOOL);
+    Sort boolsort = solver_->make_sort(SortKind::BOOL);
 
     /* for each node visited, create a fresh boolean variable, bn, to map to an
      * occurrence of a term in the formula (the formula in which it occurs and

@@ -29,7 +29,7 @@ GenericSort::GenericSort(SortKind k) : sk(k) {}
 // Only used to make placeholder sorts for datatypes when the
 // sort is the datatype itself but the sort hasn't been constructed.
 GenericSort::GenericSort(std::string name)
-    : sk(DATATYPE), datatype_name(std::move(name))
+    : sk(SortKind::DATATYPE), datatype_name(std::move(name))
 {
 }
 
@@ -39,7 +39,7 @@ std::string GenericSort::to_string() const { return compute_string(); }
 
 std::string GenericSort::compute_string() const
 {
-  if (get_sort_kind() == SortKind::ARRAY)
+  if (get_kind() == SortKind::ARRAY)
   {
     Sort index_sort = get_indexsort();
     Sort elem_sort = get_elemsort();
@@ -47,23 +47,23 @@ std::string GenericSort::compute_string() const
     std::string elem_sort_str = elem_sort->to_string();
     return "(Array " + index_sort_str + " " + elem_sort_str + ")";
   }
-  else if (get_sort_kind() == SortKind::BOOL)
+  else if (get_kind() == SortKind::BOOL)
   {
     return "Bool";
   }
-  else if (get_sort_kind() == SortKind::BV)
+  else if (get_kind() == SortKind::BV)
   {
     return "(_ BitVec " + std::to_string(get_width()) + ")";
   }
-  else if (get_sort_kind() == SortKind::INT)
+  else if (get_kind() == SortKind::INT)
   {
     return "Int";
   }
-  else if (get_sort_kind() == SortKind::REAL)
+  else if (get_kind() == SortKind::REAL)
   {
     return "Real";
   }
-  else if (get_sort_kind() == SortKind::FUNCTION)
+  else if (get_kind() == SortKind::FUNCTION)
   {
     std::string name = "(";
     std::vector<Sort> domain_sorts = get_domain_sorts();
@@ -81,7 +81,7 @@ std::string GenericSort::compute_string() const
     name += codomain_sort->to_string();
     return name;
   }
-  else if (get_sort_kind() == SortKind::UNINTERPRETED)
+  else if (get_kind() == SortKind::UNINTERPRETED)
   {
     if (get_arity() == 0)
     {
@@ -97,11 +97,11 @@ std::string GenericSort::compute_string() const
       return result + ")";
     }
   }
-  else if (get_sort_kind() == SortKind::UNINTERPRETED_CONS)
+  else if (get_kind() == SortKind::UNINTERPRETED_CONS)
   {
     return get_uninterpreted_name();
   }
-  else if (get_sort_kind() == SortKind::DATATYPE)
+  else if (get_kind() == SortKind::DATATYPE)
   {
     // A placeholder from GenericSort(std::string) knows only the name it was
     // given: get_datatype throws for it, since only GenericDatatypeSort has
@@ -112,20 +112,20 @@ std::string GenericSort::compute_string() const
     }
     return get_generic_datatype()->get_name();
   }
-  else if (get_sort_kind() == SortKind::CONSTRUCTOR
-           || get_sort_kind() == SortKind::SELECTOR
-           || get_sort_kind() == SortKind::TESTER)
+  else if (get_kind() == SortKind::CONSTRUCTOR
+           || get_kind() == SortKind::SELECTOR
+           || get_kind() == SortKind::TESTER)
   {
     return get_uninterpreted_name();
   }
   else
   {
     throw NotImplementedException("Can't print sort kind "
-                                  + smt::to_string(get_sort_kind()));
+                                  + smt::to_string(get_kind()));
   }
 }
 
-SortKind GenericSort::get_sort_kind() const { return sk; }
+SortKind GenericSort::get_kind() const { return sk; }
 
 bool GenericSort::compare(const Sort & s) const
 {
@@ -134,7 +134,7 @@ bool GenericSort::compare(const Sort & s) const
   {
     return false;
   }
-  SortKind other_sk = s->get_sort_kind();
+  SortKind other_sk = s->get_kind();
   if (sk != other_sk)
   {
     return false;
@@ -142,20 +142,20 @@ bool GenericSort::compare(const Sort & s) const
 
   switch (sk)
   {
-    case BOOL:
-    case INT:
-    case REAL:
-    case STRING: {
+    case SortKind::BOOL:
+    case SortKind::INT:
+    case SortKind::REAL:
+    case SortKind::STRING: {
       return true;
     }
-    case BV: {
+    case SortKind::BV: {
       return get_width() == s->get_width();
     }
-    case ARRAY: {
+    case SortKind::ARRAY: {
       return (get_indexsort() == s->get_indexsort())
              && (get_elemsort() == s->get_elemsort());
     }
-    case FUNCTION: {
+    case SortKind::FUNCTION: {
       SortVec domain_sorts = get_domain_sorts();
       SortVec other_domain_sorts = s->get_domain_sorts();
       Sort return_sort = get_codomain_sort();
@@ -177,7 +177,7 @@ bool GenericSort::compare(const Sort & s) const
 
       return true;
     }
-    case UNINTERPRETED: {
+    case SortKind::UNINTERPRETED: {
       // every application of a constructor shares its name, so the
       // parameters tell them apart
       SortVec param_sorts = get_uninterpreted_param_sorts();
@@ -196,26 +196,22 @@ bool GenericSort::compare(const Sort & s) const
       }
       return true;
     }
-    case UNINTERPRETED_CONS: {
+    case SortKind::UNINTERPRETED_CONS: {
       return get_uninterpreted_name() == s->get_uninterpreted_name()
              && get_arity() == s->get_arity();
     }
-    case DATATYPE: {
+    case SortKind::DATATYPE: {
       std::shared_ptr<GenericDatatypeSort> other_type_cast =
           std::dynamic_pointer_cast<GenericDatatypeSort>(s);
       return other_type_cast
              && get_generic_datatype()->get_name()
                     == other_type_cast->compute_string();
     }
-    case CONSTRUCTOR:
-    case SELECTOR:
-    case TESTER: {
+    case SortKind::CONSTRUCTOR:
+    case SortKind::SELECTOR:
+    case SortKind::TESTER: {
       // the solver makes these only as DatatypeComponentSort, which
       // compares them itself
-      return false;
-    }
-    case NUM_SORT_KINDS: {
-      // null sorts should not be equal
       return false;
     }
   }
@@ -291,14 +287,17 @@ std::shared_ptr<GenericDatatype> GenericSort::get_generic_datatype() const
                                 + " has no datatype");
 }
 
-BVGenericSort::BVGenericSort(std::uint64_t w) : GenericSort(BV), width(w) {}
+BVGenericSort::BVGenericSort(std::uint64_t w)
+    : GenericSort(SortKind::BV), width(w)
+{
+}
 
 std::uint64_t BVGenericSort::get_width() const { return width; }
 
 // ArrayGenericSort
 
 ArrayGenericSort::ArrayGenericSort(Sort idxsort, Sort esort)
-    : GenericSort(ARRAY),
+    : GenericSort(SortKind::ARRAY),
       indexsort(std::move(idxsort)),
       elemsort(std::move(esort))
 {
@@ -311,7 +310,7 @@ Sort ArrayGenericSort::get_elemsort() const { return elemsort; }
 // FunctionGenericSort
 
 FunctionGenericSort::FunctionGenericSort(SortVec sorts, Sort rsort)
-    : GenericSort(FUNCTION),
+    : GenericSort(SortKind::FUNCTION),
       domain_sorts(std::move(sorts)),
       codomain_sort(std::move(rsort))
 {
@@ -325,7 +324,8 @@ Sort FunctionGenericSort::get_codomain_sort() const { return codomain_sort; }
 
 UninterpretedGenericSort::UninterpretedGenericSort(std::string n,
                                                    std::uint64_t a)
-    : GenericSort(a == 0 ? UNINTERPRETED : UNINTERPRETED_CONS),
+    : GenericSort(a == 0 ? SortKind::UNINTERPRETED
+                         : SortKind::UNINTERPRETED_CONS),
       name(std::move(n)),
       arity(a)
 {
@@ -333,7 +333,7 @@ UninterpretedGenericSort::UninterpretedGenericSort(std::string n,
 
 UninterpretedGenericSort::UninterpretedGenericSort(Sort sort_cons,
                                                    const SortVec & sorts)
-    : GenericSort(UNINTERPRETED),
+    : GenericSort(SortKind::UNINTERPRETED),
       name(sort_cons->get_uninterpreted_name()),
       arity(sorts.size()),
       constructor(sort_cons),
@@ -375,7 +375,7 @@ SortVec UninterpretedGenericSort::get_uninterpreted_param_sorts() const
 }
 
 GenericDatatypeSort::GenericDatatypeSort(std::shared_ptr<GenericDatatype> dt)
-    : GenericSort(DATATYPE), gdt(std::move(dt))
+    : GenericSort(SortKind::DATATYPE), gdt(std::move(dt))
 {
 }
 
@@ -408,7 +408,8 @@ DatatypeComponentSort::DatatypeComponentSort(SortKind k, std::string n, Sort dt)
       name(std::move(n)),
       dt_sort(backend::pointer_cast<GenericSort>(dt))
 {
-  if (k != CONSTRUCTOR && k != SELECTOR && k != TESTER)
+  if (k != SortKind::CONSTRUCTOR && k != SortKind::SELECTOR
+      && k != SortKind::TESTER)
   {
     throw IncorrectUsageException("Wrong sortkind input");
   }
@@ -444,7 +445,7 @@ std::string DatatypeComponentSort::to_string() const
 SortVec DatatypeComponentSort::get_domain_sorts() const
 {
   std::vector<Sort> domain_sorts;
-  if (sk == CONSTRUCTOR)
+  if (sk == SortKind::CONSTRUCTOR)
   {
     std::shared_ptr<GenericDatatype> gdt = dt_sort->get_generic_datatype();
     for (int i = 0; i < gdt->get_num_constructors(); ++i)
@@ -470,15 +471,15 @@ SortVec DatatypeComponentSort::get_domain_sorts() const
 
 Sort DatatypeComponentSort::get_codomain_sort() const
 {
-  if (sk == CONSTRUCTOR)
+  if (sk == SortKind::CONSTRUCTOR)
   {
     return dt_sort;
   }
-  else if (sk == TESTER)
+  else if (sk == SortKind::TESTER)
   {
-    return std::make_shared<GenericSort>(BOOL);
+    return std::make_shared<GenericSort>(SortKind::BOOL);
   }
-  else if (sk == SELECTOR)
+  else if (sk == SortKind::SELECTOR)
   {
     return selector_sort;
   }

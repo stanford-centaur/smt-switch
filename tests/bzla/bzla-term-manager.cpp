@@ -32,9 +32,9 @@ TEST(BzlaTermManager, AnotherSolversTermsRefused)
   SmtSolver s = BitwuzlaSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   SmtSolver other = BitwuzlaSolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
-  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", other_bv8);
   Term p = other->make_term(Equal, y, y);
 
@@ -49,10 +49,11 @@ TEST(BzlaTermManager, AnotherSolversTermsRefused)
   EXPECT_THROW(s->make_param("z", other_bv8), IncorrectUsageException);
   EXPECT_THROW(s->make_term(1, other_bv8), IncorrectUsageException);
   EXPECT_THROW(s->make_term("1", other_bv8), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(ARRAY, bv8, other_bv8), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ other_bv8, bv8 }),
+  EXPECT_THROW(s->make_sort(SortKind::ARRAY, bv8, other_bv8),
                IncorrectUsageException);
-  Sort arr = s->make_sort(ARRAY, bv8, bv8);
+  EXPECT_THROW(s->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, bv8 }),
+               IncorrectUsageException);
+  Sort arr = s->make_sort(SortKind::ARRAY, bv8, bv8);
   EXPECT_THROW(s->make_term(y, arr), IncorrectUsageException);
 
   ASSERT_TRUE(s->check_sat().is_sat());
@@ -62,7 +63,7 @@ TEST(BzlaTermManager, AnotherSolversTermsRefused)
 TEST(BzlaTermManager, TermsFromBeforeResetRefused)
 {
   SmtSolver s = BitwuzlaSolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
   Term p = s->make_term(Equal, x, x);
   s->reset();
@@ -78,7 +79,7 @@ TEST(BzlaTermManager, AnotherInterpolatorsTermsRefused)
 #endif
   SmtInterpolator itp = BitwuzlaSolverFactory::create_interpolator();
   SmtInterpolator other = BitwuzlaSolverFactory::create_interpolator();
-  Sort bv8 = other->make_sort(BV, 8);
+  Sort bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", bv8);
   Term a = other->make_term(Equal, y, other->make_term(0, bv8));
   Term b = other->make_term(Equal, y, other->make_term(1, bv8));

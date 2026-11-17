@@ -32,8 +32,8 @@ class UnitTermIdTests : public testing::Test,
     s->set_opt("produce-models", "true");
     s->set_opt("incremental", "true");
 
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
     a = s->make_symbol("a", boolsort);
     b = s->make_symbol("b", boolsort);
     x = s->make_symbol("x", bvsort);

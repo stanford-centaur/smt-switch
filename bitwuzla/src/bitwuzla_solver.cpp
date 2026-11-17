@@ -408,7 +408,7 @@ Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
     throw IncorrectUsageException("Sort " + sort_con->to_string()
                                   + " was made by another solver");
   }
-  if (bcon->get_sort_kind() != UNINTERPRETED_CONS)
+  if (bcon->get_kind() != SortKind::UNINTERPRETED_CONS)
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
                                   + " is not a sort constructor");
@@ -438,11 +438,12 @@ Sort BzlaSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 
 Sort BzlaSolver::make_sort(SortKind sk) const
 {
-  if (sk == BOOL)
+  if (sk == SortKind::BOOL)
   {
     return std::make_shared<BzlaSort>(tm->mk_bool_sort(), tm);
   }
-  else if (sk == INT || sk == REAL || sk == STRING)
+  else if (sk == SortKind::INT || sk == SortKind::REAL
+           || sk == SortKind::STRING)
   {
     throw NotImplementedException("Bitwuzla does not support sort "
                                   + to_string(sk));
@@ -457,7 +458,7 @@ Sort BzlaSolver::make_sort(SortKind sk) const
 Sort BzlaSolver::make_sort(SortKind sk, uint64_t size) const
 try
 {
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     return std::make_shared<BzlaSort>(tm->mk_bv_sort(size), tm);
   }
@@ -474,7 +475,7 @@ catch (const bitwuzla::Exception & e)
 
 Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     if (sorts.size() < 2)
     {
@@ -495,7 +496,7 @@ Sort BzlaSolver::make_sort(SortKind sk, const SortVec & sorts) const
     return std::make_shared<BzlaSort>(
         tm->mk_fun_sort(bzla_sorts, { bzla_return_sort }), tm);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     return std::make_shared<BzlaSort>(
         tm->mk_array_sort(bzla_sort(sorts[0]), bzla_sort(sorts[1])), tm);
@@ -523,13 +524,13 @@ Term BzlaSolver::make_term(bool b) const
 Term BzlaSolver::make_term(std::int64_t i, const Sort & sort) const
 try
 {
-  SortKind sk = sort->get_sort_kind();
-  if (sk == INT || sk == REAL)
+  SortKind sk = sort->get_kind();
+  if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     throw NotImplementedException(
         "Bitwuzla does not support values of sort kind " + to_string(sk));
   }
-  if (sk != BV)
+  if (sk != SortKind::BV)
   {
     throw IncorrectUsageException("Can't create value " + std::to_string(i)
                                   + " with sort " + sort->to_string());
@@ -547,13 +548,13 @@ Term BzlaSolver::make_term(const std::string val,
                            const Sort & sort,
                            std::uint64_t base) const
 {
-  SortKind sk = sort->get_sort_kind();
-  if (sk == INT || sk == REAL)
+  SortKind sk = sort->get_kind();
+  if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     throw NotImplementedException(
         "Bitwuzla does not support values of sort kind " + to_string(sk));
   }
-  if (sk != BV)
+  if (sk != SortKind::BV)
   {
     throw IncorrectUsageException("Can't create value " + val + " with sort "
                                   + sort->to_string());
@@ -580,8 +581,8 @@ Term BzlaSolver::make_term(const Term & val, const Sort & sort) const
 {
   bitwuzla::Sort bsort = bzla_sort(sort);
   bitwuzla::Term bterm = bzla_term(val);
-  SortKind sk = sort->get_sort_kind();
-  if (sk != ARRAY)
+  SortKind sk = sort->get_kind();
+  if (sk != SortKind::ARRAY)
   {
     throw IncorrectUsageException("Can't make a constant array of sort "
                                   + sort->to_string()

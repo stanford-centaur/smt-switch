@@ -27,12 +27,12 @@ namespace {
 /** How many values the sort holds, or 0 if it holds infinitely many. */
 uint64_t domain_size(const Sort & sort)
 {
-  switch (sort->get_sort_kind())
+  switch (sort->get_kind())
   {
-    case BOOL: return 2;
+    case SortKind::BOOL: return 2;
     // a wide vector is far past anything worth enumerating, and a width of
     // 64 or more would not fit the count below
-    case BV:
+    case SortKind::BV:
       return sort->get_width() < 32 ? uint64_t(1) << sort->get_width() : 0;
     default: return 0;
   }
@@ -68,7 +68,7 @@ UnorderedTermMap assignment(const SmtSolver & solver,
     uint64_t size = domain_size(sort);
     uint64_t value = index % size;
     index /= size;
-    values[symbol] = sort->get_sort_kind() == BOOL
+    values[symbol] = sort->get_kind() == SortKind::BOOL
                          ? solver->make_term(value != 0)
                          : solver->make_term(value, sort);
   }

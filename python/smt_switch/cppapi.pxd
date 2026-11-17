@@ -34,7 +34,7 @@ cdef extern from "smt-switch/sort.h" namespace "smt":
         c_SortVec get_domain_sorts() except +
         c_Sort get_codomain_sort() except +
         bint compare(const c_Sort sort) except +
-        c_SortKind get_sort_kind() except +
+        c_SortKind get_kind() except +
 
 
 cdef extern from "smt-switch/ops.h" namespace "smt":

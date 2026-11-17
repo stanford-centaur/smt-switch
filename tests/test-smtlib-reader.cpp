@@ -263,7 +263,7 @@ class Dump : public testing::Test,
    */
   void make_symbols()
   {
-    Sort bvsort = s->make_sort(BV, 4);
+    Sort bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
   }
@@ -368,12 +368,12 @@ class DumpRenamedSorts : public Dump
     Sort bvsort = x->get_sort();
     b = s->make_symbol("b", second);
     b2 = s->make_symbol("b2", second);
-    arr = s->make_symbol("arr", s->make_sort(ARRAY, second, bvsort));
-    Term f =
-        s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ second, bvsort }));
-    Term p = s->make_symbol("p", s->make_sort(BOOL));
-    Term q = s->make_symbol("q", s->make_sort(BOOL));
-    Term r = s->make_symbol("r", s->make_sort(BOOL));
+    arr = s->make_symbol("arr", s->make_sort(SortKind::ARRAY, second, bvsort));
+    Term f = s->make_symbol(
+        "f", s->make_sort(SortKind::FUNCTION, SortVec{ second, bvsort }));
+    Term p = s->make_symbol("p", s->make_sort(SortKind::BOOL));
+    Term q = s->make_symbol("q", s->make_sort(SortKind::BOOL));
+    Term r = s->make_symbol("r", s->make_sort(SortKind::BOOL));
 
     s->assert_formula(s->make_term(Distinct, b, b2));
     s->assert_formula(s->make_term(Equal, s->make_term(BVMul, x, x), y));
@@ -430,7 +430,7 @@ TEST_P(DumpUninterpretedSort, DeclaresTheSort)
   Sort sort = s->make_sort("S", 0);
   Term a = s->make_symbol("a", sort);
   Term f = s->make_symbol(
-      "f", s->make_sort(FUNCTION, SortVec{ sort, x->get_sort() }));
+      "f", s->make_sort(SortKind::FUNCTION, SortVec{ sort, x->get_sort() }));
   Term fa = s->make_term(Apply, f, a);
   s->assert_formula(s->make_term(Equal, fa, x));
   s->assert_formula(s->make_term(Distinct, fa, x));
@@ -464,7 +464,7 @@ class Scopes : public testing::Test,
     s = create_solver(GetParam());
     s->set_opt("incremental", "true");
     reader = std::make_unique<SmtLibReader>(s);
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
   }
 
   SmtSolver s;
@@ -668,7 +668,7 @@ TEST_P(Logics, AllLeavesFunctionUndeclared)
 {
   // SMT-LIB declares no sort named Function, so a script may define one
   reader->set_logic("ALL");
-  Sort boolsort = s->make_sort(BOOL);
+  Sort boolsort = s->make_sort(SortKind::BOOL);
   reader->define_sort("Function", boolsort);
   EXPECT_EQ(reader->make_sort("Function"), boolsort);
 }
@@ -814,9 +814,9 @@ class CommandRecorder : public SmtLibReader
     std::vector<std::string> call = { "declare-fun", name };
     for (const Sort & s : domain)
     {
-      call.push_back(to_string(s->get_sort_kind()));
+      call.push_back(to_string(s->get_kind()));
     }
-    call.push_back(to_string(sort->get_sort_kind()));
+    call.push_back(to_string(sort->get_kind()));
     calls.push_back(call);
   }
 
@@ -840,7 +840,7 @@ class CommandRecorder : public SmtLibReader
 
   void define_sort(const std::string & name, const Sort & sort) override
   {
-    calls.push_back({ "define-sort", name, to_string(sort->get_sort_kind()) });
+    calls.push_back({ "define-sort", name, to_string(sort->get_kind()) });
   }
 
   void get_value(const TermVec & terms) override

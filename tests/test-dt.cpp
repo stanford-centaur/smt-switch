@@ -66,7 +66,7 @@ class Datatypes : public testing::Test,
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
   SmtSolver s;
   Sort intsort;
@@ -77,7 +77,7 @@ TEST_P(Datatypes, DeclareSimpleList)
   DatatypeDecl listSpec = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
-  s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector(consdecl, "head", s->make_sort(SortKind::INT));
   s->add_selector_self(consdecl, "tail");
   s->add_constructor(listSpec, nildecl);
   s->add_constructor(listSpec, consdecl);
@@ -138,7 +138,7 @@ TEST_P(Datatypes, DeclareSimpleListWithForwardRef)
   DatatypeDecl listSpec = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
-  s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector(consdecl, "head", s->make_sort(SortKind::INT));
   s->add_constructor(listSpec, nildecl);
   s->add_constructor(listSpec, consdecl);
   Sort listsort = s->make_datatype_sort(listSpec);
@@ -172,7 +172,7 @@ TEST_P(Datatypes, DatatypeDecl)
   DatatypeConstructorDecl cons_copy = consdecl;
   ASSERT_EQ(cons_copy, consdecl);
 
-  s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector(consdecl, "head", s->make_sort(SortKind::INT));
   s->add_selector_self(consdecl, "tail");
   s->add_constructor(consListSpec, nildecl);
   s->add_constructor(consListSpec, consdecl);
@@ -188,7 +188,7 @@ TEST_P(Datatypes, DatatypeDecl)
   std::shared_ptr<SelectorComponents> newSelector =
       std::make_shared<SelectorComponents>();
   newSelector->name = "nonaddselector";
-  newSelector->sort = s->make_sort(INT);
+  newSelector->sort = s->make_sort(SortKind::INT);
   std::shared_ptr<GenericDatatype> nonAddDT =
       std::make_shared<GenericDatatype>(consListSpec);
   EXPECT_THROW(nonAddDT->add_selector(nonAddCons, *newSelector),
@@ -196,8 +196,8 @@ TEST_P(Datatypes, DatatypeDecl)
 
   Sort countersort = s->make_sort(counterdecl);
 
-  EXPECT_EQ(countersort->get_sort_kind(), DATATYPE);
-  EXPECT_EQ(listsort->get_sort_kind(), DATATYPE);
+  EXPECT_EQ(countersort->get_kind(), SortKind::DATATYPE);
+  EXPECT_EQ(listsort->get_kind(), SortKind::DATATYPE);
   EXPECT_NE(countersort, listsort);
 
   Datatype listdt = listsort->get_datatype();
@@ -259,7 +259,7 @@ TEST_P(Datatypes, DatatypeDecl)
 
 TEST_P(Datatypes, NamesReachEveryComponent)
 {
-  Sort boolsort = s->make_sort(BOOL);
+  Sort boolsort = s->make_sort(SortKind::BOOL);
   DatatypeDecl treedecl = s->make_datatype_decl("tree");
   DatatypeConstructorDecl leafdecl = s->make_datatype_constructor_decl("leaf");
   DatatypeConstructorDecl nodedecl = s->make_datatype_constructor_decl("node");
@@ -528,12 +528,12 @@ TEST_P(Datatypes, ComponentsAndApplications)
 
   // a constructor, selector or tester is a leaf of its own sort kind, and
   // its datatype declares it, not a symbol
-  for (const auto & [leaf, kind] : { std::pair{ nilc, CONSTRUCTOR },
-                                     std::pair{ cons, CONSTRUCTOR },
-                                     std::pair{ head, SELECTOR },
-                                     std::pair{ isnil, TESTER } })
+  for (const auto & [leaf, kind] : { std::pair{ nilc, SortKind::CONSTRUCTOR },
+                                     std::pair{ cons, SortKind::CONSTRUCTOR },
+                                     std::pair{ head, SortKind::SELECTOR },
+                                     std::pair{ isnil, SortKind::TESTER } })
   {
-    EXPECT_EQ(leaf->get_sort()->get_sort_kind(), kind) << leaf;
+    EXPECT_EQ(leaf->get_sort()->get_kind(), kind) << leaf;
     EXPECT_FALSE(leaf->is_symbol()) << leaf;
     EXPECT_FALSE(leaf->is_symbolic_const()) << leaf;
     EXPECT_FALSE(leaf->is_value()) << leaf;
@@ -758,7 +758,7 @@ TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)
   DatatypeConstructorDecl just_int = s->make_datatype_constructor_decl("just");
   s->add_selector(just_int, "value", intsort);
   DatatypeConstructorDecl just_bool = s->make_datatype_constructor_decl("just");
-  s->add_selector(just_bool, "value", s->make_sort(BOOL));
+  s->add_selector(just_bool, "value", s->make_sort(SortKind::BOOL));
   EXPECT_NE(just_int, just_bool);
 }
 

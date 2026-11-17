@@ -28,7 +28,7 @@ TEST(Z3Test, DatatypeSortIsZ3Datatype)
   DatatypeDecl listSpec = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");
-  s->add_selector(consdecl, "head", s->make_sort(INT));
+  s->add_selector(consdecl, "head", s->make_sort(SortKind::INT));
   s->add_selector_self(consdecl, "tail");
   s->add_constructor(listSpec, nildecl);
   s->add_constructor(listSpec, consdecl);

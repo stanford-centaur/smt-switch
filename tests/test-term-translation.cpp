@@ -42,7 +42,7 @@ class SelfTranslationTests
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    bvsort8 = s->make_sort(BV, 8);
+    bvsort8 = s->make_sort(SortKind::BV, 8);
 
     x = s->make_symbol("x", bvsort8);
     y = s->make_symbol("y", bvsort8);
@@ -63,7 +63,7 @@ class SelfTranslationIntTests
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
 
     x = s->make_symbol("x", intsort);
     y = s->make_symbol("y", intsort);
@@ -84,7 +84,7 @@ class SelfTranslationRealTests
   {
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
-    realsort = s->make_sort(REAL);
+    realsort = s->make_sort(SortKind::REAL);
 
     x = s->make_symbol("x", realsort);
     y = s->make_symbol("y", realsort);
@@ -109,7 +109,7 @@ class TranslationTests
     s2 = create_solver(std::get<1>(GetParam()));
     s2->set_opt("produce-models", "true");
 
-    boolsort = s1->make_sort(BOOL);
+    boolsort = s1->make_sort(SortKind::BOOL);
 
     a = s1->make_symbol("a", boolsort);
     b = s1->make_symbol("b", boolsort);
@@ -126,7 +126,7 @@ class BVTranslationTests : public TranslationTests
   void SetUp() override
   {
     TranslationTests::SetUp();
-    bvsort8 = s1->make_sort(BV, 8);
+    bvsort8 = s1->make_sort(SortKind::BV, 8);
 
     x = s1->make_symbol("x", bvsort8);
     y = s1->make_symbol("y", bvsort8);
@@ -143,7 +143,7 @@ class BoolArrayTranslationTests : public BVTranslationTests
   void SetUp() override
   {
     BVTranslationTests::SetUp();
-    arrsort = s1->make_sort(ARRAY, bvsort8, boolsort);
+    arrsort = s1->make_sort(SortKind::ARRAY, bvsort8, boolsort);
     arr = s1->make_symbol("arr", arrsort);
   }
   Sort arrsort;
@@ -157,7 +157,7 @@ class StringTranslationTests : public TranslationTests
   void SetUp() override
   {
     TranslationTests::SetUp();
-    strsort = s1->make_sort(STRING);
+    strsort = s1->make_sort(SortKind::STRING);
   }
   Sort strsort;
 };
@@ -169,7 +169,7 @@ class IntTranslationTests : public TranslationTests
   void SetUp() override
   {
     TranslationTests::SetUp();
-    intsort = s1->make_sort(INT);
+    intsort = s1->make_sort(SortKind::INT);
     i = s1->make_symbol("i", intsort);
     j = s1->make_symbol("j", intsort);
     k = s1->make_symbol("k", intsort);
@@ -185,7 +185,7 @@ class RealTranslationTests : public TranslationTests
   void SetUp() override
   {
     TranslationTests::SetUp();
-    realsort = s1->make_sort(REAL);
+    realsort = s1->make_sort(SortKind::REAL);
   }
   Sort realsort;
 };
@@ -197,7 +197,7 @@ class IntRealTranslationTests : public RealTranslationTests
   void SetUp() override
   {
     RealTranslationTests::SetUp();
-    intsort = s1->make_sort(INT);
+    intsort = s1->make_sort(SortKind::INT);
   }
   Sort intsort;
 };
@@ -209,7 +209,7 @@ class DatatypeTranslationTests : public TranslationTests
   void SetUp() override
   {
     TranslationTests::SetUp();
-    intsort = s1->make_sort(INT);
+    intsort = s1->make_sort(SortKind::INT);
     DatatypeDecl listdecl = s1->make_datatype_decl("list");
     DatatypeConstructorDecl nildecl = s1->make_datatype_constructor_decl("nil");
     DatatypeConstructorDecl consdecl =
@@ -253,7 +253,7 @@ TEST_P(SelfTranslationTests, BVTransfer)
   Term T2 = tt.transfer_term(T);
   ASSERT_EQ(T2, s2->make_term(true));
   Term two_2 = tt.transfer_term(two);
-  ASSERT_EQ(two_2, s2->make_term(2, s2->make_sort(BV, 8)));
+  ASSERT_EQ(two_2, s2->make_term(2, s2->make_sort(SortKind::BV, 8)));
   // ensure it can handle transferring again (even though it already built the
   // node)
   Term cached_constraint2 = constraint2;
@@ -269,10 +269,10 @@ TEST_P(SelfTranslationTests, BoolValueAsBitVector)
 {
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tt(s2);
-  Sort bvsort1 = s2->make_sort(BV, 1);
-  EXPECT_EQ(tt.transfer_term(s->make_term(true), BV),
+  Sort bvsort1 = s2->make_sort(SortKind::BV, 1);
+  EXPECT_EQ(tt.transfer_term(s->make_term(true), SortKind::BV),
             s2->make_term(1, bvsort1));
-  EXPECT_EQ(tt.transfer_term(s->make_term(false), BV),
+  EXPECT_EQ(tt.transfer_term(s->make_term(false), SortKind::BV),
             s2->make_term(0, bvsort1));
 }
 
@@ -345,10 +345,10 @@ TEST_P(SelfTranslationRealTests, Fractions)
   Term half_transfer = tt.transfer_term(half);
   Term neg_half_transfer = tt.transfer_term(neg_half);
   Term constraint_transfer = tt.transfer_term(constraint);
-  EXPECT_EQ(half_transfer->get_sort()->get_sort_kind(), REAL);
-  EXPECT_EQ(neg_half_transfer->get_sort()->get_sort_kind(), REAL);
+  EXPECT_EQ(half_transfer->get_sort()->get_kind(), SortKind::REAL);
+  EXPECT_EQ(neg_half_transfer->get_sort()->get_kind(), SortKind::REAL);
 
-  Sort realsort2 = s2->make_sort(REAL);
+  Sort realsort2 = s2->make_sort(SortKind::REAL);
   Term half_2 = s2->make_term("1/2", realsort2);
   Term neg_half_2 = s2->make_term("-1/2", realsort2);
   Term constraint_2 = s2->make_term(
@@ -438,7 +438,7 @@ TEST_P(TranslationTests, Equal)
 
   Term a_equal_b_2 = to_s2.transfer_term(a_equal_b);
   // need to specify expected sortkind
-  Term a_equal_b_1 = to_s1.transfer_term(a_equal_b_2, BOOL);
+  Term a_equal_b_1 = to_s1.transfer_term(a_equal_b_2, SortKind::BOOL);
 
   // not guaranteed to be structurally equal -- might use different operators
   // or weird casting
@@ -465,10 +465,11 @@ TEST_P(BVTranslationTests, NaryApplications)
   TermVec differences;
   for (const Term & t : bool_terms)
   {
-    Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), BOOL);
+    Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), SortKind::BOOL);
     differences.push_back(s1->make_term(Distinct, t, t_1));
   }
-  Term product_1 = to_s1.transfer_term(to_s2.transfer_term(product), BV);
+  Term product_1 =
+      to_s1.transfer_term(to_s2.transfer_term(product), SortKind::BV);
   differences.push_back(s1->make_term(Distinct, product, product_1));
   s1->assert_formula(s1->make_term(Or, differences));
   ASSERT_TRUE(s1->check_sat().is_unsat());
@@ -481,7 +482,8 @@ TEST_P(IntTranslationTests, Divisible)
       Op(Divisible, 3), s1->make_term(Minus, i, s1->make_term(2, intsort)));
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
-  Term divisible_1 = to_s1.transfer_term(to_s2.transfer_term(divisible), BOOL);
+  Term divisible_1 =
+      to_s1.transfer_term(to_s2.transfer_term(divisible), SortKind::BOOL);
   s1->assert_formula(s1->make_term(Distinct, divisible, divisible_1));
   ASSERT_TRUE(s1->check_sat().is_unsat());
 }
@@ -499,10 +501,11 @@ TEST_P(IntTranslationTests, NaryApplications)
   TermVec differences;
   for (const Term & t : { sum, difference })
   {
-    Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), INT);
+    Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), SortKind::INT);
     differences.push_back(s1->make_term(Distinct, t, t_1));
   }
-  Term chain_1 = to_s1.transfer_term(to_s2.transfer_term(chain), BOOL);
+  Term chain_1 =
+      to_s1.transfer_term(to_s2.transfer_term(chain), SortKind::BOOL);
   differences.push_back(s1->make_term(Distinct, chain, chain_1));
   s1->assert_formula(s1->make_term(Or, differences));
   ASSERT_TRUE(s1->check_sat().is_unsat());
@@ -523,7 +526,7 @@ TEST_P(BVTranslationTests, Ite)
 
 TEST_P(BVTranslationTests, Concat)
 {
-  Sort bvsort1 = s1->make_sort(BV, 1);
+  Sort bvsort1 = s1->make_sort(SortKind::BV, 1);
   Term x_lt_y = s1->make_term(BVUlt, x, y);
   Term bv_x_lt_y = s1->make_term(
       Ite, x_lt_y, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
@@ -541,7 +544,7 @@ TEST_P(BVTranslationTests, Concat)
 
 TEST_P(BVTranslationTests, Extract)
 {
-  Sort bvsort1 = s1->make_sort(BV, 1);
+  Sort bvsort1 = s1->make_sort(SortKind::BV, 1);
   Term bv_a = s1->make_term(
       Ite, a, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
 
@@ -553,7 +556,7 @@ TEST_P(BVTranslationTests, Extract)
   Term ext_bv_a_2 = to_s2.transfer_term(ext_bv_a);
   // expect it to be a BV
   // ambiguous when working with BTOR because it's width 1
-  Term ext_bv_a_1 = to_s1.transfer_term(ext_bv_a_2, BV);
+  Term ext_bv_a_1 = to_s1.transfer_term(ext_bv_a_2, SortKind::BV);
 
   // this one might get rewritten
   // so it won't be syntactically equivalent
@@ -580,7 +583,7 @@ TEST_P(TranslationTests, UninterpretedSort)
   }
 
   ASSERT_TRUE(uninterp_sort);
-  Sort ufsort = s1->make_sort(FUNCTION, { uninterp_sort, boolsort });
+  Sort ufsort = s1->make_sort(SortKind::FUNCTION, { uninterp_sort, boolsort });
   Term v = s1->make_symbol("v", uninterp_sort);
   Term f = s1->make_symbol("f", ufsort);
   Term fv = s1->make_term(Apply, f, v);
@@ -607,9 +610,12 @@ TEST_P(TranslationTests, ApplicationOfFewerArguments)
   {
     GTEST_SKIP() << "both solvers need uninterpreted sorts";
   }
-  Term f1 = s1->make_symbol("f", s1->make_sort(FUNCTION, { u1, u1, boolsort }));
+  Term f1 = s1->make_symbol(
+      "f", s1->make_sort(SortKind::FUNCTION, { u1, u1, boolsort }));
   Term v1 = s1->make_symbol("v", u1);
-  s2->make_symbol("f", s2->make_sort(FUNCTION, { u2, s2->make_sort(BOOL) }));
+  s2->make_symbol(
+      "f",
+      s2->make_sort(SortKind::FUNCTION, { u2, s2->make_sort(SortKind::BOOL) }));
 
   TermTranslator to_s2(s2);
   EXPECT_THROW(to_s2.transfer_term(s1->make_term(Apply, f1, v1, v1)),
@@ -618,7 +624,7 @@ TEST_P(TranslationTests, ApplicationOfFewerArguments)
 
 TEST_P(IntTranslationTests, SymbolOfAnotherSort)
 {
-  s2->make_symbol("a", s2->make_sort(INT));
+  s2->make_symbol("a", s2->make_sort(SortKind::INT));
   TermTranslator to_s2(s2);
   EXPECT_THROW(to_s2.transfer_term(a), IncorrectUsageException);
 }
@@ -643,7 +649,9 @@ TEST_P(BoolArrayTranslationTests, Arrays)
 
   Term const_arr_2 = to_s2.transfer_term(const_arr);
   EXPECT_EQ(const_arr_2->get_sort(),
-            s2->make_sort(ARRAY, s2->make_sort(BV, 8), s2->make_sort(BOOL)));
+            s2->make_sort(SortKind::ARRAY,
+                          s2->make_sort(SortKind::BV, 8),
+                          s2->make_sort(SortKind::BOOL)));
   EXPECT_TRUE(const_arr_2->is_value());
   EXPECT_EQ(to_s1.transfer_term(const_arr_2), const_arr);
 
@@ -681,7 +689,7 @@ TEST_P(BoolArrayTranslationTests, StoreChainValue)
   EXPECT_EQ(to_s1.transfer_term(stores_2), stores);
 
   // stores is true at 2 and 5 and false at 3
-  Sort bvsort8_2 = s2->make_sort(BV, 8);
+  Sort bvsort8_2 = s2->make_sort(SortKind::BV, 8);
   s2->assert_formula(s2->make_term(
       Not,
       s2->make_term(
@@ -702,7 +710,7 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
   auto make_ites = [](const SmtSolver & solver,
                       const Term & c,
                       const Term & d) {
-    Sort real = solver->make_sort(REAL);
+    Sort real = solver->make_sort(SortKind::REAL);
     Term zero = solver->make_term("0.0", real);
     Term one = solver->make_term("1.0", real);
     Term tenth = solver->make_term("1/10", real);
@@ -712,7 +720,7 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
                         Ite, c, solver->make_term(Ite, d, zero, one), tenth) };
   };
   TermVec ites = make_ites(s1, a, b);
-  Sort boolsort2 = s2->make_sort(BOOL);
+  Sort boolsort2 = s2->make_sort(SortKind::BOOL);
   TermVec expected = make_ites(
       s2, s2->make_symbol("a", boolsort2), s2->make_symbol("b", boolsort2));
 
@@ -722,7 +730,7 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
   {
     SCOPED_TRACE(ites[n]->to_string());
     Term ite2 = to_s2.transfer_term(ites[n]);
-    EXPECT_EQ(ite2->get_sort()->get_sort_kind(), REAL);
+    EXPECT_EQ(ite2->get_sort()->get_kind(), SortKind::REAL);
     distinct.push_back(s2->make_term(Distinct, ite2, expected[n]));
   }
   s2->assert_formula(s2->make_term(Or, distinct));
@@ -782,7 +790,7 @@ TEST_P(DatatypeTranslationTests, DatatypeSort)
 {
   TermTranslator to_s2(s2);
   Sort list2 = to_s2.transfer_sort(listsort);
-  ASSERT_EQ(list2->get_sort_kind(), DATATYPE);
+  ASSERT_EQ(list2->get_kind(), SortKind::DATATYPE);
   // declared once, so every transfer gives the same datatype
   EXPECT_EQ(to_s2.transfer_sort(listsort), list2);
 
@@ -792,7 +800,8 @@ TEST_P(DatatypeTranslationTests, DatatypeSort)
             (std::vector<std::string>{ "nil", "cons" }));
   EXPECT_EQ(dt2->get_selector_names("cons"),
             (std::vector<std::string>{ "head", "tail" }));
-  EXPECT_EQ(dt2->get_selector_sort("cons", "head"), s2->make_sort(INT));
+  EXPECT_EQ(dt2->get_selector_sort("cons", "head"),
+            s2->make_sort(SortKind::INT));
   EXPECT_EQ(dt2->get_selector_sort("cons", "tail"), list2);
 
   // a symbol of the datatype transfers with it, and s2 can reason about it
@@ -882,7 +891,7 @@ TEST_P(DatatypeTranslationTests, DatatypeValues)
   EXPECT_EQ(list5_2,
             s2->make_term(Apply_Constructor,
                           s2->get_constructor(list2, "cons"),
-                          s2->make_term(5, s2->make_sort(INT)),
+                          s2->make_term(5, s2->make_sort(SortKind::INT)),
                           nil2));
 }
 
@@ -911,7 +920,7 @@ TEST_P(SortConstructorTranslationTests, SortConstructor)
 {
   TermTranslator to_s2(s2);
   Sort list2 = to_s2.transfer_sort(list);
-  EXPECT_EQ(list2->get_sort_kind(), UNINTERPRETED_CONS);
+  EXPECT_EQ(list2->get_kind(), SortKind::UNINTERPRETED_CONS);
   EXPECT_EQ(list2->get_uninterpreted_name(), "List");
   EXPECT_EQ(list2->get_arity(), 1);
 }
@@ -923,7 +932,8 @@ TEST_P(SortConstructorTranslationTests, AppliedSorts)
   Term l = s1->make_symbol("l", list_bool);
   Term ll = s1->make_symbol("ll", list_list_bool);
   Term f = s1->make_symbol(
-      "f", s1->make_sort(FUNCTION, SortVec{ list_list_bool, list_bool }));
+      "f",
+      s1->make_sort(SortKind::FUNCTION, SortVec{ list_list_bool, list_bool }));
   Term eq = s1->make_term(Equal, s1->make_term(Apply, f, ll), l);
 
   // applying f in s2 is well sorted only if both applied sorts share one
@@ -931,11 +941,11 @@ TEST_P(SortConstructorTranslationTests, AppliedSorts)
   TermTranslator to_s2(s2);
   Term eq2 = to_s2.transfer_term(eq);
   Sort list_bool2 = to_s2.transfer_term(l)->get_sort();
-  EXPECT_EQ(list_bool2->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(list_bool2->get_kind(), SortKind::UNINTERPRETED);
   EXPECT_EQ(list_bool2->get_uninterpreted_name(), "List");
   SortVec params = list_bool2->get_uninterpreted_param_sorts();
   ASSERT_EQ(params.size(), 1);
-  EXPECT_EQ(params[0]->get_sort_kind(), BOOL);
+  EXPECT_EQ(params[0]->get_kind(), SortKind::BOOL);
   EXPECT_EQ(to_s2.transfer_sort(list_list_bool),
             to_s2.transfer_term(ll)->get_sort());
 

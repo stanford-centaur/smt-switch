@@ -98,20 +98,20 @@ void collect_declared_sorts(const Sort & s,
                             std::map<std::string, Sort> & datatypes)
 {
   // no default, so that -Wswitch reports an enumerator without a case
-  switch (s->get_sort_kind())
+  switch (s->get_kind())
   {
-    case ARRAY:
+    case SortKind::ARRAY:
       collect_declared_sorts(s->get_indexsort(), sorts, datatypes);
       collect_declared_sorts(s->get_elemsort(), sorts, datatypes);
       break;
-    case FUNCTION:
+    case SortKind::FUNCTION:
       for (const Sort & d : s->get_domain_sorts())
       {
         collect_declared_sorts(d, sorts, datatypes);
       }
       collect_declared_sorts(s->get_codomain_sort(), sorts, datatypes);
       break;
-    case UNINTERPRETED: {
+    case SortKind::UNINTERPRETED: {
       SortVec params = s->get_uninterpreted_param_sorts();
       Sort declared = params.empty() ? s : s->get_uninterpreted_constructor();
       SortVec & named = sorts[declared->get_uninterpreted_name()];
@@ -125,7 +125,7 @@ void collect_declared_sorts(const Sort & s,
       }
       break;
     }
-    case DATATYPE: {
+    case SortKind::DATATYPE: {
       auto [found, added] = datatypes.emplace(s->get_datatype()->get_name(), s);
       // a datatype found before may be the sort of its own selectors
       if (!added)
@@ -151,16 +151,15 @@ void collect_declared_sorts(const Sort & s,
     }
     // nothing to declare, and the datatypes of constructors, selectors
     // and testers are met through their arguments and results
-    case BOOL:
-    case BV:
-    case INT:
-    case REAL:
-    case STRING:
-    case UNINTERPRETED_CONS:
-    case CONSTRUCTOR:
-    case SELECTOR:
-    case TESTER:
-    case NUM_SORT_KINDS: break;
+    case SortKind::BOOL:
+    case SortKind::BV:
+    case SortKind::INT:
+    case SortKind::REAL:
+    case SortKind::STRING:
+    case SortKind::UNINTERPRETED_CONS:
+    case SortKind::CONSTRUCTOR:
+    case SortKind::SELECTOR:
+    case SortKind::TESTER: break;
   }
 }
 
@@ -176,13 +175,14 @@ struct SortRenamer
     {
       return smtlib::quote_symbol(it->second);
     }
-    SortKind sk = s->get_sort_kind();
-    if (sk == ARRAY)
+    SortKind sk = s->get_kind();
+    if (sk == SortKind::ARRAY)
     {
       return "(Array " + (*this)(s->get_indexsort()) + " "
              + (*this)(s->get_elemsort()) + ")";
     }
-    if (sk == UNINTERPRETED && !s->get_uninterpreted_param_sorts().empty())
+    if (sk == SortKind::UNINTERPRETED
+        && !s->get_uninterpreted_param_sorts().empty())
     {
       // an applied sort is written with its constructor's name
       auto con = renamed.find(s->get_uninterpreted_constructor());
@@ -208,7 +208,7 @@ struct SortRenamer
           op, TermVec(t->begin(), t->end()), *this, *this);
     }
     // a constant array is the one leaf with a child, its value
-    if (t->get_sort()->get_sort_kind() == ARRAY && t->begin() != t->end())
+    if (t->get_sort()->get_kind() == SortKind::ARRAY && t->begin() != t->end())
     {
       return smtlib::const_array((*this)(t->get_sort()), (*this)(*t->begin()));
     }
@@ -305,7 +305,7 @@ std::string application(
            + get_text(children[1], term_text) + ")";
   }
   const bool bv_power =
-      op.prim_op == Pow && children[0]->get_sort()->get_sort_kind() == BV;
+      op.prim_op == Pow && children[0]->get_sort()->get_kind() == SortKind::BV;
   if (op.prim_op == Pow && children[1]->is_value()
       && (bv_power || children[1]->to_signed_int() >= 2))
   {
@@ -352,7 +352,7 @@ std::string arith_value(SortKind sk, const std::string & value)
     whole = first == std::string::npos ? "0" : whole.substr(first);
     if (point == std::string::npos)
     {
-      return sk == REAL ? whole + ".0" : whole;
+      return sk == SortKind::REAL ? whole + ".0" : whole;
     }
     std::string fraction = number.substr(point + 1);
     return whole + "." + (fraction.empty() ? "0" : fraction);
@@ -360,7 +360,7 @@ std::string arith_value(SortKind sk, const std::string & value)
   // SMT-LIB numerals are never negative, and SMT-LIB has no fraction
   // literal, so a fraction is a division of two numbers
   std::string::size_type slash = magnitude.find('/');
-  std::string repr = sk == REAL && slash != std::string::npos
+  std::string repr = sk == SortKind::REAL && slash != std::string::npos
                          ? "(/ " + number_text(magnitude.substr(0, slash)) + " "
                                + number_text(magnitude.substr(slash + 1)) + ")"
                          : number_text(magnitude);
@@ -377,7 +377,7 @@ std::string declare_fun(
 {
   Sort sort = symbol->get_sort();
   std::string domain;
-  if (sort->get_sort_kind() == FUNCTION)
+  if (sort->get_kind() == SortKind::FUNCTION)
   {
     for (const Sort & d : sort->get_domain_sorts())
     {

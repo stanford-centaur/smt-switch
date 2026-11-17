@@ -39,10 +39,10 @@ class Logging : public testing::Test,
     // before wrapping with a LoggingSolver
     s = std::make_shared<LoggingSolver>(create_solver(GetParam()));
     s->set_opt("produce-models", "true");
-    bvsort4 = s->make_sort(BV, 4);
-    bvsort8 = s->make_sort(BV, 8);
-    arraysort = s->make_sort(ARRAY, bvsort4, bvsort8);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort4, bvsort8 });
+    bvsort4 = s->make_sort(SortKind::BV, 4);
+    bvsort8 = s->make_sort(SortKind::BV, 8);
+    arraysort = s->make_sort(SortKind::ARRAY, bvsort4, bvsort8);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort4, bvsort8 });
 
     x = s->make_symbol("x", bvsort4);
     y = s->make_symbol("y", bvsort4);
@@ -103,7 +103,7 @@ TEST_P(Logging, HashConsing)
 TEST_P(Logging, Sorts)
 {
   Term cond = s->make_term(BVUge, x, zero);
-  EXPECT_EQ(cond->get_sort()->get_sort_kind(), BOOL);
+  EXPECT_EQ(cond->get_sort()->get_kind(), SortKind::BOOL);
   Term relu = s->make_term(Ite, cond, x, zero);
   EXPECT_EQ(relu->get_sort(), x->get_sort());
 }
@@ -115,7 +115,7 @@ TEST_P(Logging, ConstantSorts)
   EXPECT_NE(t, f);
   EXPECT_EQ(t, t);
 
-  Sort bvsort1 = s->make_sort(BV, 1);
+  Sort bvsort1 = s->make_sort(SortKind::BV, 1);
   Term bv0 = s->make_term(0, bvsort1);
   Term bv1 = s->make_term(1, bvsort1);
   EXPECT_NE(bv0, bv1);
@@ -126,8 +126,8 @@ TEST_P(Logging, ConstantSorts)
   EXPECT_NE(t, bv0);
   EXPECT_NE(t, bv1);
 
-  EXPECT_EQ(t->get_sort()->get_sort_kind(), BOOL);
-  EXPECT_EQ(bv0->get_sort()->get_sort_kind(), BV);
+  EXPECT_EQ(t->get_sort()->get_kind(), SortKind::BOOL);
+  EXPECT_EQ(bv0->get_sort()->get_kind(), SortKind::BV);
   EXPECT_EQ(bv1->get_sort()->get_width(), 1);
 }
 
@@ -171,7 +171,7 @@ TEST_P(Logging, Compare)
 
 TEST_P(Logging, WrongKindAccessors)
 {
-  Sort boolsort = s->make_sort(BOOL);
+  Sort boolsort = s->make_sort(SortKind::BOOL);
   EXPECT_THROW(boolsort->get_width(), IncorrectUsageException);
   EXPECT_THROW(boolsort->get_indexsort(), IncorrectUsageException);
   EXPECT_THROW(boolsort->get_elemsort(), IncorrectUsageException);
@@ -194,7 +194,7 @@ TEST_P(Logging, TermFromAnotherSolver)
                     "solver's x is taken for this one's";
   }
   SmtSolver s2 = std::make_shared<LoggingSolver>(create_solver(GetParam()));
-  Term x2 = s2->make_symbol("x", s2->make_sort(BV, 4));
+  Term x2 = s2->make_symbol("x", s2->make_sort(SortKind::BV, 4));
   EXPECT_THROW(s->make_term(BVAdd, x, x2), IncorrectUsageException);
 }
 
@@ -213,7 +213,7 @@ TEST_P(Logging, NullTerm)
 
 TEST_P(Logging, NullSort)
 {
-  EXPECT_THROW(s->make_sort(ARRAY, SortVec{ bvsort4, Sort() }),
+  EXPECT_THROW(s->make_sort(SortKind::ARRAY, SortVec{ bvsort4, Sort() }),
                IncorrectUsageException);
   EXPECT_THROW(s->make_sort(Sort(), SortVec{ bvsort4 }),
                IncorrectUsageException);
@@ -261,7 +261,8 @@ TEST_P(LoggingUninterpretedArrays, ValuesHoldAssertedEntry)
                     "uninterpreted sort";
   }
   Sort usort = s->make_sort("U", 0);
-  Term arr = s->make_symbol("arr", s->make_sort(ARRAY, usort, bvsort8));
+  Term arr =
+      s->make_symbol("arr", s->make_sort(SortKind::ARRAY, usort, bvsort8));
   Term u = s->make_symbol("u", usort);
   Term one8 = s->make_term(1, bvsort8);
   s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, u), one8));

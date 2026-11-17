@@ -41,7 +41,7 @@ void AbsSmtSolver::assert_formula(const Term & t)
   {
     throw IncorrectUsageException("Cannot assert a null term");
   }
-  if (t->get_sort() != make_sort(BOOL))
+  if (t->get_sort() != make_sort(SortKind::BOOL))
   {
     throw IncorrectUsageException("Expecting a Boolean assertion but got: "
                                   + t->to_string());

@@ -69,7 +69,7 @@ def test_sort(create_solver):
     for n, s in zip(names, sorts):
         t = solver.make_symbol(n, s)
         assert t.get_sort() == s
-        assert t.get_sort().get_sort_kind() == s.get_sort_kind()
+        assert t.get_sort().get_kind() == s.get_kind()
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

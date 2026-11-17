@@ -603,17 +603,17 @@ Term Z3Solver::get_selector(const Sort & s,
 
 Term Z3Solver::make_term(int64_t i, const Sort & sort) const
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   z3::expr z_term = z3::expr(*ctx);
-  if (sk == INT)
+  if (sk == SortKind::INT)
   {
     z_term = ctx->int_val(i);
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     z_term = ctx->real_val(i);
   }
-  else if (sk == BV)
+  else if (sk == SortKind::BV)
   {
     z_term = ctx->bv_val(i, backend::narrow_width(sort->get_width()));
   }
@@ -634,9 +634,9 @@ Term Z3Solver::make_term(const std::string val,
                          uint64_t base) const
 {
   z3::expr z_term = z3::expr(*ctx);
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
 
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     std::uint64_t width = sort->get_width();
     if (width <= 64)
@@ -656,15 +656,15 @@ Term Z3Solver::make_term(const std::string val,
       z_term = ctx->bv_val(backend::narrow_width(width), &bits[0]);
     }
   }
-  else if (sk == REAL || sk == INT)
+  else if (sk == SortKind::REAL || sk == SortKind::INT)
   {
     std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
         "Can't create value " + val + " with sort " + sort->to_string();
     try
     {
-      z_term = sk == REAL ? ctx->real_val(decimal.c_str())
-                          : ctx->int_val(decimal.c_str());
+      z_term = sk == SortKind::REAL ? ctx->real_val(decimal.c_str())
+                                    : ctx->int_val(decimal.c_str());
     }
     catch (z3::exception & e)
     {
@@ -936,7 +936,7 @@ Sort Z3Solver::make_sort(const std::string name, uint64_t arity) const
 Sort Z3Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
   std::shared_ptr<Z3Sort> zcon = get_z3_sort(sort_con);
-  if (zcon->get_sort_kind() != UNINTERPRETED_CONS)
+  if (zcon->get_kind() != SortKind::UNINTERPRETED_CONS)
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
                                   + " is not a sort constructor");
@@ -965,15 +965,15 @@ Sort Z3Solver::make_sort(SortKind sk) const
 {
   z3::sort z_sort = z3::sort(*ctx);
 
-  if (sk == BOOL)
+  if (sk == SortKind::BOOL)
   {
     z_sort = ctx->bool_sort();
   }
-  else if (sk == INT)
+  else if (sk == SortKind::INT)
   {
     z_sort = ctx->int_sort();
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     z_sort = ctx->real_sort();
   }
@@ -990,7 +990,7 @@ Sort Z3Solver::make_sort(SortKind sk) const
 Sort Z3Solver::make_sort(SortKind sk, uint64_t size) const
 try
 {
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     return std::make_shared<Z3Sort>(ctx,
                                     ctx->bv_sort(backend::narrow_width(size)));
@@ -1008,7 +1008,7 @@ catch (const z3::exception & e)
 
 Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     if (sorts.size() < 2)
     {
@@ -1033,7 +1033,7 @@ Sort Z3Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     return std::make_shared<Z3Sort>(ctx, std::move(zsorts), z_sort);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     std::shared_ptr<Z3Sort> cidxsort = get_z3_sort(sorts[0]);
     std::shared_ptr<Z3Sort> celemsort = get_z3_sort(sorts[1]);
@@ -1069,7 +1069,7 @@ Term Z3Solver::make_symbol(const std::string name, const Sort & sort)
   z3::symbol z_name = ctx->str_symbol(c);
 
   Term sym;
-  if (zsort->get_sort_kind() == FUNCTION)
+  if (zsort->get_kind() == SortKind::FUNCTION)
   {
     // nb this is creating a func_decl
     z3::func_decl z_func =

@@ -28,7 +28,7 @@ namespace {
 TEST(Z3Quantifier, BindingSeveralListsTheFirstThenTheRest)
 {
   auto s = std::make_shared<Z3Solver>();
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term i = s->make_param("i", bv);
   Term j = s->make_param("j", bv);
   Term x = s->make_symbol("x", bv);

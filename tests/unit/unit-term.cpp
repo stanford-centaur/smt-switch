@@ -43,10 +43,10 @@ class UnitTermTests : public testing::Test,
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
 
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
-    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
   }
   SmtSolver s;
   Sort boolsort, bvsort, funsort, arrsort;
@@ -59,8 +59,8 @@ class UnitTermArithTests : public UnitTermTests
   void SetUp() override
   {
     UnitTermTests::SetUp();
-    intsort = s->make_sort(INT);
-    realsort = s->make_sort(REAL);
+    intsort = s->make_sort(SortKind::INT);
+    realsort = s->make_sort(SortKind::REAL);
   }
   Sort intsort, realsort;
 };
@@ -88,14 +88,16 @@ TEST_P(UnitTermTests, FunOp)
 
 TEST_P(UnitTermTests, MultiArgFunOp)
 {
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort8);
   Term g = s->make_symbol(
-      "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort8, bvsort8 }));
+      "g",
+      s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort8, bvsort8 }));
   Term h = s->make_symbol(
       "h",
-      s->make_sort(FUNCTION, SortVec{ bvsort, bvsort8, bvsort, boolsort }));
+      s->make_sort(SortKind::FUNCTION,
+                   SortVec{ bvsort, bvsort8, bvsort, boolsort }));
 
   Term gxy = s->make_term(Apply, g, x, y);
   EXPECT_EQ(gxy->get_op(), Apply);
@@ -127,7 +129,7 @@ TEST_P(UnitTermTests, ToBool)
 
 TEST_P(UnitTermTests, ToBoolOfOneBitValue)
 {
-  Sort bvsort1 = s->make_sort(BV, 1);
+  Sort bvsort1 = s->make_sort(SortKind::BV, 1);
   Term one = s->make_term(1, bvsort1);
   Term zero = s->make_term(0, bvsort1);
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
@@ -150,7 +152,7 @@ TEST_P(UnitTermTests, ToBoolOfOneBitValue)
 // smt-switch, and the generic solver's; call it on GenericTerms directly
 TEST(DefaultToBool, ReadsBooleanValues)
 {
-  Sort boolsort = std::make_shared<GenericSort>(BOOL);
+  Sort boolsort = std::make_shared<GenericSort>(SortKind::BOOL);
   EXPECT_TRUE(GenericTerm(boolsort, Op(), {}, "true").to_bool());
   EXPECT_FALSE(GenericTerm(boolsort, Op(), {}, "false").to_bool());
   EXPECT_THROW(GenericTerm(boolsort, Op(), {}, "b", true).to_bool(),
@@ -177,11 +179,12 @@ TEST_P(UnitTermTests, BVSorts)
 {
   EXPECT_EQ(s->make_term(5, bvsort)->get_sort(), bvsort);
   Term x = s->make_symbol("x", bvsort);
-  EXPECT_EQ(s->make_term(Concat, x, x)->get_sort(), s->make_sort(BV, 8));
+  EXPECT_EQ(s->make_term(Concat, x, x)->get_sort(),
+            s->make_sort(SortKind::BV, 8));
   EXPECT_EQ(s->make_term(Op(Extract, 2, 1), x)->get_sort(),
-            s->make_sort(BV, 2));
+            s->make_sort(SortKind::BV, 2));
   EXPECT_EQ(s->make_term(Op(Zero_Extend, 1), x)->get_sort(),
-            s->make_sort(BV, 5));
+            s->make_sort(SortKind::BV, 5));
 }
 
 TEST_P(UnitTermTests, Array)
@@ -220,7 +223,7 @@ TEST_P(UnitTermTests, SymbolSurvivesSubstitution)
 TEST_P(UnitTermTests, TermContainers)
 {
   const size_t num_terms = 20;
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
 
   UnorderedTermSet uts;
   UnorderedTermMap utm;
@@ -453,7 +456,7 @@ class NegativeBVTests : public NegativeValueTests
   void SetUp() override
   {
     NegativeValueTests::SetUp();
-    bvsort = s->make_sort(BV, 8);
+    bvsort = s->make_sort(SortKind::BV, 8);
   }
   Sort bvsort;
 };
@@ -465,7 +468,7 @@ class NegativeIntTests : public NegativeValueTests
   void SetUp() override
   {
     NegativeValueTests::SetUp();
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
   Sort intsort;
 };

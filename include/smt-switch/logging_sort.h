@@ -28,7 +28,7 @@ class LoggingSort : public AbsSort
  public:
   LoggingSort(SortKind k, Sort s);
   // implementations
-  SortKind get_sort_kind() const override;
+  SortKind get_kind() const override;
   bool compare(const Sort & s) const override;
   // dispatch to underlying sort
   std::size_t hash() const override;

@@ -34,7 +34,7 @@ class UnitSubstituteTests
   void SetUp() override
   {
     s = create_solver(GetParam());
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
     xpy = s->make_term(BVAdd, x, y);
@@ -84,7 +84,7 @@ TEST_P(UnitSubstituteTests, CheckSubstitution3)
 
 TEST_P(UnitSubstituteTests, SubstitutesUnderNestedTerms)
 {
-  Sort arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+  Sort arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
   Term arr = s->make_symbol("arr", arrsort);
   Term arr0 = s->make_symbol("arr0", arrsort);
   Term idx = s->make_symbol("idx", bvsort);
@@ -105,7 +105,7 @@ TEST_P(UnitSubstituteTests, SubstitutesUnderNestedTerms)
 TEST_P(UnitSubstituteTests, SubstitutesUnderApplication)
 {
   Term g = s->make_symbol(
-      "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
+      "g", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
   Term result = s->substitute(s->make_term(Apply, g, x, y), { { x, a } });
   EXPECT_EQ(result, s->make_term(Apply, g, a, y));
   EXPECT_EQ(result->get_op(), Apply);
@@ -178,7 +178,7 @@ TEST_P(UnitSubstituteTests, SubstitutesCompositeKeyOrNotImplemented)
 
 TEST_P(UnitSubstituteTests, BadSubstitution)
 {
-  Sort diff_bvsort = s->make_sort(BV, bvsort->get_width() + 1);
+  Sort diff_bvsort = s->make_sort(SortKind::BV, bvsort->get_width() + 1);
   Term newvar = s->make_symbol("newvar", diff_bvsort);
 
   EXPECT_THROW(SubstitutionWalker(s, { { x, newvar } }),

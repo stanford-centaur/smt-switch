@@ -298,13 +298,13 @@ TEST_P(GenericSolverSetLogic, UnsupportedNotALogic)
 TEST_P(GenericSolverUfTests, Uf1)
 {
   Sort s = gs->make_sort("S", 0);
-  EXPECT_EQ(s->get_sort_kind(), UNINTERPRETED);
+  EXPECT_EQ(s->get_kind(), SortKind::UNINTERPRETED);
   EXPECT_THROW(gs->make_sort("S", 1), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, Bool1)
 {
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   Term term_1 = gs->make_symbol("term_1", bool_sort);
   Result r;
   gs->push(1);
@@ -326,7 +326,7 @@ TEST_P(GenericSolverTests, DumpLeavesOutWhatNoLongerHolds)
   {
     GTEST_SKIP() << "the Boolector binary refuses reset-assertions";
   }
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   Term a = gs->make_symbol("a", bool_sort);
   Term b = gs->make_symbol("b", bool_sort);
   Term c = gs->make_symbol("c", bool_sort);
@@ -357,7 +357,7 @@ TEST_P(GenericSolverTests, SymbolAfterDefinedTerm)
 {
   // a term defined before the symbol is made must not take its name,
   // whatever the symbol is called
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   Term x = gs->make_symbol("x", bool_sort);
   gs->make_term(Not, x);
   Term t_1 = gs->make_symbol("t_1", bool_sort);
@@ -368,7 +368,7 @@ TEST_P(GenericSolverTests, SymbolAfterDefinedTerm)
 
 TEST_P(GenericSolverTests, InternalNamesRefused)
 {
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   std::string name = backend::internal_name("term", 1);
   EXPECT_THROW(gs->make_symbol(name, bool_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_param(name, bool_sort), IncorrectUsageException);
@@ -382,7 +382,7 @@ TEST_P(GenericSolverTests, InternalNamesRefused)
 
 TEST_P(GenericSolverTests, ParamIsNotTheValueOfItsName)
 {
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   Term param = gs->make_param("true", bool_sort);
   Term t = gs->make_term(true);
   ASSERT_NE(t, nullptr);
@@ -434,29 +434,29 @@ TEST_P(GenericSolverTests, Bool2)
 
 TEST_P(GenericSolverIntTests, Int1)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
 
-  Sort int_sort2 = gs->make_sort(INT);
+  Sort int_sort2 = gs->make_sort(SortKind::INT);
   EXPECT_EQ(int_sort, int_sort2);
 
-  EXPECT_THROW(gs->make_sort(ARRAY), IncorrectUsageException);
+  EXPECT_THROW(gs->make_sort(SortKind::ARRAY), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, Bv1)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
 
-  Sort bv_sort1 = gs->make_sort(BV, 4);
+  Sort bv_sort1 = gs->make_sort(SortKind::BV, 4);
   EXPECT_EQ(bv_sort, bv_sort1);
-  Sort bv_sort2 = gs->make_sort(BV, 5);
+  Sort bv_sort2 = gs->make_sort(SortKind::BV, 5);
   EXPECT_NE(bv_sort, bv_sort2);
 
-  EXPECT_THROW(gs->make_sort(INT, bv_sort), IncorrectUsageException);
+  EXPECT_THROW(gs->make_sort(SortKind::INT, bv_sort), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, Bv2)
 {
-  EXPECT_THROW(gs->make_sort(INT, 4), IncorrectUsageException);
+  EXPECT_THROW(gs->make_sort(SortKind::INT, 4), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverUfTests, Uf2)
@@ -469,7 +469,7 @@ TEST_P(GenericSolverUfTests, Uf2)
 
 TEST_P(GenericSolverIntTests, Int2)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term int_zero = gs->make_term(0, int_sort);
   Term int_one = gs->make_term(1, int_sort);
 
@@ -493,10 +493,10 @@ TEST_P(GenericSolverIntTests, Int2)
 
 TEST_P(GenericSolverIntTests, BadTermEqual)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term int_one = gs->make_term(1, int_sort);
 
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv_one = gs->make_term(1, bv_sort);
   EXPECT_THROW(gs->make_term(Equal, TermVec({ bv_one, int_one })),
                IncorrectUsageException);
@@ -504,10 +504,10 @@ TEST_P(GenericSolverIntTests, BadTermEqual)
 
 TEST_P(GenericSolverIntTests, BadTermBVAdd)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term int_one = gs->make_term(1, int_sort);
 
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv_one = gs->make_term(1, bv_sort);
   EXPECT_THROW(gs->make_term(BVAdd, TermVec({ bv_one, int_one })),
                IncorrectUsageException);
@@ -515,8 +515,8 @@ TEST_P(GenericSolverIntTests, BadTermBVAdd)
 
 TEST_P(GenericSolverIntTests, UsableAfterIllSortedTerm)
 {
-  Sort int_sort = gs->make_sort(INT);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort int_sort = gs->make_sort(SortKind::INT);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", int_sort);
   Term int_one = gs->make_term(1, int_sort);
   Term bv_one = gs->make_term(1, bv_sort);
@@ -529,8 +529,8 @@ TEST_P(GenericSolverIntTests, UsableAfterIllSortedTerm)
 
 TEST_P(GenericSolverIntTests, KeepsStateAfterIllSortedTerm)
 {
-  Sort int_sort = gs->make_sort(INT);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort int_sort = gs->make_sort(SortKind::INT);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", int_sort);
   Term int_one = gs->make_term(1, int_sort);
   Term bv_one = gs->make_term(1, bv_sort);
@@ -548,8 +548,8 @@ TEST_P(GenericSolverIntTests, KeepsStateAfterIllSortedTerm)
 
 TEST_P(GenericSolverIntTests, UsableAfterIllSortedHeldBackTerm)
 {
-  Sort int_sort = gs->make_sort(INT);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort int_sort = gs->make_sort(SortKind::INT);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", int_sort);
   Term int_one = gs->make_term(1, int_sort);
   Term bv_one = gs->make_term(1, bv_sort);
@@ -567,7 +567,7 @@ TEST_P(GenericSolverIntTests, UsableAfterIllSortedHeldBackTerm)
 
 TEST_P(GenericSolverTests, UsableAfterIllSortedBvTerm)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term bv_one = gs->make_term(1, bv_sort);
   EXPECT_THROW(gs->make_term(Equal, x, gs->make_term(true)),
@@ -580,7 +580,7 @@ TEST_P(GenericSolverTests, UsableAfterIllSortedBvTerm)
 
 TEST_P(GenericSolverTests, SymbolsPrintInSmtlibSpelling)
 {
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   EXPECT_EQ(gs->make_symbol("x", bool_sort)->to_string(), "x");
   EXPECT_EQ(gs->make_symbol("a b", bool_sort)->to_string(), "|a b|");
   EXPECT_EQ(gs->get_symbol("a b")->to_string(), "|a b|");
@@ -594,7 +594,7 @@ TEST_P(GenericSolverTests, ReservedWordSymbolIsDeclaredQuoted)
                     "declared name even in bars, as in |let|";
   }
   // a bare let would be a syntax error to the binary
-  Term let = gs->make_symbol("let", gs->make_sort(BOOL));
+  Term let = gs->make_symbol("let", gs->make_sort(SortKind::BOOL));
   EXPECT_EQ(let->to_string(), "|let|");
   gs->assert_formula(let);
   ASSERT_TRUE(gs->check_sat().is_sat());
@@ -606,7 +606,7 @@ TEST_P(GenericSolverTests, LongestResponseTimeout)
   // A timeout past what the clock can count waits as long as it takes.
   start_binary(std::chrono::milliseconds::max());
   init_solver(gs);
-  Term b = gs->make_symbol("b", gs->make_sort(BOOL));
+  Term b = gs->make_symbol("b", gs->make_sort(SortKind::BOOL));
   gs->assert_formula(b);
   EXPECT_TRUE(gs->check_sat().is_sat());
 }
@@ -617,8 +617,8 @@ TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
   // finishes within seconds
   start_binary(std::chrono::milliseconds(500));
   init_solver(gs);
-  Sort bv64 = gs->make_sort(BV, 64);
-  Sort bv128 = gs->make_sort(BV, 128);
+  Sort bv64 = gs->make_sort(SortKind::BV, 64);
+  Sort bv128 = gs->make_sort(SortKind::BV, 128);
   Term x = gs->make_symbol("x", bv64);
   Term y = gs->make_symbol("y", bv64);
   Term one = gs->make_term(1, bv64);
@@ -641,14 +641,14 @@ TEST_P(GenericSolverTimeoutTests, UsableAfterTimeout)
 
 TEST_P(GenericSolverIntTests, PowNeedsTwoArguments)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term x = gs->make_symbol("x", int_sort);
   EXPECT_THROW(gs->make_term(Pow, TermVec({ x })), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverIntTests, PowBySymbol)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term n = gs->make_symbol("n", int_sort);
   Term power;
   try
@@ -666,7 +666,7 @@ TEST_P(GenericSolverIntTests, PowBySymbol)
 
 TEST_P(GenericSolverTests, Bv3)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv_zero = gs->make_term(0, bv_sort);
   Term bv_one = gs->make_term(1, bv_sort);
   Term bv_minus_one_int = gs->make_term(-1, bv_sort);
@@ -707,7 +707,7 @@ TEST_P(GenericSolverTests, Bv3)
 
 TEST_P(GenericSolverTests, Bv4)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv_zero = gs->make_term(0, bv_sort);
   Term bv_one = gs->make_term(1, bv_sort);
   Term bv_one_equal_zero = gs->make_term(Equal, TermVec({ bv_one, bv_zero }));
@@ -728,24 +728,25 @@ TEST_P(GenericSolverTests, Bv4)
 
 TEST_P(GenericSolverTests, Abv1)
 {
-  Sort bv_sort1 = gs->make_sort(BV, 4);
-  Sort bv_sort2 = gs->make_sort(BV, 5);
+  Sort bv_sort1 = gs->make_sort(SortKind::BV, 4);
+  Sort bv_sort2 = gs->make_sort(SortKind::BV, 5);
 
-  Sort bv_to_bv = gs->make_sort(ARRAY, bv_sort1, bv_sort2);
+  Sort bv_to_bv = gs->make_sort(SortKind::ARRAY, bv_sort1, bv_sort2);
   Term arr_var = gs->make_symbol("a", bv_to_bv);
   EXPECT_EQ(arr_var->get_sort(), bv_to_bv);
-  Sort bv_x_bv_to_array = gs->make_sort(FUNCTION, bv_sort1, bv_sort2, bv_to_bv);
-  EXPECT_EQ(bv_x_bv_to_array->get_sort_kind(), FUNCTION);
+  Sort bv_x_bv_to_array =
+      gs->make_sort(SortKind::FUNCTION, bv_sort1, bv_sort2, bv_to_bv);
+  EXPECT_EQ(bv_x_bv_to_array->get_kind(), SortKind::FUNCTION);
 }
 
 TEST_P(GenericSolverIntTests, TwoArgumentUf)
 {
   // a domain of bare words such as Int, unlike (_ BitVec 4), runs
   // together in the declare-fun unless the sorts are separated
-  Sort int_sort = gs->make_sort(INT);
-  Sort bool_sort = gs->make_sort(BOOL);
-  Sort int_x_int_to_bool =
-      gs->make_sort(FUNCTION, SortVec{ int_sort, int_sort, bool_sort });
+  Sort int_sort = gs->make_sort(SortKind::INT);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
+  Sort int_x_int_to_bool = gs->make_sort(
+      SortKind::FUNCTION, SortVec{ int_sort, int_sort, bool_sort });
   Term f = gs->make_symbol("f", int_x_int_to_bool);
   Term a = gs->make_symbol("a", int_sort);
   Term b = gs->make_symbol("b", int_sort);
@@ -797,25 +798,28 @@ TEST_P(GenericSolverTests, Bool)
 TEST_P(GenericSolverArrayFunTests, Abv2)
 {
   gs->push(1);
-  Sort bv_sort1 = gs->make_sort(BV, 4);
-  Sort bv_sort2 = gs->make_sort(BV, 5);
-  Sort bv_to_bv = gs->make_sort(ARRAY, bv_sort1, bv_sort2);
-  Sort bv_x_bv_to_array = gs->make_sort(FUNCTION, bv_sort1, bv_sort2, bv_to_bv);
+  Sort bv_sort1 = gs->make_sort(SortKind::BV, 4);
+  Sort bv_sort2 = gs->make_sort(SortKind::BV, 5);
+  Sort bv_to_bv = gs->make_sort(SortKind::ARRAY, bv_sort1, bv_sort2);
+  Sort bv_x_bv_to_array =
+      gs->make_sort(SortKind::FUNCTION, bv_sort1, bv_sort2, bv_to_bv);
 
   Term complex1 = gs->make_symbol("complex1", bv_x_bv_to_array);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv_zero = gs->make_term(0, bv_sort);
   Term bv_one = gs->make_term(1, bv_sort);
 
   Term arr1 = gs->make_term(
       Apply,
-      TermVec{ complex1,
-               bv_zero,
-               gs->make_term(
-                   Concat, bv_one, gs->make_term("0", gs->make_sort(BV, 1))) });
+      TermVec{
+          complex1,
+          bv_zero,
+          gs->make_term(Concat,
+                        bv_one,
+                        gs->make_term("0", gs->make_sort(SortKind::BV, 1))) });
   Term sel1 = gs->make_term(Select, arr1, bv_one);
-  Term dis1 =
-      gs->make_term(Distinct, sel1, gs->make_term("1", gs->make_sort(BV, 5)));
+  Term dis1 = gs->make_term(
+      Distinct, sel1, gs->make_term("1", gs->make_sort(SortKind::BV, 5)));
 
   gs->push(1);
   Term bv1 = gs->make_symbol("bv", bv_sort);
@@ -832,7 +836,7 @@ TEST_P(GenericSolverArrayFunTests, Abv2)
 TEST_P(GenericSolverIntQuantifierTests, Quantifiers)
 {
   gs->push(1);
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term par1 = gs->make_param("par1", int_sort);
   Term par2 = gs->make_param("par2", int_sort);
   Term sum = gs->make_term(Plus, par1, par2);
@@ -853,7 +857,7 @@ TEST_P(GenericSolverIntQuantifierTests, Quantifiers)
 
 TEST_P(GenericSolverIntQuantifierTests, MultipleBinders)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term x = gs->make_param("x", int_sort);
   Term y = gs->make_param("y", int_sort);
   Term forall_xy =
@@ -874,8 +878,8 @@ TEST_P(GenericSolverConstArrayTests, ConstantArrays)
 {
   // Testing constant arrays
   gs->push(1);
-  Sort bvsort = gs->make_sort(BV, 4);
-  Sort arrsort = gs->make_sort(ARRAY, bvsort, bvsort);
+  Sort bvsort = gs->make_sort(SortKind::BV, 4);
+  Sort arrsort = gs->make_sort(SortKind::ARRAY, bvsort, bvsort);
   Term zero = gs->make_term(0, bvsort);
   Term constarr0 = gs->make_term(zero, arrsort);
   Term arr = gs->make_symbol("arr", arrsort);
@@ -889,9 +893,9 @@ TEST_P(GenericSolverConstArrayTests, ConstantArrays)
 TEST_P(GenericSolverArrayModelTests, ArrayModels)
 {
   gs->push(1);
-  Sort idxsort = gs->make_sort(BV, 4);
-  Sort elemsort = gs->make_sort(BV, 8);
-  Sort arrsort = gs->make_sort(ARRAY, idxsort, elemsort);
+  Sort idxsort = gs->make_sort(SortKind::BV, 4);
+  Sort elemsort = gs->make_sort(SortKind::BV, 8);
+  Sort arrsort = gs->make_sort(SortKind::ARRAY, idxsort, elemsort);
   Term arr = gs->make_symbol("arr", arrsort);
   Term one = gs->make_term(1, idxsort);
   Term two = gs->make_term(2, idxsort);
@@ -925,9 +929,10 @@ TEST_P(GenericSolverArrayModelTests, ArrayModels)
 
 TEST_P(GenericSolverArrayModelTests, SelectMadeAfterCheckSat)
 {
-  Sort idxsort = gs->make_sort(BV, 4);
-  Sort elemsort = gs->make_sort(BV, 8);
-  Term arr = gs->make_symbol("arr", gs->make_sort(ARRAY, idxsort, elemsort));
+  Sort idxsort = gs->make_sort(SortKind::BV, 4);
+  Sort elemsort = gs->make_sort(SortKind::BV, 8);
+  Term arr =
+      gs->make_symbol("arr", gs->make_sort(SortKind::ARRAY, idxsort, elemsort));
   Term one = gs->make_term(1, idxsort);
   Term eleven = gs->make_term(11, elemsort);
   gs->assert_formula(
@@ -946,7 +951,7 @@ TEST_P(GenericSolverArrayModelTests, SelectMadeAfterCheckSat)
 
 TEST_P(GenericSolverUfTests, SortMadeAfterCheckSat)
 {
-  Term b = gs->make_symbol("b", gs->make_sort(BOOL));
+  Term b = gs->make_symbol("b", gs->make_sort(SortKind::BOOL));
   gs->assert_formula(b);
   ASSERT_TRUE(gs->check_sat().is_sat());
   Sort u_sort = gs->make_sort("U", 0);
@@ -960,7 +965,7 @@ TEST_P(GenericSolverUfTests, SortMadeAfterCheckSat)
 
 TEST_P(GenericSolverDatatypeTests, DatatypeMadeAfterCheckSat)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term three = gs->make_term(3, bv_sort);
   gs->assert_formula(gs->make_term(Equal, x, three));
@@ -1003,7 +1008,7 @@ TEST_P(GenericSolverIntTests, IntModels)
 {
   // Testing models
   gs->push(1);
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term int_zero = gs->make_term(0, int_sort);
   Term i1 = gs->make_symbol("i", int_sort);
   Term for1 = gs->make_term(Equal, i1, int_zero);
@@ -1018,7 +1023,7 @@ TEST_P(GenericSolverIntTests, IntModels)
 TEST_P(GenericSolverIntTests, NegativeIntModels)
 {
   gs->push(1);
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   Term minus_five = gs->make_term(-5, int_sort);
   // SMT-LIB has no negative numerals, so -5 would be a symbol, though
   // cvc5 accepts it
@@ -1035,7 +1040,7 @@ TEST_P(GenericSolverTests, BvModels)
 {
   // Testing models
   gs->push(1);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv_zero = gs->make_term(0, bv_sort);
   Term i1 = gs->make_symbol("i", bv_sort);
   Term for1 = gs->make_term(Equal, i1, bv_zero);
@@ -1051,7 +1056,7 @@ TEST_P(GenericSolverTests, BvModels)
 
 TEST_P(GenericSolverTests, ValueOfTermMadeAfterCheckSat)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term y = gs->make_symbol("y", bv_sort);
   gs->assert_formula(gs->make_term(Equal, x, gs->make_term(3, bv_sort)));
@@ -1068,7 +1073,7 @@ TEST_P(GenericSolverTests, ValueOfTermMadeAfterCheckSat)
 
 TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAsserted)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term three = gs->make_term(3, bv_sort);
   gs->assert_formula(gs->make_term(Equal, x, three));
@@ -1081,7 +1086,7 @@ TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAsserted)
 
 TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAssumed)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term three = gs->make_term(3, bv_sort);
   gs->assert_formula(gs->make_term(Equal, x, three));
@@ -1092,7 +1097,7 @@ TEST_P(GenericSolverTests, TermMadeAfterCheckSatCanBeAssumed)
 
 TEST_P(GenericSolverTests, GetValueOutsideSatModeThrows)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   // no check yet
   EXPECT_THROW(gs->get_value(x), IncorrectUsageException);
@@ -1108,7 +1113,7 @@ TEST_P(GenericSolverTests, GetValueOutsideSatModeThrows)
 
 TEST_P(GenericSolverTests, SymbolMadeAfterCheckSat)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term three = gs->make_term(3, bv_sort);
   gs->assert_formula(gs->make_term(Equal, x, three));
@@ -1128,7 +1133,7 @@ TEST_P(GenericSolverTests, SymbolMadeAfterCheckSat)
 
 TEST_P(GenericSolverTests, GetUnsatAssumptionsOutsideUnsatModeThrows)
 {
-  Term b = gs->make_symbol("b", gs->make_sort(BOOL));
+  Term b = gs->make_symbol("b", gs->make_sort(SortKind::BOOL));
   ASSERT_TRUE(gs->check_sat_assuming({ b }).is_sat());
   UnorderedTermSet core;
   EXPECT_THROW(gs->get_unsat_assumptions(core), IncorrectUsageException);
@@ -1160,7 +1165,7 @@ TEST_P(GenericSolverTests, DeclarationWithoutLogic)
   start_binary();
   // still in start mode, which this option needs
   gs->set_opt("produce-models", "true");
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term three = gs->make_term(3, bv_sort);
   Term x = gs->make_symbol("x", bv_sort);
   gs->assert_formula(gs->make_term(Equal, x, three));
@@ -1172,7 +1177,7 @@ TEST_P(GenericSolverTests, SetLogicAfterDeclarationIsLeftToTheBinary)
 {
   start_binary();
   gs->set_opt("produce-models", "true");
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   if (accepts_logic_after_declaration(binary))
   {
@@ -1190,7 +1195,7 @@ TEST_P(GenericSolverTests, SetLogicAfterDeclarationIsLeftToTheBinary)
 
 TEST_P(GenericSolverRealTests, RealStringModels)
 {
-  Sort real_sort = gs->make_sort(REAL);
+  Sort real_sort = gs->make_sort(SortKind::REAL);
   EXPECT_EQ(gs->make_term("5", real_sort), gs->make_term(5, real_sort));
   EXPECT_EQ(gs->make_term("-5", real_sort), gs->make_term(-5, real_sort));
   Term minus_half = gs->make_term("-2.5", real_sort);
@@ -1205,7 +1210,7 @@ TEST_P(GenericSolverRealTests, RealStringModels)
 
 TEST_P(GenericSolverRealTests, RealStringFractions)
 {
-  Sort real_sort = gs->make_sort(REAL);
+  Sort real_sort = gs->make_sort(SortKind::REAL);
   Term half = gs->make_term(
       Div, gs->make_term(1, real_sort), gs->make_term(2, real_sort));
   Term minus_half = gs->make_term(
@@ -1227,7 +1232,7 @@ TEST_P(GenericSolverRealTests, RealStringFractions)
 
 TEST_P(GenericSolverRealTests, RealStringNotANumber)
 {
-  Sort real_sort = gs->make_sort(REAL);
+  Sort real_sort = gs->make_sort(SortKind::REAL);
   gs->make_symbol("x", real_sort);
   for (const char * val : { "x", "-x", "+x", ".5", "1.", "1/", "", "1/0" })
   {
@@ -1238,7 +1243,7 @@ TEST_P(GenericSolverRealTests, RealStringNotANumber)
 
 TEST_P(GenericSolverTests, BvValueLiterals)
 {
-  Sort bv_sort = gs->make_sort(BV, 8);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 8);
   // every way of making the same value gives one literal of the width
   Term value = gs->make_term(-0b100, bv_sort);
   EXPECT_EQ(value->to_string(), "#b11111100");
@@ -1261,7 +1266,7 @@ TEST_P(GenericSolverTests, BvValueLiterals)
 
 TEST_P(GenericSolverTests, BvStringOutOfRange)
 {
-  Sort bv_sort = gs->make_sort(BV, 8);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 8);
   EXPECT_EQ(gs->make_term(std::to_string(0b1111'1111), bv_sort)->to_string(),
             "#b11111111");
   EXPECT_EQ(gs->make_term(std::to_string(-0b1000'0000), bv_sort)->to_string(),
@@ -1285,7 +1290,7 @@ TEST_P(GenericSolverTests, BvStringOutOfRange)
 
 TEST_P(GenericSolverTests, BvStringNotANumeral)
 {
-  Sort bv_sort = gs->make_sort(BV, 8);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 8);
   for (const char * val :
        { "", "-", "+", "+-5", "--5", " 5", "5 ", "1a", "abc" })
   {
@@ -1304,7 +1309,7 @@ TEST_P(GenericSolverTests, BvStringNotANumeral)
 
 TEST_P(GenericSolverTests, BvStringWideBounds)
 {
-  Sort bv64 = gs->make_sort(BV, 64);
+  Sort bv64 = gs->make_sort(SortKind::BV, 64);
   EXPECT_EQ(gs->make_term(std::to_string(UINT64_MAX), bv64)->to_string(),
             "#b" + std::string(64, '1'));
   EXPECT_EQ(gs->make_term(std::to_string(INT64_MIN), bv64)->to_string(),
@@ -1316,7 +1321,7 @@ TEST_P(GenericSolverTests, BvStringWideBounds)
   // -(2^63 + 1)
   EXPECT_THROW(gs->make_term("-9223372036854775809", bv64),
                IncorrectUsageException);
-  Sort bv65 = gs->make_sort(BV, 65);
+  Sort bv65 = gs->make_sort(SortKind::BV, 65);
   // 2^65 - 1
   EXPECT_EQ(gs->make_term("36893488147419103231", bv65)->to_string(),
             "#b" + std::string(65, '1'));
@@ -1333,10 +1338,10 @@ TEST_P(GenericSolverTests, BvStringWideBounds)
 
 TEST_P(GenericSolverTests, BvIntOutOfRange)
 {
-  Sort bv_sort = gs->make_sort(BV, 8);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 8);
   EXPECT_THROW(gs->make_term(0b1'0000'0000, bv_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_term(-0b1000'0001, bv_sort), IncorrectUsageException);
-  Sort bv64 = gs->make_sort(BV, 64);
+  Sort bv64 = gs->make_sort(SortKind::BV, 64);
   EXPECT_EQ(gs->make_term(INT64_MIN, bv64)->to_string(),
             "#b1" + std::string(63, '0'));
   EXPECT_EQ(gs->make_term(INT64_MAX, bv64)->to_string(),
@@ -1345,7 +1350,7 @@ TEST_P(GenericSolverTests, BvIntOutOfRange)
 
 TEST_P(GenericSolverIntTests, IntStringNotANumber)
 {
-  Sort int_sort = gs->make_sort(INT);
+  Sort int_sort = gs->make_sort(SortKind::INT);
   gs->make_symbol("x", int_sort);
   // each would reach the binary as the symbol x, or as a decimal
   for (const char * val : { "x", "-x", "+x", "1.5", "" })
@@ -1357,16 +1362,18 @@ TEST_P(GenericSolverIntTests, IntStringNotANumber)
 
 TEST_P(GenericSolverTests, NonNumericSortValue)
 {
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   EXPECT_THROW(gs->make_term(1, bool_sort), IncorrectUsageException);
   EXPECT_THROW(gs->make_term("1", bool_sort), IncorrectUsageException);
 }
 
 TEST_P(GenericSolverTests, GetValueUnsupportedSort)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
-  Term arr = gs->make_symbol("arr", gs->make_sort(ARRAY, bv_sort, bv_sort));
-  Term f = gs->make_symbol("f", gs->make_sort(FUNCTION, bv_sort, bv_sort));
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
+  Term arr =
+      gs->make_symbol("arr", gs->make_sort(SortKind::ARRAY, bv_sort, bv_sort));
+  Term f =
+      gs->make_symbol("f", gs->make_sort(SortKind::FUNCTION, bv_sort, bv_sort));
   ASSERT_TRUE(gs->check_sat().is_sat());
   EXPECT_THROW(gs->get_value(arr), NotImplementedException);
   EXPECT_THROW(gs->get_value(f), NotImplementedException);
@@ -1376,7 +1383,7 @@ TEST_P(GenericSolverTests, GetValueForeignTerm)
 {
   // a symbol made outside this solver, which never declared it
   Term foreign = std::make_shared<GenericTerm>(
-      gs->make_sort(BV, 4), Op(), TermVec{}, "|foreign|", true);
+      gs->make_sort(SortKind::BV, 4), Op(), TermVec{}, "|foreign|", true);
   ASSERT_TRUE(gs->check_sat().is_sat());
   EXPECT_THROW(gs->get_value(foreign), IncorrectUsageException);
 }
@@ -1385,7 +1392,7 @@ TEST_P(GenericSolverTests, AssumeForeignTerm)
 {
   // a symbol made outside this solver, which never declared it
   Term foreign = std::make_shared<GenericTerm>(
-      gs->make_sort(BOOL), Op(), TermVec{}, "|foreign|", true);
+      gs->make_sort(SortKind::BOOL), Op(), TermVec{}, "|foreign|", true);
   EXPECT_THROW(gs->check_sat_assuming({ foreign }), IncorrectUsageException);
 }
 
@@ -1398,7 +1405,7 @@ TEST_P(GenericSolverTests, CheckSatAssuming1)
 {
   // Testing check-sat-assuming
   gs->push(1);
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   Term b1 = gs->make_symbol("bool1", bool_sort);
   Term not_b1 = gs->make_term(Not, b1);
   Term b2 = gs->make_symbol("bool2", bool_sort);
@@ -1414,7 +1421,7 @@ TEST_P(GenericSolverTests, CheckSatAssuming2)
 {
   // Testing check-sat-assuming
   gs->push(1);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term bv1 = gs->make_symbol("bv1", bv_sort);
   Term bv2 = gs->make_symbol("bv2", bv_sort);
 
@@ -1435,7 +1442,7 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
 {
   // Testing unsat-assumptions
   gs->push(1);
-  Sort bool_sort = gs->make_sort(BOOL);
+  Sort bool_sort = gs->make_sort(SortKind::BOOL);
   Term b1 = gs->make_symbol("bool11", bool_sort);
   Term not_b1 = gs->make_term(Not, b1);
   Term b2 = gs->make_symbol("bool22", bool_sort);
@@ -1456,7 +1463,7 @@ TEST_P(GenericSolverTests, UnsatAssumptions)
 
 TEST_P(GenericSolverTests, UnsatAssumptionWithQuotedName)
 {
-  Term x = gs->make_symbol("a b", gs->make_sort(BOOL));
+  Term x = gs->make_symbol("a b", gs->make_sort(SortKind::BOOL));
   gs->assert_formula(gs->make_term(Not, x));
   ASSERT_TRUE(gs->check_sat_assuming(TermVec{ x }).is_unsat());
   UnorderedTermSet core;
@@ -1466,10 +1473,10 @@ TEST_P(GenericSolverTests, UnsatAssumptionWithQuotedName)
 
 TEST_P(GenericSolverTests, ConstantArrayChecksSorts)
 {
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term zero = gs->make_term(0, bv_sort);
   EXPECT_THROW(gs->make_term(zero, bv_sort), IncorrectUsageException);
-  Sort arr_sort = gs->make_sort(ARRAY, bv_sort, bv_sort);
+  Sort arr_sort = gs->make_sort(SortKind::ARRAY, bv_sort, bv_sort);
   EXPECT_THROW(gs->make_term(gs->make_term(true), arr_sort),
                IncorrectUsageException);
 }
@@ -1477,7 +1484,7 @@ TEST_P(GenericSolverTests, ConstantArrayChecksSorts)
 TEST_P(GenericSolverTests, FormulaAssumptions)
 {
   gs->push(1);
-  Sort bv_sort = gs->make_sort(BV, 4);
+  Sort bv_sort = gs->make_sort(SortKind::BV, 4);
   Term x = gs->make_symbol("x", bv_sort);
   Term y = gs->make_symbol("y", bv_sort);
   Term x_lt_y = gs->make_term(BVUlt, x, y);

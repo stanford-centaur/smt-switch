@@ -39,7 +39,7 @@ class StrTests : public testing::Test,
 
 TEST_P(StrTests, StrChildren)
 {
-  Sort strsort = s->make_sort(STRING);
+  Sort strsort = s->make_sort(SortKind::STRING);
 
   Term t = s->make_symbol("t", strsort);
   Term w = s->make_symbol("w", strsort);
@@ -76,7 +76,7 @@ TEST_P(StrTests, StrChildren)
 
 TEST_P(StrTests, EqualVars)
 {
-  Sort str_sort = s->make_sort(STRING);
+  Sort str_sort = s->make_sort(SortKind::STRING);
   Term x1 = s->make_symbol("x1", str_sort);
   Term x2 = s->make_symbol("x2", str_sort);
   s->assert_formula(s->make_term(Equal, x1, x2));
@@ -88,7 +88,7 @@ TEST_P(StrTests, EqualVars)
 
 TEST_P(StrTests, EqualStrConsts)
 {
-  Sort str_sort = s->make_sort(STRING);
+  Sort str_sort = s->make_sort(SortKind::STRING);
   Term x1 = s->make_term("A", false, str_sort);
   Term x2 = s->make_term("A", false, str_sort);
   s->check_sat();
@@ -99,7 +99,7 @@ TEST_P(StrTests, EqualStrConsts)
 
 TEST_P(StrTests, UseEscSequences)
 {
-  Sort str_sort = s->make_sort(STRING);
+  Sort str_sort = s->make_sort(SortKind::STRING);
 
   Term x1 = s->make_term("\\u{0021}", true, str_sort);
   Term x2 = s->make_term("\\u2200", true, str_sort);
@@ -122,7 +122,7 @@ TEST_P(StrTests, UseEscSequences)
 
 TEST_P(StrTests, EqualVarStrVals)
 {
-  Sort str_sort = s->make_sort(STRING);
+  Sort str_sort = s->make_sort(SortKind::STRING);
   Term x1 = s->make_symbol("x1", str_sort);
   Term x2 = s->make_symbol("x2", str_sort);
   Term A = s->make_term("A", false, str_sort);
@@ -136,7 +136,7 @@ TEST_P(StrTests, EqualVarStrVals)
 
 TEST_P(StrTests, EqualWStrConsts)
 {
-  Sort str_sort = s->make_sort(STRING);
+  Sort str_sort = s->make_sort(SortKind::STRING);
   Term x1 = s->make_term(L"A", str_sort);
   Term x2 = s->make_term(L"A", str_sort);
   s->check_sat();
@@ -147,7 +147,7 @@ TEST_P(StrTests, EqualWStrConsts)
 
 TEST_P(StrTests, EqualVarWStrVals)
 {
-  Sort str_sort = s->make_sort(STRING);
+  Sort str_sort = s->make_sort(SortKind::STRING);
   Term x1 = s->make_symbol("x1", str_sort);
   Term x2 = s->make_symbol("x2", str_sort);
   Term A = s->make_term(L"A", str_sort);
@@ -162,8 +162,8 @@ TEST_P(StrTests, EqualVarWStrVals)
 TEST_P(StrTests, StringOperators)
 {
   s->set_logic("QF_SLIA");
-  Sort strsort = s->make_sort(STRING);
-  Sort intsort = s->make_sort(INT);
+  Sort strsort = s->make_sort(SortKind::STRING);
+  Sort intsort = s->make_sort(SortKind::INT);
 
   Term zero = s->make_term(0, intsort);
   Term one = s->make_term(1, intsort);

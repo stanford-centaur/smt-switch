@@ -104,7 +104,7 @@ SmtSolver term_maker(const std::unordered_set<SolverAttribute> & attributes)
 Term make_int_term()
 {
   SmtSolver s = term_maker({ SolverAttribute::THEORY_INT });
-  Sort int_sort = s->make_sort(INT);
+  Sort int_sort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", int_sort);
   return s->make_term(Gt, x, s->make_term(0, int_sort));
 }
@@ -117,7 +117,7 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
   }
   SmtSolver s = term_maker({ SolverAttribute::THEORY_BV });
   s->set_opt("produce-models", "true");
-  Sort bvsort = s->make_sort(BV, 10);
+  Sort bvsort = s->make_sort(SortKind::BV, 10);
 
   int pg = 50;
 
@@ -168,7 +168,7 @@ TEST(PortfolioSolver, AnswersATrivialTerm)
     GTEST_SKIP() << "no backend";
   }
   SmtSolver s = term_maker({});
-  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
   PortfolioSolver p(members_with({}), b);
   EXPECT_TRUE(p.portfolio_solve().is_sat());
 }

@@ -31,8 +31,9 @@ namespace {
 SortKind int_convertible_sort_kind(const GenericTerm & term,
                                    const std::string & repr)
 {
-  SortKind sk = term.get_sort()->get_sort_kind();
-  if (!term.is_value() || (sk != BV && sk != INT && sk != REAL))
+  SortKind sk = term.get_sort()->get_kind();
+  if (!term.is_value()
+      || (sk != SortKind::BV && sk != SortKind::INT && sk != SortKind::REAL))
   {
     throw IncorrectUsageException(
         "Can't convert " + repr
@@ -159,7 +160,7 @@ bool GenericTerm::is_param() const { return op.is_null() && is_par; }
 
 bool GenericTerm::is_symbolic_const() const
 {
-  return is_sym && sort->get_sort_kind() != FUNCTION;
+  return is_sym && sort->get_kind() != SortKind::FUNCTION;
 }
 
 std::size_t GenericTerm::get_num_children() const
@@ -201,16 +202,17 @@ bool GenericTerm::is_value() const
     return false;
   }
   // A datatype's constructor, selector or tester is a leaf, not a value.
-  SortKind sk = sort->get_sort_kind();
-  return sk != CONSTRUCTOR && sk != SELECTOR && sk != TESTER;
+  SortKind sk = sort->get_kind();
+  return sk != SortKind::CONSTRUCTOR && sk != SortKind::SELECTOR
+         && sk != SortKind::TESTER;
 }
 
 bool GenericTerm::is_ground() const { return ground; }
 
 std::string GenericTerm::get_constructor_name() const
 {
-  SortKind sk = sort->get_sort_kind();
-  if (sk != CONSTRUCTOR && sk != TESTER)
+  SortKind sk = sort->get_kind();
+  if (sk != SortKind::CONSTRUCTOR && sk != SortKind::TESTER)
   {
     throw IncorrectUsageException(
         "Only a constructor or a tester has a constructor name");
@@ -229,7 +231,7 @@ std::string GenericTerm::get_param_name() const
 
 std::string GenericTerm::get_selector_name() const
 {
-  if (sort->get_sort_kind() != SELECTOR)
+  if (sort->get_kind() != SortKind::SELECTOR)
   {
     throw IncorrectUsageException("Only a selector has a selector name");
   }
@@ -250,14 +252,14 @@ std::string GenericTerm::get_symbol_name() const
 
 std::uint64_t GenericTerm::to_int() const
 {
-  return int_convertible_sort_kind(*this, repr) == BV
+  return int_convertible_sort_kind(*this, repr) == SortKind::BV
              ? smtlib::bv_to_uint64(repr)
              : smtlib::int_to_uint64(repr);
 }
 
 std::int64_t GenericTerm::to_signed_int() const
 {
-  return int_convertible_sort_kind(*this, repr) == BV
+  return int_convertible_sort_kind(*this, repr) == SortKind::BV
              ? smtlib::bv_to_int64(repr)
              : smtlib::int_to_int64(repr);
 }

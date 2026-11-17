@@ -27,18 +27,19 @@ TEST(Z3ForeignSort, AnotherSolversSortsRefused)
 {
   SmtSolver s = Z3SolverFactory::create(false);
   SmtSolver other = Z3SolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
-  Sort other_bv8 = other->make_sort(BV, 8);
-  Sort other_arr = other->make_sort(ARRAY, other_bv8, other_bv8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
+  Sort other_arr = other->make_sort(SortKind::ARRAY, other_bv8, other_bv8);
 
   EXPECT_THROW(s->make_symbol("x", other_bv8), IncorrectUsageException);
   EXPECT_THROW(s->make_param("x", other_bv8), IncorrectUsageException);
   EXPECT_THROW(s->make_term(s->make_term(0, bv8), other_arr),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(ARRAY, bv8, other_bv8), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ other_bv8, bv8 }),
+  EXPECT_THROW(s->make_sort(SortKind::ARRAY, bv8, other_bv8),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ bv8, other_bv8 }),
+  EXPECT_THROW(s->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, bv8 }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(SortKind::FUNCTION, SortVec{ bv8, other_bv8 }),
                IncorrectUsageException);
 }
 
@@ -46,7 +47,7 @@ TEST(Z3ForeignSort, AnotherSolversDatatypeSortsRefused)
 {
   SmtSolver s = Z3SolverFactory::create(false);
   SmtSolver other = Z3SolverFactory::create(false);
-  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   DatatypeConstructorDecl other_c = other->make_datatype_constructor_decl("c");
   other->add_selector(other_c, "f", other_bv8);
   DatatypeDecl other_d = other->make_datatype_decl("D");
@@ -64,10 +65,11 @@ TEST(Z3ForeignSort, AnotherSolversSortNotEqual)
 {
   SmtSolver s = Z3SolverFactory::create(false);
   SmtSolver other = Z3SolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
-  Sort other_bv8 = other->make_sort(BV, 8);
-  Sort fun = s->make_sort(FUNCTION, SortVec{ bv8, bv8 });
-  Sort other_fun = other->make_sort(FUNCTION, SortVec{ other_bv8, other_bv8 });
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
+  Sort fun = s->make_sort(SortKind::FUNCTION, SortVec{ bv8, bv8 });
+  Sort other_fun =
+      other->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, other_bv8 });
 
   EXPECT_NE(bv8, other_bv8);
   EXPECT_NE(other_bv8, bv8);

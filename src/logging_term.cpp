@@ -159,7 +159,7 @@ std::string LoggingTerm::to_string() const
   // so we couldn't assign a string at the smt-switch level
   if (op.is_null() && is_value())
   {
-    return wrapped_term->print_value_as(sort->get_sort_kind());
+    return wrapped_term->print_value_as(sort->get_kind());
   }
   else if (op.is_null())
   {
@@ -189,7 +189,7 @@ bool LoggingTerm::is_param() const { return op.is_null() && is_par; }
 
 bool LoggingTerm::is_symbolic_const() const
 {
-  return is_sym && sort->get_sort_kind() != FUNCTION;
+  return is_sym && sort->get_kind() != SortKind::FUNCTION;
 }
 
 std::size_t LoggingTerm::get_num_children() const
@@ -236,8 +236,8 @@ bool LoggingTerm::is_value() const
 
 std::string LoggingTerm::get_constructor_name() const
 {
-  SortKind sk = sort->get_sort_kind();
-  if (sk != CONSTRUCTOR && sk != TESTER)
+  SortKind sk = sort->get_kind();
+  if (sk != SortKind::CONSTRUCTOR && sk != SortKind::TESTER)
   {
     throw IncorrectUsageException(
         "Only a constructor or a tester has a constructor name");
@@ -256,7 +256,7 @@ std::string LoggingTerm::get_param_name() const
 
 std::string LoggingTerm::get_selector_name() const
 {
-  if (sort->get_sort_kind() != SELECTOR)
+  if (sort->get_kind() != SortKind::SELECTOR)
   {
     throw IncorrectUsageException("Only a selector has a selector name");
   }
@@ -286,7 +286,7 @@ bool LoggingTerm::to_bool() const
 {
   // the logged sort tells Booleans from 1-bit bit-vectors where the
   // underlying solver aliases them
-  if (get_sort()->get_sort_kind() != BOOL)
+  if (get_sort()->get_kind() != SortKind::BOOL)
   {
     throw IncorrectUsageException("Can't convert " + to_string()
                                   + " to a Boolean: it is not a Boolean value");

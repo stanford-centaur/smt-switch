@@ -48,7 +48,7 @@ struct OwnRange
 // What s writes to filename for an asserted x = y
 std::string dump_equality(SmtSolver s, const std::string & filename)
 {
-  Sort bvsort = s->make_sort(BV, 4);
+  Sort bvsort = s->make_sort(SortKind::BV, 4);
   s->assert_formula(s->make_term(
       Equal, s->make_symbol("x", bvsort), s->make_symbol("y", bvsort)));
   s->dump_smt2(filename);
@@ -92,8 +92,8 @@ class UnitSolveTests : public testing::Test,
     s = create_solver(GetParam());
     s->set_opt("incremental", "true");
     s->set_opt("produce-models", "true");
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
   }
   SmtSolver s;
   Sort boolsort, bvsort;

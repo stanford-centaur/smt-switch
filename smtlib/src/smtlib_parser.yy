@@ -209,11 +209,11 @@ atom:
       throw syntax_error(@1, "Unrecognized symbol: " + name);
     }
   }
-| FLOAT { $$ = drv.solver()->make_term($1, drv.solver()->make_sort(REAL)); }
+| FLOAT { $$ = drv.solver()->make_term($1, drv.solver()->make_sort(SortKind::REAL)); }
 | NAT   { $$ = drv.make_numeral($1); }
 | bvconst
 | QUOTESTRING
-  { $$ = drv.solver()->make_term($1, false, drv.solver()->make_sort(STRING)); }
+  { $$ = drv.solver()->make_term($1, false, drv.solver()->make_sort(SortKind::STRING)); }
 ;
 
 bvconst:

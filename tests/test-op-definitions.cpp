@@ -66,7 +66,7 @@ class BoolOpDefinitionTests : public OpDefinitionTests
   void SetUp() override
   {
     OpDefinitionTests::SetUp();
-    Sort boolsort = s->make_sort(BOOL);
+    Sort boolsort = s->make_sort(SortKind::BOOL);
     a = s->make_symbol("a", boolsort);
     b = s->make_symbol("b", boolsort);
     c = s->make_symbol("c", boolsort);
@@ -81,7 +81,7 @@ class BVOpDefinitionTests : public OpDefinitionTests
   void SetUp() override
   {
     OpDefinitionTests::SetUp();
-    Sort bvsort = s->make_sort(BV, 4);
+    Sort bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
   }
@@ -95,7 +95,7 @@ class IntOpDefinitionTests : public OpDefinitionTests
   void SetUp() override
   {
     OpDefinitionTests::SetUp();
-    Sort intsort = s->make_sort(INT);
+    Sort intsort = s->make_sort(SortKind::INT);
     v = s->make_symbol("v", intsort);
     w = s->make_symbol("w", intsort);
     zero = s->make_term(0, intsort);
@@ -161,9 +161,9 @@ TEST_P(BVOpDefinitionTests, BVSmod)
 {
   // the definition of bvsmod in the SMT-LIB logic QF_BV
   uint64_t width = x->get_sort()->get_width();
-  Term zero_1bit = s->make_term(0, s->make_sort(BV, 1));
-  Term one_1bit = s->make_term(1, s->make_sort(BV, 1));
-  Term zero_width = s->make_term(0, s->make_sort(BV, width));
+  Term zero_1bit = s->make_term(0, s->make_sort(SortKind::BV, 1));
+  Term one_1bit = s->make_term(1, s->make_sort(SortKind::BV, 1));
+  Term zero_width = s->make_term(0, s->make_sort(SortKind::BV, width));
 
   Term msb_x = s->make_term(Op(Extract, width - 1, width - 1), x);
   Term msb_y = s->make_term(Op(Extract, width - 1, width - 1), y);
@@ -300,7 +300,7 @@ TEST_P(IntOpDefinitionTests, Ge)
 
 TEST_P(IntOpDefinitionTests, Ite)
 {
-  Term cond = s->make_symbol("cond", s->make_sort(BOOL));
+  Term cond = s->make_symbol("cond", s->make_sort(SortKind::BOOL));
   Term ite = s->make_term(Ite, cond, v, w);
   expect_valid(s->make_term(
       And,
@@ -311,8 +311,8 @@ TEST_P(IntOpDefinitionTests, Ite)
 
 TEST_P(RealOpDefinitionTests, ToReal)
 {
-  Sort realsort = s->make_sort(REAL);
-  Term two = s->make_term(2, s->make_sort(INT));
+  Sort realsort = s->make_sort(SortKind::REAL);
+  Term two = s->make_term(2, s->make_sort(SortKind::INT));
   // MathSAT and Yices2 give an integer-valued Real the sort Int, so only
   // the value is checked
   Term to_real = s->make_term(To_Real, two);
@@ -322,8 +322,8 @@ TEST_P(RealOpDefinitionTests, ToReal)
 TEST_P(RealOpDefinitionTests, ToInt)
 {
   // To_Int rounds down, so -2.5 becomes -3
-  Sort realsort = s->make_sort(REAL);
-  Sort intsort = s->make_sort(INT);
+  Sort realsort = s->make_sort(SortKind::REAL);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term up = s->make_term(To_Int, s->make_term("2.5", realsort));
   Term down = s->make_term(To_Int, s->make_term("-2.5", realsort));
   EXPECT_EQ(up->get_sort(), intsort);
@@ -335,7 +335,7 @@ TEST_P(RealOpDefinitionTests, ToInt)
 
 TEST_P(RealOpDefinitionTests, AbsOfReal)
 {
-  Sort realsort = s->make_sort(REAL);
+  Sort realsort = s->make_sort(SortKind::REAL);
   Term abs = s->make_term(Abs, s->make_term("-2.5", realsort));
   EXPECT_EQ(abs->get_sort(), realsort);
   expect_valid(s->make_term(Equal, abs, s->make_term("2.5", realsort)));
@@ -343,7 +343,7 @@ TEST_P(RealOpDefinitionTests, AbsOfReal)
 
 TEST_P(RealOpDefinitionTests, IsInt)
 {
-  Term one_point_three = s->make_term("1.3", s->make_sort(REAL));
+  Term one_point_three = s->make_term("1.3", s->make_sort(SortKind::REAL));
   expect_valid(s->make_term(Not, s->make_term(Is_Int, one_point_three)));
 }
 

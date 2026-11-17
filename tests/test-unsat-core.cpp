@@ -38,8 +38,8 @@ class UnsatCoreTests : public testing::Test,
     s = create_solver(sc);
     s->set_opt("incremental", "true");
     s->set_opt("produce-unsat-assumptions", "true");
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 8);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 8);
   }
   SmtSolver s;
   Sort boolsort, bvsort;
@@ -74,7 +74,8 @@ TEST_P(UnsatCoreTests, ApplicationInCore)
 {
   Term x = s->make_symbol("x", bvsort);
   Term p = s->make_symbol(
-      "p", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
+      "p",
+      s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
   Term pxx = s->make_term(Apply, p, x, x);
   s->assert_formula(s->make_term(Not, pxx));
   ASSERT_TRUE(s->check_sat_assuming({ pxx }).is_unsat());

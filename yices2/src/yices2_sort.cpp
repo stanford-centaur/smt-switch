@@ -40,18 +40,17 @@ std::uint64_t Yices2Sort::get_width() const
 {
   if (!yices_type_is_bitvector(type))
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                  + " has no width");
   }
   return yices_bvtype_size(type);
 }
 
 Sort Yices2Sort::get_indexsort() const
 {
-  if (get_sort_kind() != ARRAY)
+  if (get_kind() != SortKind::ARRAY)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no index sort");
   }
   return Sort(new Yices2Sort(yices_type_child(type, 0)));
@@ -59,10 +58,9 @@ Sort Yices2Sort::get_indexsort() const
 
 Sort Yices2Sort::get_elemsort() const
 {
-  if (get_sort_kind() != ARRAY)
+  if (get_kind() != SortKind::ARRAY)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no element sort");
   }
   return Sort(new Yices2Sort(yices_type_child(type, 1)));
@@ -70,10 +68,9 @@ Sort Yices2Sort::get_elemsort() const
 
 SortVec Yices2Sort::get_domain_sorts() const
 {
-  if (get_sort_kind() != FUNCTION)
+  if (get_kind() != SortKind::FUNCTION)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no domain sorts");
   }
   // one less because last is return sort.
@@ -91,10 +88,9 @@ SortVec Yices2Sort::get_domain_sorts() const
 
 Sort Yices2Sort::get_codomain_sort() const
 {
-  if (get_sort_kind() != FUNCTION)
+  if (get_kind() != SortKind::FUNCTION)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no codomain sort");
   }
   // The last element of the result of num_children is the range/codomain
@@ -105,12 +101,12 @@ Sort Yices2Sort::get_codomain_sort() const
 
 std::string Yices2Sort::get_uninterpreted_name() const
 {
-  SortKind sk = get_sort_kind();
-  if (sk == UNINTERPRETED_CONS)
+  SortKind sk = get_kind();
+  if (sk == SortKind::UNINTERPRETED_CONS)
   {
     return Yices2InstanceRef::get_constructor_name(constructor_id);
   }
-  if (sk == UNINTERPRETED)
+  if (sk == SortKind::UNINTERPRETED)
   {
     // an applied sort is named after its constructor
     std::int32_t applied = Yices2InstanceRef::get_instance_constructor(type);
@@ -131,12 +127,12 @@ std::string Yices2Sort::get_uninterpreted_name() const
 
 std::size_t Yices2Sort::get_arity() const
 {
-  SortKind sk = get_sort_kind();
-  if (sk == UNINTERPRETED_CONS)
+  SortKind sk = get_kind();
+  if (sk == SortKind::UNINTERPRETED_CONS)
   {
     return Yices2InstanceRef::get_constructor_arity(constructor_id);
   }
-  if (sk == UNINTERPRETED)
+  if (sk == SortKind::UNINTERPRETED)
   {
     return 0;
   }
@@ -158,10 +154,9 @@ Sort Yices2Sort::get_uninterpreted_constructor() const
 
 SortVec Yices2Sort::get_uninterpreted_param_sorts() const
 {
-  if (get_sort_kind() != UNINTERPRETED)
+  if (get_kind() != SortKind::UNINTERPRETED)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no uninterpreted param sorts");
   }
   if (Yices2InstanceRef::get_instance_constructor(type) < 0)
@@ -179,8 +174,8 @@ SortVec Yices2Sort::get_uninterpreted_param_sorts() const
 Datatype Yices2Sort::get_datatype() const
 {
   // Yices2 has no datatypes, so no sort has a datatype
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                + " has no datatype");
 }
 
 bool Yices2Sort::compare(const Sort & s) const
@@ -189,27 +184,27 @@ bool Yices2Sort::compare(const Sort & s) const
   return ys && type == ys->type && constructor_id == ys->constructor_id;
 }
 
-SortKind Yices2Sort::get_sort_kind() const
+SortKind Yices2Sort::get_kind() const
 {
   if (constructor_id >= 0)
   {
-    return UNINTERPRETED_CONS;
+    return SortKind::UNINTERPRETED_CONS;
   }
   if (yices_type_is_int(type))
   {
-    return INT;
+    return SortKind::INT;
   }
   else if (yices_type_is_real(type))
   {
-    return REAL;
+    return SortKind::REAL;
   }
   else if (yices_type_is_bool(type))
   {
-    return BOOL;
+    return SortKind::BOOL;
   }
   else if (yices_type_is_bitvector(type))
   {
-    return BV;
+    return SortKind::BV;
   }
   else if (yices_type_is_function(type))
   {
@@ -217,11 +212,11 @@ SortKind Yices2Sort::get_sort_kind() const
     // This may not be the most effective way to do this.
     if (!is_function)
     {
-      return ARRAY;
+      return SortKind::ARRAY;
     }
     else
     {
-      return FUNCTION;
+      return SortKind::FUNCTION;
     }
   }
   else if (yices_type_is_uninterpreted(type)
@@ -229,7 +224,7 @@ SortKind Yices2Sort::get_sort_kind() const
   {
     // Yices does not count an applied sort constructor as an uninterpreted
     // type; only the record knows it is one
-    return UNINTERPRETED;
+    return SortKind::UNINTERPRETED;
   }
   else
   {

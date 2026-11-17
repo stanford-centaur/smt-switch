@@ -25,7 +25,7 @@ LoggingSort::LoggingSort(SortKind k, Sort s) : sk(k), wrapped_sort(std::move(s))
 {
 }
 
-SortKind LoggingSort::get_sort_kind() const { return sk; }
+SortKind LoggingSort::get_kind() const { return sk; }
 
 bool LoggingSort::compare(const Sort & s) const
 {
@@ -34,7 +34,7 @@ bool LoggingSort::compare(const Sort & s) const
   {
     return false;
   }
-  SortKind other_sk = s->get_sort_kind();
+  SortKind other_sk = s->get_kind();
   if (sk != other_sk)
   {
     return false;
@@ -42,20 +42,20 @@ bool LoggingSort::compare(const Sort & s) const
 
   switch (sk)
   {
-    case BOOL:
-    case INT:
-    case REAL:
-    case STRING: {
+    case SortKind::BOOL:
+    case SortKind::INT:
+    case SortKind::REAL:
+    case SortKind::STRING: {
       return true;
     }
-    case BV: {
+    case SortKind::BV: {
       return get_width() == s->get_width();
     }
-    case ARRAY: {
+    case SortKind::ARRAY: {
       return (get_indexsort() == s->get_indexsort())
              && (get_elemsort() == s->get_elemsort());
     }
-    case FUNCTION: {
+    case SortKind::FUNCTION: {
       SortVec domain_sorts = get_domain_sorts();
       SortVec other_domain_sorts = s->get_domain_sorts();
       Sort return_sort = get_codomain_sort();
@@ -77,22 +77,18 @@ bool LoggingSort::compare(const Sort & s) const
 
       return true;
     }
-    case UNINTERPRETED:
-    case UNINTERPRETED_CONS:
-    case DATATYPE:
-    case CONSTRUCTOR:
-    case SELECTOR:
-    case TESTER: {
+    case SortKind::UNINTERPRETED:
+    case SortKind::UNINTERPRETED_CONS:
+    case SortKind::DATATYPE:
+    case SortKind::CONSTRUCTOR:
+    case SortKind::SELECTOR:
+    case SortKind::TESTER: {
       // the name does not identify the sort: every application of a
       // constructor shares it, and a solver may declare a name twice. The
       // wrapped sort does, for these and for datatypes and their components
       std::shared_ptr<LoggingSort> other =
           std::dynamic_pointer_cast<LoggingSort>(s);
       return other && wrapped_sort == other->wrapped_sort;
-    }
-    case NUM_SORT_KINDS: {
-      // null sorts should not be equal
-      return false;
     }
   }
   throw InternalException("LoggingSort comparison got an out-of-range SortKind "
@@ -167,7 +163,7 @@ Datatype LoggingSort::get_datatype() const
 // BVLoggingSort
 
 BVLoggingSort::BVLoggingSort(Sort s, std::uint64_t w)
-    : super(BV, std::move(s)), width(w)
+    : super(SortKind::BV, std::move(s)), width(w)
 {
 }
 
@@ -176,7 +172,7 @@ std::uint64_t BVLoggingSort::get_width() const { return width; }
 // ArrayLoggingSort
 
 ArrayLoggingSort::ArrayLoggingSort(Sort s, Sort idxsort, Sort esort)
-    : super(ARRAY, std::move(s)),
+    : super(SortKind::ARRAY, std::move(s)),
       indexsort(std::move(idxsort)),
       elemsort(std::move(esort))
 {
@@ -189,7 +185,7 @@ Sort ArrayLoggingSort::get_elemsort() const { return elemsort; }
 // FunctionLoggingSort
 
 FunctionLoggingSort::FunctionLoggingSort(Sort s, SortVec sorts, Sort rsort)
-    : super(FUNCTION, std::move(s)),
+    : super(SortKind::FUNCTION, std::move(s)),
       domain_sorts(std::move(sorts)),
       codomain_sort(std::move(rsort))
 {
@@ -206,7 +202,8 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
                                                    std::uint64_t a)
     // non-zero arity means it's a sort constructor
     // otherwise it's just an uninterpreted sort
-    : super(a ? UNINTERPRETED_CONS : UNINTERPRETED, std::move(s)),
+    : super(a ? SortKind::UNINTERPRETED_CONS : SortKind::UNINTERPRETED,
+            std::move(s)),
       name(std::move(n)),
       arity(a)
 {
@@ -216,7 +213,7 @@ UninterpretedLoggingSort::UninterpretedLoggingSort(Sort s,
                                                    Sort sort_con,
                                                    const SortVec & sorts)
     // sort has zero arity after being constructed
-    : super(UNINTERPRETED, std::move(s)),
+    : super(SortKind::UNINTERPRETED, std::move(s)),
       name(sort_con->get_uninterpreted_name()),
       arity(0),
       constructor(std::move(sort_con)),
@@ -251,7 +248,7 @@ SortVec UninterpretedLoggingSort::get_uninterpreted_param_sorts() const
 
 DatatypeLoggingSort::DatatypeLoggingSort(Sort s,
                                          std::shared_ptr<LoggingDatatypeDecl> d)
-    : super(DATATYPE, std::move(s)), decl(std::move(d))
+    : super(SortKind::DATATYPE, std::move(s)), decl(std::move(d))
 {
 }
 

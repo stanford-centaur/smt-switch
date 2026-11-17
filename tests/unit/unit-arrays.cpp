@@ -34,9 +34,9 @@ class UnitArrayTests : public testing::Test,
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
 
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
-    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
   }
   SmtSolver s;
   Sort boolsort, bvsort, arrsort;

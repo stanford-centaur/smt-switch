@@ -25,7 +25,7 @@ namespace {
 TEST(BtorSubstitutedValues, BitVector)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
-  Sort bvsort4 = s->make_sort(BV, 4);
+  Sort bvsort4 = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
   Term sum = s->make_term(BVAdd, x, y);
@@ -41,10 +41,10 @@ TEST(BtorSubstitutedValues, BitVector)
 TEST(BtorSubstitutedValues, Array)
 {
   SmtSolver s = BoolectorSolverFactory::create(false);
-  Sort bvsort4 = s->make_sort(BV, 4);
-  Sort arrsort = s->make_sort(ARRAY, bvsort4, bvsort4);
+  Sort bvsort4 = s->make_sort(SortKind::BV, 4);
+  Sort arrsort = s->make_sort(SortKind::ARRAY, bvsort4, bvsort4);
   Term zero = s->make_term(0, bvsort4);
-  Term c = s->make_symbol("c", s->make_sort(BOOL));
+  Term c = s->make_symbol("c", s->make_sort(SortKind::BOOL));
   Term a = s->make_symbol("a", arrsort);
   Term ite = s->make_term(Ite, c, s->make_term(zero, arrsort), a);
   Term store = s->make_term(Store, ite, zero, s->make_term(1, bvsort4));

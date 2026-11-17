@@ -38,11 +38,11 @@ class UnitSortInferenceTests
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
 
-    boolsort = s->make_sort(BOOL);
-    bvsort4 = s->make_sort(BV, 4);
-    bvsort5 = s->make_sort(BV, 5);
-    arrsort = s->make_sort(ARRAY, bvsort4, bvsort4);
-    funsort = s->make_sort(FUNCTION, { bvsort4, bvsort4, boolsort });
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort4 = s->make_sort(SortKind::BV, 4);
+    bvsort5 = s->make_sort(SortKind::BV, 5);
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort4, bvsort4);
+    funsort = s->make_sort(SortKind::FUNCTION, { bvsort4, bvsort4, boolsort });
 
     b1 = s->make_symbol("b1", boolsort);
     b2 = s->make_symbol("b2", boolsort);
@@ -64,8 +64,8 @@ class UnitArithmeticSortInferenceTests : public UnitSortInferenceTests
   void SetUp() override
   {
     UnitSortInferenceTests::SetUp();
-    realsort = s->make_sort(REAL);
-    intsort = s->make_sort(INT);
+    realsort = s->make_sort(SortKind::REAL);
+    intsort = s->make_sort(SortKind::INT);
 
     x = s->make_symbol("x", realsort);
     y = s->make_symbol("y", realsort);
@@ -220,7 +220,7 @@ TEST_P(UnitSortInferenceTests, SortComputationWidthOverflow)
   if (GetParam().solver_enum == GENERIC_SOLVER)
   {
     // its sorts are smt-switch's own, so they can be this wide
-    Sort wide = s->make_sort(BV, max - 3);
+    Sort wide = s->make_sort(SortKind::BV, max - 3);
     EXPECT_THROW(Op(Concat).compute_sort(s, { wide, bvsort4 }),
                  IncorrectUsageException);
   }
@@ -243,9 +243,9 @@ TEST_P(UnitSortInferenceTests, SortComputation)
   EXPECT_EQ(bvsort4, Op(BVNeg).compute_sort(s, { p }));
   EXPECT_EQ(bvsort4, Op(BVNeg).compute_sort(s, { bvsort4 }));
 
-  Sort bvsort3 = s->make_sort(BV, 3);
-  Sort bvsort9 = s->make_sort(BV, 9);
-  Sort bvsort12 = s->make_sort(BV, 12);
+  Sort bvsort3 = s->make_sort(SortKind::BV, 3);
+  Sort bvsort9 = s->make_sort(SortKind::BV, 9);
+  Sort bvsort12 = s->make_sort(SortKind::BV, 12);
   EXPECT_EQ(bvsort3, Op(Extract, 2, 0).compute_sort(s, { p }));
   EXPECT_EQ(bvsort3, Op(Extract, 2, 0).compute_sort(s, { bvsort4 }));
   EXPECT_EQ(bvsort9, Op(Concat).compute_sort(s, { p, w }));
@@ -321,7 +321,7 @@ TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
   EXPECT_EQ(realsort, Op(Minus).compute_sort(s, { x, yint }));
   EXPECT_EQ(realsort, Op(Mult).compute_sort(s, { intsort, realsort, intsort }));
 
-  Sort aritharrsort = s->make_sort(ARRAY, intsort, realsort);
+  Sort aritharrsort = s->make_sort(SortKind::ARRAY, intsort, realsort);
   Term aritharr = s->make_symbol("aritharr", aritharrsort);
 
   // /********* Arrays ********/
@@ -383,7 +383,7 @@ TEST_P(DatatypeSortedness, ComponentApplicationSorts)
             maybesort);
   EXPECT_EQ(
       Op(Apply_Tester).compute_sort(s, { s->get_tester(maybesort, "just"), m }),
-      s->make_sort(BOOL));
+      s->make_sort(SortKind::BOOL));
   EXPECT_EQ(
       Op(Apply_Selector)
           .compute_sort(s, { s->get_selector(maybesort, "just", "value"), m }),

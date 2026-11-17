@@ -26,26 +26,30 @@ std::string to_string(SortKind sk)
 {
   switch (sk)
   {
-    case ARRAY: return "Array";
-    case BOOL: return "Bool";
-    case BV: return "BitVec";
-    case INT: return "Int";
-    case REAL: return "Real";
-    case STRING: return "String";
-    case FUNCTION: return "Function";
-    case UNINTERPRETED: return "Uninterpreted";
-    case UNINTERPRETED_CONS: return "UninterpretedSortConstructor";
-    case DATATYPE: return "Datatype";
-    case CONSTRUCTOR: return "Constructor";
-    case SELECTOR: return "Selector";
-    case TESTER: return "Tester";
-    case NUM_SORT_KINDS: return "null";
+    case SortKind::ARRAY: return "Array";
+    case SortKind::BOOL: return "Bool";
+    case SortKind::BV: return "BitVec";
+    case SortKind::INT: return "Int";
+    case SortKind::REAL: return "Real";
+    case SortKind::STRING: return "String";
+    case SortKind::FUNCTION: return "Function";
+    case SortKind::UNINTERPRETED: return "Uninterpreted";
+    case SortKind::UNINTERPRETED_CONS: return "UninterpretedSortConstructor";
+    case SortKind::DATATYPE: return "Datatype";
+    case SortKind::CONSTRUCTOR: return "Constructor";
+    case SortKind::SELECTOR: return "Selector";
+    case SortKind::TESTER: return "Tester";
   }
   throw InternalException("to_string got an out-of-range SortKind "
                           + std::to_string(static_cast<int>(sk)));
 }
 
-bool AbsSort::is_boolean() const { return get_sort_kind() == BOOL; }
+std::ostream & operator<<(std::ostream & output, SortKind sk)
+{
+  return output << to_string(sk);
+}
+
+bool AbsSort::is_boolean() const { return get_kind() == SortKind::BOOL; }
 
 // A null sort equals only another null sort
 bool operator==(const Sort & s1, const Sort & s2)
@@ -98,13 +102,14 @@ bool operator<(const Sort & s1, const Sort & s2)
   {
     return str1 < str2;
   }
-  SortKind k1 = s1->get_sort_kind();
-  SortKind k2 = s2->get_sort_kind();
+  SortKind k1 = s1->get_kind();
+  SortKind k2 = s2->get_kind();
   if (k1 != k2)
   {
     return k1 < k2;
   }
-  if (k1 != CONSTRUCTOR && k1 != SELECTOR && k1 != TESTER)
+  if (k1 != SortKind::CONSTRUCTOR && k1 != SortKind::SELECTOR
+      && k1 != SortKind::TESTER)
   {
     return false;
   }
@@ -123,35 +128,31 @@ std::ostream & operator<<(std::ostream & output, const Sort s)
 
 std::string AbsSort::to_string() const
 {
-  SortKind sk = get_sort_kind();
-  if (sk == NUM_SORT_KINDS)
-  {
-    return "nullsort";
-  }
-  else if (sk == BOOL)
+  SortKind sk = get_kind();
+  if (sk == SortKind::BOOL)
   {
     return "Bool";
   }
-  else if (sk == INT)
+  else if (sk == SortKind::INT)
   {
     return "Int";
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     return "Real";
   }
-  else if (sk == STRING)
+  else if (sk == SortKind::STRING)
   {
     return "String";
   }
-  else if (sk == BV)
+  else if (sk == SortKind::BV)
   {
     std::string res("(_ BitVec ");
     res += std::to_string(get_width());
     res += ")";
     return res;
   }
-  else if (sk == ARRAY)
+  else if (sk == SortKind::ARRAY)
   {
     std::string res("(Array ");
     res += get_indexsort()->to_string();
@@ -160,7 +161,7 @@ std::string AbsSort::to_string() const
     res += ")";
     return res;
   }
-  else if (sk == FUNCTION)
+  else if (sk == SortKind::FUNCTION)
   {
     std::string res("(");
     for (auto arg : get_domain_sorts())
@@ -173,7 +174,7 @@ std::string AbsSort::to_string() const
     res += ")";
     return res;
   }
-  else if (sk == UNINTERPRETED)
+  else if (sk == SortKind::UNINTERPRETED)
   {
     // an applied sort constructor prints with its parameters
     SortVec param_sorts = get_uninterpreted_param_sorts();
@@ -191,11 +192,11 @@ std::string AbsSort::to_string() const
     res += ")";
     return res;
   }
-  else if (sk == UNINTERPRETED_CONS)
+  else if (sk == SortKind::UNINTERPRETED_CONS)
   {
     return smtlib::quote_symbol(get_uninterpreted_name());
   }
-  else if (sk == DATATYPE)
+  else if (sk == SortKind::DATATYPE)
   {
     return get_datatype()->get_name();
   }

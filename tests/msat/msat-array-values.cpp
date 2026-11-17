@@ -30,9 +30,9 @@ class MsatArrayValues : public testing::Test
     s = MsatSolverFactory::create(false);
     s->set_logic("QF_ABV");
     s->set_opt("produce-models", "true");
-    Sort bvsort = s->make_sort(BV, 8);
+    Sort bvsort = s->make_sort(SortKind::BV, 8);
     x = s->make_symbol("x", bvsort);
-    arr = s->make_symbol("arr", s->make_sort(ARRAY, bvsort, bvsort));
+    arr = s->make_symbol("arr", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
   }
 
   SmtSolver s;

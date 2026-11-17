@@ -27,17 +27,18 @@ TEST(Z3ForeignTerm, AnotherSolversTermsRefused)
 {
   SmtSolver s = Z3SolverFactory::create(false);
   SmtSolver other = Z3SolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
-  Sort arr = s->make_sort(ARRAY, bv8, bv8);
-  Sort fun = s->make_sort(FUNCTION, SortVec{ bv8, bv8 });
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
+  Sort arr = s->make_sort(SortKind::ARRAY, bv8, bv8);
+  Sort fun = s->make_sort(SortKind::FUNCTION, SortVec{ bv8, bv8 });
   Term x = s->make_symbol("x", bv8);
   Term f = s->make_symbol("f", fun);
-  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term other_x = other->make_symbol("x", other_bv8);
-  Term other_arr =
-      other->make_symbol("a", other->make_sort(ARRAY, other_bv8, other_bv8));
+  Term other_arr = other->make_symbol(
+      "a", other->make_sort(SortKind::ARRAY, other_bv8, other_bv8));
   Term other_f = other->make_symbol(
-      "f", other->make_sort(FUNCTION, SortVec{ other_bv8, other_bv8 }));
+      "f",
+      other->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, other_bv8 }));
   Term other_p = other->make_term(Equal, other_x, other_x);
 
   EXPECT_THROW(s->assert_formula(other_p), IncorrectUsageException);

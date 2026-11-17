@@ -54,7 +54,7 @@ class Z3Sort : public AbsSort
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort &) const override;
-  SortKind get_sort_kind() const override;
+  SortKind get_kind() const override;
 
   // getters for solver-specific objects (EXPERTS only)
   z3::sort get_z3_type() const;

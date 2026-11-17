@@ -34,7 +34,7 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
   {
     SCOPED_TRACE("x = " + std::to_string(a) + " mod 2 in A");
     SmtInterpolator itp = MsatSolverFactory::create_interpolator();
-    Sort intsort = itp->make_sort(INT);
+    Sort intsort = itp->make_sort(SortKind::INT);
     Term x = itp->make_symbol("x", intsort);
     Term y = itp->make_symbol("y", intsort);
     Term z = itp->make_symbol("z", intsort);
@@ -59,15 +59,15 @@ TEST(MsatCongruence, InterpolantReadsAsDivisible)
     // still one there: A implies it and it contradicts B
     SmtSolver s = MsatSolverFactory::create(false);
     TermTranslator to_s(s);
-    Term I_s = to_s.transfer_term(I, BOOL);
+    Term I_s = to_s.transfer_term(I, SortKind::BOOL);
     s->push();
-    s->assert_formula(to_s.transfer_term(A, BOOL));
+    s->assert_formula(to_s.transfer_term(A, SortKind::BOOL));
     s->assert_formula(s->make_term(Not, I_s));
     EXPECT_TRUE(s->check_sat().is_unsat()) << I;
     s->pop();
     s->push();
     s->assert_formula(I_s);
-    s->assert_formula(to_s.transfer_term(B, BOOL));
+    s->assert_formula(to_s.transfer_term(B, SortKind::BOOL));
     EXPECT_TRUE(s->check_sat().is_unsat()) << I;
     s->pop();
   }

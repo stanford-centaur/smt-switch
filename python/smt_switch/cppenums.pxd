@@ -9,12 +9,19 @@ cdef extern from "smt-switch/ops.h" namespace "smt":
 
 
 cdef extern from "smt-switch/sort.h" namespace "smt":
-    cdef c_SortKind c_ARRAY "smt::ARRAY"
-    cdef c_SortKind c_BOOL "smt::BOOL"
-    cdef c_SortKind c_BV "smt::BV"
-    cdef c_SortKind c_INT "smt::INT"
-    cdef c_SortKind c_REAL "smt::REAL"
-    cdef c_SortKind c_FUNCTION "smt::FUNCTION"
+    cdef c_SortKind c_ARRAY "smt::SortKind::ARRAY"
+    cdef c_SortKind c_BOOL "smt::SortKind::BOOL"
+    cdef c_SortKind c_BV "smt::SortKind::BV"
+    cdef c_SortKind c_INT "smt::SortKind::INT"
+    cdef c_SortKind c_REAL "smt::SortKind::REAL"
+    cdef c_SortKind c_STRING "smt::SortKind::STRING"
+    cdef c_SortKind c_FUNCTION "smt::SortKind::FUNCTION"
+    cdef c_SortKind c_UNINTERPRETED "smt::SortKind::UNINTERPRETED"
+    cdef c_SortKind c_UNINTERPRETED_CONS "smt::SortKind::UNINTERPRETED_CONS"
+    cdef c_SortKind c_DATATYPE "smt::SortKind::DATATYPE"
+    cdef c_SortKind c_CONSTRUCTOR "smt::SortKind::CONSTRUCTOR"
+    cdef c_SortKind c_SELECTOR "smt::SortKind::SELECTOR"
+    cdef c_SortKind c_TESTER "smt::SortKind::TESTER"
     string to_string(c_SortKind sk) except +
 
 

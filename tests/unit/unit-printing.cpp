@@ -33,10 +33,10 @@ class UnitPrintTests : public testing::Test,
   {
     s = create_solver(GetParam());
 
-    boolsort = s->make_sort(BOOL);
-    bvsort1 = s->make_sort(BV, 1);
-    bvsort4 = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort4, bvsort4 });
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort1 = s->make_sort(SortKind::BV, 1);
+    bvsort4 = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort4, bvsort4 });
   }
   SmtSolver s;
   Sort boolsort, bvsort1, bvsort4, funsort;
@@ -44,15 +44,15 @@ class UnitPrintTests : public testing::Test,
 
 TEST_P(UnitPrintTests, SortKind)
 {
-  EXPECT_EQ(smt::to_string(ARRAY), "Array");
-  EXPECT_EQ(smt::to_string(BOOL), "Bool");
-  EXPECT_EQ(smt::to_string(BV), "BitVec");
-  EXPECT_EQ(smt::to_string(INT), "Int");
-  EXPECT_EQ(smt::to_string(REAL), "Real");
-  EXPECT_EQ(smt::to_string(FUNCTION), "Function");
-  EXPECT_EQ(smt::to_string(CONSTRUCTOR), "Constructor");
-  EXPECT_EQ(smt::to_string(SELECTOR), "Selector");
-  EXPECT_EQ(smt::to_string(TESTER), "Tester");
+  EXPECT_EQ(smt::to_string(SortKind::ARRAY), "Array");
+  EXPECT_EQ(smt::to_string(SortKind::BOOL), "Bool");
+  EXPECT_EQ(smt::to_string(SortKind::BV), "BitVec");
+  EXPECT_EQ(smt::to_string(SortKind::INT), "Int");
+  EXPECT_EQ(smt::to_string(SortKind::REAL), "Real");
+  EXPECT_EQ(smt::to_string(SortKind::FUNCTION), "Function");
+  EXPECT_EQ(smt::to_string(SortKind::CONSTRUCTOR), "Constructor");
+  EXPECT_EQ(smt::to_string(SortKind::SELECTOR), "Selector");
+  EXPECT_EQ(smt::to_string(SortKind::TESTER), "Tester");
 }
 
 TEST_P(UnitPrintTests, Sort)
@@ -87,13 +87,13 @@ TEST_P(UnitPrintTests, PrintValueAs)
   Term bv1 = s->make_term(1, bvsort1);
   Term bv0 = s->make_term(0, bvsort1);
   Term x = s->make_symbol("x", bvsort1);
-  ASSERT_EQ(t->print_value_as(BOOL), "true");
-  ASSERT_EQ(f->print_value_as(BOOL), "false");
-  std::string bv1_repr = bv1->print_value_as(BV);
-  std::string bv0_repr = bv0->print_value_as(BV);
+  ASSERT_EQ(t->print_value_as(SortKind::BOOL), "true");
+  ASSERT_EQ(f->print_value_as(SortKind::BOOL), "false");
+  std::string bv1_repr = bv1->print_value_as(SortKind::BV);
+  std::string bv0_repr = bv0->print_value_as(SortKind::BV);
   ASSERT_TRUE(bv1_repr == "#b1" || bv1_repr == "(_ bv1 1)");
   ASSERT_TRUE(bv0_repr == "#b0" || bv0_repr == "(_ bv0 1)");
-  ASSERT_THROW(x->print_value_as(BV), IncorrectUsageException);
+  ASSERT_THROW(x->print_value_as(SortKind::BV), IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(

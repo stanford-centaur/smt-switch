@@ -45,12 +45,12 @@ class TimeLimitTests : public testing::Test,
     solver->set_opt("incremental", "true");
     solver->set_opt("time-limit", std::to_string(time_limit));
 
-    Term b = solver->make_symbol("b", solver->make_sort(BOOL));
+    Term b = solver->make_symbol("b", solver->make_sort(SortKind::BOOL));
     solver->assert_formula(b);
 
     // Bitwuzla ties a sort to the solver that made it, so each solver has to
     // build its own rather than share one from the fixture.
-    Sort bvsort = solver->make_sort(BV, bv_width);
+    Sort bvsort = solver->make_sort(SortKind::BV, bv_width);
     size_t num_vars = (size_t{ 1 } << bv_width) + 1;
     TermVec vars;
     vars.reserve(num_vars);
@@ -135,7 +135,7 @@ TEST_P(TimeLimitTests, ResetDropsTimeLimit)
   s->reset();
 
   // a pigeonhole problem that takes well over the old limit, but finishes
-  Sort bvsort = s->make_sort(BV, 3);
+  Sort bvsort = s->make_sort(SortKind::BV, 3);
   Term holes = s->make_term(6, bvsort);
   TermVec vars;
   for (size_t i = 0; i < 7; ++i)
@@ -157,7 +157,7 @@ TEST_P(TimeLimitTests, HugeLimitStillSolves)
 {
   // A limit past anything a clock or timer can count is as good as none.
   s->set_opt("time-limit", "1e300");
-  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
   s->assert_formula(b);
   EXPECT_TRUE(s->check_sat().is_sat());
 }

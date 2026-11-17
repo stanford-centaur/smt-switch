@@ -23,7 +23,7 @@ namespace {
 
 TEST(GenericTerm, IdsAndProperties)
 {
-  Sort int_sort = std::make_shared<GenericSort>(INT);
+  Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
   GenericTerm one(int_sort, Op(), {}, "1");
   GenericTerm one_prime(int_sort, Op(), {}, "1");
   EXPECT_EQ(one.get_id(), one_prime.get_id());
@@ -43,7 +43,7 @@ TEST(GenericTerm, IdsAndProperties)
 
 TEST(GenericTerm, NeedsOpOrRepresentation)
 {
-  Sort int_sort = std::make_shared<GenericSort>(INT);
+  Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
   EXPECT_THROW(GenericTerm(int_sort, Op(), {}, ""), IncorrectUsageException);
   EXPECT_THROW(GenericTerm(int_sort, Op(), {}, "", true),
                IncorrectUsageException);

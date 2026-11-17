@@ -35,7 +35,7 @@ class OpRoundTripTests : public testing::Test,
   void SetUp() override
   {
     s = create_solver(GetParam());
-    boolsort = s->make_sort(BOOL);
+    boolsort = s->make_sort(SortKind::BOOL);
     p = s->make_symbol("p", boolsort);
     q = s->make_symbol("q", boolsort);
     r = s->make_symbol("r", boolsort);
@@ -74,7 +74,7 @@ class BVRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
   }
@@ -89,7 +89,7 @@ class IntRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
     a = s->make_symbol("a", intsort);
     b = s->make_symbol("b", intsort);
   }
@@ -104,9 +104,9 @@ class RealRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
     a = s->make_symbol("a", intsort);
-    Sort realsort = s->make_sort(REAL);
+    Sort realsort = s->make_sort(SortKind::REAL);
     u = s->make_symbol("u", realsort);
     v = s->make_symbol("v", realsort);
   }
@@ -126,9 +126,9 @@ class IntBVRoundTripTests : public OpRoundTripTests
       GTEST_SKIP() << "Yices2 has no conversion between Int and bit-vectors, "
                       "so it can only apply one to a value";
     }
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
     a = s->make_symbol("a", intsort);
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
   }
   Sort intsort, bvsort;
@@ -142,10 +142,10 @@ class ArrayRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
-    arr = s->make_symbol("arr", s->make_sort(ARRAY, bvsort, bvsort));
+    arr = s->make_symbol("arr", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
   }
   Sort bvsort;
   Term x, y, arr;
@@ -158,12 +158,14 @@ class FunRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
-    f = s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort }));
+    f = s->make_symbol(
+        "f", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort }));
     g = s->make_symbol(
-        "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
+        "g",
+        s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
   }
   Sort bvsort;
   Term x, y, f, g;
@@ -176,7 +178,7 @@ class QuantifierRoundTripTests : public OpRoundTripTests
   void SetUp() override
   {
     OpRoundTripTests::SetUp();
-    bvsort = s->make_sort(BV, 4);
+    bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     i = s->make_param("i", bvsort);
     j = s->make_param("j", bvsort);

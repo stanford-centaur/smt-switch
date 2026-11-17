@@ -32,7 +32,7 @@ class Yices2Pow : public testing::Test
   void SetUp() override
   {
     s = Yices2SolverFactory::create(true);
-    int_sort = s->make_sort(INT);
+    int_sort = s->make_sort(SortKind::INT);
     a = s->make_symbol("a", int_sort);
     b = s->make_symbol("b", int_sort);
   }
@@ -61,8 +61,8 @@ TEST_F(Yices2Pow, RefusesSymbolicExponent)
 TEST(Yices2IntToBv, FoldsValueModuloWidth)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort intsort = s->make_sort(INT);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort intsort = s->make_sort(SortKind::INT);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Op int_to_bv8(Int_To_BV, 8);
 
   Term five = s->make_term(int_to_bv8, s->make_term("5", intsort));
@@ -74,22 +74,23 @@ TEST(Yices2IntToBv, FoldsValueModuloWidth)
   EXPECT_EQ(
       s->make_term(int_to_bv8, s->make_term("1180591620717411303427", intsort)),
       s->make_term(3, bvsort8));
-  EXPECT_EQ(s->make_term(Op(Int_To_BV, 100), s->make_term("-1", intsort)),
-            s->make_term(std::string(100, '1'), s->make_sort(BV, 100), 2));
+  EXPECT_EQ(
+      s->make_term(Op(Int_To_BV, 100), s->make_term("-1", intsort)),
+      s->make_term(std::string(100, '1'), s->make_sort(SortKind::BV, 100), 2));
 }
 
 TEST(Yices2IntToBv, RefusesSymbol)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Term a = s->make_symbol("a", s->make_sort(INT));
+  Term a = s->make_symbol("a", s->make_sort(SortKind::INT));
   EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), a), NotImplementedException);
 }
 
 TEST(Yices2IntToBv, RefusesNonInteger)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Term r = s->make_symbol("r", s->make_sort(REAL));
-  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  Term r = s->make_symbol("r", s->make_sort(SortKind::REAL));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 8));
   EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), r), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), x), IncorrectUsageException);
 }
@@ -98,8 +99,8 @@ TEST(Yices2IntToBv, RefusesNonInteger)
 TEST(Yices2BvToInt, FoldsValue)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort intsort = s->make_sort(INT);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort intsort = s->make_sort(SortKind::INT);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term ff = s->make_term(255, bvsort8);
 
   Term unsigned_ff = s->make_term(UBV_To_Int, ff);
@@ -110,7 +111,8 @@ TEST(Yices2BvToInt, FoldsValue)
   EXPECT_EQ(s->make_term(SBV_To_Int, s->make_term(127, bvsort8)),
             s->make_term("127", intsort));
 
-  Term ones100 = s->make_term(std::string(100, '1'), s->make_sort(BV, 100), 2);
+  Term ones100 =
+      s->make_term(std::string(100, '1'), s->make_sort(SortKind::BV, 100), 2);
   EXPECT_EQ(s->make_term(UBV_To_Int, ones100),
             s->make_term("1267650600228229401496703205375", intsort));
   EXPECT_EQ(s->make_term(SBV_To_Int, ones100), s->make_term("-1", intsort));
@@ -119,7 +121,7 @@ TEST(Yices2BvToInt, FoldsValue)
 TEST(Yices2BvToInt, RefusesSymbol)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 8));
   EXPECT_THROW(s->make_term(UBV_To_Int, x), NotImplementedException);
   EXPECT_THROW(s->make_term(SBV_To_Int, x), NotImplementedException);
 }
@@ -127,7 +129,7 @@ TEST(Yices2BvToInt, RefusesSymbol)
 TEST(Yices2BvToInt, RefusesNonBitVector)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Term a = s->make_symbol("a", s->make_sort(INT));
+  Term a = s->make_symbol("a", s->make_sort(SortKind::INT));
   EXPECT_THROW(s->make_term(UBV_To_Int, a), IncorrectUsageException);
   EXPECT_THROW(s->make_term(SBV_To_Int, a), IncorrectUsageException);
 }
@@ -145,7 +147,7 @@ TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)
   catch (const NotImplementedException &)
   {
   }
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   s->assert_formula(s->make_term(Equal, x, s->make_term(1, intsort)));
   EXPECT_TRUE(s->check_sat().is_sat());
@@ -163,7 +165,7 @@ TEST(Yices2Context, OptionsKeepAssertions)
   for (const auto & option : options)
   {
     SmtSolver s = Yices2SolverFactory::create(false);
-    Sort intsort = s->make_sort(INT);
+    Sort intsort = s->make_sort(SortKind::INT);
     Term y = s->make_symbol("y", intsort);
     s->assert_formula(s->make_term(Equal, y, s->make_term(3, intsort)));
     s->set_opt(option.first, option.second);
@@ -175,7 +177,7 @@ TEST(Yices2Context, OptionsKeepAssertions)
 TEST(Yices2Context, ConfigurationAfterFirstAssertionThrows)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term y = s->make_symbol("y", intsort);
   s->assert_formula(s->make_term(Equal, y, s->make_term(3, intsort)));
   // Yices applies these only when it creates the context, which the
@@ -194,10 +196,11 @@ TEST(Yices2InstanceRef, ExitsWhenNothingHoldsIt)
   std::size_t first_id;
   {
     SmtSolver s = Yices2SolverFactory::create(false);
-    first_id = s->make_symbol("x", s->make_sort(BV, 4))->get_id();
+    first_id = s->make_symbol("x", s->make_sort(SortKind::BV, 4))->get_id();
   }
   SmtSolver s = Yices2SolverFactory::create(false);
-  EXPECT_EQ(s->make_symbol("x", s->make_sort(BV, 4))->get_id(), first_id);
+  EXPECT_EQ(s->make_symbol("x", s->make_sort(SortKind::BV, 4))->get_id(),
+            first_id);
 }
 
 TEST(Yices2InstanceRef, StaysWhileATermIsHeld)
@@ -205,10 +208,11 @@ TEST(Yices2InstanceRef, StaysWhileATermIsHeld)
   Term held;
   {
     SmtSolver s = Yices2SolverFactory::create(false);
-    held = s->make_symbol("x", s->make_sort(BV, 4));
+    held = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
   }
   SmtSolver s = Yices2SolverFactory::create(false);
-  EXPECT_NE(s->make_symbol("y", s->make_sort(BV, 4))->get_id(), held->get_id());
+  EXPECT_NE(s->make_symbol("y", s->make_sort(SortKind::BV, 4))->get_id(),
+            held->get_id());
   EXPECT_EQ(held->to_string(), "x");
 }
 
@@ -218,7 +222,7 @@ TEST(Yices2InstanceRef, StaysWhileAnIteratorIsHeld)
   TermIter it, end;
   {
     SmtSolver s = Yices2SolverFactory::create(false);
-    Sort bv = s->make_sort(BV, 4);
+    Sort bv = s->make_sort(SortKind::BV, 4);
     Term x = s->make_symbol("x", bv);
     Term y = s->make_symbol("y", bv);
     Term t = s->make_term(BVAnd, x, y);

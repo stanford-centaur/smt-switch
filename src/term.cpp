@@ -39,12 +39,12 @@ std::int64_t AbsTerm::to_signed_int() const
     throw IncorrectUsageException("Can't convert non-value " + repr
                                   + " to an integer");
   }
-  SortKind sk = get_sort()->get_sort_kind();
-  if (sk == BV)
+  SortKind sk = get_sort()->get_kind();
+  if (sk == SortKind::BV)
   {
     return bits_to_int64(to_bits());
   }
-  if (sk == INT || sk == REAL)
+  if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     return smtlib::int_to_int64(repr);
   }
@@ -56,7 +56,7 @@ std::int64_t AbsTerm::to_signed_int() const
 std::string AbsTerm::to_bits() const
 {
   const std::string repr = to_string();
-  if (!is_value() || get_sort()->get_sort_kind() != BV)
+  if (!is_value() || get_sort()->get_kind() != SortKind::BV)
   {
     throw IncorrectUsageException("Can't convert " + repr
                                   + " to bits: it is not a bit-vector value");
@@ -67,7 +67,7 @@ std::string AbsTerm::to_bits() const
 bool AbsTerm::to_bool() const
 {
   const std::string repr = to_string();
-  if (is_value() && get_sort()->get_sort_kind() == BOOL)
+  if (is_value() && get_sort()->get_kind() == SortKind::BOOL)
   {
     if (repr == "true")
     {
@@ -309,7 +309,7 @@ void AbsTerm::conjunctive_partition(TermVec & out, bool include_bvand)
     for (auto tt : tmp)
     {
       sort = tt->get_sort();
-      if (sort->get_sort_kind() == BV && sort->get_width() == 1)
+      if (sort->get_kind() == SortKind::BV && sort->get_width() == 1)
       {
         tt->op_partition(BVAnd, out);
       }
@@ -335,7 +335,7 @@ void AbsTerm::disjunctive_partition(TermVec & out, bool include_bvor)
     for (auto tt : tmp)
     {
       sort = tt->get_sort();
-      if (sort->get_sort_kind() == BV && sort->get_width() == 1)
+      if (sort->get_kind() == SortKind::BV && sort->get_width() == 1)
       {
         tt->op_partition(BVOr, out);
       }

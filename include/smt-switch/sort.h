@@ -15,21 +15,18 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ostream>
 #include <string>
 #include <vector>
 
 #include "smt-switch/smt_defs.h"
 
-// Sort needs to have arguments
-//  could be integers or other sorts
-//  should use an enum for the different kinds of sorts probably
-
 namespace smt {
 
-// TODO : add other smt kinds
-enum SortKind
+/** The kinds of sorts */
+enum class SortKind
 {
-  ARRAY = 0,
+  ARRAY,
   BOOL,
   BV,
   INT,
@@ -37,21 +34,16 @@ enum SortKind
   STRING,
   FUNCTION,
   UNINTERPRETED,
-  // an uninterpreted sort constructor (has non-zero arity and takes subsort
-  // arguments)
-  UNINTERPRETED_CONS,
+  UNINTERPRETED_CONS,  // sort constructor
   DATATYPE,
   CONSTRUCTOR,
   SELECTOR,
-  TESTER,
-
-  /** IMPORTANT: This must stay at the bottom.
-      It's only use is for sizing the kind2str array
-  */
-  NUM_SORT_KINDS
+  TESTER
 };
 
-std::string to_string(SortKind);
+std::string to_string(SortKind sk);
+
+std::ostream & operator<<(std::ostream & output, SortKind sk);
 
 /**
    Abstract base class for representing an SMT sort.
@@ -66,6 +58,7 @@ class AbsSort
   virtual ~AbsSort() = default;
   virtual std::string to_string() const;
   virtual std::size_t hash() const = 0;
+  virtual SortKind get_kind() const = 0;
   // An accessor that does not apply to the sort's kind, e.g. get_width of
   // an Int sort, throws IncorrectUsageException
   virtual std::uint64_t get_width() const = 0;
@@ -83,7 +76,6 @@ class AbsSort
   virtual std::vector<Sort> get_uninterpreted_param_sorts() const = 0;
   virtual Datatype get_datatype() const = 0;
   virtual bool compare(const Sort & sort) const = 0;
-  virtual SortKind get_sort_kind() const = 0;
   /** Solvers that treat multiple kinds of terms as booleans should override
    * this.
    */

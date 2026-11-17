@@ -38,9 +38,9 @@ class UnitTestsHashTable : public testing::Test,
     SolverConfiguration sc(se, false);
     s = create_solver(sc);
 
-    bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
-    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
   }
   SmtSolver s;
   Sort bvsort, funsort, arrsort;

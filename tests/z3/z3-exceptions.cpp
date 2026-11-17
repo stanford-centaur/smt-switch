@@ -27,7 +27,7 @@ namespace {
 TEST(Z3Exceptions, MissingOperatorsAreNotImplemented)
 {
   SmtSolver s = Z3SolverFactory::create(false);
-  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
 
   EXPECT_THROW(s->make_term(StrLen, x), NotImplementedException);
 }
@@ -36,8 +36,8 @@ TEST(Z3Exceptions, LambdaModelValueHasNoOp)
 {
   SmtSolver s = Z3SolverFactory::create(false);
   s->set_opt("produce-models", "true");
-  Sort intsort = s->make_sort(INT);
-  Term a = s->make_symbol("a", s->make_sort(ARRAY, intsort, intsort));
+  Sort intsort = s->make_sort(SortKind::INT);
+  Term a = s->make_symbol("a", s->make_sort(SortKind::ARRAY, intsort, intsort));
   Term i = s->make_param("i", intsort);
   // an array that maps every index to itself, which Z3 can only give as a
   // lambda
@@ -51,7 +51,7 @@ TEST(Z3Exceptions, LambdaModelValueHasNoOp)
 TEST(Z3Exceptions, MisappliedOperatorsAreIncorrectUsage)
 {
   SmtSolver s = Z3SolverFactory::create(false);
-  Sort bvsort = s->make_sort(BV, 4);
+  Sort bvsort = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
@@ -64,9 +64,9 @@ TEST(Z3Exceptions, MisappliedOperatorsAreIncorrectUsage)
 TEST(Z3Exceptions, IllSortedBVCompAndAbsThrow)
 {
   SmtSolver s = Z3SolverFactory::create(false);
-  Term x4 = s->make_symbol("x4", s->make_sort(BV, 4));
-  Term x8 = s->make_symbol("x8", s->make_sort(BV, 8));
-  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  Term x4 = s->make_symbol("x4", s->make_sort(SortKind::BV, 4));
+  Term x8 = s->make_symbol("x8", s->make_sort(SortKind::BV, 8));
+  Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
 
   EXPECT_ANY_THROW(s->make_term(BVComp, x4, x8));
   EXPECT_ANY_THROW(s->make_term(Abs, b));
@@ -76,8 +76,9 @@ TEST(Z3Exceptions, IllSortedBVCompAndAbsThrow)
 TEST(Z3Exceptions, FunctionHasNoChildToDereference)
 {
   SmtSolver s = Z3SolverFactory::create(false);
-  Sort bvsort = s->make_sort(BV, 4);
-  Term f = s->make_symbol("f", s->make_sort(FUNCTION, { bvsort, bvsort }));
+  Sort bvsort = s->make_sort(SortKind::BV, 4);
+  Term f =
+      s->make_symbol("f", s->make_sort(SortKind::FUNCTION, { bvsort, bvsort }));
 
   EXPECT_THROW(*f->begin(), IncorrectUsageException);
 }
@@ -85,7 +86,7 @@ TEST(Z3Exceptions, FunctionHasNoChildToDereference)
 TEST(Z3Exceptions, ConstantArrayNeedsAnArraySort)
 {
   SmtSolver s = Z3SolverFactory::create(false);
-  Sort bvsort = s->make_sort(BV, 8);
+  Sort bvsort = s->make_sort(SortKind::BV, 8);
 
   EXPECT_THROW(s->make_term(s->make_term(0, bvsort), bvsort),
                IncorrectUsageException);
@@ -94,11 +95,12 @@ TEST(Z3Exceptions, ConstantArrayNeedsAnArraySort)
 TEST(Z3Exceptions, ConstantArrayNeedsTheElementSort)
 {
   SmtSolver s = Z3SolverFactory::create(false);
-  Sort intsort = s->make_sort(INT);
-  Sort arrsort = s->make_sort(ARRAY, intsort, intsort);
+  Sort intsort = s->make_sort(SortKind::INT);
+  Sort arrsort = s->make_sort(SortKind::ARRAY, intsort, intsort);
 
-  EXPECT_THROW(s->make_term(s->make_term(0, s->make_sort(BV, 8)), arrsort),
-               IncorrectUsageException);
+  EXPECT_THROW(
+      s->make_term(s->make_term(0, s->make_sort(SortKind::BV, 8)), arrsort),
+      IncorrectUsageException);
 }
 
 }  // namespace

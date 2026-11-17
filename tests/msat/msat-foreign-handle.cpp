@@ -33,13 +33,14 @@ TEST(MsatForeignHandle, AnotherSolversTermsRefused)
   SmtSolver s = MsatSolverFactory::create(false);
   s->set_opt("produce-models", "true");
   SmtSolver other = MsatSolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
-  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", other_bv8);
   Term p = other->make_term(Equal, y, y);
   Term f = other->make_symbol(
-      "f", other->make_sort(FUNCTION, SortVec{ other_bv8, other_bv8 }));
+      "f",
+      other->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, other_bv8 }));
 
   EXPECT_THROW(s->assert_formula(p), IncorrectUsageException);
   EXPECT_THROW(s->check_sat_assuming(TermVec{ p }), IncorrectUsageException);
@@ -48,7 +49,7 @@ TEST(MsatForeignHandle, AnotherSolversTermsRefused)
   EXPECT_THROW(s->substitute(x, { { x, y } }), IncorrectUsageException);
   EXPECT_THROW(s->substitute(x, { { y, x } }), IncorrectUsageException);
   EXPECT_THROW(s->substitute(y, { { x, x } }), IncorrectUsageException);
-  Sort arr = s->make_sort(ARRAY, bv8, bv8);
+  Sort arr = s->make_sort(SortKind::ARRAY, bv8, bv8);
   EXPECT_THROW(s->make_term(y, arr), IncorrectUsageException);
 
   ASSERT_TRUE(s->check_sat().is_sat());
@@ -59,8 +60,8 @@ TEST(MsatForeignHandle, AnotherSolversAssertionRefused)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   SmtSolver other = MsatSolverFactory::create(false);
-  Term a = s->make_symbol("a", s->make_sort(BOOL));
-  Term b = other->make_symbol("b", other->make_sort(BOOL));
+  Term a = s->make_symbol("a", s->make_sort(SortKind::BOOL));
+  Term b = other->make_symbol("b", other->make_sort(SortKind::BOOL));
   s->assert_formula(a);
 
   EXPECT_THROW(s->assert_formula(other->make_term(Not, b)),
@@ -72,25 +73,26 @@ TEST(MsatForeignHandle, AnotherSolversSortsRefused)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   SmtSolver other = MsatSolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
-  Sort other_bv8 = other->make_sort(BV, 8);
-  Sort other_arr = other->make_sort(ARRAY, other_bv8, other_bv8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
+  Sort other_arr = other->make_sort(SortKind::ARRAY, other_bv8, other_bv8);
 
   EXPECT_THROW(s->make_symbol("x", other_bv8), IncorrectUsageException);
   EXPECT_THROW(s->make_param("x", other_bv8), IncorrectUsageException);
   EXPECT_THROW(s->make_term(s->make_term(0, bv8), other_arr),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(ARRAY, bv8, other_bv8), IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ other_bv8, bv8 }),
+  EXPECT_THROW(s->make_sort(SortKind::ARRAY, bv8, other_bv8),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_sort(FUNCTION, SortVec{ bv8, other_bv8 }),
+  EXPECT_THROW(s->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, bv8 }),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(SortKind::FUNCTION, SortVec{ bv8, other_bv8 }),
                IncorrectUsageException);
 }
 
 TEST(MsatForeignHandle, HandlesFromBeforeResetRefused)
 {
   SmtSolver s = MsatSolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
   Term p = s->make_term(Equal, x, x);
   s->reset();
@@ -103,11 +105,11 @@ TEST(MsatForeignHandle, AnotherInterpolatorsTermsRefused)
 {
   SmtInterpolator itp = MsatSolverFactory::create_interpolator();
   SmtInterpolator other = MsatSolverFactory::create_interpolator();
-  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", other_bv8);
   Term other_a = other->make_term(Equal, y, other->make_term(0, other_bv8));
   Term other_b = other->make_term(Equal, y, other->make_term(1, other_bv8));
-  Sort bv8 = itp->make_sort(BV, 8);
+  Sort bv8 = itp->make_sort(SortKind::BV, 8);
   Term x = itp->make_symbol("x", bv8);
   Term a = itp->make_term(Equal, x, itp->make_term(0, bv8));
   Term b = itp->make_term(Equal, x, itp->make_term(1, bv8));
@@ -124,8 +126,8 @@ TEST(MsatForeignHandle, AnotherSolversTermNotEqual)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   SmtSolver other = MsatSolverFactory::create(false);
-  Term a = s->make_symbol("a", s->make_sort(BOOL));
-  Term b = other->make_symbol("b", other->make_sort(BOOL));
+  Term a = s->make_symbol("a", s->make_sort(SortKind::BOOL));
+  Term b = other->make_symbol("b", other->make_sort(SortKind::BOOL));
 
   EXPECT_NE(a, b);
   EXPECT_NE(b, a);
@@ -135,8 +137,8 @@ TEST(MsatForeignHandle, AnotherSolversSortNotEqual)
 {
   SmtSolver s = MsatSolverFactory::create(false);
   SmtSolver other = MsatSolverFactory::create(false);
-  Sort bv8 = s->make_sort(BV, 8);
-  Sort other_bv8 = other->make_sort(BV, 8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
+  Sort other_bv8 = other->make_sort(SortKind::BV, 8);
 
   EXPECT_NE(bv8, other_bv8);
   EXPECT_NE(other_bv8, bv8);

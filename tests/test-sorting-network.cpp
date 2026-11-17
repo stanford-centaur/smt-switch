@@ -38,7 +38,7 @@ class SortingNetworkTests : public testing::Test,
     NUM_VARS = std::get<1>(params);
     solver->set_opt("produce-models", "true");
     solver->set_opt("incremental", "true");
-    boolsort = solver->make_sort(BOOL);
+    boolsort = solver->make_sort(SortKind::BOOL);
     for (size_t i = 0; i < NUM_VARS; ++i)
     {
       boolvec.push_back(solver->make_symbol("b" + std::to_string(i), boolsort));
