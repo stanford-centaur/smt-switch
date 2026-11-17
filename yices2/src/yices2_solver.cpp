@@ -256,22 +256,22 @@ uint32_t pow_exponent(term_t term)
   return res;
 }
 
-/** Refuses kind applied to num_args arguments, which Yices2 has no operator for
+/** Refuses op applied to num_args arguments, which Yices2 has no operator for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(Op::Kind kind, size_t num_args)
+[[noreturn]] void throw_unsupported(const Op & op, size_t num_args)
 {
-  const std::pair<size_t, size_t> arity = get_arity(kind);
+  const auto arity = op.arity();
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("Yices2 does not support the operator "
-                                + to_string(kind));
+                                + op.to_string());
 }
 
 /** The term of op applied to one argument
@@ -367,16 +367,16 @@ term_t unary_term(const Op & op, term_t a)
       mpq_clear(value);
       return res;
     }
-    default: throw_unsupported(op.kind(), 1);
+    default: throw_unsupported(op, 1);
   }
 }
 
-/** The term of kind applied to two arguments
+/** The term of op applied to two arguments
  *  @throws as throw_unsupported where Yices2 has no such op
  */
-term_t binary_term(Op::Kind kind, term_t a, term_t b)
+term_t binary_term(const Op & op, term_t a, term_t b)
 {
-  switch (kind)
+  switch (op.kind())
   {
     case Op::And: return yices_and2(a, b);
     case Op::Or: return yices_or2(a, b);
@@ -424,7 +424,7 @@ term_t binary_term(Op::Kind kind, term_t a, term_t b)
     case Op::BVSgt: return yices_bvsgt_atom(a, b);
     case Op::BVSge: return yices_bvsge_atom(a, b);
     case Op::Select: return ext_yices_select(a, b);
-    default: throw_unsupported(kind, 2);
+    default: throw_unsupported(op, 2);
   }
 }
 
@@ -1235,7 +1235,7 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    res = binary_term(op.kind(), yterms[0], yterms[1]);
+    res = binary_term(op, yterms[0], yterms[1]);
   }
   else if (size == 3 && op.kind() == Op::Ite)
   {

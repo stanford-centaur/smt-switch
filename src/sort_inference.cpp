@@ -798,8 +798,8 @@ bool Op::check_sortedness(const TermVec & terms) const
 
 bool Op::check_sortedness(const SortVec & sorts) const
 {
-  auto min_max_arity = get_arity(kind_);
-  std::size_t num_args = sorts.size();
+  const auto min_max_arity = arity();
+  const auto num_args = sorts.size();
   if (num_args < min_max_arity.first || num_args > min_max_arity.second)
   {
     // wrong number of arguments
@@ -825,7 +825,7 @@ Sort Op::compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
 {
   // Only too few arguments are refused, since a backend may take more than
   // SMT-LIB defines, such as a quantifier binding several params.
-  std::size_t min_arity = get_arity(kind_).first;
+  const auto min_arity = arity().first;
   if (sorts.size() < min_arity)
   {
     throw IncorrectUsageException(

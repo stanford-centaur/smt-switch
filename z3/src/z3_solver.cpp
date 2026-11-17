@@ -120,23 +120,23 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
   return result;
 }
 
-/** Refuses kind applied to num_args arguments, which this backend has no Z3
+/** Refuses op applied to num_args arguments, which this backend has no Z3
  *  call for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(Op::Kind kind, size_t num_args)
+[[noreturn]] void throw_unsupported(const Op & op, size_t num_args)
 {
-  const std::pair<size_t, size_t> arity = get_arity(kind);
+  const auto arity = op.arity();
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("Z3 does not support the operator "
-                                + to_string(kind));
+                                + op.to_string());
 }
 
 /** The term of op applied to one argument
@@ -189,17 +189,17 @@ Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
                     backend::narrow<int>(op.indices[0], "a divisible index"),
                     Z3_mk_int_sort(c)),
           a);
-    default: throw_unsupported(op.kind(), 1);
+    default: throw_unsupported(op, 1);
   }
 }
 
-/** The term of kind applied to two arguments
+/** The term of op applied to two arguments
  *  @throws as throw_unsupported where this backend has no such op
  */
-Z3_ast binary_term(Z3_context c, Op::Kind kind, Z3_ast a, Z3_ast b)
+Z3_ast binary_term(Z3_context c, const Op & op, Z3_ast a, Z3_ast b)
 {
   const std::array<Z3_ast, 2> args{ { a, b } };
-  switch (kind)
+  switch (op.kind())
   {
     case Op::And: return Z3_mk_and(c, 2, args.data());
     case Op::Or: return Z3_mk_or(c, 2, args.data());
@@ -246,7 +246,7 @@ Z3_ast binary_term(Z3_context c, Op::Kind kind, Z3_ast a, Z3_ast b)
     case Op::BVSgt: return Z3_mk_bvsgt(c, a, b);
     case Op::BVSge: return Z3_mk_bvsge(c, a, b);
     case Op::Select: return Z3_mk_select(c, a, b);
-    default: throw_unsupported(kind, 2);
+    default: throw_unsupported(op, 2);
   }
 }
 
@@ -1210,7 +1210,7 @@ try
   }
   else if (size == 2)
   {
-    res = binary_term(*ctx, op.kind(), zargs[0], zargs[1]);
+    res = binary_term(*ctx, op, zargs[0], zargs[1]);
   }
   else if (size == 3 && op.kind() == Op::Ite)
   {

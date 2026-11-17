@@ -36,6 +36,27 @@ class UnitOpKindTests : public testing::Test,
                         // passing the operator kind as a size_t
                         public testing::WithParamInterface<size_t>
 {
+ protected:
+  /** The Op of the kind under test, with as many indices as it takes */
+  Op make_op() const
+  {
+    const Op::Kind kind = static_cast<Op::Kind>(GetParam());
+    try
+    {
+      return Op(kind);
+    }
+    catch (const IncorrectUsageException &)
+    {
+    }
+    try
+    {
+      return Op(kind, 1);
+    }
+    catch (const IncorrectUsageException &)
+    {
+    }
+    return Op(kind, 1, 2);
+  }
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitTests);
@@ -55,24 +76,20 @@ class UnitTests : public testing::Test,
   Sort boolsort, bvsort, funsort;
 };
 
-TEST_P(UnitOpKindTests, GetArity)
-{
-  Op::Kind kind = static_cast<Op::Kind>(GetParam());
-  ASSERT_NO_THROW(get_arity(kind));
-}
+TEST_P(UnitOpKindTests, HasAnArity) { ASSERT_NO_THROW(make_op().arity()); }
 
 TEST_P(UnitOpKindTests, NaryArity)
 {
-  Op::Kind kind = static_cast<Op::Kind>(GetParam());
-  int attributes = is_left_assoc(kind) + is_right_assoc(kind)
-                   + is_chainable(kind) + is_pairwise(kind);
+  const Op op = make_op();
+  int attributes = op.is_left_assoc() + op.is_right_assoc() + op.is_chainable()
+                   + op.is_pairwise();
   // SMT-LIB gives an operator at most one of these
   EXPECT_LE(attributes, 1);
   if (attributes)
   {
-    // TermTranslator checks the number of arguments against get_arity
+    // TermTranslator checks the number of arguments against the arity
     const std::pair<std::size_t, std::size_t> from_two(2, INT_MAX);
-    EXPECT_EQ(get_arity(kind), from_two);
+    EXPECT_EQ(op.arity(), from_two);
   }
 }
 
@@ -82,12 +99,37 @@ TEST_P(UnitOpKindTests, ToString)
   ASSERT_NO_THROW(smt::to_string(kind));
 }
 
-TEST_P(UnitOpKindTests, IndicesFitOp)
+TEST_P(UnitOpKindTests, HasATheory) { ASSERT_NO_THROW(make_op().theory()); }
+
+TEST_P(UnitOpKindTests, TakesZeroOneOrTwoIndices)
 {
-  Op::Kind kind = static_cast<Op::Kind>(GetParam());
-  ASSERT_NO_THROW(get_theory(kind));
-  // an Op holds at most two indices
-  EXPECT_LE(get_num_indices(kind), 2);
+  const Op::Kind kind = static_cast<Op::Kind>(GetParam());
+  int accepted = 0;
+  try
+  {
+    const Op op(kind);
+    ++accepted;
+  }
+  catch (const IncorrectUsageException &)
+  {
+  }
+  try
+  {
+    const Op op(kind, 1);
+    ++accepted;
+  }
+  catch (const IncorrectUsageException &)
+  {
+  }
+  try
+  {
+    const Op op(kind, 1, 2);
+    ++accepted;
+  }
+  catch (const IncorrectUsageException &)
+  {
+  }
+  EXPECT_EQ(accepted, 1);
 }
 
 TEST_P(UnitTests, FunOp)
@@ -212,41 +254,31 @@ TEST(Narrow, WiderTypeKeepsEveryValue)
 
 TEST(UnitOpKindInfoTests, NullHasNoArity)
 {
-  EXPECT_THROW(get_arity(Op::NONE), IncorrectUsageException);
-}
-
-TEST(UnitOpKindInfoTests, NumIndices)
-{
-  EXPECT_EQ(get_num_indices(Op::Extract), 2);
-  EXPECT_EQ(get_num_indices(Op::Zero_Extend), 1);
-  EXPECT_EQ(get_num_indices(Op::Int_To_BV), 1);
-  EXPECT_EQ(get_num_indices(Op::Divisible), 1);
-  EXPECT_EQ(get_num_indices(Op::BVAdd), 0);
-  EXPECT_THROW(get_num_indices(Op::NONE), IncorrectUsageException);
+  EXPECT_THROW(Op().arity(), IncorrectUsageException);
 }
 
 TEST(UnitOpKindInfoTests, IsApply)
 {
-  EXPECT_TRUE(is_apply(Op::Apply));
-  EXPECT_TRUE(is_apply(Op::Apply_Constructor));
-  EXPECT_TRUE(is_apply(Op::Apply_Selector));
-  EXPECT_TRUE(is_apply(Op::Apply_Tester));
-  EXPECT_FALSE(is_apply(Op::BVAdd));
-  EXPECT_FALSE(is_apply(Op::Select));
-  EXPECT_FALSE(is_apply(Op::NONE));
+  EXPECT_TRUE(Op(Op::Apply).is_apply());
+  EXPECT_TRUE(Op(Op::Apply_Constructor).is_apply());
+  EXPECT_TRUE(Op(Op::Apply_Selector).is_apply());
+  EXPECT_TRUE(Op(Op::Apply_Tester).is_apply());
+  EXPECT_FALSE(Op(Op::BVAdd).is_apply());
+  EXPECT_FALSE(Op(Op::Select).is_apply());
+  EXPECT_FALSE(Op().is_apply());
 }
 
 TEST(UnitOpKindInfoTests, Theory)
 {
-  EXPECT_EQ(get_theory(Op::And), Theory::CORE);
-  EXPECT_EQ(get_theory(Op::Plus), Theory::ARITH);
-  EXPECT_EQ(get_theory(Op::IntDiv), Theory::INTS);
-  EXPECT_EQ(get_theory(Op::Divisible), Theory::INTS);
-  EXPECT_EQ(get_theory(Op::Div), Theory::REALS);
-  EXPECT_EQ(get_theory(Op::To_Real), Theory::REALS_INTS);
-  EXPECT_EQ(get_theory(Op::UBV_To_Int), Theory::BITVECTORS);
-  EXPECT_EQ(get_theory(Op::StrLt), Theory::STRINGS);
-  EXPECT_THROW(get_theory(Op::NONE), IncorrectUsageException);
+  EXPECT_EQ(Op(Op::And).theory(), Theory::CORE);
+  EXPECT_EQ(Op(Op::Plus).theory(), Theory::ARITH);
+  EXPECT_EQ(Op(Op::IntDiv).theory(), Theory::INTS);
+  EXPECT_EQ(Op(Op::Divisible, 2).theory(), Theory::INTS);
+  EXPECT_EQ(Op(Op::Div).theory(), Theory::REALS);
+  EXPECT_EQ(Op(Op::To_Real).theory(), Theory::REALS_INTS);
+  EXPECT_EQ(Op(Op::UBV_To_Int).theory(), Theory::BITVECTORS);
+  EXPECT_EQ(Op(Op::StrLt).theory(), Theory::STRINGS);
+  EXPECT_THROW(Op().theory(), IncorrectUsageException);
 }
 
 TEST_P(UnitTests, RotateOps)

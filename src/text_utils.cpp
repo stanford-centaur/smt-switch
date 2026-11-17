@@ -317,7 +317,7 @@ std::string application(
     return res + ")";
   }
   std::string res = "(";
-  if (!is_apply(op.kind()))
+  if (!op.is_apply())
   {
     res += op.to_string() + " ";
   }

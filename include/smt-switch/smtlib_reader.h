@@ -230,16 +230,16 @@ class SmtLibReader
    */
   Op::Kind lookup_op_kind(const std::string & str) const;
 
-  /** Apply a primitive operator to its arguments, where unary - is the
+  /** Apply an operator to its arguments, where unary - is the
    *  negation. In a logic of both Ints and Reals, an operator over Reals
    *  takes an Int argument next to a Real one as a Real, and / takes every
    *  Int argument as one, as the SMT-LIB logic AUFLIRA defines it. Outside
    *  strict mode, so do = and distinct.
-   *  @param kind the operator kind
+   *  @param op the operator
    *  @param args its arguments
    *  @return the application
    */
-  Term apply_op_kind(Op::Kind kind, TermVec args) const;
+  Term apply_op(const Op & op, TermVec args) const;
 
   /** Apply a symbol to arguments: a primitive operator of the logic, a
    *  declared function, or else a define-fun

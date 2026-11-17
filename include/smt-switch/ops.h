@@ -25,6 +25,24 @@
 
 namespace smt {
 
+/** The SMT-LIB theory that declares an operator, or for an operator no
+ *  theory declares, the part of SMT-LIB that provides it
+ */
+enum class Theory
+{
+  CORE,         ///< Core
+  UF,           ///< function application
+  ARITH,        ///< declared by both Ints and Reals
+  INTS,         ///< Ints only
+  REALS,        ///< Reals only
+  REALS_INTS,   ///< the conversions that only Reals_Ints declares
+  BITVECTORS,   ///< FixedSizeBitVectors and the QF_BV abbreviations
+  STRINGS,      ///< UnicodeStrings
+  ARRAYS,       ///< ArraysEx
+  QUANTIFIERS,  ///< forall and exists
+  DATATYPES,    ///< the constructors, selectors and testers of datatypes
+};
+
 /**
    Represents operators
    An Op made with indices is an indexed operator
@@ -175,9 +193,60 @@ class Op
    *  indices
    */
   Op(Kind k, std::uint64_t index0, std::uint64_t index1);
+
+  // Properties of the operator
+
   Kind kind() const;
-  std::string to_string() const;
+  /** The fewest and most arguments the operator accepts
+   *  @throws IncorrectUsageException for a null Op
+   */
+  std::pair<std::size_t, std::size_t> arity() const;
+  /** The theory of the operator
+   *  @throws IncorrectUsageException for a null Op
+   */
+  Theory theory() const;
+
+  // Tests of the operator
+
   bool is_null() const;
+  /** Whether the operator applies its first child, a function, constructor,
+   *  selector or tester, to the others
+   */
+  bool is_apply() const;
+  /* SMT-LIB defines the applications of some function symbols to more than
+   * two arguments in terms of their applications to two, by giving them one
+   * of the attributes below. Every backend takes these operators with any
+   * number of arguments, and builds the applications to two itself where its
+   * solver takes no more.
+   */
+  /** Whether the operator is :left-assoc, e.g. (- a b c) is (- (- a b) c)
+   *  @throws IncorrectUsageException for a null Op
+   */
+  bool is_left_assoc() const;
+  /** Whether the operator is :right-assoc, e.g. (=> a b c) is
+   *  (=> a (=> b c))
+   *  @throws IncorrectUsageException for a null Op
+   */
+  bool is_right_assoc() const;
+  /** Whether the operator is :chainable, e.g. (< a b c) is
+   *  (and (< a b) (< b c))
+   *  @throws IncorrectUsageException for a null Op
+   */
+  bool is_chainable() const;
+  /** Whether the operator is :pairwise, e.g. (distinct a b c) is
+   *  (and (distinct a b) (distinct a c) (distinct b c))
+   *  @throws IncorrectUsageException for a null Op
+   */
+  bool is_pairwise() const;
+  /** Whether the operator can be applied to more than two arguments: whether
+   *  it is :left-assoc, :right-assoc, :chainable or :pairwise
+   *  @throws IncorrectUsageException for a null Op
+   */
+  bool is_variadic() const;
+
+  // Printing
+
+  std::string to_string() const;
 
   // Sort checking and inference for applications of the operator, defined
   // in sort_inference.cpp
@@ -225,75 +294,6 @@ class Op
  private:
   Kind kind_ = NONE;
 };
-
-/** Looks up the expected arity of an operator
- *  @return a tuple with the minimum and maximum
- *          accepted arity (in that order)
- *  @throws IncorrectUsageException for Op::NONE
- */
-std::pair<std::size_t, std::size_t> get_arity(Op::Kind kind);
-
-/** The SMT-LIB theory that declares an operator, or for an operator no
- *  theory declares, the part of SMT-LIB that provides it
- */
-enum class Theory
-{
-  CORE,         ///< Core
-  UF,           ///< function application
-  ARITH,        ///< declared by both Ints and Reals
-  INTS,         ///< Ints only
-  REALS,        ///< Reals only
-  REALS_INTS,   ///< the conversions that only Reals_Ints declares
-  BITVECTORS,   ///< FixedSizeBitVectors and the QF_BV abbreviations
-  STRINGS,      ///< UnicodeStrings
-  ARRAYS,       ///< ArraysEx
-  QUANTIFIERS,  ///< forall and exists
-  DATATYPES,    ///< the constructors, selectors and testers of datatypes
-};
-
-/** The theory of an operator
- *  @throws IncorrectUsageException for Op::NONE
- */
-Theory get_theory(Op::Kind kind);
-
-/** How many numerals index an operator, e.g. 2 for (_ extract i j)
- *  @throws IncorrectUsageException for Op::NONE
- */
-std::uint64_t get_num_indices(Op::Kind kind);
-
-/* SMT-LIB defines the applications of some operators to more than two
- * arguments in terms of their applications to two, by giving them one of the
- * attributes below. Every backend takes these operators with any number of
- * arguments, and builds the applications to two itself where its solver
- * takes no more.
- */
-/** Whether kind is :left-assoc, e.g. (- a b c) is (- (- a b) c)
- *  @throws IncorrectUsageException for Op::NONE
- */
-bool is_left_assoc(Op::Kind kind);
-/** Whether kind is :right-assoc, e.g. (=> a b c) is (=> a (=> b c))
- *  @throws IncorrectUsageException for Op::NONE
- */
-bool is_right_assoc(Op::Kind kind);
-/** Whether kind is :chainable, e.g. (< a b c) is (and (< a b) (< b c))
- *  @throws IncorrectUsageException for Op::NONE
- */
-bool is_chainable(Op::Kind kind);
-/** Whether kind is :pairwise, e.g. (distinct a b c) is
- *  (and (distinct a b) (distinct a c) (distinct b c))
- *  @throws IncorrectUsageException for Op::NONE
- */
-bool is_pairwise(Op::Kind kind);
-/** Whether kind can be applied to more than two arguments: whether it is
- *  :left-assoc, :right-assoc, :chainable or :pairwise
- *  @throws IncorrectUsageException for Op::NONE
- */
-bool is_variadic(Op::Kind kind);
-
-/** Whether an operator applies its first child: a function, constructor,
- *  selector or tester, which SMT-LIB writes in the operator's place
- */
-bool is_apply(Op::Kind kind);
 
 std::string to_string(Op::Kind k);
 std::ostream & operator<<(std::ostream & output, Op::Kind k);
