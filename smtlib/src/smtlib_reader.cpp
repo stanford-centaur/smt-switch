@@ -538,7 +538,7 @@ Term SmtLibReader::apply_op(const Op & op, TermVec args) const
   // argument of /, syntactic sugar for its conversion with to_real.
   if (lookup_sortkind(to_string(SortKind::INT)) == SortKind::INT
       && lookup_sortkind(to_string(SortKind::REAL)) == SortKind::REAL
-      && (op.theory() == Theory::ARITH || op.theory() == Theory::REALS
+      && (op.theory() == Op::Theory::ARITH || op.theory() == Op::Theory::REALS
           || (!strict_
               && (op.kind() == Op::Equal || op.kind() == Op::Distinct)))
       && (op.kind() == Op::Div

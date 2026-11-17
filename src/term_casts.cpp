@@ -193,7 +193,7 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
     return make_term(op_kind, casted_children);
   }
   // case 4 -- cast all booleans to bitvectors
-  else if (op.theory() == Theory::BITVECTORS)
+  else if (op.theory() == Op::Theory::BITVECTORS)
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());

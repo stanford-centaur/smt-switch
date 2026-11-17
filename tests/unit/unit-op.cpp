@@ -270,14 +270,14 @@ TEST(UnitOpKindInfoTests, IsApply)
 
 TEST(UnitOpKindInfoTests, Theory)
 {
-  EXPECT_EQ(Op(Op::And).theory(), Theory::CORE);
-  EXPECT_EQ(Op(Op::Plus).theory(), Theory::ARITH);
-  EXPECT_EQ(Op(Op::IntDiv).theory(), Theory::INTS);
-  EXPECT_EQ(Op(Op::Divisible, 2).theory(), Theory::INTS);
-  EXPECT_EQ(Op(Op::Div).theory(), Theory::REALS);
-  EXPECT_EQ(Op(Op::To_Real).theory(), Theory::REALS_INTS);
-  EXPECT_EQ(Op(Op::UBV_To_Int).theory(), Theory::BITVECTORS);
-  EXPECT_EQ(Op(Op::StrLt).theory(), Theory::STRINGS);
+  EXPECT_EQ(Op(Op::And).theory(), Op::Theory::CORE);
+  EXPECT_EQ(Op(Op::Plus).theory(), Op::Theory::ARITH);
+  EXPECT_EQ(Op(Op::IntDiv).theory(), Op::Theory::INTS);
+  EXPECT_EQ(Op(Op::Divisible, 2).theory(), Op::Theory::INTS);
+  EXPECT_EQ(Op(Op::Div).theory(), Op::Theory::REALS);
+  EXPECT_EQ(Op(Op::To_Real).theory(), Op::Theory::REALS_INTS);
+  EXPECT_EQ(Op(Op::UBV_To_Int).theory(), Op::Theory::BITVECTORS);
+  EXPECT_EQ(Op(Op::StrLt).theory(), Op::Theory::STRINGS);
   EXPECT_THROW(Op().theory(), IncorrectUsageException);
 }
 

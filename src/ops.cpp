@@ -24,6 +24,8 @@ namespace smt {
 
 namespace {
 
+using Theory = Op::Theory;
+
 /** The SMT-LIB attribute that defines an operator's application to more
  *  than two arguments
  */
@@ -288,7 +290,7 @@ std::pair<std::size_t, std::size_t> Op::arity() const
   return { row.min_arity, row.max_arity };
 }
 
-Theory Op::theory() const { return info(kind_, "Op::theory").theory; }
+Op::Theory Op::theory() const { return info(kind_, "Op::theory").theory; }
 
 bool Op::is_null() const { return kind_ == NONE; }
 
