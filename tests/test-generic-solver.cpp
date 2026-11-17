@@ -84,13 +84,6 @@ std::vector<std::string> binary_args(SolverEnum se)
  */
 bool has_attribute(SolverEnum b, SolverAttribute a)
 {
-  // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
-  // frontend has no such term: the binary answers
-  // (error "undefined term: const") to ((as const (Array ...)) ...).
-  if (b == YICES2 && a == SolverAttribute::CONSTARR)
-  {
-    return false;
-  }
   // The boolector binary answers get-value for a select, then dies of
   // SIGSEGV on get-value for the array itself.
   if (b == BTOR && a == SolverAttribute::ARRAY_MODELS)

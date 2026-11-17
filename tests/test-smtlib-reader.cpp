@@ -121,12 +121,6 @@ class Benchmark : public testing::TestWithParam<ReaderInput>
 TEST_P(Benchmark, Answers)
 {
   const auto & [config, input, strict] = GetParam();
-  if (config.solver_enum == YICES2
-      && std::filesystem::path(input).filename() == "test-array.smt2")
-  {
-    GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
-                    "constant array, which test-array.smt2 does";
-  }
   if (!solver_has_attribute(config.solver_enum,
                             SolverAttribute::UNINTERP_SORT_EQ)
       && std::filesystem::path(input).filename()
