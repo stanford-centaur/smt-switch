@@ -25,24 +25,6 @@
 
 namespace smt {
 
-/** The SMT-LIB theory that declares an operator, or for an operator no
- *  theory declares, the part of SMT-LIB that provides it
- */
-enum class Theory
-{
-  CORE,         ///< Core
-  UF,           ///< function application
-  ARITH,        ///< declared by both Ints and Reals
-  INTS,         ///< Ints only
-  REALS,        ///< Reals only
-  REALS_INTS,   ///< the conversions that only Reals_Ints declares
-  BITVECTORS,   ///< FixedSizeBitVectors and the QF_BV abbreviations
-  STRINGS,      ///< UnicodeStrings
-  ARRAYS,       ///< ArraysEx
-  QUANTIFIERS,  ///< forall and exists
-  DATATYPES,    ///< the constructors, selectors and testers of datatypes
-};
-
 /**
    Represents operators
    An Op made with indices is an indexed operator
@@ -154,6 +136,24 @@ class Op
 
   /** How many kinds there are, Op::NONE included */
   static constexpr std::size_t num_kinds = Apply_Constructor + 1;
+
+  /** The SMT-LIB theory that declares an operator, or for an operator no
+   *  theory declares, the part of SMT-LIB that provides it
+   */
+  enum class Theory
+  {
+    CORE,         ///< Core
+    UF,           ///< function application
+    ARITH,        ///< declared by both Ints and Reals
+    INTS,         ///< Ints only
+    REALS,        ///< Reals only
+    REALS_INTS,   ///< the conversions that only Reals_Ints declares
+    BITVECTORS,   ///< FixedSizeBitVectors and the QF_BV abbreviations
+    STRINGS,      ///< UnicodeStrings
+    ARRAYS,       ///< ArraysEx
+    QUANTIFIERS,  ///< forall and exists
+    DATATYPES,    ///< the constructors, selectors and testers of datatypes
+  };
 
   /** The indices of an Op, in order, fixed when the Op is made: only Op can
    *  make one or assign to one
