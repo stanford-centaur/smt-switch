@@ -19,6 +19,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_visitor.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
 

@@ -20,6 +20,7 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt::cnf {
 
@@ -225,7 +226,7 @@ class TseitinTraversal : public IdentityWalker
       : IdentityWalker{ solver, false }, boolsort_(solver->make_sort(BOOL))
   {
   }
-  WalkerStepResult visit_term(Term & term) override
+  VisitResult visit_term(Term & term) override
   {
     auto give_symbolic_name = [&]() {  // producing a new symbol
       int pt = 1;
@@ -249,12 +250,12 @@ class TseitinTraversal : public IdentityWalker
       // a symbol or an atom stands for itself, and skipping it keeps the
       // connectives inside an atom from being named
       save_in_cache(term, term);
-      return Walker_Skip;
+      return VisitResult::Skip;
     }
     if (preorder_)
     {
       // a connective is named after its children
-      return Walker_Continue;
+      return VisitResult::Continue;
     }
 
     // every child is cached by now: an atom when it was first seen, a
@@ -286,7 +287,7 @@ class TseitinTraversal : public IdentityWalker
     save_in_cache(term, term_name);
 
     reduced.push_back({ term_name, connective, children });
-    return Walker_Continue;
+    return VisitResult::Continue;
   }
 
  private:
@@ -309,7 +310,7 @@ class EliminateBooleanConstants : public IdentityWalker
         false_term_(solver->make_term(false))
   {
   }
-  WalkerStepResult visit_term(Term & term) override
+  VisitResult visit_term(Term & term) override
   {
     auto cached_children = [&]() {
       TermVec children;
@@ -403,7 +404,7 @@ class EliminateBooleanConstants : public IdentityWalker
       // symbols, constants and atoms are kept as they are, and their
       // subterms are not visited
       save_in_cache(term, term);
-      return Walker_Skip;
+      return VisitResult::Skip;
     }
     if (!preorder_)
     {
@@ -561,7 +562,7 @@ class EliminateBooleanConstants : public IdentityWalker
       }
     }
 
-    return Walker_Continue;
+    return VisitResult::Continue;
   }
   Term acc_cache(Term term)
   {

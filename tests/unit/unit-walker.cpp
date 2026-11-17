@@ -25,6 +25,7 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/tree_walker.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt::tests {
 
@@ -76,9 +77,9 @@ class IndicatorTreeWalker : public TreeWalker
    * As in this example, each occurrence of each term in the formula should
    * correspond to a fresh variable mapping to its occurrence in the formula
    */
-  TreeWalkerStepResult visit_term(smt::Term & formula,
-                                  smt::Term & term,
-                                  std::vector<int> & path) override
+  VisitResult visit_term(smt::Term & formula,
+                         smt::Term & term,
+                         std::vector<int> & path) override
   {
     /* The walker promises that path locates term within formula. An
      * occurrence map keyed by a fresh variable cannot say so, and the
@@ -124,7 +125,7 @@ class IndicatorTreeWalker : public TreeWalker
     // occurs and the path indicating its place in the formula
     save_in_cache(b, occ);
 
-    return TreeWalker_Continue;
+    return VisitResult::Continue;
   }
 };
 
@@ -141,20 +142,18 @@ class RecordingTreeWalker : public TreeWalker
   Term abort_at = {};
 
  protected:
-  TreeWalkerStepResult visit_term(Term &,
-                                  Term & term,
-                                  std::vector<int> &) override
+  VisitResult visit_term(Term &, Term & term, std::vector<int> &) override
   {
     visited.push_back(term);
     if (term == abort_at)
     {
-      return TreeWalker_Abort;
+      return VisitResult::Abort;
     }
     if (term == skip_at)
     {
-      return TreeWalker_Skip;
+      return VisitResult::Skip;
     }
-    return TreeWalker_Continue;
+    return VisitResult::Continue;
   }
 };
 

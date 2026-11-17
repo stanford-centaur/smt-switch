@@ -17,19 +17,9 @@
 #include <vector>
 
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
-/** \enum
- * Walker_Continue : rebuild the current term and continue
- * Walker_Skip     : skip this term and all subterms
- * Walker_Abort    : abort visiting
- */
-enum TreeWalkerStepResult
-{
-  TreeWalker_Continue = 0,
-  TreeWalker_Skip,
-  TreeWalker_Abort
-};
 
 /** \class
  * TreeWalker class.
@@ -74,7 +64,8 @@ class TreeWalker
   TreeWalker & operator=(TreeWalker && other) = default;
   virtual ~TreeWalker() = default;
 
-  /** Visit a term and all its subterms in a post-order traversal
+  /** Visit a term and every occurrence of its subterms, each before its
+   *  children
    *  @param term the term to visit
    *  @return the value of cache[term]
    *    if it has been cached and returns pair of the term itself and the empty
@@ -86,10 +77,10 @@ class TreeWalker
   /** Visit a single term.
    *  Implement this method in a derived class to change the behavior
    *  of the walker.
-   *  By default, builds up cache from term to term's first observed
+   *  By default, builds up cache from term to term's leftmost
    *   occurrence in the formula, where an occurrence is represented
    *   by a pair giving the topmost node (formula in which term appears)
-   *   & the path giving position in the formula of the first occurrence
+   *   & the path giving position in the formula of that occurrence
    *   of the term.
    *  The path is represented as a vector of ints that serve as coordinates
    *   for a given occurrence by giving a list of the child numbers to take
@@ -110,11 +101,11 @@ class TreeWalker
    * traversed in visit)
    *  @param path the path for the particular term in formula, which we are
    * visiting
-   *  @return a TreeWalkerStepResult to tell the visit method how to proceed
+   *  @return how the visit method proceeds
    */
-  virtual TreeWalkerStepResult visit_term(Term & formula,
-                                          Term & term,
-                                          std::vector<int> & path);
+  virtual VisitResult visit_term(Term & formula,
+                                 Term & term,
+                                 std::vector<int> & path);
 
   /** Check if key is in cache
    *  @param key

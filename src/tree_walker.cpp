@@ -14,6 +14,7 @@
 
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/term.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
 
@@ -54,8 +55,8 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
   }
 
   // visit top node (tree_path currently empty)
-  TreeWalkerStepResult res = visit_term(node, node, tree_path);
-  if (res == TreeWalker_Abort)
+  VisitResult res = visit_term(node, node, tree_path);
+  if (res == VisitResult::Abort)
   {
     query_cache(node, out);
     return out;
@@ -81,7 +82,7 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
   // initialize child_no before starting the loop
   child_no = 0;
   // push_back all of topmost node's children to prepare for the loop
-  if (res == TreeWalker_Continue)
+  if (res == VisitResult::Continue)
   {
     for (auto ttt : node)
     {
@@ -118,7 +119,7 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
       tree_path.push_back(child_no);
       // visit current_term
       res = visit_term(node, current_term, tree_path);
-      if (res == TreeWalker_Abort)
+      if (res == VisitResult::Abort)
       {
         break;
       }
@@ -132,7 +133,7 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
       child_no = 0;
       // push back all children of current_term we will need to visit before
       // popping all the way back to the current, parent term with the -1 flag
-      if (res == TreeWalker_Continue)
+      if (res == VisitResult::Continue)
       {
         for (auto tt : current_term)
         {
@@ -163,9 +164,9 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
   return out;
 }
 
-TreeWalkerStepResult TreeWalker::visit_term(Term & formula,
-                                            Term & term,
-                                            std::vector<int> & path)
+VisitResult TreeWalker::visit_term(Term & formula,
+                                   Term & term,
+                                   std::vector<int> & path)
 {
   // default implementation of visit_term builds up cache to map from a term in
   // the formula to a pair giving the full formula in which it occurs and the
@@ -180,7 +181,7 @@ TreeWalkerStepResult TreeWalker::visit_term(Term & formula,
   // occurs in and its path indicating its place in the formula
   save_in_cache(term, occ);
 
-  return TreeWalker_Continue;
+  return VisitResult::Continue;
 }
 
 bool TreeWalker::in_cache(const Term & key) const

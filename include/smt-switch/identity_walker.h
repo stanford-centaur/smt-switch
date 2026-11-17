@@ -10,19 +10,9 @@
 #define SMT_SWITCH_IDENTITY_WALKER_H
 
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
-/** \enum
- * Walker_Continue : rebuild the current term and continue
- * Walker_Skip     : skip this term and all subterms
- * Walker_Abort    : abort visiting
- */
-enum WalkerStepResult
-{
-  Walker_Continue = 0,
-  Walker_Skip,
-  Walker_Abort
-};
 
 /** \class
  * IdentityWalker class.
@@ -65,9 +55,9 @@ class IdentityWalker
    *  Implement this method in a derived class to change the behavior
    *  of the walker
    *  @param term the term to visit
-   *  @return a WalkerStepResult to tell the visit method how to proceed
+   *  @return how the visit method proceeds
    */
-  virtual WalkerStepResult visit_term(Term & term);
+  virtual VisitResult visit_term(Term & term);
 
   /** Check if key is in cache
    *  @param key

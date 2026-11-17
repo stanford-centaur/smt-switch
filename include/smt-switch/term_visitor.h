@@ -13,19 +13,9 @@
 #define SMT_SWITCH_TERM_VISITOR_H
 
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
-
-/** What a TermVisitor does after visiting a term */
-enum class VisitResult
-{
-  /** Visit its children */
-  Continue,
-  /** Leave its children out */
-  Skip,
-  /** Stop this call to visit */
-  Abort
-};
 
 /** \class
  * TermVisitor class.
