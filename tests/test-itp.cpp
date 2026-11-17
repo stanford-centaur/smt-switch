@@ -589,6 +589,25 @@ TEST_P(ItpTests, InterpolatesOverASharedArray)
   expect_chain(GetParam().config.solver_enum, { A, B }, { I }, "A, B");
 }
 
+TEST_P(ItpTests, InterpolatesOverASharedFunction)
+{
+  // f(x) = y on one side and f(x) < y on the other, which share all three
+  Term f =
+      itp->make_symbol("f", itp->make_sort(SortKind::FUNCTION, { sort, sort }));
+  Term apply = itp->make_term(Op::Apply, f, x);
+  Term A = itp->make_term(Op::Equal, apply, y);
+  Term B = itp->make_term(lt, apply, y);
+  Term I;
+  if (GetParam().config.solver_enum == YICES2_INTERPOLATOR)
+  {
+    // MCSAT cannot fix a function to its value in a model
+    EXPECT_THROW(itp->get_interpolant(A, B, I), NotImplementedException);
+    return;
+  }
+  ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
+  expect_chain(GetParam().config.solver_enum, { A, B }, { I }, "A, B");
+}
+
 TEST_P(ItpTests, NonlinearInterpolant)
 {
   if (GetParam().theory != SolverAttribute::THEORY_INT)

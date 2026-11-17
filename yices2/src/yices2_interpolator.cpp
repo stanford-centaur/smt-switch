@@ -143,8 +143,8 @@ Result Yices2Interpolator::refute_model(const Term & A,
   };
 
   UnorderedTermSet symbols_a, symbols_b;
-  A->get_free_symbolic_consts(symbols_a);
-  B->get_free_symbolic_consts(symbols_b);
+  A->get_free_symbols(symbols_a);
+  B->get_free_symbols(symbols_b);
   TermVec shared_symbols;
   std::vector<term_t> shared;
   for (const Term & symbol : symbols_a)
