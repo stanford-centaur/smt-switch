@@ -318,17 +318,17 @@ try
   cvc5::Result r = instance->solver.checkSat();
   if (r.isUnsat())
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (r.isSat())
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (r.isUnknown())
   {
     std::stringstream ss;
     ss << r.getUnknownExplanation();
-    return Result(UNKNOWN, ss.str());
+    return Result::unknown(ss.str());
   }
   else
   {
@@ -354,17 +354,17 @@ try
   cvc5::Result r = instance->solver.checkSatAssuming(cvc5assumps);
   if (r.isUnsat())
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (r.isSat())
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (r.isUnknown())
   {
     std::stringstream ss;
     ss << r.getUnknownExplanation();
-    return Result(UNKNOWN, ss.str());
+    return Result::unknown(ss.str());
   }
   else
   {

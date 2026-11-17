@@ -100,10 +100,10 @@ Result Cvc5Interpolator::compute_interpolant(const Term & A,
           ", and the satisfiability check of A and B answered unknown: "
           + r.get_explanation();
     }
-    return Result(UNKNOWN, explanation);
+    return Result::unknown(explanation);
   }
   out_I = std::make_shared<Cvc5Term>(I);
-  return Result(UNSAT);
+  return Result::unsat();
 }
 
 Result Cvc5Interpolator::compute_seq_interpolants(const TermVec & formulae,

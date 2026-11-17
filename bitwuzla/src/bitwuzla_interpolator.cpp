@@ -149,14 +149,14 @@ Result BzlaInterpolator::compute_seq_interpolants(
 
   if (bzla_res == bitwuzla::Result::SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (bzla_res == bitwuzla::Result::UNKNOWN)
   {
-    return Result(UNKNOWN, "Interpolation failure");
+    return Result::unknown("Interpolation failure");
   }
 
-  Result r = Result(UNSAT);
+  Result r = Result::unsat();
   std::vector<std::vector<bitwuzla::Term>> partitions;
   for (size_t i = 0, n = formulae.size() - 1; i < n; ++i)
   {
@@ -170,7 +170,7 @@ Result BzlaInterpolator::compute_seq_interpolants(
   catch (const bitwuzla::Exception & e)
   {
     out_I.assign(partitions.size(), Term());
-    return Result(UNKNOWN, std::string("Interpolation failure: ") + e.what());
+    return Result::unknown(std::string("Interpolation failure: ") + e.what());
   }
   // the interpolants belong to the term manager of the formulae
   const std::shared_ptr<BzlaTermManager> & formulae_tm =
@@ -181,9 +181,9 @@ Result BzlaInterpolator::compute_seq_interpolants(
     {
       Term nullterm;
       out_I.push_back(nullterm);
-      r = Result(UNKNOWN,
-                 "Had at least one interpolation failure in "
-                 "get_sequence_interpolants.");
+      r = Result::unknown(
+          "Had at least one interpolation failure in "
+          "get_sequence_interpolants.");
     }
     else
     {

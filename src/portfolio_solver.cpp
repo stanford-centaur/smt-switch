@@ -36,14 +36,16 @@
 namespace {
 
 using smt::Result;
-using smt::ResultType;
 using smt::SmtSolver;
 using smt::Term;
 
 // What a child writes before closing its pipe: this tag, then for an answer
-// the ResultType as one byte, and the explanation or error message.
+// one of the result letters, and the explanation or error message.
 constexpr char answer_tag = 'a';
 constexpr char error_tag = 'e';
+constexpr char sat_letter = 's';
+constexpr char unsat_letter = 'u';
+constexpr char unknown_letter = 'k';
 
 // Writes all of data to fd, as far as the pipe lets it.
 void write_all(int fd, const std::string & data)
@@ -76,8 +78,19 @@ void write_all(int fd, const std::string & data)
     solver->assert_formula(to_solver.transfer_term(term, smt::BOOL));
     Result result = solver->check_sat();
     report = answer_tag;
-    report += static_cast<char>(result.result);
-    report += result.explanation;
+    if (result.is_sat())
+    {
+      report += sat_letter;
+    }
+    else if (result.is_unsat())
+    {
+      report += unsat_letter;
+    }
+    else
+    {
+      report += unknown_letter;
+      report += result.get_explanation();
+    }
   }
   catch (const std::exception & e)
   {
@@ -278,8 +291,13 @@ Result PortfolioSolver::portfolio_solve()
       --running;
       if (child.report.size() >= 2 && child.report[0] == answer_tag)
       {
-        return Result(static_cast<ResultType>(child.report[1]),
-                      child.report.substr(2));
+        switch (child.report[1])
+        {
+          case sat_letter: return Result::sat();
+          case unsat_letter: return Result::unsat();
+          case unknown_letter: return Result::unknown(child.report.substr(2));
+          default: break;
+        }
       }
     }
   }

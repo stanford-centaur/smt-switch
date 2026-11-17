@@ -421,11 +421,11 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
     {
       explanation += ": " + failure;
     }
-    return Result(UNKNOWN, explanation);
+    return Result::unknown(explanation);
   }
   last_itp_query_formulae = formulae;
   last_itp_query_interpolants = out_I;
-  return Result(UNSAT);
+  return Result::unsat();
 }
 
 }  // namespace smt

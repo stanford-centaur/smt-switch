@@ -729,19 +729,19 @@ Result Yices2Solver::check_sat()
 
   if (res == YICES_STATUS_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (res == YICES_STATUS_UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (tl_triggered)
   {
-    return Result(UNKNOWN, "Time limit reached.");
+    return Result::unknown("Time limit reached.");
   }
   else
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
 }
 
@@ -769,19 +769,19 @@ Result Yices2Solver::do_check_sat_assuming(const TermVec & assumptions)
 
   if (res == YICES_STATUS_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (res == YICES_STATUS_UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (tl_triggered)
   {
-    return Result(UNKNOWN, "Time limit reached.");
+    return Result::unknown("Time limit reached.");
   }
   else
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
 }
 

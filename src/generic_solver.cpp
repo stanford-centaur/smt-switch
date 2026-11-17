@@ -2245,15 +2245,15 @@ Result GenericSolver::str_to_result(std::string result) const
 {
   if (result == "unsat")
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (result == "sat")
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (result == "unknown")
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
   else
   {

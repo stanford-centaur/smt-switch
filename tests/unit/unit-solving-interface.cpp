@@ -235,12 +235,12 @@ INSTANTIATE_TEST_SUITE_P(
     UnitSolveTests,
     testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
 
-TEST(Result, ComparesByResultType)
+TEST(Result, ComparesByKindAlone)
 {
-  EXPECT_EQ(Result(SAT), Result(SAT, "another explanation"));
-  EXPECT_FALSE(Result(SAT) != Result(SAT, "another explanation"));
-  EXPECT_NE(Result(SAT), Result(UNSAT));
-  EXPECT_NE(Result(UNKNOWN), Result());
+  EXPECT_EQ(Result::unknown("one"), Result::unknown("another"));
+  EXPECT_FALSE(Result::unknown("one") != Result::unknown("another"));
+  EXPECT_NE(Result::sat(), Result::unsat());
+  EXPECT_NE(Result::unknown(), Result());
 }
 
 }  // namespace

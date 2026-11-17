@@ -62,9 +62,9 @@ TEST_P(UnitPrintTests, Sort)
 
 TEST_P(UnitPrintTests, Result)
 {
-  Result sat(SAT);
-  Result unsat(UNSAT);
-  Result unknown(UNKNOWN);
+  Result sat = Result::sat();
+  Result unsat = Result::unsat();
+  Result unknown = Result::unknown();
   ASSERT_EQ(sat.to_string(), "sat");
   ASSERT_EQ(unsat.to_string(), "unsat");
   ASSERT_EQ(unknown.to_string(), "unknown");

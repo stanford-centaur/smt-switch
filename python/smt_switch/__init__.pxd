@@ -14,7 +14,6 @@ from .cppapi cimport (
 )
 from .cppenums cimport (
     c_PrimOp,
-    c_ResultType,
     c_SolverAttribute,
     c_SolverEnum,
     c_SortKind,

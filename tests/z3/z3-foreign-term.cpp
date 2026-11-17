@@ -56,7 +56,7 @@ TEST(Z3ForeignTerm, AnotherSolversTermsRefused)
   EXPECT_THROW(s->substitute(x, UnorderedTermMap{ { other_x, x } }),
                IncorrectUsageException);
 
-  ASSERT_EQ(s->check_sat(), Result(SAT));
+  ASSERT_EQ(s->check_sat(), Result::sat());
   Term base;
   EXPECT_THROW(s->get_value(other_x), IncorrectUsageException);
   EXPECT_THROW(s->get_array_values(other_arr, base), IncorrectUsageException);

@@ -481,19 +481,19 @@ Result BoolectorSolver::solve()
   int32_t res = boolector_sat(btor.get());
   if (res == BOOLECTOR_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (res == BOOLECTOR_UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (btor->cbs.term.done)
   {
-    return Result(UNKNOWN, "Time limit reached.");
+    return Result::unknown("Time limit reached.");
   }
   else
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
 }
 
