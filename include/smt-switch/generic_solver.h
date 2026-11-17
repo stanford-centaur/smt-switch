@@ -50,25 +50,6 @@
 
 namespace smt {
 
-/** The execution modes of SMT-LIB 2.6, Section 4.1.1. SAT and UNSAT are its
- * two query modes, entered by a check that answers sat or unknown, and
- * unsat, respectively.
- */
-enum class SmtLibMode
-{
-  START,
-  ASSERT,
-  SAT,
-  UNSAT
-};
-
-/** the name SMT-LIB gives a mode
- * @param mode the mode to name
- * @return "start", "assert", "sat" or "unsat"
- * @throws NotImplementedException for a value that is not an enumerator
- */
-std::string to_string(SmtLibMode mode);
-
 class GenericSolver : public AbsSmtSolver
 {
  public:
@@ -163,13 +144,25 @@ class GenericSolver : public AbsSmtSolver
    * helper methods *
    *******************/
 
+  /** The execution modes of SMT-LIB 2.6, Section 4.1.1. SAT and UNSAT are
+   * its two query modes, entered by a check that answers sat or unknown, and
+   * unsat, respectively.
+   */
+  enum class Mode
+  {
+    START,
+    ASSERT,
+    SAT,
+    UNSAT
+  };
+
   /** throw unless the solver is in `needed` mode
    * @param needed the mode the operation needs
    * @param operation the method being refused, for the message
    * @param reason what puts the solver in `needed` mode, for the message
    * @throws IncorrectUsageException if the solver is in another mode
    */
-  void require_mode(SmtLibMode needed,
+  void require_mode(Mode needed,
                     const std::string & operation,
                     const std::string & reason) const;
 
@@ -431,7 +424,7 @@ class GenericSolver : public AbsSmtSolver
   mutable std::unordered_set<std::string> param_names_ = {};
 
   // the binary's execution mode, as of the last command that succeeded
-  mutable SmtLibMode mode_ = SmtLibMode::START;
+  mutable Mode mode_ = Mode::START;
 
   // declarations and definitions made in the sat or unsat mode, which
   // would leave it; in the order they were made, so each comes after
