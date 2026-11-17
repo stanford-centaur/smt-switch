@@ -32,6 +32,9 @@ namespace smt {
 
 namespace {
 
+// The solver a rule makes the computed sort with
+using SolverPtr = std::shared_ptr<const AbsSmtSolver>;
+
 /** Checks that terms match expected form for quantifiers
  *  To make term traversal easier considering the different
  *  handlings of quantifiers in the API's of underlying
@@ -373,14 +376,14 @@ bool arith_equal_sorts(const SortVec & sorts)
   return equal_sorts(sorts) || arithmetic_sorts(sorts);
 }
 
-Sort same_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort same_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   return sorts[0];
 }
 
 /** @return the Real sort if one of the sorts is the Real sort, and the first
  *  sort otherwise, for an arithmetic operator over Ints and Reals */
-Sort arithmetic_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort arithmetic_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   // over an Int and a Real, every solver of both makes the term a Real
   for (const Sort & sort : sorts)
@@ -393,32 +396,32 @@ Sort arithmetic_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
   return sorts[0];
 }
 
-Sort bool_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+Sort bool_sort(Op, const SolverPtr & solver, const SortVec &)
 {
   return solver->make_sort(BOOL);
 }
 
-Sort single_bit_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+Sort single_bit_sort(Op, const SolverPtr & solver, const SortVec &)
 {
   return solver->make_sort(BV, 1);
 }
 
-Sort real_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+Sort real_sort(Op, const SolverPtr & solver, const SortVec &)
 {
   return solver->make_sort(REAL);
 }
 
-Sort int_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+Sort int_sort(Op, const SolverPtr & solver, const SortVec &)
 {
   return solver->make_sort(INT);
 }
 
-Sort string_sort(Op, const AbsSmtSolver * solver, const SortVec &)
+Sort string_sort(Op, const SolverPtr & solver, const SortVec &)
 {
   return solver->make_sort(STRING);
 }
 
-Sort ite_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort ite_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   if (sorts[1] != sorts[2])
   {
@@ -429,7 +432,7 @@ Sort ite_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
   return sorts[1];
 }
 
-Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+Sort extract_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
 {
   std::uint64_t upper = op.indices[0];
   std::uint64_t lower = op.indices[1];
@@ -443,7 +446,7 @@ Sort extract_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return solver->make_sort(BV, upper - lower + 1);
 }
 
-Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+Sort concat_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
 {
   constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
   std::uint64_t width0 = sorts[0]->get_width();
@@ -456,7 +459,7 @@ Sort concat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return solver->make_sort(BV, width0 + width1);
 }
 
-Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+Sort extend_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
 {
   constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
   std::uint64_t width = sorts[0]->get_width();
@@ -468,7 +471,7 @@ Sort extend_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return solver->make_sort(BV, op.indices[0] + width);
 }
 
-Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
+Sort repeat_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
 {
   constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
   std::uint64_t width = sorts[0]->get_width();
@@ -480,12 +483,12 @@ Sort repeat_sort(Op op, const AbsSmtSolver * solver, const SortVec & sorts)
   return solver->make_sort(BV, op.indices[0] * width);
 }
 
-Sort int_to_bv_sort(Op op, const AbsSmtSolver * solver, const SortVec &)
+Sort int_to_bv_sort(Op op, const SolverPtr & solver, const SortVec &)
 {
   return solver->make_sort(BV, op.indices[0]);
 }
 
-Sort apply_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort apply_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   Sort funsort = sorts[0];
   if (funsort->get_sort_kind() != FUNCTION)
@@ -497,7 +500,7 @@ Sort apply_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
   return funsort->get_codomain_sort();
 }
 
-Sort select_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort select_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   Sort arraysort = sorts[0];
   if (arraysort->get_sort_kind() != ARRAY)
@@ -509,7 +512,7 @@ Sort select_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
   return arraysort->get_elemsort();
 }
 
-Sort store_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort store_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   Sort arraysort = sorts[0];
   if (arraysort->get_sort_kind() != ARRAY)
@@ -521,11 +524,11 @@ Sort store_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
   return arraysort;
 }
 
-Sort selector_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort selector_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   return (sorts[0])->get_codomain_sort();
 }
-Sort constructor_sort(Op, const AbsSmtSolver *, const SortVec & sorts)
+Sort constructor_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   return (sorts[0])->get_codomain_sort();
 }
@@ -745,7 +748,7 @@ bool check_sorts(SortCheck check, const SortVec & sorts)
 
 Sort compute(SortComputation computation,
              Op op,
-             const AbsSmtSolver * solver,
+             const SolverPtr & solver,
              const SortVec & sorts)
 {
   switch (computation)
@@ -808,7 +811,8 @@ bool Op::check_sortedness(const SortVec & sorts) const
   return check_sorts(sort_info(prim_op, "check_sortedness").check, sorts);
 }
 
-Sort Op::compute_sort(const AbsSmtSolver * solver, const TermVec & terms) const
+Sort Op::compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
+                      const TermVec & terms) const
 {
   SortVec sorts;
   for (auto t : terms)
@@ -818,7 +822,8 @@ Sort Op::compute_sort(const AbsSmtSolver * solver, const TermVec & terms) const
   return compute_sort(solver, sorts);
 }
 
-Sort Op::compute_sort(const AbsSmtSolver * solver, const SortVec & sorts) const
+Sort Op::compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
+                      const SortVec & sorts) const
 {
   // Only too few arguments are refused, since a backend may take more than
   // SMT-LIB defines, such as a quantifier binding several params.
@@ -831,16 +836,6 @@ Sort Op::compute_sort(const AbsSmtSolver * solver, const SortVec & sorts) const
   }
   return compute(
       sort_info(prim_op, "compute_sort").computation, *this, solver, sorts);
-}
-
-Sort Op::compute_sort(const SmtSolver & solver, const TermVec & terms) const
-{
-  return compute_sort(solver.get(), terms);
-}
-
-Sort Op::compute_sort(const SmtSolver & solver, const SortVec & sorts) const
-{
-  return compute_sort(solver.get(), sorts);
 }
 
 }  // namespace smt

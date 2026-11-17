@@ -541,7 +541,7 @@ Term LoggingSolver::make_term(const Op op, const TermVec & terms) const
   Term wrapped_res = wrapped_solver->make_term(op, lterms);
   // Note: for convenience there's a version of compute_sort that takes terms
   // since these are already in a vector, just let it unpack the sorts
-  Sort res_logging_sort = op.compute_sort(this, terms);
+  Sort res_logging_sort = op.compute_sort(shared_from_this(), terms);
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, res_logging_sort, op, terms, next_term_id);
 

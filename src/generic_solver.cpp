@@ -1878,7 +1878,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
     }
     return body;
   }
-  Sort sort = op.compute_sort(this, terms);
+  Sort sort = op.compute_sort(shared_from_this(), terms);
   std::string repr = "(" + op.to_string();
   for (size_t i = 0; i < terms.size(); i++)
   {

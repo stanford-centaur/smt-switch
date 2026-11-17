@@ -16,6 +16,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -208,7 +209,8 @@ struct Op
    *          accepts, the indices of an extract are outside its argument, or
    *          the resulting width does not fit in 64 bits
    */
-  Sort compute_sort(const AbsSmtSolver * solver, const TermVec & terms) const;
+  Sort compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
+                    const TermVec & terms) const;
 
   /** Compute the expected sort of applying the operator to terms of these
    *  sorts
@@ -220,10 +222,8 @@ struct Op
    *          accepts, the indices of an extract are outside its argument, or
    *          the resulting width does not fit in 64 bits
    */
-  Sort compute_sort(const AbsSmtSolver * solver, const SortVec & sorts) const;
-
-  Sort compute_sort(const SmtSolver & solver, const TermVec & terms) const;
-  Sort compute_sort(const SmtSolver & solver, const SortVec & sorts) const;
+  Sort compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
+                    const SortVec & sorts) const;
 
   PrimOp prim_op = NUM_OPS_AND_NULL;
   Indices indices = {};
