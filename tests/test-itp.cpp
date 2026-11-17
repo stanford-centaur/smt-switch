@@ -55,7 +55,7 @@ class ItpTests : public testing::Test,
  protected:
   void SetUp() override
   {
-    itp = create_interpolator(GetParam().config.solver_enum);
+    itp = interpolators::create(GetParam().config.solver_enum);
 
     // the queries order the symbols, so unsigned bit-vector comparisons
     // keep them unsatisfiable
@@ -186,7 +186,7 @@ TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
   int max_k = cvc5_bv ? 3 : 5;
   for (int k = 2; k <= max_k; ++k)
   {
-    SmtInterpolator s = create_interpolator(GetParam().config.solver_enum);
+    SmtInterpolator s = interpolators::create(GetParam().config.solver_enum);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
                                                : s->make_sort(BV, 8);
     Term one = s->make_term(1, srt);
@@ -298,7 +298,7 @@ TEST_P(ItpTests, ReuseKeepsResults)
 {
   for (const char * incremental : { "true", "false" })
   {
-    SmtInterpolator s = create_interpolator(GetParam().config.solver_enum);
+    SmtInterpolator s = interpolators::create(GetParam().config.solver_enum);
     s->set_opt("incremental", incremental);
     Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
                                                : s->make_sort(BV, 8);
@@ -372,8 +372,8 @@ TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
 {
   auto log_after_reset = [this](bool turn_off) {
     std::ostringstream out;
-    SmtInterpolator s = create_printing_interpolator(
-        create_interpolator(GetParam().config.solver_enum), &out);
+    SmtInterpolator s = interpolators::printing(
+        interpolators::create(GetParam().config.solver_enum), out);
     if (turn_off)
     {
       s->set_opt("incremental", "false");
@@ -466,8 +466,8 @@ TEST_P(ItpTests, RefusesNonBooleanAndNullFormulae)
 TEST_P(ItpTests, PrintingWritesNoRefusedQuery)
 {
   std::ostringstream out;
-  SmtInterpolator s = create_printing_interpolator(
-      create_interpolator(GetParam().config.solver_enum), &out);
+  SmtInterpolator s = interpolators::printing(
+      interpolators::create(GetParam().config.solver_enum), out);
   Sort srt =
       GetParam().theory == THEORY_INT ? s->make_sort(INT) : s->make_sort(BV, 8);
   Term a = s->make_symbol("a", srt);
@@ -512,7 +512,7 @@ TEST_P(ItpTests, RefusesDumping)
 TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
 {
   std::ostringstream out;
-  SmtInterpolator printing = create_printing_interpolator(itp, &out);
+  SmtInterpolator printing = interpolators::printing(itp, out);
   printing->set_opt("incremental", "false");
   EXPECT_EQ(out.str().find(":incremental"), std::string::npos) << out.str();
   EXPECT_THROW(printing->set_opt("incremental", "maybe"),
@@ -523,7 +523,7 @@ TEST_P(ItpTests, PrintingKeepsIncrementalOutOfTheLog)
 TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
 {
   std::ostringstream out;
-  SmtInterpolator printing = create_printing_interpolator(itp, &out);
+  SmtInterpolator printing = interpolators::printing(itp, out);
   Term A1 =
       itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, w));
   Term A2 =

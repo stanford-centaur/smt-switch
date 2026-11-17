@@ -20,6 +20,8 @@
 
 namespace smt {
 
+namespace solvers {
+
 /** Create a solver
  *  @param se the solver, which must not be an interpolator or
  *         GENERIC_SOLVER (construct a GenericSolver for that)
@@ -29,7 +31,16 @@ namespace smt {
  *  @throws NotImplementedException if the backend is not available
  *  @throws SystemException if the backend is installed but cannot be loaded
  */
-SmtSolver create_solver(SolverEnum se, bool logging);
+SmtSolver create(SolverEnum se, bool logging);
+
+/** The solvers create can create
+ *  @throws SystemException if a backend is installed but cannot be loaded
+ */
+std::vector<SolverEnum> available();
+
+}  // namespace solvers
+
+namespace interpolators {
 
 /** Create an interpolator
  *  @param se the interpolator, such as CVC5_INTERPOLATOR
@@ -40,22 +51,19 @@ SmtSolver create_solver(SolverEnum se, bool logging);
  *          cannot interpolate
  *  @throws SystemException if the backend is installed but cannot be loaded
  */
-SmtInterpolator create_interpolator(SolverEnum se);
+SmtInterpolator create(SolverEnum se);
 
-/** The solvers create_solver can create
+/** The interpolators create can create
  *  @throws SystemException if a backend is installed but cannot be loaded
  */
-std::vector<SolverEnum> available_solver_enums();
+std::vector<SolverEnum> available();
 
-/** The interpolators create_interpolator can create
- *  @throws SystemException if a backend is installed but cannot be loaded
- */
-std::vector<SolverEnum> available_interpolator_enums();
+}  // namespace interpolators
 
 namespace backend {
 
-/** What a backend library provides for create_solver and
- *  create_interpolator
+/** What a backend library provides for solvers::create and
+ *  interpolators::create
  */
 struct Factory
 {

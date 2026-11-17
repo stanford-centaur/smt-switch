@@ -31,8 +31,6 @@ namespace {
 class MsatPrintingTest : public testing::Test
 {
  protected:
-  void SetUp() override { os = new std::ostream(&strbuf); }
-  void TearDown() override { delete os; }
   void check_result(
       std::vector<std::unordered_set<std::string>> expected_result,
       std::string extra_opts = "")
@@ -44,13 +42,13 @@ class MsatPrintingTest : public testing::Test
     dump_and_run(mathsat_binary, strbuf, expected_result, extra_opts);
   }
   std::stringbuf strbuf;
-  std::ostream * os;
+  std::ostream os{ &strbuf };
 };
 
 TEST_F(MsatPrintingTest, Interpolation)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(MsatSolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
 
   Sort intsort = s->make_sort(INT);
@@ -83,8 +81,8 @@ TEST_F(MsatPrintingTest, Interpolation)
 
 TEST_F(MsatPrintingTest, SequenceInterpolation)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(MsatSolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);
@@ -113,8 +111,8 @@ TEST_F(MsatPrintingTest, SequenceInterpolation)
 // starts afresh
 TEST_F(MsatPrintingTest, ReusedSequenceInterpolation)
 {
-  SmtInterpolator s = create_printing_interpolator(
-      MsatSolverFactory::create_interpolator(), os);
+  SmtInterpolator s =
+      interpolators::printing(MsatSolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   Sort intsort = s->make_sort(INT);
   Term x = s->make_symbol("x", intsort);

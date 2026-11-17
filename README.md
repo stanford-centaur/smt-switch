@@ -102,9 +102,9 @@ enough:
 
 int main()
 {
-  for (smt::SolverEnum se : smt::available_solver_enums())
+  for (smt::SolverEnum se : smt::solvers::available())
   {
-    smt::SmtSolver s = smt::create_solver(se, /* logging */ false);
+    smt::SmtSolver s = smt::solvers::create(se, /* logging */ false);
   }
   return 0;
 }

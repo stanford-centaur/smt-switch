@@ -39,7 +39,7 @@ std::string no_query_syntax(SolverEnum se)
 
 }  // namespace
 
-PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
+PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream & os)
     : AbsSmtInterpolator(s->get_solver_enum(),
                          std::make_shared<PrintingSolver>(s, os)),
       wrapped_interpolator(std::move(s)),
@@ -47,16 +47,10 @@ PrintingInterpolator::PrintingInterpolator(SmtInterpolator s, std::ostream * os)
 {
   if (get_solver_enum() == YICES2_INTERPOLATOR)
   {
-    (*out_stream) << "; run with yices-smt2 --mcsat --incremental" << std::endl;
+    out_stream.get() << "; run with yices-smt2 --mcsat --incremental"
+                     << std::endl;
   }
   initialize();
-}
-
-PrintingInterpolator::PrintingInterpolator(SmtInterpolator s,
-                                           std::ostream * os,
-                                           PrintingStyleEnum /* pse */)
-    : PrintingInterpolator(std::move(s), os)
-{
 }
 
 Result PrintingInterpolator::compute_interpolant(const Term & A,
@@ -136,13 +130,13 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       }
       if (msat && num_reused == 0 && !asserted.empty())
       {
-        (*out_stream) << "(" << smtlib::RESET_ASSERTIONS_STR << ")"
-                      << std::endl;
+        out_stream.get() << "(" << smtlib::RESET_ASSERTIONS_STR << ")"
+                         << std::endl;
       }
       else if (num_reused < asserted.size())
       {
-        (*out_stream) << "(" << smtlib::POP_STR << " "
-                      << asserted.size() - num_reused << ")" << std::endl;
+        out_stream.get() << "(" << smtlib::POP_STR << " "
+                         << asserted.size() - num_reused << ")" << std::endl;
       }
       asserted.resize(num_reused);
       asserted_names.resize(num_reused);
@@ -153,16 +147,16 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         std::string name =
             msat ? "g" + std::to_string(k + 1)
                  : name_prefix + std::to_string(record->num_names++);
-        (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
-        (*out_stream) << "(" << smtlib::ASSERT_STR << " (! " << formulae[k]
-                      << " :"
-                      << (msat ? smtlib::INTERPOLATION_GROUP_STR
-                               : smtlib::NAMED_STR)
-                      << " " << name << "))" << std::endl;
+        out_stream.get() << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+        out_stream.get() << "(" << smtlib::ASSERT_STR << " (! " << formulae[k]
+                         << " :"
+                         << (msat ? smtlib::INTERPOLATION_GROUP_STR
+                                  : smtlib::NAMED_STR)
+                         << " " << name << "))" << std::endl;
         asserted.push_back(formulae[k]);
         asserted_names.push_back(name);
       }
-      (*out_stream) << "(" << smtlib::CHECK_SAT_STR << ")" << std::endl;
+      out_stream.get() << "(" << smtlib::CHECK_SAT_STR << ")" << std::endl;
       Result r =
           wrapped_interpolator->get_sequence_interpolants(formulae, out_I);
       // the interpolants are asked for only after an unsat answer
@@ -171,23 +165,23 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         // one per prefix of the groups
         for (std::size_t i = 1; i < formulae.size(); ++i)
         {
-          (*out_stream) << "(" << smtlib::GET_INTERPOLANT_STR << " (";
+          out_stream.get() << "(" << smtlib::GET_INTERPOLANT_STR << " (";
           for (std::size_t j = 0; j < i; ++j)
           {
-            (*out_stream) << (j > 0 ? " " : "") << asserted_names[j];
+            out_stream.get() << (j > 0 ? " " : "") << asserted_names[j];
           }
-          (*out_stream) << "))" << std::endl;
+          out_stream.get() << "))" << std::endl;
         }
       }
       else if (r.is_unsat())
       {
         // all at once, partitioned into every formula but the last
-        (*out_stream) << "(" << smtlib::GET_INTERPOLANTS_STR;
+        out_stream.get() << "(" << smtlib::GET_INTERPOLANTS_STR;
         for (std::size_t j = 0; j + 1 < formulae.size(); ++j)
         {
-          (*out_stream) << " (" << asserted_names[j] << ")";
+          out_stream.get() << " (" << asserted_names[j] << ")";
         }
-        (*out_stream) << ")" << std::endl;
+        out_stream.get() << ")" << std::endl;
       }
       return r;
     }
@@ -198,12 +192,12 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
       Result r = wrapped_interpolator->get_interpolant(
           formulae.front(), formulae.back(), I);
       out_I.push_back(I);
-      (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
-      (*out_stream) << "(" << smtlib::ASSERT_STR << " " << formulae.front()
-                    << ")" << std::endl;
-      (*out_stream) << "(" << smtlib::GET_INTERPOLANT_STR << " I (not "
-                    << formulae.back() << "))" << std::endl;
-      (*out_stream) << "(" << smtlib::POP_STR << " 1)" << std::endl;
+      out_stream.get() << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+      out_stream.get() << "(" << smtlib::ASSERT_STR << " " << formulae.front()
+                       << ")" << std::endl;
+      out_stream.get() << "(" << smtlib::GET_INTERPOLANT_STR << " I (not "
+                       << formulae.back() << "))" << std::endl;
+      out_stream.get() << "(" << smtlib::POP_STR << " 1)" << std::endl;
       return r;
     }
     case YICES2_INTERPOLATOR: {
@@ -236,25 +230,25 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
           }
         }
         // B, with the model interpolants of the rounds before
-        (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
-        (*out_stream) << "(" << smtlib::ASSERT_STR << " " << B << ")"
-                      << std::endl;
+        out_stream.get() << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+        out_stream.get() << "(" << smtlib::ASSERT_STR << " " << B << ")"
+                         << std::endl;
         for (const Term & t : model_interpolants)
         {
-          (*out_stream) << "(" << smtlib::ASSERT_STR << " " << t << ")"
-                        << std::endl;
+          out_stream.get() << "(" << smtlib::ASSERT_STR << " " << t << ")"
+                           << std::endl;
         }
-        (*out_stream) << "(" << smtlib::CHECK_SAT_STR << ")" << std::endl;
+        out_stream.get() << "(" << smtlib::CHECK_SAT_STR << ")" << std::endl;
         if (!model.empty())
         {
-          (*out_stream) << "(" << smtlib::GET_VALUE_STR << " (";
+          out_stream.get() << "(" << smtlib::GET_VALUE_STR << " (";
           for (std::size_t i = 0; i < model.size(); ++i)
           {
-            (*out_stream) << (i > 0 ? " " : "") << model[i].first;
+            out_stream.get() << (i > 0 ? " " : "") << model[i].first;
           }
-          (*out_stream) << "))" << std::endl;
+          out_stream.get() << "))" << std::endl;
         }
-        (*out_stream) << "(" << smtlib::POP_STR << " 1)" << std::endl;
+        out_stream.get() << "(" << smtlib::POP_STR << " 1)" << std::endl;
         // The round ended at B if B had no model left, or if B's check did
         // not decide. An unknown answer with an empty model comes from B's
         // check, or from A's when the two share no symbols, so B's check is
@@ -276,26 +270,26 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
         }
         // A under the shared symbols' values in B's model, those the
         // wrapped interpolator found rather than any the script finds
-        (*out_stream) << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
-        (*out_stream) << "(" << smtlib::ASSERT_STR << " " << A << ")"
-                      << std::endl;
-        (*out_stream) << "(" << smtlib::CHECK_SAT_ASSUMING_MODEL_STR << " (";
+        out_stream.get() << "(" << smtlib::PUSH_STR << " 1)" << std::endl;
+        out_stream.get() << "(" << smtlib::ASSERT_STR << " " << A << ")"
+                         << std::endl;
+        out_stream.get() << "(" << smtlib::CHECK_SAT_ASSUMING_MODEL_STR << " (";
         for (std::size_t i = 0; i < model.size(); ++i)
         {
-          (*out_stream) << (i > 0 ? " " : "") << model[i].first;
+          out_stream.get() << (i > 0 ? " " : "") << model[i].first;
         }
-        (*out_stream) << ") (";
+        out_stream.get() << ") (";
         for (std::size_t i = 0; i < model.size(); ++i)
         {
-          (*out_stream) << (i > 0 ? " " : "") << model[i].second;
+          out_stream.get() << (i > 0 ? " " : "") << model[i].second;
         }
-        (*out_stream) << "))" << std::endl;
+        out_stream.get() << "))" << std::endl;
         if (model_interpolant)
         {
-          (*out_stream) << "(" << smtlib::GET_UNSAT_MODEL_INTERPOLANT_STR << ")"
-                        << std::endl;
+          out_stream.get() << "(" << smtlib::GET_UNSAT_MODEL_INTERPOLANT_STR
+                           << ")" << std::endl;
         }
-        (*out_stream) << "(" << smtlib::POP_STR << " 1)" << std::endl;
+        out_stream.get() << "(" << smtlib::POP_STR << " 1)" << std::endl;
         if (!r.is_unsat())
         {
           out_I.push_back(Term());
@@ -351,20 +345,11 @@ void PrintingInterpolator::initialize()
   }
 }
 
-SmtInterpolator create_printing_interpolator(
-    SmtInterpolator wrapped_interpolator, std::ostream * out_stream)
+SmtInterpolator interpolators::printing(SmtInterpolator wrapped_interpolator,
+                                        std::ostream & out_stream)
 {
   return std::make_shared<PrintingInterpolator>(std::move(wrapped_interpolator),
                                                 out_stream);
-}
-
-SmtInterpolator create_printing_interpolator(
-    SmtInterpolator wrapped_interpolator,
-    std::ostream * out_stream,
-    PrintingStyleEnum /* style */)
-{
-  return create_printing_interpolator(std::move(wrapped_interpolator),
-                                      out_stream);
 }
 
 }  // namespace smt

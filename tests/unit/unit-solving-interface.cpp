@@ -210,10 +210,9 @@ TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
   EXPECT_EQ(dump_equality(create_solver(GetParam()), prefix + "-param.smt2"),
             plain);
   std::ostringstream printed;
-  EXPECT_EQ(
-      dump_equality(create_printing_solver(create_solver(GetParam()), &printed),
-                    prefix + "-printing.smt2"),
-      plain);
+  EXPECT_EQ(dump_equality(solvers::printing(create_solver(GetParam()), printed),
+                          prefix + "-printing.smt2"),
+            plain);
 }
 
 TEST_P(UnitSolveTests, DumpRefusesUnopenableFile)

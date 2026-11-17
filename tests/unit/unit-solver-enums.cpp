@@ -97,7 +97,7 @@ TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
 {
   // a backend that breaks this has to say so here, rather than let the
   // attributes drift apart
-  for (SolverEnum se : available_solver_enums())
+  for (SolverEnum se : solvers::available())
   {
     EXPECT_EQ(solver_has_attribute(se, FULL_TRANSFER),
               solver_has_attribute(se, TERMITER)

@@ -151,7 +151,7 @@ std::vector<GenericSolverParam> params_where(
     const std::function<bool(SolverEnum)> & filter)
 {
   std::vector<GenericSolverParam> params;
-  for (SolverEnum b : available_solver_enums())
+  for (SolverEnum b : solvers::available())
   {
     if (solver_binary(b).empty() || !filter(b))
     {
@@ -172,7 +172,7 @@ std::vector<GenericSolverParam> params_with(SolverAttribute a)
 std::vector<GenericSolverParam> params_one_buffer_size()
 {
   std::vector<GenericSolverParam> params;
-  for (SolverEnum b : available_solver_enums())
+  for (SolverEnum b : solvers::available())
   {
     if (!solver_binary(b).empty())
     {

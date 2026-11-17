@@ -83,7 +83,7 @@ class PrintingTests : public testing::Test,
     // Boolector refuses push without this. Set before printing starts, since
     // not every executable accepts it as an option; they get flags instead.
     wrapped->set_opt("incremental", "true");
-    s = create_printing_solver(wrapped, &os);
+    s = solvers::printing(wrapped, os);
     s->set_opt("produce-models", "true");
   }
 
