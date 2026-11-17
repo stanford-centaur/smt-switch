@@ -39,6 +39,8 @@ enum class SolverAttribute
   ARRAY_MODELS,
   // supports constant arrays
   CONSTARR,
+  // supports equality between arrays built on different constant arrays
+  CONSTARR_EQ,
   // terms can be traversed with iteration, and a term's Op and children
   // can be used to rebuild an equivalent term in another solver
   FULL_TRANSFER,

@@ -271,6 +271,41 @@ INSTANTIATE_TEST_SUITE_P(
         { SolverAttribute::CONSTARR })),
     ConfigName());
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ConstArrayEquality);
+class ConstArrayEquality : public ConstArrayTests
+{
+ protected:
+  void SetUp() override
+  {
+    ConstArrayTests::SetUp();
+    const_arr1 = s->make_term(s->make_term(1, bvsort8), arrsort);
+  }
+  Term const_arr1;
+};
+
+TEST_P(ConstArrayEquality, DifferentBasesAreUnequal)
+{
+  s->assert_formula(s->make_term(Op::Equal, const_arr, const_arr1));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+TEST_P(ConstArrayEquality, StoresOverDifferentBasesAreUnequal)
+{
+  Term val = s->make_symbol("val", bvsort8);
+  s->assert_formula(
+      s->make_term(Op::Equal,
+                   s->make_term(Op::Store, const_arr, idx0, val),
+                   s->make_term(Op::Store, const_arr1, idx0, val)));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    ConstArrayEquality,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::CONSTARR, SolverAttribute::CONSTARR_EQ })),
+    ConfigName());
+
 }  // namespace
 
 }  // namespace smt::tests
