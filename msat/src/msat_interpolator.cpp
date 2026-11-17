@@ -169,7 +169,7 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
 
   // solve query and get interpolants
   bool timed_out = false;
-  msat_result msat_res = msat_solver_->solve(nullptr, timed_out);
+  msat_result msat_res = msat_solver_->solve({}, timed_out);
 
   if (msat_res == MSAT_SAT)
   {

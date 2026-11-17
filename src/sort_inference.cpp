@@ -710,7 +710,7 @@ const PrimOpSortInfo & sort_info(PrimOp po, const char * caller)
   if (i >= std::size(primop_sort_info))
   {
     throw IncorrectUsageException(std::string(caller)
-                                  + " got a PrimOp that is no operator: "
+                                  + " got a PrimOp that is not an operator: "
                                   + std::to_string(static_cast<int>(po)));
   }
   return primop_sort_info[i];

@@ -521,7 +521,7 @@ Result MsatSolver::check_sat()
   last_query_assuming = false;
   clear_assumption_clauses();
   bool timed_out = false;
-  msat_result mres = solve(nullptr, timed_out);
+  msat_result mres = solve({}, timed_out);
 
   if (mres == MSAT_SAT)
   {
@@ -556,7 +556,8 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
     massumptions.push_back(get_msat_term(a)->term);
   }
 
-  last_query_assuming = true;
+  // a check without assumptions is a plain check
+  last_query_assuming = !assumptions.empty();
   clear_assumption_clauses();
 
   msat_term lbl;
@@ -573,7 +574,7 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
   }
 
   bool timed_out = false;
-  msat_result mres = solve(&lbls, timed_out);
+  msat_result mres = solve(lbls, timed_out);
 
   if (mres == MSAT_SAT)
   {
@@ -1269,7 +1270,8 @@ msat_term MsatSolver::label(msat_term p) const
   return msat_make_constant(*env, d);
 }
 
-msat_result MsatSolver::solve(std::vector<msat_term> * labels, bool & timed_out)
+msat_result MsatSolver::solve(const std::vector<msat_term> & labels,
+                              bool & timed_out)
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   const bool limited = time_limit > std::chrono::duration<double>::zero();
@@ -1285,9 +1287,12 @@ msat_result MsatSolver::solve(std::vector<msat_term> * labels, bool & timed_out)
   {
     throw SolverException("MathSAT refused the time limit");
   }
+  // mathsat takes the assumptions as a non-const pointer, but only reads them
   msat_result res =
-      labels ? msat_solve_with_assumptions(*env, labels->data(), labels->size())
-             : msat_solve(*env);
+      labels.empty()
+          ? msat_solve(*env)
+          : msat_solve_with_assumptions(
+                *env, const_cast<msat_term *>(labels.data()), labels.size());
   if (limited)
   {
     msat_set_termination_test(*env, nullptr, nullptr);

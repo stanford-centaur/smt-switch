@@ -168,13 +168,6 @@ constexpr bool rows_follow_enum()
 static_assert(rows_follow_enum(),
               "primop_info's rows must be in the order of the PrimOp enum");
 
-/** The row of po, or null for NUM_OPS_AND_NULL or an out-of-range value */
-const PrimOpInfo * find_info(PrimOp po)
-{
-  auto i = static_cast<std::size_t>(po);
-  return i < std::size(primop_info) ? &primop_info[i] : nullptr;
-}
-
 /** The row of po
  *  @param caller the public function asking, for the message
  *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
@@ -182,21 +175,14 @@ const PrimOpInfo * find_info(PrimOp po)
  */
 const PrimOpInfo & info(PrimOp po, const char * caller)
 {
-  const PrimOpInfo * row = find_info(po);
-  if (!row)
+  const auto i = static_cast<std::size_t>(po);
+  if (i >= std::size(primop_info))
   {
     throw IncorrectUsageException(std::string(caller)
-                                  + " got a PrimOp that is no operator: "
+                                  + " got a PrimOp that is not an operator: "
                                   + std::to_string(static_cast<int>(po)));
   }
-  return *row;
-}
-
-/** The attribute of po, NONE if it has no row */
-Assoc assoc_of(PrimOp po)
-{
-  const PrimOpInfo * row = find_info(po);
-  return row ? row->assoc : Assoc::NONE;
+  return primop_info[i];
 }
 
 /** @throws IncorrectUsageException unless po takes given indices; the null
@@ -325,15 +311,30 @@ std::ostream & operator<<(std::ostream & output, const Op o)
   return output;
 }
 
-bool is_left_assoc(PrimOp po) { return assoc_of(po) == Assoc::LEFT; }
+bool is_left_assoc(PrimOp po)
+{
+  return info(po, "is_left_assoc").assoc == Assoc::LEFT;
+}
 
-bool is_right_assoc(PrimOp po) { return assoc_of(po) == Assoc::RIGHT; }
+bool is_right_assoc(PrimOp po)
+{
+  return info(po, "is_right_assoc").assoc == Assoc::RIGHT;
+}
 
-bool is_chainable(PrimOp po) { return assoc_of(po) == Assoc::CHAINABLE; }
+bool is_chainable(PrimOp po)
+{
+  return info(po, "is_chainable").assoc == Assoc::CHAINABLE;
+}
 
-bool is_pairwise(PrimOp po) { return assoc_of(po) == Assoc::PAIRWISE; }
+bool is_pairwise(PrimOp po)
+{
+  return info(po, "is_pairwise").assoc == Assoc::PAIRWISE;
+}
 
-bool is_variadic(PrimOp po) { return assoc_of(po) != Assoc::NONE; }
+bool is_variadic(PrimOp po)
+{
+  return info(po, "is_variadic").assoc != Assoc::NONE;
+}
 
 }  // namespace smt
 
