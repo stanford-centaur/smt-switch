@@ -22,7 +22,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
@@ -357,21 +356,22 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     ,
     BVOpDefinitionTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntOpDefinitionTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     RealOpDefinitionTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_REAL })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_REAL })),
     ConfigName());
 
 }  // namespace

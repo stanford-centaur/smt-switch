@@ -785,32 +785,35 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     CastTerm,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     CastTermArithmetic,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_REAL })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_REAL })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     CastOp,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilTests,
     UnitUtilTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilIntTests,
     UnitUtilIntTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ TERMITER, THEORY_INT })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TERMITER, SolverAttribute::THEORY_INT })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilDimacsTests,
@@ -1126,8 +1129,8 @@ TEST_P(SmtLibApplication, PowerWithoutAProduct)
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibApplication,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT, QUANTIFIERS })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT, SolverAttribute::QUANTIFIERS })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibDeclareFun);
@@ -1161,8 +1164,8 @@ TEST_P(SmtLibDeclareFun, FunctionListsItsDomain)
 INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibDeclareFun,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT })),
     ConfigName());
 
 TEST(SmtLibDeclareDatatypes, NoDatatypeIsRefused)
@@ -1221,7 +1224,7 @@ INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibDeclareDatatypes,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { THEORY_INT, THEORY_DATATYPE })),
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_DATATYPE })),
     ConfigName());
 
 TEST(SmtLibBenchmark, NothingToDeclare)
@@ -1332,7 +1335,9 @@ INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibBenchmarkDeclarations,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { TERMITER, THEORY_INT, UNINTERP_SORT })),
+        { SolverAttribute::TERMITER,
+          SolverAttribute::THEORY_INT,
+          SolverAttribute::UNINTERP_SORT })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkParamSorts);
@@ -1421,7 +1426,9 @@ INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibBenchmarkParamSorts,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { TERMITER, THEORY_INT, PARAM_UNINTERP_SORT })),
+        { SolverAttribute::TERMITER,
+          SolverAttribute::THEORY_INT,
+          SolverAttribute::PARAM_UNINTERP_SORT })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkDatatypes);
@@ -1486,7 +1493,9 @@ INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibBenchmarkDatatypes,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { TERMITER, THEORY_INT, THEORY_DATATYPE })),
+        { SolverAttribute::TERMITER,
+          SolverAttribute::THEORY_INT,
+          SolverAttribute::THEORY_DATATYPE })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkQuantifiers);
@@ -1514,7 +1523,9 @@ INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibBenchmarkQuantifiers,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { TERMITER, THEORY_INT, QUANTIFIERS })),
+        { SolverAttribute::TERMITER,
+          SolverAttribute::THEORY_INT,
+          SolverAttribute::QUANTIFIERS })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibBenchmarkRenamedSorts);
@@ -1561,7 +1572,10 @@ INSTANTIATE_TEST_SUITE_P(
     UnitUtil,
     SmtLibBenchmarkRenamedSorts,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { TERMITER, THEORY_INT, QUANTIFIERS, UNINTERP_SORT })),
+        { SolverAttribute::TERMITER,
+          SolverAttribute::THEORY_INT,
+          SolverAttribute::QUANTIFIERS,
+          SolverAttribute::UNINTERP_SORT })),
     ConfigName());
 
 }  // namespace

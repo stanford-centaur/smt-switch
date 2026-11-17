@@ -55,6 +55,96 @@ SmtSolver create_solver(SolverConfiguration sc)
   return generic_solver;
 }
 
+bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
+{
+  std::unordered_set<SolverAttribute> solver_attrs = get_solver_attributes(se);
+  return solver_attrs.find(sa) != solver_attrs.end();
+}
+
+std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
+{
+  // no default, so that -Wswitch reports an enumerator without a case
+  switch (se)
+  {
+    case BTOR:
+      return {
+        SolverAttribute::TERMITER,          SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::THEORY_BV,         SolverAttribute::CONSTARR,
+        SolverAttribute::UNSAT_CORE,        SolverAttribute::QUANTIFIERS,
+        SolverAttribute::BOOL_BV1_ALIASING, SolverAttribute::TIMELIMIT
+      };
+    // Bitwuzla reasons over terms of uninterpreted sorts in functions,
+    // arrays and ite, but answers unknown to an equality between two of
+    // them that its preprocessing cannot remove.
+    case BZLA:
+    case BZLA_INTERPOLATOR:
+      return {
+        SolverAttribute::TERMITER,      SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::CONSTARR,      SolverAttribute::FULL_TRANSFER,
+        SolverAttribute::UNSAT_CORE,    SolverAttribute::THEORY_BV,
+        SolverAttribute::QUANTIFIERS,   SolverAttribute::TIMELIMIT,
+        SolverAttribute::UNINTERP_SORT, SolverAttribute::PARAM_UNINTERP_SORT
+      };
+    case CVC5:
+    case CVC5_INTERPOLATOR:
+      return {
+        SolverAttribute::TERMITER,        SolverAttribute::THEORY_INT,
+        SolverAttribute::THEORY_STR,      SolverAttribute::THEORY_BV,
+        SolverAttribute::THEORY_REAL,     SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::ARRAY_FUN_BOOLS, SolverAttribute::CONSTARR,
+        SolverAttribute::FULL_TRANSFER,   SolverAttribute::UNSAT_CORE,
+        SolverAttribute::THEORY_DATATYPE, SolverAttribute::QUANTIFIERS,
+        SolverAttribute::UNINTERP_SORT,   SolverAttribute::PARAM_UNINTERP_SORT,
+        SolverAttribute::TIMELIMIT
+      };
+    case GENERIC_SOLVER:
+      return {
+        SolverAttribute::TERMITER,           SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::THEORY_INT,         SolverAttribute::THEORY_BV,
+        SolverAttribute::THEORY_REAL,        SolverAttribute::ARRAY_FUN_BOOLS,
+        SolverAttribute::UNSAT_CORE,         SolverAttribute::THEORY_DATATYPE,
+        SolverAttribute::QUANTIFIERS,        SolverAttribute::UNINTERP_SORT,
+        SolverAttribute::PARAM_UNINTERP_SORT
+      };
+    case MSAT:
+    case MSAT_INTERPOLATOR:
+      return {
+        SolverAttribute::TERMITER,      SolverAttribute::THEORY_INT,
+        SolverAttribute::THEORY_BV,     SolverAttribute::THEORY_REAL,
+        SolverAttribute::ARRAY_MODELS,  SolverAttribute::CONSTARR,
+        SolverAttribute::FULL_TRANSFER, SolverAttribute::UNSAT_CORE,
+        SolverAttribute::UNINTERP_SORT, SolverAttribute::PARAM_UNINTERP_SORT,
+        SolverAttribute::TIMELIMIT
+      };
+    case YICES2:
+    case YICES2_INTERPOLATOR:
+      return {
+        SolverAttribute::CONSTARR,        SolverAttribute::FULL_TRANSFER,
+        SolverAttribute::TERMITER,        SolverAttribute::THEORY_INT,
+        SolverAttribute::THEORY_BV,       SolverAttribute::THEORY_REAL,
+        SolverAttribute::ARRAY_FUN_BOOLS, SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::UNINTERP_SORT,   SolverAttribute::PARAM_UNINTERP_SORT,
+        SolverAttribute::TIMELIMIT,       SolverAttribute::UNSAT_CORE
+      };
+    case Z3:
+      return { SolverAttribute::TERMITER,
+               SolverAttribute::THEORY_INT,
+               SolverAttribute::THEORY_BV,
+               SolverAttribute::THEORY_REAL,
+               SolverAttribute::ARRAY_FUN_BOOLS,
+               SolverAttribute::ARRAY_MODELS,
+               SolverAttribute::CONSTARR,
+               SolverAttribute::FULL_TRANSFER,
+               SolverAttribute::UNSAT_CORE,
+               SolverAttribute::THEORY_DATATYPE,
+               SolverAttribute::QUANTIFIERS,
+               SolverAttribute::UNINTERP_SORT,
+               SolverAttribute::PARAM_UNINTERP_SORT,
+               SolverAttribute::TIMELIMIT };
+  }
+  throw InternalException("Unknown SolverEnum: " + std::to_string(se));
+}
+
 std::vector<SolverEnum> available_solver_enums_with_generic()
 {
   std::vector<SolverEnum> enums = smt::solvers::available();
@@ -196,12 +286,12 @@ std::vector<SolverConfiguration> filter_solver_configurations_with_generic(
 
   // there are some features that logging solvers support even if the base
   // solver does not
-  if (attributes.find(TERMITER) != attributes.end()
-      || attributes.find(FULL_TRANSFER) != attributes.end())
+  if (attributes.find(SolverAttribute::TERMITER) != attributes.end()
+      || attributes.find(SolverAttribute::FULL_TRANSFER) != attributes.end())
   {
     std::unordered_set<SolverAttribute> reduced_attributes = attributes;
-    reduced_attributes.erase(TERMITER);
-    reduced_attributes.erase(FULL_TRANSFER);
+    reduced_attributes.erase(SolverAttribute::TERMITER);
+    reduced_attributes.erase(SolverAttribute::FULL_TRANSFER);
     // get filtered enums for the rest of the attributes
     std::vector<SolverEnum> reduced_filtered_enums =
         filter_solver_enums_with_generic(reduced_attributes);

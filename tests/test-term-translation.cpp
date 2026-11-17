@@ -978,111 +978,133 @@ TEST_P(QuantifierTranslationTests, ParamName)
 // as generic solvers do not support term translation
 // currently.
 
-INSTANTIATE_TEST_SUITE_P(
-    ,
-    SelfTranslationTests,
-    testing::ValuesIn(filter_solver_configurations({ TERMITER })),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(,
+                         SelfTranslationTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { SolverAttribute::TERMITER })),
+                         ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(,
                          SelfTranslationIntTests,
                          testing::ValuesIn(filter_solver_configurations(
-                             { FULL_TRANSFER, THEORY_INT })),
+                             { SolverAttribute::FULL_TRANSFER,
+                               SolverAttribute::THEORY_INT })),
                          ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(,
                          SelfTranslationRealTests,
                          testing::ValuesIn(filter_solver_configurations(
-                             { FULL_TRANSFER, THEORY_REAL })),
+                             { SolverAttribute::FULL_TRANSFER,
+                               SolverAttribute::THEORY_REAL })),
                          ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     TranslationTests,
-    testing::Combine(
-        testing::ValuesIn(filter_solver_configurations({ TERMITER })),
-        testing::ValuesIn(filter_solver_configurations({ TERMITER }))),
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
+                         { SolverAttribute::TERMITER })),
+                     testing::ValuesIn(filter_solver_configurations(
+                         { SolverAttribute::TERMITER }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     BVTranslationTests,
-    testing::Combine(testing::ValuesIn(
-                         filter_solver_configurations({ TERMITER, THEORY_BV })),
-                     testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_BV }))),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_BV })),
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_BV }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     BoolArrayTranslationTests,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS })),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::CONSTARR,
+                           SolverAttribute::ARRAY_FUN_BOOLS })),
                      testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, CONSTARR, ARRAY_FUN_BOOLS }))),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::CONSTARR,
+                           SolverAttribute::ARRAY_FUN_BOOLS }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntTranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_INT })),
-                     testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_INT }))),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_INT })),
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_INT }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     RealTranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_REAL })),
-                     testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_REAL }))),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_REAL })),
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_REAL }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IntRealTranslationTests,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_INT, THEORY_REAL })),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::THEORY_INT,
+                           SolverAttribute::THEORY_REAL })),
                      testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_INT, THEORY_REAL }))),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::THEORY_INT,
+                           SolverAttribute::THEORY_REAL }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     StringTranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_STR })),
-                     testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_STR }))),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_STR })),
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_STR }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     DatatypeTranslationTests,
-    testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_DATATYPE })),
-                     testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_DATATYPE }))),
+    testing::Combine(
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_DATATYPE })),
+        testing::ValuesIn(filter_solver_configurations(
+            { SolverAttribute::TERMITER, SolverAttribute::THEORY_DATATYPE }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     SortConstructorTranslationTests,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, PARAM_UNINTERP_SORT })),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::PARAM_UNINTERP_SORT })),
                      testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, PARAM_UNINTERP_SORT }))),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::PARAM_UNINTERP_SORT }))),
     ConfigPairName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     QuantifierTranslationTests,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_BV, QUANTIFIERS })),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::THEORY_BV,
+                           SolverAttribute::QUANTIFIERS })),
                      testing::ValuesIn(filter_solver_configurations(
-                         { TERMITER, THEORY_BV, QUANTIFIERS }))),
+                         { SolverAttribute::TERMITER,
+                           SolverAttribute::THEORY_BV,
+                           SolverAttribute::QUANTIFIERS }))),
     ConfigPairName());
 
 }  // namespace

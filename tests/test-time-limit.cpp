@@ -21,7 +21,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
 namespace smt::tests {
@@ -175,8 +174,8 @@ TEST_P(TimeLimitTests, RefusesValueOtherThanNonnegativeNumber)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedTimeLimitTests,
     TimeLimitTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ TIMELIMIT })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TIMELIMIT })));
 
 }  // namespace
 

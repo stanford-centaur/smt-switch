@@ -8,7 +8,6 @@
 #include "smt-switch/solver_enums.h"
 
 #include <sstream>
-#include <unordered_set>
 
 #include "smt-switch/exceptions.h"
 
@@ -18,67 +17,6 @@ bool is_interpolator_solver_enum(SolverEnum se)
 {
   return se == BZLA_INTERPOLATOR || se == CVC5_INTERPOLATOR
          || se == MSAT_INTERPOLATOR || se == YICES2_INTERPOLATOR;
-}
-
-bool solver_has_attribute(SolverEnum se, SolverAttribute sa)
-{
-  std::unordered_set<SolverAttribute> solver_attrs = get_solver_attributes(se);
-  return solver_attrs.find(sa) != solver_attrs.end();
-}
-
-std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
-{
-  // no default, so that -Wswitch reports an enumerator without a case
-  switch (se)
-  {
-    case BTOR:
-      return { TERMITER,   ARRAY_MODELS, THEORY_BV,         CONSTARR,
-               UNSAT_CORE, QUANTIFIERS,  BOOL_BV1_ALIASING, TIMELIMIT };
-    // Bitwuzla reasons over terms of uninterpreted sorts in functions,
-    // arrays and ite, but answers unknown to an equality between two of
-    // them that its preprocessing cannot remove.
-    case BZLA:
-    case BZLA_INTERPOLATOR:
-      return { TERMITER,      ARRAY_MODELS,       CONSTARR,    FULL_TRANSFER,
-               UNSAT_CORE,    THEORY_BV,          QUANTIFIERS, TIMELIMIT,
-               UNINTERP_SORT, PARAM_UNINTERP_SORT };
-    case CVC5:
-    case CVC5_INTERPOLATOR:
-      return { TERMITER,      THEORY_INT,          THEORY_STR,      THEORY_BV,
-               THEORY_REAL,   ARRAY_MODELS,        ARRAY_FUN_BOOLS, CONSTARR,
-               FULL_TRANSFER, UNSAT_CORE,          THEORY_DATATYPE, QUANTIFIERS,
-               UNINTERP_SORT, PARAM_UNINTERP_SORT, TIMELIMIT };
-    case GENERIC_SOLVER:
-      return { TERMITER,      ARRAY_MODELS,       THEORY_INT,
-               THEORY_BV,     THEORY_REAL,        ARRAY_FUN_BOOLS,
-               UNSAT_CORE,    THEORY_DATATYPE,    QUANTIFIERS,
-               UNINTERP_SORT, PARAM_UNINTERP_SORT };
-    case MSAT:
-    case MSAT_INTERPOLATOR:
-      return {
-        TERMITER, THEORY_INT,    THEORY_BV,  THEORY_REAL,   ARRAY_MODELS,
-        CONSTARR, FULL_TRANSFER, UNSAT_CORE, UNINTERP_SORT, PARAM_UNINTERP_SORT,
-        TIMELIMIT
-      };
-    case YICES2:
-    case YICES2_INTERPOLATOR:
-      return {
-        LOGGING,      CONSTARR,      FULL_TRANSFER,       TERMITER,
-        THEORY_INT,   THEORY_BV,     THEORY_REAL,         ARRAY_FUN_BOOLS,
-        ARRAY_MODELS, UNINTERP_SORT, PARAM_UNINTERP_SORT, TIMELIMIT,
-        UNSAT_CORE
-      };
-    case Z3:
-      return { TERMITER,        LOGGING,
-               THEORY_INT,      THEORY_BV,
-               THEORY_REAL,     ARRAY_FUN_BOOLS,
-               ARRAY_MODELS,    CONSTARR,
-               FULL_TRANSFER,   UNSAT_CORE,
-               THEORY_DATATYPE, QUANTIFIERS,
-               UNINTERP_SORT,   PARAM_UNINTERP_SORT,
-               TIMELIMIT };
-  }
-  throw InternalException("Unknown SolverEnum: " + std::to_string(se));
 }
 
 std::ostream & operator<<(std::ostream & o, SolverEnum e)
@@ -105,39 +43,6 @@ std::string to_string(SolverEnum e)
 {
   std::ostringstream ostr;
   ostr << e;
-  return ostr.str();
-}
-
-std::ostream & operator<<(std::ostream & o, SolverAttribute a)
-{
-  // no default, so that -Wswitch reports an enumerator without a case
-  switch (a)
-  {
-    case LOGGING: return o << "LOGGING";
-    case TERMITER: return o << "TERMITER";
-    case THEORY_BV: return o << "THEORY_BV";
-    case THEORY_INT: return o << "THEORY_INT";
-    case THEORY_REAL: return o << "THEORY_REAL";
-    case THEORY_STR: return o << "THEORY_STR";
-    case ARRAY_MODELS: return o << "ARRAY_MODELS";
-    case CONSTARR: return o << "CONSTARR";
-    case FULL_TRANSFER: return o << "FULL_TRANSFER";
-    case ARRAY_FUN_BOOLS: return o << "ARRAY_FUN_BOOLS";
-    case UNSAT_CORE: return o << "UNSAT_CORE";
-    case THEORY_DATATYPE: return o << "THEORY_DATATYPE";
-    case QUANTIFIERS: return o << "QUANTIFIERS";
-    case UNINTERP_SORT: return o << "UNINTERP_SORT";
-    case PARAM_UNINTERP_SORT: return o << "PARAM_UNINTERP_SORT";
-    case BOOL_BV1_ALIASING: return o << "BOOL_BV1_ALIASING";
-    case TIMELIMIT: return o << "TIMELIMIT";
-  }
-  throw InternalException("Unknown SolverAttribute: " + std::to_string(a));
-}
-
-std::string to_string(SolverAttribute a)
-{
-  std::ostringstream ostr;
-  ostr << a;
   return ostr.str();
 }
 

@@ -132,7 +132,8 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_TRUE(Op(And).check_sortedness({ b1, b2 }));
   EXPECT_TRUE(Op(Xor).check_sortedness({ b1, b2 }));
   // wrong operator, except where Booleans are bit-vectors of width one
-  if (!solver_has_attribute(s->get_solver_enum(), BOOL_BV1_ALIASING))
+  if (!solver_has_attribute(s->get_solver_enum(),
+                            SolverAttribute::BOOL_BV1_ALIASING))
   {
     EXPECT_FALSE(Op(BVAnd).check_sortedness({ b1, b2 }));
   }
@@ -179,7 +180,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   }
 
   /************** Quantifiers (if supported) ******************/
-  if (solver_has_attribute(s->get_solver_enum(), QUANTIFIERS))
+  if (solver_has_attribute(s->get_solver_enum(), SolverAttribute::QUANTIFIERS))
   {
     Term param = s->make_param("param", bvsort4);
     EXPECT_TRUE(param->is_param());
@@ -398,13 +399,13 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitArithmeticSortInference,
     UnitArithmeticSortInferenceTests,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { THEORY_INT, THEORY_REAL })));
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_REAL })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSortInference,
     DatatypeSortedness,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_DATATYPE })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_DATATYPE })),
     ConfigName());
 
 }  // namespace

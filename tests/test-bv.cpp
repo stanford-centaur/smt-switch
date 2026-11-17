@@ -19,7 +19,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
@@ -228,13 +227,14 @@ TEST_P(IndexedOpTests, RepeatWiderThan64Bits)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverBVTests,
     BVTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_BV })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })));
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     IndexedOpTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 }  // namespace

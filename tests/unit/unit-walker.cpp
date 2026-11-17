@@ -21,7 +21,6 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/tree_walker.h"
@@ -1040,12 +1039,14 @@ TEST_P(UnitWalkerTests, FreshVars)
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitWalker,
     UnitWalkerTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitWalker,
     TreeWalkerSteps,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TERMITER })),
     ConfigName());
 
 }  // namespace

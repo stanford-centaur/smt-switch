@@ -45,7 +45,9 @@ struct ItpParam
 
 std::ostream & operator<<(std::ostream & o, const ItpParam & p)
 {
-  return o << p.config << " over " << p.theory;
+  return o << p.config << " over "
+           << (p.theory == SolverAttribute::THEORY_INT ? "integers"
+                                                       : "bit-vectors");
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ItpTests);
@@ -59,7 +61,7 @@ class ItpTests : public testing::Test,
 
     // the queries order the symbols, so unsigned bit-vector comparisons
     // keep them unsatisfiable
-    if (GetParam().theory == THEORY_INT)
+    if (GetParam().theory == SolverAttribute::THEORY_INT)
     {
       sort = itp->make_sort(INT);
       lt = Lt;
@@ -179,16 +181,17 @@ TEST_P(ItpTests, SequenceInterpolants)
 // increments one of them, and after k steps a + b exceeds k.
 TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
 {
-  PrimOp add = GetParam().theory == THEORY_INT ? Plus : BVAdd;
+  PrimOp add = GetParam().theory == SolverAttribute::THEORY_INT ? Plus : BVAdd;
   // cvc5 takes a while for the deeper bit-vector unrollings
   bool cvc5_bv = GetParam().config.solver_enum == CVC5_INTERPOLATOR
-                 && GetParam().theory == THEORY_BV;
+                 && GetParam().theory == SolverAttribute::THEORY_BV;
   int max_k = cvc5_bv ? 3 : 5;
   for (int k = 2; k <= max_k; ++k)
   {
     SmtInterpolator s = interpolators::create(GetParam().config.solver_enum);
-    Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
-                                               : s->make_sort(BV, 8);
+    Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
+                   ? s->make_sort(INT)
+                   : s->make_sort(BV, 8);
     Term one = s->make_term(1, srt);
     TermVec a, b;
     for (int i = 0; i <= k; ++i)
@@ -276,8 +279,9 @@ TEST_P(ItpTests, InterpolatesAfterReset)
   itp->reset();
   for (int round = 0; round < 2; ++round)
   {
-    Sort s = GetParam().theory == THEORY_INT ? itp->make_sort(INT)
-                                             : itp->make_sort(BV, 8);
+    Sort s = GetParam().theory == SolverAttribute::THEORY_INT
+                 ? itp->make_sort(INT)
+                 : itp->make_sort(BV, 8);
     Term a = itp->make_symbol("a", s);
     Term b = itp->make_symbol("b", s);
     Term c = itp->make_symbol("c", s);
@@ -300,8 +304,9 @@ TEST_P(ItpTests, ReuseKeepsResults)
   {
     SmtInterpolator s = interpolators::create(GetParam().config.solver_enum);
     s->set_opt("incremental", incremental);
-    Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
-                                               : s->make_sort(BV, 8);
+    Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
+                   ? s->make_sort(INT)
+                   : s->make_sort(BV, 8);
     Term a = s->make_symbol("a", srt);
     Term b = s->make_symbol("b", srt);
     Term c = s->make_symbol("c", srt);
@@ -381,8 +386,9 @@ TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
     s->reset();
     std::size_t start = out.str().size();
     // the terms made before the reset are gone, so these come after it
-    Sort srt = GetParam().theory == THEORY_INT ? s->make_sort(INT)
-                                               : s->make_sort(BV, 8);
+    Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
+                   ? s->make_sort(INT)
+                   : s->make_sort(BV, 8);
     Term a = s->make_symbol("a", srt);
     Term b = s->make_symbol("b", srt);
     Term c = s->make_symbol("c", srt);
@@ -468,8 +474,9 @@ TEST_P(ItpTests, PrintingWritesNoRefusedQuery)
   std::ostringstream out;
   SmtInterpolator s = interpolators::printing(
       interpolators::create(GetParam().config.solver_enum), out);
-  Sort srt =
-      GetParam().theory == THEORY_INT ? s->make_sort(INT) : s->make_sort(BV, 8);
+  Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
+                 ? s->make_sort(INT)
+                 : s->make_sort(BV, 8);
   Term a = s->make_symbol("a", srt);
   Term b = s->make_symbol("b", srt);
   Term a_lt_b = s->make_term(lt, a, b);
@@ -582,7 +589,7 @@ TEST_P(ItpTests, InterpolatesOverASharedArray)
 
 TEST_P(ItpTests, NonlinearInterpolant)
 {
-  if (GetParam().theory != THEORY_INT)
+  if (GetParam().theory != SolverAttribute::THEORY_INT)
   {
     GTEST_SKIP() << "a square is never negative only over the integers";
   }
@@ -608,7 +615,8 @@ TEST_P(ItpTests, NonlinearInterpolant)
 std::vector<ItpParam> itp_params()
 {
   std::vector<ItpParam> params;
-  for (SolverAttribute theory : { THEORY_INT, THEORY_BV })
+  for (SolverAttribute theory :
+       { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_BV })
   {
     for (SolverConfiguration sc :
          filter_interpolator_configurations({ theory }))
@@ -624,9 +632,9 @@ std::string itp_param_name(const testing::TestParamInfo<ItpParam> & info)
 {
   std::string solver = to_string(info.param.config.solver_enum);
   solver = solver.substr(0, solver.find("_INTERPOLATOR"));
-  std::string theory = to_string(info.param.theory);
-  theory = theory.substr(theory.find("THEORY_") + 7);
-  std::string name = solver + "_" + theory;
+  std::string name =
+      solver
+      + (info.param.theory == SolverAttribute::THEORY_INT ? "_INT" : "_BV");
   if (info.param.config.is_logging_solver)
   {
     name += "_LOGGING";

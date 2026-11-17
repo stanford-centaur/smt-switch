@@ -41,26 +41,6 @@ cdef class SolverEnum:
         return <int> self.se
 
 
-cdef class SolverAttribute:
-    def __eq__(self, SolverAttribute other):
-        return (<int> self.sa) == (<int> other.sa)
-
-    def __ne__(self, SolverAttribute other):
-        return (<int> self.sa) != (<int> other.sa)
-
-    def __hash__(self):
-        return hash((<int> self.sa, self.name))
-
-    def __str__(self):
-        return to_string(self.sa).decode()
-
-    def __repr__(self):
-        return to_string(self.sa).decode()
-
-    def as_int(self):
-        return <int> self.sa
-
-
 cdef class PrimOp:
     def __eq__(self, PrimOp other):
         return (<int> self.po) == (<int> other.po)

@@ -26,7 +26,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
@@ -430,26 +429,27 @@ TEST_P(ToBits, PowerOfTwoBases)
 INSTANTIATE_TEST_SUITE_P(
     UnitToInt,
     ToBits,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntBVTests,
     ToIntBVTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_BV })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntIntTests,
     ToIntIntTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT })));
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverToIntRealTests,
     ToIntRealTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_REAL })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_REAL })));
 
 // SMT-LIB numerals are never negative: a negative integer value is (- n)
 TEST(ToIntParsing, SmtlibNegativeInt)

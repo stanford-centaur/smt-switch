@@ -148,26 +148,27 @@ TEST_P(Benchmark, Answers)
 INSTANTIATE_TEST_SUITE_P(
     QF_UFLIA,
     Benchmark,
-    testing::Combine(
-        testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
-        testing::ValuesIn(inputs_in("qf_uflia")),
-        testing::Values(true)),
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
+                         { SolverAttribute::THEORY_INT })),
+                     testing::ValuesIn(inputs_in("qf_uflia")),
+                     testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_LRA,
     Benchmark,
-    testing::Combine(
-        testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })),
-        testing::ValuesIn(inputs_in("qf_lra")),
-        testing::Values(true)),
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
+                         { SolverAttribute::THEORY_REAL })),
+                     testing::ValuesIn(inputs_in("qf_lra")),
+                     testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
     QF_S,
     Benchmark,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { THEORY_INT, THEORY_STR })),
+                         { SolverAttribute::THEORY_INT,
+                           SolverAttribute::THEORY_STR })),
                      testing::ValuesIn(inputs_in("qf_s")),
                      testing::Values(true)),
     reader_input_name);
@@ -184,7 +185,9 @@ INSTANTIATE_TEST_SUITE_P(
     QF_ALIA,
     Benchmark,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { THEORY_INT, ARRAY_MODELS, CONSTARR })),
+                         { SolverAttribute::THEORY_INT,
+                           SolverAttribute::ARRAY_MODELS,
+                           SolverAttribute::CONSTARR })),
                      testing::ValuesIn(inputs_in("qf_alia")),
                      testing::Values(true)),
     reader_input_name);
@@ -192,10 +195,10 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     QF_UF,
     Benchmark,
-    testing::Combine(
-        testing::ValuesIn(filter_solver_configurations({ UNINTERP_SORT })),
-        testing::ValuesIn(inputs_in("qf_uf")),
-        testing::Values(true)),
+    testing::Combine(testing::ValuesIn(filter_solver_configurations(
+                         { SolverAttribute::UNINTERP_SORT })),
+                     testing::ValuesIn(inputs_in("qf_uf")),
+                     testing::Values(true)),
     reader_input_name);
 
 INSTANTIATE_TEST_SUITE_P(
@@ -203,7 +206,8 @@ INSTANTIATE_TEST_SUITE_P(
     Benchmark,
     testing::Combine(
         testing::ValuesIn(filter_solver_configurations_with_generic(
-            { PARAM_UNINTERP_SORT, THEORY_INT })),
+            { SolverAttribute::PARAM_UNINTERP_SORT,
+              SolverAttribute::THEORY_INT })),
         testing::ValuesIn(inputs_in("qf_uf_param_sorts")),
         testing::Values(true)),
     reader_input_name);
@@ -212,7 +216,8 @@ INSTANTIATE_TEST_SUITE_P(
     QF_LIRA,
     Benchmark,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { THEORY_INT, THEORY_REAL })),
+                         { SolverAttribute::THEORY_INT,
+                           SolverAttribute::THEORY_REAL })),
                      testing::ValuesIn(inputs_in("qf_lira")),
                      testing::Values(true)),
     reader_input_name);
@@ -221,7 +226,8 @@ INSTANTIATE_TEST_SUITE_P(
     QF_LIRA_NONSTRICT,
     Benchmark,
     testing::Combine(testing::ValuesIn(filter_solver_configurations(
-                         { THEORY_INT, THEORY_REAL })),
+                         { SolverAttribute::THEORY_INT,
+                           SolverAttribute::THEORY_REAL })),
                      testing::ValuesIn(inputs_in("qf_lira_nonstrict")),
                      testing::Values(false)),
     reader_input_name);
@@ -408,8 +414,8 @@ TEST_P(DumpRenamedSorts, KeepsAnUnsatisfiableQuery)
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     DumpRenamedSorts,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ UNINTERP_SORT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::UNINTERP_SORT })),
     ConfigName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(DumpUninterpretedSort);
@@ -434,8 +440,8 @@ TEST_P(DumpUninterpretedSort, DeclaresTheSort)
 INSTANTIATE_TEST_SUITE_P(
     SmtLibReader,
     DumpUninterpretedSort,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ UNINTERP_SORT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::UNINTERP_SORT })),
     ConfigName());
 
 TEST(UnorderedScopedSymbolMap, PopOutermostScope)

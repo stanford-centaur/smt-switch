@@ -18,7 +18,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
@@ -254,14 +253,14 @@ TEST_P(Binders, SymbolAsBinder)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedQuantifierIterTests,
     UnitQuantifierIterTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ QUANTIFIERS,
-                                                                  TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::QUANTIFIERS, SolverAttribute::TERMITER })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitQuantifiers,
     Binders,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ QUANTIFIERS })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::QUANTIFIERS })),
     ConfigName());
 
 }  // namespace

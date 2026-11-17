@@ -136,7 +136,8 @@ TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirSolver)
 INSTANTIATE_TEST_SUITE_P(
     ,
     TermLifetimeTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 }  // namespace

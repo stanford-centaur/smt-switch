@@ -101,7 +101,8 @@ TEST_P(UnsatCoreTests, CoreOfADroppedAssumption)
 
 TEST_P(UnsatCoreTests, CoreNamesTheSymbolNotAParamOfItsName)
 {
-  if (!solver_has_attribute(GetParam().solver_enum, QUANTIFIERS))
+  if (!solver_has_attribute(GetParam().solver_enum,
+                            SolverAttribute::QUANTIFIERS))
   {
     GTEST_SKIP() << "a solver without quantifiers has no params";
   }
@@ -196,8 +197,8 @@ TEST_P(UnsatCoreTests, NoAssumptionsNeeded)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverUnsatCoreTests,
     UnsatCoreTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ UNSAT_CORE })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::UNSAT_CORE })));
 
 }  // namespace
 

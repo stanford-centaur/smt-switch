@@ -24,7 +24,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
 namespace smt::tests {
@@ -155,7 +154,8 @@ TEST_P(SetLogic, LogicNames)
 INSTANTIATE_TEST_SUITE_P(
     ,
     SetLogic,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 }  // namespace
