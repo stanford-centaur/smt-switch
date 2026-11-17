@@ -133,7 +133,7 @@ class UnknownAssumingSolver : public LoggingSolver
  protected:
   Result do_check_sat_assuming(const TermVec & /* assumptions */) override
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
 };
 

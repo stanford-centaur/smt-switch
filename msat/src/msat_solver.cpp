@@ -525,22 +525,22 @@ Result MsatSolver::check_sat()
 
   if (mres == MSAT_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (mres == MSAT_UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (timed_out)
   {
-    return Result(UNKNOWN, "Time limit reached.");
+    return Result::unknown("Time limit reached.");
   }
   else
   {
     // MathSAT sets a message for every unknown result, terminations
     // included, and keeps it until the next error replaces it
     const std::string error = msat_last_error_message(*env);
-    return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
+    return error.empty() ? Result::unknown() : Result::unknown(error);
   }
 }
 
@@ -578,20 +578,20 @@ Result MsatSolver::do_check_sat_assuming(const TermVec & assumptions)
 
   if (mres == MSAT_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (mres == MSAT_UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (timed_out)
   {
-    return Result(UNKNOWN, "Time limit reached.");
+    return Result::unknown("Time limit reached.");
   }
   else
   {
     const std::string error = msat_last_error_message(*env);
-    return error.empty() ? Result(UNKNOWN) : Result(UNKNOWN, error);
+    return error.empty() ? Result::unknown() : Result::unknown(error);
   }
 }
 

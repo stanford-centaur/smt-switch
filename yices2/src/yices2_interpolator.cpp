@@ -213,7 +213,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
       shared.data());
   if (status_a == YICES_STATUS_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   if (status_a == YICES_STATUS_ERROR)
   {
@@ -221,8 +221,8 @@ Result Yices2Interpolator::refute_model(const Term & A,
   }
   if (status_a != YICES_STATUS_UNSAT)
   {
-    return Result(UNKNOWN,
-                  "Yices2 could not decide a check while interpolating");
+    return Result::unknown(
+        "Yices2 could not decide a check while interpolating");
   }
   term_t refutation = yices_get_model_interpolant(ctx_a);
   if (refutation == NULL_TERM)
@@ -231,7 +231,7 @@ Result Yices2Interpolator::refute_model(const Term & A,
   }
   model_interpolant = std::make_shared<Yices2Term>(refutation);
   solver_b->assert_formula(model_interpolant);
-  return Result(UNSAT);
+  return Result::unsat();
 }
 
 Result Yices2Interpolator::compute_seq_interpolants(const TermVec & formulae,

@@ -230,15 +230,15 @@ Result BzlaSolver::check_sat()
 
   if (r == bitwuzla::Result::SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (r == bitwuzla::Result::UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
 }
 
@@ -267,15 +267,15 @@ Result BzlaSolver::do_check_sat_assuming(const TermVec & assumptions)
 
   if (res == bitwuzla::Result::SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (res == bitwuzla::Result::UNSAT)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else
   {
-    return Result(UNKNOWN);
+    return Result::unknown();
   }
 }
 

@@ -15,43 +15,49 @@
 
 namespace smt {
 
-Result::Result(ResultType rt, std::string reason)
-    : result(rt), explanation(std::move(reason))
+Result::Result(Kind kind, std::string explanation)
+    : kind_(kind), explanation_(std::move(explanation))
 {
 }
 
-bool Result::is_sat() const { return result == SAT; }
+Result Result::sat() { return Result(Kind::Sat, "no explanation"); }
 
-bool Result::is_unsat() const { return result == UNSAT; }
+Result Result::unsat() { return Result(Kind::Unsat, "no explanation"); }
 
-bool Result::is_unknown() const { return result == UNKNOWN; }
+Result Result::unknown(std::string explanation)
+{
+  return Result(Kind::Unknown, std::move(explanation));
+}
 
-bool Result::is_null() const { return result == NUM_RESULTS; }
+bool Result::is_sat() const { return kind_ == Kind::Sat; }
+
+bool Result::is_unsat() const { return kind_ == Kind::Unsat; }
+
+bool Result::is_unknown() const { return kind_ == Kind::Unknown; }
+
+bool Result::is_null() const { return kind_ == Kind::Null; }
 
 std::string Result::get_explanation() const
 {
-  if (result != UNKNOWN)
+  if (kind_ != Kind::Unknown)
   {
     throw IncorrectUsageException(
         "Result was not unknown. Cannot get explanation");
   }
-  else
-  {
-    return explanation;
-  }
+  return explanation_;
 }
 
 std::string Result::to_string() const
 {
-  switch (result)
+  switch (kind_)
   {
-    case SAT: return "sat";
-    case UNSAT: return "unsat";
-    case UNKNOWN: return "unknown";
-    case NUM_RESULTS: break;
+    case Kind::Sat: return "sat";
+    case Kind::Unsat: return "unsat";
+    case Kind::Unknown: return "unknown";
+    case Kind::Null: break;
   }
-  throw InternalException("Result::to_string got a ResultType with no name: "
-                          + std::to_string(static_cast<int>(result)));
+  throw InternalException("Result::to_string got a Result with no name: "
+                          + std::to_string(static_cast<int>(kind_)));
 }
 
 std::ostream & operator<<(std::ostream & output, const Result r)
@@ -62,7 +68,7 @@ std::ostream & operator<<(std::ostream & output, const Result r)
 
 bool operator==(const Result & r1, const Result & r2)
 {
-  return r1.result == r2.result;
+  return r1.kind_ == r2.kind_;
 }
 
 bool operator!=(const Result & r1, const Result & r2) { return !(r1 == r2); }

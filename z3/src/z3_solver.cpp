@@ -733,15 +733,15 @@ try
   last_unsat = r == z3::unsat;
   if (r == z3::unsat)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (r == z3::sat)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (r == z3::unknown)
   {
-    return Result(UNKNOWN, instance->slv.reason_unknown());
+    return Result::unknown(instance->slv.reason_unknown());
   }
   else
   {
@@ -770,15 +770,15 @@ try
   last_unsat = r == z3::unsat;
   if (r == z3::unsat)
   {
-    return Result(UNSAT);
+    return Result::unsat();
   }
   else if (r == z3::sat)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (r == z3::unknown)
   {
-    return Result(UNKNOWN, instance->slv.reason_unknown());
+    return Result::unknown(instance->slv.reason_unknown());
   }
   else
   {

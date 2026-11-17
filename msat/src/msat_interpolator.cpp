@@ -173,20 +173,19 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
 
   if (msat_res == MSAT_SAT)
   {
-    return Result(SAT);
+    return Result::sat();
   }
   else if (msat_res == MSAT_UNKNOWN)
   {
     if (timed_out)
     {
-      return Result(UNKNOWN, "Time limit reached.");
+      return Result::unknown("Time limit reached.");
     }
-    return Result(
-        UNKNOWN,
+    return Result::unknown(
         with_error("Interpolation failure", msat_last_error_message(*env)));
   }
 
-  Result r = Result(UNSAT);
+  Result r = Result::unsat();
   for (size_t i = 1; i < itp_grps_.size(); ++i)
   {
     msat_term mI = msat_get_interpolant(*env, itp_grps_.data(), i);
@@ -199,10 +198,10 @@ Result MsatInterpolator::compute_seq_interpolants(const TermVec & formulae,
       // failure's report explains the result
       if (r.is_unsat())
       {
-        r = Result(UNKNOWN,
-                   with_error("Had at least one interpolation failure in "
-                              "get_sequence_interpolants",
-                              msat_last_error_message(*env)));
+        r = Result::unknown(
+            with_error("Had at least one interpolation failure in "
+                       "get_sequence_interpolants",
+                       msat_last_error_message(*env)));
       }
     }
     else
