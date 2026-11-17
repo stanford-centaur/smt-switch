@@ -128,6 +128,89 @@ class IndicatorTreeWalker : public TreeWalker
   }
 };
 
+/** Records each occurrence it visits, skips the children of skip_at and
+ *  aborts at abort_at
+ */
+class RecordingTreeWalker : public TreeWalker
+{
+ public:
+  using TreeWalker::TreeWalker;
+
+  TermVec visited = {};
+  Term skip_at = {};
+  Term abort_at = {};
+
+ protected:
+  TreeWalkerStepResult visit_term(Term &,
+                                  Term & term,
+                                  std::vector<int> &) override
+  {
+    visited.push_back(term);
+    if (term == abort_at)
+    {
+      return TreeWalker_Abort;
+    }
+    if (term == skip_at)
+    {
+      return TreeWalker_Skip;
+    }
+    return TreeWalker_Continue;
+  }
+};
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TreeWalkerSteps);
+class TreeWalkerSteps : public UnitWalkerTests
+{
+ protected:
+  void SetUp() override
+  {
+    UnitWalkerTests::SetUp();
+    if (!GetParam().is_logging_solver)
+    {
+      GTEST_SKIP() << "only a logging solver keeps the children in the order "
+                      "they were built";
+    }
+    x = s->make_symbol("x", bvsort);
+    y = s->make_symbol("y", bvsort);
+    z = s->make_symbol("z", bvsort);
+    a = s->make_term(BVAdd, x, y);
+    b = s->make_term(BVAdd, y, z);
+    f = s->make_term(BVMul, a, b);
+  }
+  Term x, y, z, a, b, f;
+};
+
+TEST_P(TreeWalkerSteps, VisitsEveryOccurrenceInPreOrder)
+{
+  RecordingTreeWalker w(s, true);
+  w.visit(f);
+  EXPECT_EQ(w.visited, (TermVec{ f, b, z, y, a, y, x }));
+}
+
+TEST_P(TreeWalkerSteps, SkipLeavesOutTheChildren)
+{
+  RecordingTreeWalker w(s, true);
+  w.skip_at = b;
+  w.visit(f);
+  EXPECT_EQ(w.visited, (TermVec{ f, b, a, y, x }));
+}
+
+TEST_P(TreeWalkerSteps, AbortStopsTheWalk)
+{
+  RecordingTreeWalker w(s, true);
+  w.abort_at = b;
+  w.visit(f);
+  EXPECT_EQ(w.visited, (TermVec{ f, b }));
+}
+
+TEST_P(TreeWalkerSteps, AbortAtTheTopVisitsNothingElse)
+{
+  RecordingTreeWalker w(s, true);
+  w.abort_at = f;
+  w.visit(f);
+  EXPECT_EQ(w.visited, (TermVec{ f }));
+}
+
 TEST_P(UnitWalkerTests, Simple)
 {
   Term x = s->make_symbol("x", bvsort);
@@ -959,6 +1042,12 @@ INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitWalker,
     UnitWalkerTests,
     testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitWalker,
+    TreeWalkerSteps,
+    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })),
+    ConfigName());
 
 }  // namespace
 

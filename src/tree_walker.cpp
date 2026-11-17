@@ -54,7 +54,12 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
   }
 
   // visit top node (tree_path currently empty)
-  visit_term(node, node, tree_path);
+  TreeWalkerStepResult res = visit_term(node, node, tree_path);
+  if (res == TreeWalker_Abort)
+  {
+    query_cache(node, out);
+    return out;
+  }
   /* to_visit is used to store terms left to visit & is a vector of pairs, where
    * the first element is the term we are saving to visit later &
    * the second element is an int serving as either an index for child's number
@@ -76,12 +81,15 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
   // initialize child_no before starting the loop
   child_no = 0;
   // push_back all of topmost node's children to prepare for the loop
-  for (auto ttt : node)
+  if (res == TreeWalker_Continue)
   {
-    p1.first = ttt;
-    p1.second = child_no;
-    to_visit.push_back(p1);
-    child_no++;
+    for (auto ttt : node)
+    {
+      p1.first = ttt;
+      p1.second = child_no;
+      to_visit.push_back(p1);
+      child_no++;
+    }
   }
 
   // current_pair the term and int/flag we are looking at in the current
@@ -109,7 +117,11 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
       // list of child numbers creating a numbered path for an occurrence
       tree_path.push_back(child_no);
       // visit current_term
-      visit_term(node, current_term, tree_path);
+      res = visit_term(node, current_term, tree_path);
+      if (res == TreeWalker_Abort)
+      {
+        break;
+      }
       // push back new pair with the flag -1 to indicate that it has already
       // been visited
       pn.first = current_term;
@@ -120,12 +132,15 @@ std::pair<Term, std::vector<int>> TreeWalker::visit(Term & node)
       child_no = 0;
       // push back all children of current_term we will need to visit before
       // popping all the way back to the current, parent term with the -1 flag
-      for (auto tt : current_term)
+      if (res == TreeWalker_Continue)
       {
-        pn.first = tt;
-        pn.second = child_no;
-        to_visit.push_back(pn);
-        child_no++;
+        for (auto tt : current_term)
+        {
+          pn.first = tt;
+          pn.second = child_no;
+          to_visit.push_back(pn);
+          child_no++;
+        }
       }
     }
     else
