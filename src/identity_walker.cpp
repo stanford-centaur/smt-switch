@@ -16,6 +16,7 @@
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/term.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
 
@@ -53,7 +54,7 @@ Term IdentityWalker::visit(Term & term)
   UnorderedTermSet visited;
 
   Term t;
-  WalkerStepResult res;
+  VisitResult res;
   while (to_visit.size())
   {
     t = to_visit.back();
@@ -72,7 +73,7 @@ Term IdentityWalker::visit(Term & term)
     visited.insert(t);
     res = visit_term(t);
 
-    if (res == Walker_Abort)
+    if (res == VisitResult::Abort)
     {
       // visit_term requested an abort
       // return the mapping if it has been cached already
@@ -83,7 +84,7 @@ Term IdentityWalker::visit(Term & term)
 
     if (preorder_)
     {
-      if (res == Walker_Continue)
+      if (res == VisitResult::Continue)
       {
         to_visit.push_back(t);
         for (auto tt : t)
@@ -101,7 +102,7 @@ Term IdentityWalker::visit(Term & term)
   return out;
 }
 
-WalkerStepResult IdentityWalker::visit_term(Term & term)
+VisitResult IdentityWalker::visit_term(Term & term)
 {
   if (!preorder_)
   {
@@ -126,7 +127,7 @@ WalkerStepResult IdentityWalker::visit_term(Term & term)
     }
   }
 
-  return Walker_Continue;
+  return VisitResult::Continue;
 }
 
 bool IdentityWalker::in_cache(const Term & key) const

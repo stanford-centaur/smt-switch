@@ -10,6 +10,7 @@
 
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/term.h"
+#include "smt-switch/visit_result.h"
 
 namespace smt {
 
