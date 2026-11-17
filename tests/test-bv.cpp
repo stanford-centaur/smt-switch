@@ -62,8 +62,8 @@ TEST_P(BVTests, to_int)
   Term minus_one = s->make_term(-1, bv3);
   Term one = s->make_term(1, bv3);
   Term x = s->make_symbol("x", bv3);
-  s->assert_formula(s->make_term(BVSlt, minus_one, x));
-  s->assert_formula(s->make_term(BVSlt, x, one));
+  s->assert_formula(s->make_term(Op::BVSlt, minus_one, x));
+  s->assert_formula(s->make_term(Op::BVSlt, x, one));
   s->check_sat();
   EXPECT_EQ(s->get_value(x)->to_int(), 0);
 }
@@ -85,28 +85,28 @@ TEST_P(BVTests, SortsTermsAndModels)
   EXPECT_NE(xsort, arr_sort->get_indexsort());
   EXPECT_EQ(xsort, arr_sort->get_elemsort());
 
-  Term xpy = s->make_term(BVAdd, x, y);
+  Term xpy = s->make_term(Op::BVAdd, x, y);
   EXPECT_TRUE(x->is_symbolic_const());
   EXPECT_FALSE(xpy->is_symbolic_const());
 
-  Term x_lower = s->make_term(Op(Extract, 3, 0), x);
-  Term x_ext = s->make_term(Op(Zero_Extend, 4), x_lower);
+  Term x_lower = s->make_term(Op(Op::Extract, 3, 0), x);
+  Term x_ext = s->make_term(Op(Op::Zero_Extend, 4), x_lower);
 
   Sort funsort =
       s->make_sort(SortKind::FUNCTION, SortVec{ x_lower->get_sort(), xsort });
   Term uf = s->make_symbol("f", funsort);
-  Term uf_app = s->make_term(Apply, uf, x_lower);
+  Term uf_app = s->make_term(Op::Apply, uf, x_lower);
 
-  s->assert_formula(s->make_term(Equal, z, xpy));
-  s->assert_formula(s->make_term(BVUlt, x, s->make_term(4, bvsort8)));
-  s->assert_formula(s->make_term(BVUlt, y, s->make_term(4, bvsort8)));
-  s->assert_formula(s->make_term(BVUgt, z, s->make_term("5", bvsort8)));
+  s->assert_formula(s->make_term(Op::Equal, z, xpy));
+  s->assert_formula(s->make_term(Op::BVUlt, x, s->make_term(4, bvsort8)));
+  s->assert_formula(s->make_term(Op::BVUlt, y, s->make_term(4, bvsort8)));
+  s->assert_formula(s->make_term(Op::BVUgt, z, s->make_term("5", bvsort8)));
   // redundant, since x < 4 fits in its lower four bits
-  s->assert_formula(s->make_term(Equal, x_ext, x));
-  s->assert_formula(s->make_term(Distinct, x, z));
-  s->assert_formula(s->make_term(BVUle, uf_app, s->make_term(3, bvsort8)));
+  s->assert_formula(s->make_term(Op::Equal, x_ext, x));
+  s->assert_formula(s->make_term(Op::Distinct, x, z));
+  s->assert_formula(s->make_term(Op::BVUle, uf_app, s->make_term(3, bvsort8)));
   s->assert_formula(
-      s->make_term(BVUge, uf_app, s->make_term("00000011", bvsort8, 2)));
+      s->make_term(Op::BVUge, uf_app, s->make_term("00000011", bvsort8, 2)));
 
   ASSERT_TRUE(s->check_sat().is_sat());
 
@@ -126,18 +126,18 @@ TEST_P(IndexedOpTests, RotateExtractRepeat)
   Term y = s->make_symbol("y", bvsort9);
   Term onebit = s->make_symbol("onebit", s->make_sort(SortKind::BV, 1));
 
-  Term unnecessary_rotation = s->make_term(Op(Rotate_Right, 1), onebit);
+  Term unnecessary_rotation = s->make_term(Op(Op::Rotate_Right, 1), onebit);
 
-  Op ext74 = Op(Extract, 7, 4);
+  Op ext74 = Op(Op::Extract, 7, 4);
   Term x_upper = s->make_term(ext74, x);
 
-  Term y_ror = s->make_term(Op(Rotate_Right, 2), y);
-  Term y_rol = s->make_term(Op(Rotate_Left, 2), y);
+  Term y_ror = s->make_term(Op(Op::Rotate_Right, 2), y);
+  Term y_rol = s->make_term(Op(Op::Rotate_Left, 2), y);
 
-  s->assert_formula(s->make_term(Equal, y_ror, y_rol));
-  s->assert_formula(s->make_term(Distinct, y, s->make_term(0, bvsort9)));
+  s->assert_formula(s->make_term(Op::Equal, y_ror, y_rol));
+  s->assert_formula(s->make_term(Op::Distinct, y, s->make_term(0, bvsort9)));
   s->assert_formula(s->make_term(
-      Equal, x, s->make_term(Op(Repeat, 9), unnecessary_rotation)));
+      Op::Equal, x, s->make_term(Op(Op::Repeat, 9), unnecessary_rotation)));
 
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
@@ -175,26 +175,26 @@ TEST_P(BVTests, ValueInOtherBase)
   // past 64 bits, where backends take a value as bits rather than as a
   // number; each of these is all ones, as the concatenation is
   Sort bv72 = s->make_sort(SortKind::BV, 72);
-  Term ones = s->make_term(Concat,
+  Term ones = s->make_term(Op::Concat,
                            s->make_term(-1, bv8),
                            s->make_term(-1, s->make_sort(SortKind::BV, 64)));
   s->assert_formula(s->make_term(
-      Equal, s->make_term("4722366482869645213695", bv72, 10), ones));
-  s->assert_formula(s->make_term(Equal, s->make_term("-1", bv72, 3), ones));
-  s->assert_formula(
-      s->make_term(Equal, s->make_term(std::string(24, '7'), bv72, 8), ones));
+      Op::Equal, s->make_term("4722366482869645213695", bv72, 10), ones));
+  s->assert_formula(s->make_term(Op::Equal, s->make_term("-1", bv72, 3), ones));
+  s->assert_formula(s->make_term(
+      Op::Equal, s->make_term(std::string(24, '7'), bv72, 8), ones));
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
 TEST_P(IndexedOpTests, RotateByAtLeastWidth)
 {
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
-  Term rol4 = s->make_term(Op(Rotate_Left, 4), x);
-  Term rol5 = s->make_term(Op(Rotate_Left, 5), x);
-  Term ror8 = s->make_term(Op(Rotate_Right, 8), x);
-  Term ror5 = s->make_term(Op(Rotate_Right, 5), x);
+  Term rol4 = s->make_term(Op(Op::Rotate_Left, 4), x);
+  Term rol5 = s->make_term(Op(Op::Rotate_Left, 5), x);
+  Term ror8 = s->make_term(Op(Op::Rotate_Right, 8), x);
+  Term ror5 = s->make_term(Op(Op::Rotate_Right, 5), x);
   s->assert_formula(
-      s->make_term(Equal, x, s->make_term(0b0001, x->get_sort())));
+      s->make_term(Op::Equal, x, s->make_term(0b0001, x->get_sort())));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(rol4)->to_int(), 0b0001);
   EXPECT_EQ(s->get_value(rol5)->to_int(), 0b0010);
@@ -205,16 +205,16 @@ TEST_P(IndexedOpTests, RotateByAtLeastWidth)
 TEST_P(IndexedOpTests, RepeatZeroTimes)
 {
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
-  EXPECT_THROW(s->make_term(Op(Repeat, 0), x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Repeat, 0), x), IncorrectUsageException);
 }
 
 TEST_P(IndexedOpTests, RepeatValues)
 {
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
-  Term rep3 = s->make_term(Op(Repeat, 3), x);
-  Term rep6 = s->make_term(Op(Repeat, 6), x);
+  Term rep3 = s->make_term(Op(Op::Repeat, 3), x);
+  Term rep6 = s->make_term(Op(Op::Repeat, 6), x);
   s->assert_formula(
-      s->make_term(Equal, x, s->make_term(0b1001, x->get_sort())));
+      s->make_term(Op::Equal, x, s->make_term(0b1001, x->get_sort())));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(rep3)->to_int(), 0x999);
   EXPECT_EQ(s->get_value(rep6)->to_int(), 0x999999);
@@ -223,7 +223,7 @@ TEST_P(IndexedOpTests, RepeatValues)
 TEST_P(IndexedOpTests, RepeatWiderThan64Bits)
 {
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
-  EXPECT_THROW(s->make_term(Op(Repeat, std::uint64_t{ 1 } << 62), x),
+  EXPECT_THROW(s->make_term(Op(Op::Repeat, std::uint64_t{ 1 } << 62), x),
                IncorrectUsageException);
 }
 

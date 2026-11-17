@@ -7,7 +7,7 @@
 import pytest
 
 import smt_switch as ss
-from smt_switch.primops import BVOr, BVUlt, Ite
+from smt_switch.opkinds import BVOr, BVUlt, Ite
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())

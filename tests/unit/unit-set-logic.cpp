@@ -45,7 +45,7 @@ TEST_P(SetLogic, AcceptedFirst)
   s->set_logic("QF_UFBV");
   Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(3, bv)));
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(3, bv)));
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
@@ -62,7 +62,7 @@ TEST_P(SetLogic, AfterDeclaration)
   {
     return;
   }
-  s->assert_formula(s->make_term(Equal, x, s->make_term(3, bv)));
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(3, bv)));
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
@@ -72,7 +72,7 @@ TEST_P(SetLogic, AfterAssertion)
   Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term three = s->make_term(3, bv);
-  s->assert_formula(s->make_term(Equal, x, three));
+  s->assert_formula(s->make_term(Op::Equal, x, three));
   try
   {
     s->set_logic("QF_UFBV");
@@ -81,7 +81,7 @@ TEST_P(SetLogic, AfterAssertion)
   {
     return;
   }
-  s->assert_formula(s->make_term(Distinct, x, three));
+  s->assert_formula(s->make_term(Op::Distinct, x, three));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -92,7 +92,7 @@ TEST_P(SetLogic, AfterOption)
   Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term three = s->make_term(3, bv);
-  s->assert_formula(s->make_term(Equal, x, three));
+  s->assert_formula(s->make_term(Op::Equal, x, three));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(x), three);
 }
@@ -112,7 +112,7 @@ TEST_P(SetLogic, BeforeOption)
   Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term three = s->make_term(3, bv);
-  s->assert_formula(s->make_term(Equal, x, three));
+  s->assert_formula(s->make_term(Op::Equal, x, three));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(x), three);
 }

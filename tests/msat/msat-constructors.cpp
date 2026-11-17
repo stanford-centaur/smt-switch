@@ -45,10 +45,11 @@ TEST(MsatConstructors, InterpolatingKeepsBitBlastPreference)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term A = s->make_term(
-      And,
-      s->make_term(Equal, s->make_term(BVAdd, x, y), s->make_term(3, bvsort)),
-      s->make_term(Equal, y, s->make_term(1, bvsort)));
-  Term B = s->make_term(Equal, x, s->make_term(5, bvsort));
+      Op::And,
+      s->make_term(
+          Op::Equal, s->make_term(Op::BVAdd, x, y), s->make_term(3, bvsort)),
+      s->make_term(Op::Equal, y, s->make_term(1, bvsort)));
+  Term B = s->make_term(Op::Equal, x, s->make_term(5, bvsort));
   Term I;
   EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat());
   EXPECT_TRUE(I);

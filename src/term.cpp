@@ -195,12 +195,12 @@ namespace {
 class OpPartitionVisitor : public TermVisitor
 {
  public:
-  OpPartitionVisitor(PrimOp op, TermVec & out) : op_(op), out_(out) {}
+  OpPartitionVisitor(Op::Kind kind, TermVec & out) : kind_(kind), out_(out) {}
 
  protected:
   VisitResult visit_term(const Term & term) override
   {
-    if (term->get_op().prim_op == op_)
+    if (term->get_op().kind() == kind_)
     {
       return VisitResult::Continue;
     }
@@ -209,7 +209,7 @@ class OpPartitionVisitor : public TermVisitor
   }
 
  private:
-  PrimOp op_;
+  Op::Kind kind_;
   TermVec & out_;
 };
 
@@ -266,7 +266,7 @@ class OpsVisitor : public TermVisitor
 class TermsWithOpsVisitor : public TermVisitor
 {
  public:
-  TermsWithOpsVisitor(const std::unordered_set<PrimOp> & ops,
+  TermsWithOpsVisitor(const std::unordered_set<Op::Kind> & ops,
                       UnorderedTermSet & out)
       : ops_(ops), out_(out)
   {
@@ -276,7 +276,7 @@ class TermsWithOpsVisitor : public TermVisitor
   VisitResult visit_term(const Term & term) override
   {
     Op op = term->get_op();
-    if (!op.is_null() && ops_.find(op.prim_op) != ops_.end())
+    if (!op.is_null() && ops_.find(op.kind()) != ops_.end())
     {
       out_.insert(term);
     }
@@ -284,34 +284,34 @@ class TermsWithOpsVisitor : public TermVisitor
   }
 
  private:
-  const std::unordered_set<PrimOp> & ops_;
+  const std::unordered_set<Op::Kind> & ops_;
   UnorderedTermSet & out_;
 };
 
 }  // namespace
 
-void AbsTerm::op_partition(PrimOp o, TermVec & out)
+void AbsTerm::op_partition(Op::Kind kind, TermVec & out)
 {
-  OpPartitionVisitor(o, out).visit(shared_from_this());
+  OpPartitionVisitor(kind, out).visit(shared_from_this());
 }
 
 void AbsTerm::conjunctive_partition(TermVec & out, bool include_bvand)
 {
   if (!include_bvand)
   {
-    op_partition(And, out);
+    op_partition(Op::And, out);
   }
   else
   {
     TermVec tmp;
-    op_partition(And, tmp);
+    op_partition(Op::And, tmp);
     Sort sort;
     for (auto tt : tmp)
     {
       sort = tt->get_sort();
       if (sort->get_kind() == SortKind::BV && sort->get_width() == 1)
       {
-        tt->op_partition(BVAnd, out);
+        tt->op_partition(Op::BVAnd, out);
       }
       else
       {
@@ -325,19 +325,19 @@ void AbsTerm::disjunctive_partition(TermVec & out, bool include_bvor)
 {
   if (!include_bvor)
   {
-    op_partition(Or, out);
+    op_partition(Op::Or, out);
   }
   else
   {
     TermVec tmp;
-    op_partition(Or, tmp);
+    op_partition(Op::Or, tmp);
     Sort sort;
     for (auto tt : tmp)
     {
       sort = tt->get_sort();
       if (sort->get_kind() == SortKind::BV && sort->get_width() == 1)
       {
-        tt->op_partition(BVOr, out);
+        tt->op_partition(Op::BVOr, out);
       }
       else
       {
@@ -370,7 +370,7 @@ void AbsTerm::get_ops(std::unordered_set<Op> & out)
   OpsVisitor(out).visit(shared_from_this());
 }
 
-void AbsTerm::get_terms_with_ops(const std::unordered_set<PrimOp> & ops,
+void AbsTerm::get_terms_with_ops(const std::unordered_set<Op::Kind> & ops,
                                  UnorderedTermSet & out)
 {
   TermsWithOpsVisitor(ops, out).visit(shared_from_this());
@@ -390,7 +390,7 @@ bool AbsTerm::is_lit()
 
   Op op = get_op();
   // check both for sort aliasing solvers
-  if (op == Not || op == BVNot)
+  if (op == Op::Not || op == Op::BVNot)
   {
     Term first_child = *(begin());
     return first_child->is_symbolic_const();
@@ -410,19 +410,21 @@ bool AbsTerm::is_theory_atom()
   {
     return false;
   }
-  PrimOp po = op.prim_op;
-  if (po == And || po == Or || po == Xor || po == Not || po == Implies
-      || po == Ite || po == Forall || po == Exists
-      || po == Extract
+  Op::Kind kind = op.kind();
+  if (kind == Op::And || kind == Op::Or || kind == Op::Xor || kind == Op::Not
+      || kind == Op::Implies || kind == Op::Ite || kind == Op::Forall
+      || kind == Op::Exists
+      || kind == Op::Extract
       // the connectives of a solver that aliases Booleans and bit-vectors
       // of width one
-      || po == BVAnd || po == BVOr || po == BVXor || po == BVNand || po == BVNor
-      || po == BVXnor || po == BVNot)
+      || kind == Op::BVAnd || kind == Op::BVOr || kind == Op::BVXor
+      || kind == Op::BVNand || kind == Op::BVNor || kind == Op::BVXnor
+      || kind == Op::BVNot)
   {
     return false;
   }
   // an equality or distinct over Booleans is a connective too
-  return !((po == Equal || po == Distinct)
+  return !((kind == Op::Equal || kind == Op::Distinct)
            && (*begin())->get_sort()->is_boolean());
 }
 

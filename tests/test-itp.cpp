@@ -64,14 +64,14 @@ class ItpTests : public testing::Test,
     if (GetParam().theory == SolverAttribute::THEORY_INT)
     {
       sort = itp->make_sort(SortKind::INT);
-      lt = Lt;
-      gt = Gt;
+      lt = Op::Lt;
+      gt = Op::Gt;
     }
     else
     {
       sort = itp->make_sort(SortKind::BV, 8);
-      lt = BVUlt;
-      gt = BVUgt;
+      lt = Op::BVUlt;
+      gt = Op::BVUgt;
     }
     x = itp->make_symbol("x", sort);
     y = itp->make_symbol("y", sort);
@@ -80,17 +80,17 @@ class ItpTests : public testing::Test,
   }
   SmtInterpolator itp;
   Sort sort;
-  PrimOp lt, gt;
+  Op::Kind lt, gt;
   Term x, y, z, w;
 };
 
 TEST_P(ItpTests, Interpolant)
 {
   Term A = itp->make_term(lt, x, y);
-  A = itp->make_term(And, A, itp->make_term(lt, y, w));
+  A = itp->make_term(Op::And, A, itp->make_term(lt, y, w));
 
   Term B = itp->make_term(gt, z, w);
-  B = itp->make_term(And, B, itp->make_term(lt, z, x));
+  B = itp->make_term(Op::And, B, itp->make_term(lt, z, x));
 
   Term I;
   Result r = itp->get_interpolant(A, B, I);
@@ -140,12 +140,12 @@ void expect_chain(SolverEnum interpolator,
     checker->pop();
     return unsat;
   };
-  EXPECT_TRUE(inconsistent(f.front(), checker->make_term(Not, I.front())))
+  EXPECT_TRUE(inconsistent(f.front(), checker->make_term(Op::Not, I.front())))
       << query << ": the first formula does not imply " << interpolants.front();
   for (size_t i = 1; i < I.size(); ++i)
   {
-    EXPECT_TRUE(inconsistent(checker->make_term(And, I[i - 1], f[i]),
-                             checker->make_term(Not, I[i])))
+    EXPECT_TRUE(inconsistent(checker->make_term(Op::And, I[i - 1], f[i]),
+                             checker->make_term(Op::Not, I[i])))
         << query << ": " << interpolants[i - 1] << " and formula " << i
         << " do not imply " << interpolants[i];
   }
@@ -158,15 +158,15 @@ TEST_P(ItpTests, SequenceInterpolants)
 {
   // A1 : x < y /\ y < w
   Term A1 = itp->make_term(lt, x, y);
-  A1 = itp->make_term(And, A1, itp->make_term(lt, y, w));
+  A1 = itp->make_term(Op::And, A1, itp->make_term(lt, y, w));
 
   // A2 : z > w /\ z < x
   Term A2 = itp->make_term(gt, z, w);
-  A2 = itp->make_term(And, A2, itp->make_term(lt, z, x));
+  A2 = itp->make_term(Op::And, A2, itp->make_term(lt, z, x));
 
   // A3 : y > z /\ y < w
   Term A3 = itp->make_term(gt, y, z);
-  A3 = itp->make_term(And, A3, itp->make_term(lt, y, w));
+  A3 = itp->make_term(Op::And, A3, itp->make_term(lt, y, w));
 
   TermVec formulae({ A1, A2, A3 });
   TermVec interpolants;
@@ -181,7 +181,8 @@ TEST_P(ItpTests, SequenceInterpolants)
 // increments one of them, and after k steps a + b exceeds k.
 TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
 {
-  PrimOp add = GetParam().theory == SolverAttribute::THEORY_INT ? Plus : BVAdd;
+  Op::Kind add =
+      GetParam().theory == SolverAttribute::THEORY_INT ? Op::Plus : Op::BVAdd;
   // cvc5 takes a while for the deeper bit-vector unrollings
   bool cvc5_bv = GetParam().config.solver_enum == CVC5_INTERPOLATOR
                  && GetParam().theory == SolverAttribute::THEORY_BV;
@@ -200,20 +201,20 @@ TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
       b.push_back(s->make_symbol("b" + std::to_string(i), srt));
     }
     Term zero = s->make_term(0, srt);
-    TermVec formulae{ s->make_term(And,
-                                   s->make_term(Equal, a[0], zero),
-                                   s->make_term(Equal, b[0], zero)) };
+    TermVec formulae{ s->make_term(Op::And,
+                                   s->make_term(Op::Equal, a[0], zero),
+                                   s->make_term(Op::Equal, b[0], zero)) };
     for (int i = 0; i < k; ++i)
     {
       Term step_a = s->make_term(
-          And,
-          s->make_term(Equal, a[i + 1], s->make_term(add, a[i], one)),
-          s->make_term(Equal, b[i + 1], b[i]));
+          Op::And,
+          s->make_term(Op::Equal, a[i + 1], s->make_term(add, a[i], one)),
+          s->make_term(Op::Equal, b[i + 1], b[i]));
       Term step_b = s->make_term(
-          And,
-          s->make_term(Equal, b[i + 1], s->make_term(add, b[i], one)),
-          s->make_term(Equal, a[i + 1], a[i]));
-      formulae.push_back(s->make_term(Or, step_a, step_b));
+          Op::And,
+          s->make_term(Op::Equal, b[i + 1], s->make_term(add, b[i], one)),
+          s->make_term(Op::Equal, a[i + 1], a[i]));
+      formulae.push_back(s->make_term(Op::Or, step_a, step_b));
     }
     formulae.push_back(
         s->make_term(gt, s->make_term(add, a[k], b[k]), s->make_term(k, srt)));
@@ -253,8 +254,8 @@ TEST_P(ItpTests, RefusesSolvingCalls)
 // not show through
 TEST_P(ItpTests, ContextLevelStaysZero)
 {
-  Term A =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term A = itp->make_term(
+      Op::And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
   Term B = itp->make_term(gt, x, z);
   Term I;
   ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
@@ -265,8 +266,8 @@ TEST_P(ItpTests, RefusesTurningInterpolationOff)
 {
   EXPECT_THROW(itp->set_opt("produce-interpolants", "false"),
                IncorrectUsageException);
-  Term A =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term A = itp->make_term(
+      Op::And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
   Term I;
   EXPECT_TRUE(itp->get_interpolant(A, itp->make_term(gt, x, z), I).is_unsat());
   EXPECT_TRUE(I);
@@ -285,8 +286,8 @@ TEST_P(ItpTests, InterpolatesAfterReset)
     Term a = itp->make_symbol("a", s);
     Term b = itp->make_symbol("b", s);
     Term c = itp->make_symbol("c", s);
-    Term A =
-        itp->make_term(And, itp->make_term(lt, a, b), itp->make_term(lt, b, c));
+    Term A = itp->make_term(
+        Op::And, itp->make_term(lt, a, b), itp->make_term(lt, b, c));
     Term I;
     EXPECT_TRUE(itp->get_interpolant(A, itp->make_term(gt, a, c), I).is_unsat())
         << "round " << round;
@@ -312,7 +313,8 @@ TEST_P(ItpTests, ReuseKeepsResults)
     Term c = s->make_symbol("c", srt);
     Term d = s->make_symbol("d", srt);
     Term t1 = s->make_term(lt, d, a);
-    Term t2 = s->make_term(And, s->make_term(lt, a, b), s->make_term(lt, a, c));
+    Term t2 =
+        s->make_term(Op::And, s->make_term(lt, a, b), s->make_term(lt, a, c));
     Term t3 = s->make_term(lt, b, d);
     Term t4 = s->make_term(lt, c, d);
     // each query but the last is unsat
@@ -360,8 +362,8 @@ TEST_P(ItpTests, ReuseKeepsResults)
 
 TEST_P(ItpTests, IncrementalCanChangeBetweenQueries)
 {
-  Term A =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term A = itp->make_term(
+      Op::And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
   Term B = itp->make_term(gt, x, z);
   for (const char * value : { "true", "false" })
   {
@@ -410,8 +412,8 @@ TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
 
 TEST_P(ItpTests, InterpolatesAfterResetAssertions)
 {
-  Term A =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term A = itp->make_term(
+      Op::And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
   Term B = itp->make_term(gt, x, z);
   // a reset before the first query as well as after one
   itp->reset_assertions();
@@ -426,12 +428,12 @@ TEST_P(ItpTests, InterpolatesAfterResetAssertions)
 
 TEST_P(ItpTests, AnswersEachQuery)
 {
-  Term up =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
-  Term down =
-      itp->make_term(And, itp->make_term(gt, x, y), itp->make_term(gt, y, z));
-  Term contradiction =
-      itp->make_term(And, itp->make_term(gt, z, y), itp->make_term(gt, y, z));
+  Term up = itp->make_term(
+      Op::And, itp->make_term(lt, x, y), itp->make_term(lt, y, z));
+  Term down = itp->make_term(
+      Op::And, itp->make_term(gt, x, y), itp->make_term(gt, y, z));
+  Term contradiction = itp->make_term(
+      Op::And, itp->make_term(gt, z, y), itp->make_term(gt, y, z));
   // unsat queries, including ones with a side unsat on its own
   for (auto [A, B] : { std::pair{ up, itp->make_term(gt, x, z) },
                        std::pair{ down, itp->make_term(lt, x, z) },
@@ -531,12 +533,12 @@ TEST_P(ItpTests, PrintedSequenceInterpolantsFormAChain)
 {
   std::ostringstream out;
   SmtInterpolator printing = interpolators::printing(itp, out);
-  Term A1 =
-      itp->make_term(And, itp->make_term(lt, x, y), itp->make_term(lt, y, w));
-  Term A2 =
-      itp->make_term(And, itp->make_term(gt, z, w), itp->make_term(lt, z, x));
-  Term A3 =
-      itp->make_term(And, itp->make_term(gt, y, z), itp->make_term(lt, y, w));
+  Term A1 = itp->make_term(
+      Op::And, itp->make_term(lt, x, y), itp->make_term(lt, y, w));
+  Term A2 = itp->make_term(
+      Op::And, itp->make_term(gt, z, w), itp->make_term(lt, z, x));
+  Term A3 = itp->make_term(
+      Op::And, itp->make_term(gt, y, z), itp->make_term(lt, y, w));
   TermVec formulae{ A1, A2, A3 };
   TermVec interpolants;
   ASSERT_TRUE(
@@ -550,9 +552,9 @@ TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
   // a[z] = x and a[z] > y on one side, x < y on the other: a and z are not
   // shared, so the interpolant mentions only x and y
   Term a = itp->make_symbol("a", itp->make_sort(SortKind::ARRAY, sort, sort));
-  Term read = itp->make_term(Select, a, z);
+  Term read = itp->make_term(Op::Select, a, z);
   Term with_array = itp->make_term(
-      And, itp->make_term(Equal, read, x), itp->make_term(gt, read, y));
+      Op::And, itp->make_term(Op::Equal, read, x), itp->make_term(gt, read, y));
   Term without_array = itp->make_term(lt, x, y);
   UnorderedTermSet shared{ x, y };
   for (auto [A, B] : { std::pair{ with_array, without_array },
@@ -579,8 +581,8 @@ TEST_P(ItpTests, InterpolatesOverASharedArray)
   }
   // a[z] = x on one side and a[z] < x on the other, which share all three
   Term a = itp->make_symbol("a", itp->make_sort(SortKind::ARRAY, sort, sort));
-  Term read = itp->make_term(Select, a, z);
-  Term A = itp->make_term(Equal, read, x);
+  Term read = itp->make_term(Op::Select, a, z);
+  Term A = itp->make_term(Op::Equal, read, x);
   Term B = itp->make_term(lt, read, x);
   Term I;
   ASSERT_TRUE(itp->get_interpolant(A, B, I).is_unsat());
@@ -598,8 +600,8 @@ TEST_P(ItpTests, NonlinearInterpolant)
     GTEST_SKIP() << "MathSAT answers unknown to nonlinear integer arithmetic";
   }
   // x * x is never negative, so y = x * x cannot be, whatever x is
-  Term A = itp->make_term(Equal, y, itp->make_term(Mult, x, x));
-  Term B = itp->make_term(Lt, y, itp->make_term(0, sort));
+  Term A = itp->make_term(Op::Equal, y, itp->make_term(Op::Mult, x, x));
+  Term B = itp->make_term(Op::Lt, y, itp->make_term(0, sort));
   Term I;
   Result r = itp->get_interpolant(A, B, I);
   ASSERT_TRUE(r.is_unsat()) << r;

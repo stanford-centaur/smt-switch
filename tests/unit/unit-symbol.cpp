@@ -179,9 +179,9 @@ TEST_P(UnitSymbolTests, NonSymbolHasNoSymbolName)
 
   EXPECT_THROW(s->make_term(1, bvsort)->get_symbol_name(),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVNot, x)->get_symbol_name(),
+  EXPECT_THROW(s->make_term(Op::BVNot, x)->get_symbol_name(),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Apply, f, x)->get_symbol_name(),
+  EXPECT_THROW(s->make_term(Op::Apply, f, x)->get_symbol_name(),
                IncorrectUsageException);
 }
 

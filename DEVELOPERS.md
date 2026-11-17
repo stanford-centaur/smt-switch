@@ -162,10 +162,11 @@ Each one has a `using` declaration which provides a convenient name for a
 `shared_ptr` to the abstract class, e.g.
 `using Solver=std::shared_ptr<AbsSolver>`.
 
-An `Op` is a simple struct that holds a `PrimOp` and up to two integer indices.
-Functions such as `make_term` take only an `Op`, and the constructor for a
-single `PrimOp` is not `explicit`, so a `PrimOp` converts to an unindexed `Op`
-wherever one is expected: `make_term(And, a, b)` needs no `Op(And)`.
+An `Op` holds an operator kind, an `Op::Kind` such as `Op::And`, and up to two
+integer indices. Functions such as `make_term` take only an `Op`, and the
+constructor from a kind is not `explicit`, so a kind converts to an unindexed
+`Op` wherever one is expected: `make_term(Op::And, a, b)` needs no
+`Op(Op::And)`.
 
 ## Implementing New Solvers
 

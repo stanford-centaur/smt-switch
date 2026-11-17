@@ -36,11 +36,11 @@ TEST(BzlaTermManager, AnotherSolversTermsRefused)
   Term x = s->make_symbol("x", bv8);
   Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", other_bv8);
-  Term p = other->make_term(Equal, y, y);
+  Term p = other->make_term(Op::Equal, y, y);
 
   EXPECT_THROW(s->assert_formula(p), IncorrectUsageException);
   EXPECT_THROW(s->check_sat_assuming(TermVec{ p }), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVAdd, x, y), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVAdd, x, y), IncorrectUsageException);
   EXPECT_THROW(s->substitute(x, { { x, y } }), IncorrectUsageException);
   EXPECT_THROW(s->substitute_terms({ y }, { { x, x } }),
                IncorrectUsageException);
@@ -65,7 +65,7 @@ TEST(BzlaTermManager, TermsFromBeforeResetRefused)
   SmtSolver s = BitwuzlaSolverFactory::create(false);
   Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
-  Term p = s->make_term(Equal, x, x);
+  Term p = s->make_term(Op::Equal, x, x);
   s->reset();
 
   EXPECT_THROW(s->assert_formula(p), IncorrectUsageException);
@@ -81,8 +81,8 @@ TEST(BzlaTermManager, AnotherInterpolatorsTermsRefused)
   SmtInterpolator other = BitwuzlaSolverFactory::create_interpolator();
   Sort bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", bv8);
-  Term a = other->make_term(Equal, y, other->make_term(0, bv8));
-  Term b = other->make_term(Equal, y, other->make_term(1, bv8));
+  Term a = other->make_term(Op::Equal, y, other->make_term(0, bv8));
+  Term b = other->make_term(Op::Equal, y, other->make_term(1, bv8));
 
   Term out_I;
   EXPECT_THROW(itp->get_interpolant(a, b, out_I), IncorrectUsageException);

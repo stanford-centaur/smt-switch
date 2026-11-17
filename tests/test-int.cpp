@@ -65,16 +65,16 @@ void check_div_mod_cases(const SmtSolver & s, bool by_symbol)
   {
     const DivModCase & k = cases[i];
     Term t = s->make_symbol("t" + std::to_string(i), intsort);
-    s->assert_formula(s->make_term(Equal, t, s->make_term(k.t, intsort)));
+    s->assert_formula(s->make_term(Op::Equal, t, s->make_term(k.t, intsort)));
     Term c = s->make_term(k.c, intsort);
     if (by_symbol)
     {
       Term sym = s->make_symbol("c" + std::to_string(i), intsort);
-      s->assert_formula(s->make_term(Equal, sym, c));
+      s->assert_formula(s->make_term(Op::Equal, sym, c));
       c = sym;
     }
-    divs.push_back(s->make_term(IntDiv, t, c));
-    mods.push_back(s->make_term(Mod, t, c));
+    divs.push_back(s->make_term(Op::IntDiv, t, c));
+    mods.push_back(s->make_term(Op::Mod, t, c));
   }
   ASSERT_TRUE(s->check_sat().is_sat());
   for (size_t i = 0; i < std::size(cases); ++i)
@@ -91,8 +91,8 @@ TEST_P(IntTests, IntDiv)
   Term five = s->make_term(5, intsort);
   Term two = s->make_term(2, intsort);
   Term res = s->make_symbol("res", intsort);
-  Term div = s->make_term(IntDiv, five, two);
-  s->assert_formula(s->make_term(Equal, res, div));
+  Term div = s->make_term(Op::IntDiv, five, two);
+  s->assert_formula(s->make_term(Op::Equal, res, div));
   s->check_sat();
   Term resval = s->get_value(res);
   ASSERT_EQ(resval, two);
@@ -101,14 +101,14 @@ TEST_P(IntTests, IntDiv)
 TEST_P(IntTests, Divisible)
 {
   Term x = s->make_symbol("x", intsort);
-  Term divisible = s->make_term(Op(Divisible, 3), x);
+  Term divisible = s->make_term(Op(Op::Divisible, 3), x);
   EXPECT_EQ(divisible->get_sort(), s->make_sort(SortKind::BOOL));
-  EXPECT_EQ(divisible->get_op(), Op(Divisible, 3));
+  EXPECT_EQ(divisible->get_op(), Op(Op::Divisible, 3));
   // SMT-LIB requires a positive index
-  EXPECT_THROW(s->make_term(Op(Divisible, 0), x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Divisible, 0), x), IncorrectUsageException);
   // an index too large for a solver's API is refused rather than changed,
   // e.g. to its low 32 bits, the valid divisor 3
-  Op large(Divisible, (std::uint64_t{ 1 } << 40) + 3);
+  Op large(Op::Divisible, (std::uint64_t{ 1 } << 40) + 3);
   try
   {
     EXPECT_EQ(s->make_term(large, x)->get_op(), large);
@@ -127,7 +127,7 @@ TEST_P(IntTests, BvToNatIsInt)
   Term natx;
   try
   {
-    natx = s->make_term(BV_To_Nat, bvx);
+    natx = s->make_term(Op::UBV_To_Int, bvx);
   }
   catch (const Exception & e)
   {
@@ -144,7 +144,7 @@ TEST_P(IntTests, Bv2Int)
   Term intx;
   try
   {
-    intx = s->make_term(UBV_To_Int, bvx);
+    intx = s->make_term(Op::UBV_To_Int, bvx);
   }
   catch (const Exception & e)
   {
@@ -153,17 +153,17 @@ TEST_P(IntTests, Bv2Int)
 
   ASSERT_TRUE(intx);
   EXPECT_EQ(intx->get_sort(), intsort);
-  EXPECT_EQ(intx->get_op(), UBV_To_Int);
+  EXPECT_EQ(intx->get_op(), Op::UBV_To_Int);
 
   Term inty = s->make_symbol("inty", intsort);
-  Term bvy = s->make_term(Op(Int_To_BV, 8), inty);
+  Term bvy = s->make_term(Op(Op::Int_To_BV, 8), inty);
   EXPECT_EQ(bvy->get_sort(), bvsort);
-  EXPECT_EQ(bvy->get_op(), Op(Int_To_BV, 8));
+  EXPECT_EQ(bvy->get_op(), Op(Op::Int_To_BV, 8));
 
   Term intz;
   try
   {
-    intz = s->make_term(SBV_To_Int, bvx);
+    intz = s->make_term(Op::SBV_To_Int, bvx);
   }
   catch (const Exception & e)
   {
@@ -218,12 +218,12 @@ TEST_P(IntArithmeticTests, NonlinearConstraints)
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
 
-  s->assert_formula(s->make_term(Ge, x, y));
-  s->assert_formula(s->make_term(Le, z, s->make_term(Plus, x, y)));
-  s->assert_formula(
-      s->make_term(Lt, s->make_term(Negate, z), s->make_term(Minus, x, y)));
-  s->assert_formula(
-      s->make_term(Gt, s->make_term(Minus, x, y), s->make_term(Mult, x, y)));
+  s->assert_formula(s->make_term(Op::Ge, x, y));
+  s->assert_formula(s->make_term(Op::Le, z, s->make_term(Op::Plus, x, y)));
+  s->assert_formula(s->make_term(
+      Op::Lt, s->make_term(Op::Negate, z), s->make_term(Op::Minus, x, y)));
+  s->assert_formula(s->make_term(
+      Op::Gt, s->make_term(Op::Minus, x, y), s->make_term(Op::Mult, x, y)));
 
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
@@ -254,10 +254,11 @@ TEST_P(IntArithmeticTests, PowerOfSymbol)
     GTEST_SKIP() << e.what();
   }
   Term u = s->make_symbol("u", intsort);
-  s->assert_formula(s->make_term(Gt, u, s->make_term(0, intsort)));
-  s->assert_formula(s->make_term(Equal,
-                                 s->make_term(Pow, u, s->make_term(4, intsort)),
-                                 s->make_term(81, intsort)));
+  s->assert_formula(s->make_term(Op::Gt, u, s->make_term(0, intsort)));
+  s->assert_formula(
+      s->make_term(Op::Equal,
+                   s->make_term(Op::Pow, u, s->make_term(4, intsort)),
+                   s->make_term(81, intsort)));
 
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(u)->to_signed_int(), 3);
@@ -269,13 +270,13 @@ TEST_P(IntArithmeticTests, PowerBySymbol)
   Term power;
   try
   {
-    power = s->make_term(Pow, s->make_term(2, intsort), n);
+    power = s->make_term(Op::Pow, s->make_term(2, intsort), n);
   }
   catch (const NotImplementedException & e)
   {
     GTEST_SKIP() << e.what();
   }
-  s->assert_formula(s->make_term(Equal, power, s->make_term(8, intsort)));
+  s->assert_formula(s->make_term(Op::Equal, power, s->make_term(8, intsort)));
 
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(n)->to_signed_int(), 3);
@@ -348,36 +349,46 @@ TEST_P(IntBVArithmeticTests, PolynomialConstraints)
   Term d = s->make_symbol("d", intsort);
   Term three = s->make_term(3, intsort);
   Term four = s->make_term(4, intsort);
-  Term a_lt_b = s->make_term(Lt, a, b);
-  Term bv_sum = s->make_term(BVAdd, x, s->make_term(BVMul, y, z));
+  Term a_lt_b = s->make_term(Op::Lt, a, b);
+  Term bv_sum = s->make_term(Op::BVAdd, x, s->make_term(Op::BVMul, y, z));
   EXPECT_EQ(bv_sum->get_sort(), bvsort);
 
   // every constraint is satisfiable: the bit-vectors and b can be zero with
   // a = -1 or 0, or b = 12 and d = 88
+  expect_sat(
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, c, s->make_term(Op::Pow, b, four)),
+                   a_lt_b));
+  expect_sat(
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, z, s->make_term(Op::BVMul, x, y)),
+                   a_lt_b));
+  expect_sat(
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, z, s->make_term(Op::BVAdd, x, y)),
+                   a_lt_b));
+  expect_sat(s->make_term(Op::And, s->make_term(Op::Equal, z, bv_sum), a_lt_b));
+  expect_sat(
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, z, bv_sum),
+                   s->make_term(Op::Equal, a, s->make_term(Op::Pow, b, four))));
   expect_sat(s->make_term(
-      And, s->make_term(Equal, c, s->make_term(Pow, b, four)), a_lt_b));
-  expect_sat(s->make_term(
-      And, s->make_term(Equal, z, s->make_term(BVMul, x, y)), a_lt_b));
-  expect_sat(s->make_term(
-      And, s->make_term(Equal, z, s->make_term(BVAdd, x, y)), a_lt_b));
-  expect_sat(s->make_term(And, s->make_term(Equal, z, bv_sum), a_lt_b));
-  expect_sat(s->make_term(And,
-                          s->make_term(Equal, z, bv_sum),
-                          s->make_term(Equal, a, s->make_term(Pow, b, four))));
-  expect_sat(s->make_term(And,
-                          s->make_term(Equal, z, bv_sum),
-                          s->make_term(Equal, a, s->make_term(Pow, b, three))));
+      Op::And,
+      s->make_term(Op::Equal, z, bv_sum),
+      s->make_term(Op::Equal, a, s->make_term(Op::Pow, b, three))));
   Term twelve = s->make_term(12, intsort);
   Term hundred = s->make_term(100, intsort);
-  expect_sat(
-      s->make_term(And,
-                   s->make_term(Equal, hundred, s->make_term(Plus, b, d)),
-                   s->make_term(Ge, b, twelve)));
+  expect_sat(s->make_term(
+      Op::And,
+      s->make_term(Op::Equal, hundred, s->make_term(Op::Plus, b, d)),
+      s->make_term(Op::Ge, b, twelve)));
 
   // and this one forces b = 45
-  s->assert_formula(s->make_term(
-      Equal, hundred, s->make_term(Plus, b, s->make_term(55, intsort))));
-  s->assert_formula(s->make_term(Ge, b, twelve));
+  s->assert_formula(
+      s->make_term(Op::Equal,
+                   hundred,
+                   s->make_term(Op::Plus, b, s->make_term(55, intsort))));
+  s->assert_formula(s->make_term(Op::Ge, b, twelve));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(b)->to_signed_int(), 45);
 }
@@ -411,11 +422,11 @@ TEST_P(IntRealArithmeticTests, Sorts)
   // logging and generic solvers must report one too
   Term i = s->make_symbol("i", intsort);
   Term x = s->make_symbol("x", realsort);
-  for (PrimOp po : { Plus, Minus, Mult })
+  for (Op::Kind kind : { Op::Plus, Op::Minus, Op::Mult })
   {
-    EXPECT_EQ(s->make_term(po, i, x)->get_sort(), realsort);
-    EXPECT_EQ(s->make_term(po, x, i)->get_sort(), realsort);
-    EXPECT_EQ(s->make_term(po, i, i)->get_sort(), intsort);
+    EXPECT_EQ(s->make_term(kind, i, x)->get_sort(), realsort);
+    EXPECT_EQ(s->make_term(kind, x, i)->get_sort(), realsort);
+    EXPECT_EQ(s->make_term(kind, i, i)->get_sort(), intsort);
   }
 }
 
@@ -427,17 +438,18 @@ TEST_P(IntRealArithmeticTests, Div)
   // IncorrectUsageException here
   Term two = s->make_term(2, realsort);
   Term quotient =
-      s->make_term(Div, s->make_term(7, intsort), s->make_term(2, intsort));
+      s->make_term(Op::Div, s->make_term(7, intsort), s->make_term(2, intsort));
   EXPECT_EQ(quotient->get_sort(), realsort);
-  s->assert_formula(s->make_term(
-      Equal, s->make_term(Mult, two, quotient), s->make_term(7, realsort)));
+  s->assert_formula(s->make_term(Op::Equal,
+                                 s->make_term(Op::Mult, two, quotient),
+                                 s->make_term(7, realsort)));
 
   // and an Int by a Real: (/ i 2.0) is 3/2 for i = 3
   Term i = s->make_symbol("i", intsort);
-  s->assert_formula(s->make_term(Equal, i, s->make_term(3, intsort)));
+  s->assert_formula(s->make_term(Op::Equal, i, s->make_term(3, intsort)));
   s->assert_formula(
-      s->make_term(Equal,
-                   s->make_term(Mult, two, s->make_term(Div, i, two)),
+      s->make_term(Op::Equal,
+                   s->make_term(Op::Mult, two, s->make_term(Op::Div, i, two)),
                    s->make_term(3, realsort)));
 
   // with i fixed, nothing is left to choose, so this is sat exactly when both
@@ -449,27 +461,31 @@ TEST_P(IntRealArithmeticTests, ValueInOtherBase)
 {
   // every value equals its decimal counterpart exactly when this is sat
   s->assert_formula(s->make_term(
-      Equal, s->make_term("101", intsort, 2), s->make_term(5, intsort)));
-  s->assert_formula(s->make_term(
-      Equal, s->make_term("-fF", intsort, 16), s->make_term(-255, intsort)));
-  s->assert_formula(s->make_term(
-      Equal, s->make_term("1.8", realsort, 16), s->make_term("3/2", realsort)));
-  s->assert_formula(s->make_term(Equal,
+      Op::Equal, s->make_term("101", intsort, 2), s->make_term(5, intsort)));
+  s->assert_formula(s->make_term(Op::Equal,
+                                 s->make_term("-fF", intsort, 16),
+                                 s->make_term(-255, intsort)));
+  s->assert_formula(s->make_term(Op::Equal,
+                                 s->make_term("1.8", realsort, 16),
+                                 s->make_term("3/2", realsort)));
+  s->assert_formula(s->make_term(Op::Equal,
                                  s->make_term("-0.01", realsort, 2),
                                  s->make_term("-1/4", realsort)));
+  s->assert_formula(s->make_term(Op::Equal,
+                                 s->make_term("1/11", realsort, 2),
+                                 s->make_term("1/3", realsort)));
   s->assert_formula(s->make_term(
-      Equal, s->make_term("1/11", realsort, 2), s->make_term("1/3", realsort)));
+      Op::Equal, s->make_term("17", intsort, 8), s->make_term(15, intsort)));
   s->assert_formula(s->make_term(
-      Equal, s->make_term("17", intsort, 8), s->make_term(15, intsort)));
-  s->assert_formula(s->make_term(
-      Equal, s->make_term("+17", intsort, 8), s->make_term(15, intsort)));
-  s->assert_formula(s->make_term(Equal,
+      Op::Equal, s->make_term("+17", intsort, 8), s->make_term(15, intsort)));
+  s->assert_formula(s->make_term(Op::Equal,
                                  s->make_term("+1.8", realsort, 16),
                                  s->make_term("3/2", realsort)));
+  s->assert_formula(s->make_term(Op::Equal,
+                                 s->make_term("0.2", realsort, 3),
+                                 s->make_term("2/3", realsort)));
   s->assert_formula(s->make_term(
-      Equal, s->make_term("0.2", realsort, 3), s->make_term("2/3", realsort)));
-  s->assert_formula(s->make_term(
-      Equal, s->make_term("Zz", intsort, 36), s->make_term(1295, intsort)));
+      Op::Equal, s->make_term("Zz", intsort, 36), s->make_term(1295, intsort)));
   EXPECT_TRUE(s->check_sat().is_sat());
 
   EXPECT_THROW(s->make_term("102", intsort, 2), IncorrectUsageException);

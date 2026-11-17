@@ -636,12 +636,12 @@ catch (const bitwuzla::Exception & e)
 
 Term BzlaSolver::make_term(Op op, const TermVec & terms) const
 {
-  if (op.prim_op == Forall || op.prim_op == Exists)
+  if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     check_quantifier_binders(op, terms);
   }
   // Bitwuzla 0.9.1 and older make a term of width 0 instead of refusing.
-  if (op.prim_op == Repeat && op.indices[0] == 0)
+  if (op.kind() == Op::Repeat && op.indices[0] == 0)
   {
     throw IncorrectUsageException("Repeat needs a count of at least 1");
   }

@@ -43,19 +43,19 @@ void to_dimacs(const Term & cnf, std::ostringstream & y)
   // This while loop separate the clauses, after_and_elimination will contain
   // all clauses because every smt::and op will be eliminated. This happens
   // because until smt::and op is not detected that term is added back to
-  // before_and_elimination, and as no term with smt::or as the primOp is
+  // before_and_elimination, and as no term with smt::or as the operator is
   // touched all clauses shall be separated and be intact
   while (!before_and_elimination.empty())
   {
     Term t = before_and_elimination.back();
     before_and_elimination.pop_back();
     Op op = t->get_op();
-    if (!(op.is_null() || op == Or || op == And || op == Not))
+    if (!(op.is_null() || op == Op::Or || op == Op::And || op == Op::Not))
     {
       throw IncorrectUsageException("cnf::to_dimacs: " + cnf->to_string()
                                     + " is not in CNF");
     }
-    if (op.prim_op == And)
+    if (op.kind() == Op::And)
     {
       for (auto u : t)
       {
@@ -80,7 +80,7 @@ void to_dimacs(const Term & cnf, std::ostringstream & y)
        // smt::or by separating the literals
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
-      if (t->get_op() == Or)
+      if (t->get_op() == Op::Or)
       {
         for (auto child : t)
         {
@@ -171,41 +171,41 @@ void to_dimacs(const Term & cnf, std::ostringstream & y)
 
 namespace {
 
-// The connective convert encodes that t applies, or NUM_OPS_AND_NULL when t is
+// The connective convert encodes that t applies, or Op::NONE when t is
 // a symbol, a constant or an atom that convert keeps whole. Solvers that alias
 // Bool with (_ BitVec 1) report bit-vector ops for the connectives.
-PrimOp cnf_connective(const Term & t)
+Op::Kind cnf_connective(const Term & t)
 {
   if (!t->get_sort()->is_boolean())
   {
-    return NUM_OPS_AND_NULL;
+    return Op::NONE;
   }
-  PrimOp op = t->get_op().prim_op;
-  if (op == Not || op == BVNot)
+  Op::Kind kind = t->get_op().kind();
+  if (kind == Op::Not || kind == Op::BVNot)
   {
-    return Not;
+    return Op::Not;
   }
-  if (op == And || op == BVAnd)
+  if (kind == Op::And || kind == Op::BVAnd)
   {
-    return And;
+    return Op::And;
   }
-  if (op == Or || op == BVOr)
+  if (kind == Op::Or || kind == Op::BVOr)
   {
-    return Or;
+    return Op::Or;
   }
-  if (op == Xor || op == BVXor)
+  if (kind == Op::Xor || kind == Op::BVXor)
   {
-    return Xor;
+    return Op::Xor;
   }
-  if (op == Implies)
+  if (kind == Op::Implies)
   {
-    return Implies;
+    return Op::Implies;
   }
-  if (op == Equal && (*t->begin())->get_sort()->is_boolean())
+  if (kind == Op::Equal && (*t->begin())->get_sort()->is_boolean())
   {
-    return Equal;
+    return Op::Equal;
   }
-  return NUM_OPS_AND_NULL;
+  return Op::NONE;
 }
 
 // Names each connective with a fresh symbol and records its definition,
@@ -217,7 +217,7 @@ class TseitinTraversal : public IdentityWalker
   struct Definition
   {
     Term name;
-    PrimOp connective;
+    Op::Kind connective;
     TermVec children;
   };
   std::vector<Definition> reduced = {};
@@ -245,8 +245,8 @@ class TseitinTraversal : public IdentityWalker
       }
 
     };
-    PrimOp connective = cnf_connective(term);
-    if (connective == NUM_OPS_AND_NULL)
+    Op::Kind connective = cnf_connective(term);
+    if (connective == Op::NONE)
     {
       // a symbol or an atom stands for itself, and skipping it keeps the
       // connectives inside an atom from being named
@@ -272,13 +272,13 @@ class TseitinTraversal : public IdentityWalker
     // convert's clauses for xor read two children, but xor takes any number,
     // so name every step but the last, left associative. => and = need no
     // such step: EliminateBooleanConstants leaves them binary
-    if (connective == Xor)
+    if (connective == Op::Xor)
     {
       Term acc = children[0];
       for (size_t i = 1; i + 1 < children.size(); ++i)
       {
         Term step = give_symbolic_name();
-        reduced.push_back({ step, Xor, { acc, children[i] } });
+        reduced.push_back({ step, Op::Xor, { acc, children[i] } });
         acc = step;
       }
       children = { acc, children.back() };
@@ -346,14 +346,14 @@ class EliminateBooleanConstants : public IdentityWalker
       }
       else if (lhs_cached == false_term_)
       {  //(false==rhs)=not(rhs)
-        return solver_->make_term(Not, rhs_cached);
+        return solver_->make_term(Op::Not, rhs_cached);
       }
       else if (rhs_cached == false_term_)
       {  //(lhs==false)=not(lhs)
-        return solver_->make_term(Not, lhs_cached);
+        return solver_->make_term(Op::Not, lhs_cached);
       }
       // keeping it as it is
-      return solver_->make_term(Equal, lhs_cached, rhs_cached);
+      return solver_->make_term(Op::Equal, lhs_cached, rhs_cached);
     };
     auto simplify_implies = [&](const Term & lhs_cached,
                                 const Term & rhs_cached) -> Term {
@@ -367,11 +367,11 @@ class EliminateBooleanConstants : public IdentityWalker
       }
       else if (rhs_cached == false_term_)
       {  //(lhs->false)=not(lhs)
-        return solver_->make_term(Not, lhs_cached);
+        return solver_->make_term(Op::Not, lhs_cached);
       }
       // keeping it as it is, as neither lhs or rhs is either "true" or
       // "false"
-      return solver_->make_term(Implies, lhs_cached, rhs_cached);
+      return solver_->make_term(Op::Implies, lhs_cached, rhs_cached);
     };
     auto simplify_and = [&](const TermVec & conjuncts) -> Term {
       std::vector<Term> vec;  // contains all children which are neither
@@ -397,10 +397,10 @@ class EliminateBooleanConstants : public IdentityWalker
         return vec[0];
       }
       // keeping it as it is
-      return solver_->make_term(And, vec);
+      return solver_->make_term(Op::And, vec);
     };
-    PrimOp op = cnf_connective(term);
-    if (op == NUM_OPS_AND_NULL)
+    Op::Kind connective = cnf_connective(term);
+    if (connective == Op::NONE)
     {
       // symbols, constants and atoms are kept as they are, and their
       // subterms are not visited
@@ -409,7 +409,7 @@ class EliminateBooleanConstants : public IdentityWalker
     }
     if (!preorder_)
     {
-      if (op == Not)
+      if (connective == Op::Not)
       {
         Term t = (*term->begin());
         Term cached_term;
@@ -427,10 +427,10 @@ class EliminateBooleanConstants : public IdentityWalker
         }
         else
         {  // mapping not of the queried term_name.
-          save_in_cache(term, solver_->make_term(Not, cached_term));
+          save_in_cache(term, solver_->make_term(Op::Not, cached_term));
         }
       }
-      else if (op == Equal)
+      else if (connective == Op::Equal)
       {
         // chainable: the conjunction of each adjacent pair's equality
         TermVec children = cached_children();
@@ -441,7 +441,7 @@ class EliminateBooleanConstants : public IdentityWalker
         }
         save_in_cache(term, simplify_and(pairs));
       }
-      else if (op == Implies)
+      else if (connective == Op::Implies)
       {
         // right associative
         TermVec children = cached_children();
@@ -452,11 +452,11 @@ class EliminateBooleanConstants : public IdentityWalker
         }
         save_in_cache(term, acc);
       }
-      else if (op == And)
+      else if (connective == Op::And)
       {
         save_in_cache(term, simplify_and(cached_children()));
       }
-      else if (op == Or)
+      else if (connective == Op::Or)
       {
         std::vector<Term> vec;  // contains all children which are neither
                                 // "true" nor "false"
@@ -496,10 +496,10 @@ class EliminateBooleanConstants : public IdentityWalker
         }
         else
         {  // saving as it is
-          save_in_cache(term, solver_->make_term(Or, vec));
+          save_in_cache(term, solver_->make_term(Op::Or, vec));
         }
       }
-      else if (op == Xor)
+      else if (connective == Op::Xor)
       {
         std::vector<Term> vec;  // contains all children which are neither
                                 // "true" nor "false"
@@ -544,20 +544,20 @@ class EliminateBooleanConstants : public IdentityWalker
           }
           else
           {
-            save_in_cache(term, solver_->make_term(Not, vec[0]));
+            save_in_cache(term, solver_->make_term(Op::Not, vec[0]));
           }
         }
         else
         {
           if (true_count % 2 == 0)
           {
-            save_in_cache(term, solver_->make_term(Xor, vec));
+            save_in_cache(term, solver_->make_term(Op::Xor, vec));
           }
           else
           {
             vec[0] = solver_->make_term(
-                Not, vec[0]);  //(Not(x1^x2^x3^x4))=((Not x1)^x2^x3^x4)
-            save_in_cache(term, solver_->make_term(Xor, vec));
+                Op::Not, vec[0]);  //(Not(x1^x2^x3^x4))=((Not x1)^x2^x3^x4)
+            save_in_cache(term, solver_->make_term(Op::Xor, vec));
           }
         }
       }
@@ -597,7 +597,7 @@ bool is_cnf(Term formula)
     Term t = before_and_elimination.back();
     before_and_elimination.pop_back();
     Op op = t->get_op();
-    if (op.prim_op == And)
+    if (op.kind() == Op::And)
     {
       for (auto u : t)
       {
@@ -619,7 +619,7 @@ bool is_cnf(Term formula)
       Term t = before_or_elimination.back();
       before_or_elimination.pop_back();
       Op op = t->get_op();
-      if (op.prim_op == Or)
+      if (op.kind() == Op::Or)
       {
         for (auto child : t)
         {
@@ -643,7 +643,7 @@ bool is_cnf(Term formula)
         continue;
       }
       Op op = literal->get_op();
-      if (op == Not && (*(literal->begin()))->is_symbolic_const())
+      if (op == Op::Not && (*(literal->begin()))->is_symbolic_const())
       {
         continue;
       }
@@ -696,23 +696,23 @@ Term convert(Term formula, SmtSolver s)
   {
     const Term & name = definition.name;
     const TermVec & children = definition.children;
-    PrimOp op = definition.connective;
+    Op::Kind connective = definition.connective;
 
-    if (op == Or)
+    if (connective == Op::Or)
     {  //(c<->Or(x1, x2, x3, x4....)) = (Or(~c, x1, x2, x3, x4) And (And((c or
        //~x1), (c or ~x2), (c or ~x3), (c or ~x4))
       std::vector<Term> vec;
       std::vector<Term> vec2;
-      vec.push_back(s->make_term(Not, name));
+      vec.push_back(s->make_term(Op::Not, name));
       for (auto u : children)
       {
         vec.push_back(u);
-        vec2.push_back(s->make_term(Or, name, s->make_term(Not, u)));
+        vec2.push_back(s->make_term(Op::Or, name, s->make_term(Op::Not, u)));
       }
-      clauses.push_back(s->make_term(Or, vec));
-      clauses.push_back(s->make_term(And, vec2));
+      clauses.push_back(s->make_term(Op::Or, vec));
+      clauses.push_back(s->make_term(Op::And, vec2));
     }
-    else if (op == And)
+    else if (connective == Op::And)
     {  //(c<->And(x1, x2, x3, x4....)) = (Or(c, ~x1, ~x2, ~x3, ~x4) And (And((~c
        // or x1), (~c or x2), (~c or x3), (~c or x4))
       std::vector<Term> vec;
@@ -720,13 +720,13 @@ Term convert(Term formula, SmtSolver s)
       vec.push_back(name);
       for (auto u : children)
       {
-        vec.push_back(s->make_term(Not, u));
-        vec2.push_back(s->make_term(Or, u, s->make_term(Not, name)));
+        vec.push_back(s->make_term(Op::Not, u));
+        vec2.push_back(s->make_term(Op::Or, u, s->make_term(Op::Not, name)));
       }
-      clauses.push_back(s->make_term(Or, vec));
-      clauses.push_back(s->make_term(And, vec2));
+      clauses.push_back(s->make_term(Op::Or, vec));
+      clauses.push_back(s->make_term(Op::And, vec2));
     }
-    else if (op == Xor)
+    else if (connective == Op::Xor)
     {  //((~a) v (~b) v (~c)) and ((a) v (b) v (~c)) and ((c) v (b) v (~a)) and
        //((c) v (a) v (~b))
       auto it = children.begin();
@@ -734,30 +734,31 @@ Term convert(Term formula, SmtSolver s)
       it++;
       Term rhs = (*it);
       clauses.push_back(s->make_term(
-          Or,
-          s->make_term(Or, s->make_term(Not, lhs), s->make_term(Not, rhs)),
-          s->make_term(Not, name)));
+          Op::Or,
+          s->make_term(
+              Op::Or, s->make_term(Op::Not, lhs), s->make_term(Op::Not, rhs)),
+          s->make_term(Op::Not, name)));
       clauses.push_back(s->make_term(
-          Or, s->make_term(Or, lhs, rhs), s->make_term(Not, name)));
+          Op::Or, s->make_term(Op::Or, lhs, rhs), s->make_term(Op::Not, name)));
       clauses.push_back(s->make_term(
-          Or, s->make_term(Or, name, rhs), s->make_term(Not, lhs)));
+          Op::Or, s->make_term(Op::Or, name, rhs), s->make_term(Op::Not, lhs)));
       clauses.push_back(s->make_term(
-          Or, s->make_term(Or, name, lhs), s->make_term(Not, rhs)));
+          Op::Or, s->make_term(Op::Or, name, lhs), s->make_term(Op::Not, rhs)));
     }
-    else if (op == Implies)
+    else if (connective == Op::Implies)
     {  //((~a) v (b) v (~c)) and ((a) v (c)) and ((~b) v (c))
       auto it = children.begin();
       Term lhs = (*it);
       it++;
       Term rhs = (*it);
       clauses.push_back(
-          s->make_term(Or,
-                       s->make_term(Or, s->make_term(Not, lhs), rhs),
-                       s->make_term(Not, name)));
-      clauses.push_back(s->make_term(Or, lhs, name));
-      clauses.push_back(s->make_term(Or, s->make_term(Not, rhs), name));
+          s->make_term(Op::Or,
+                       s->make_term(Op::Or, s->make_term(Op::Not, lhs), rhs),
+                       s->make_term(Op::Not, name)));
+      clauses.push_back(s->make_term(Op::Or, lhs, name));
+      clauses.push_back(s->make_term(Op::Or, s->make_term(Op::Not, rhs), name));
     }
-    else if (op == Equal)
+    else if (connective == Op::Equal)
     {  //((~a) v (~b) v (c)) and ((a) v (b) v (c)) and ((~c) v (~b) v (a)) and
        //((c) v (~a) v (b))
       auto it = children.begin();
@@ -765,30 +766,32 @@ Term convert(Term formula, SmtSolver s)
       it++;
       Term rhs = (*it);
       clauses.push_back(s->make_term(
-          Or,
-          s->make_term(Or, s->make_term(Not, lhs), s->make_term(Not, rhs)),
+          Op::Or,
+          s->make_term(
+              Op::Or, s->make_term(Op::Not, lhs), s->make_term(Op::Not, rhs)),
           name));
-      clauses.push_back(s->make_term(Or, s->make_term(Or, lhs, rhs), name));
       clauses.push_back(
-          s->make_term(Or,
-                       s->make_term(Or, lhs, s->make_term(Not, rhs)),
-                       s->make_term(Not, name)));
+          s->make_term(Op::Or, s->make_term(Op::Or, lhs, rhs), name));
       clauses.push_back(
-          s->make_term(Or,
-                       s->make_term(Or, s->make_term(Not, lhs), rhs),
-                       s->make_term(Not, name)));
+          s->make_term(Op::Or,
+                       s->make_term(Op::Or, lhs, s->make_term(Op::Not, rhs)),
+                       s->make_term(Op::Not, name)));
+      clauses.push_back(
+          s->make_term(Op::Or,
+                       s->make_term(Op::Or, s->make_term(Op::Not, lhs), rhs),
+                       s->make_term(Op::Not, name)));
     }
     else
     {  // Not, the only connective left: ((~a) v (~c)) and ((a) v (c))
       Term lhs = children[0];
-      clauses.push_back(
-          s->make_term(Or, s->make_term(Not, lhs), s->make_term(Not, name)));
-      clauses.push_back(s->make_term(Or, lhs, name));
+      clauses.push_back(s->make_term(
+          Op::Or, s->make_term(Op::Not, lhs), s->make_term(Op::Not, name)));
+      clauses.push_back(s->make_term(Op::Or, lhs, name));
     }
   }
   // taking the and of all clauses generated to create the cnf
-  Term ret = s->make_term(And, clauses);
-  ret = s->make_term(And, parent, ret);
+  Term ret = s->make_term(Op::And, clauses);
+  ret = s->make_term(Op::And, parent, ret);
 
   return ret;
 }

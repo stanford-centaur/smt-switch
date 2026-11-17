@@ -25,124 +25,118 @@
 
 namespace smt {
 
-// Primitive SMT operations (and identifiers for building indexed operators)
-// TODO add more smt ops
-enum PrimOp
-{
-  /* Core Theory */
-  And = 0,
-  Or,
-  Xor,
-  Not,
-  Implies,
-  Ite,
-  Equal,
-  Distinct,
-  /* Uninterpreted Functions */
-  Apply,
-  /* Arithmetic Theories */
-  Plus,
-  Minus,
-  Negate,
-  Mult,
-  Div,
-  Lt,
-  Le,
-  Gt,
-  Ge,
-  // Integers only
-  Mod,
-  Abs,
-  Pow,
-  IntDiv,
-  Divisible,
-  // Int/Real Conversion and Queries
-  To_Real,
-  To_Int,
-  Is_Int,
-  /* Fixed Size BitVector Theory */
-  Concat,
-  Extract,
-  BVNot,
-  BVNeg,
-  BVAnd,
-  BVOr,
-  BVXor,
-  BVNand,
-  BVNor,
-  BVXnor,
-  BVAdd,
-  BVSub,
-  BVMul,
-  BVUdiv,
-  BVSdiv,
-  BVUrem,
-  BVSrem,
-  BVSmod,
-  BVShl,
-  BVAshr,
-  BVLshr,
-  BVComp,
-  BVUlt,
-  BVUle,
-  BVUgt,
-  BVUge,
-  BVSlt,
-  BVSle,
-  BVSgt,
-  BVSge,
-  Zero_Extend,
-  Sign_Extend,
-  Repeat,
-  Rotate_Left,
-  Rotate_Right,
-  // BitVector Conversion
-  BV_To_Nat,  // deprecated alias to UBV_To_Int
-  UBV_To_Int,
-  SBV_To_Int,
-  Int_To_BV,
-  // Strings
-  StrLt,
-  StrLeq,
-  StrLen,
-  StrConcat,
-  StrSubstr,
-  StrAt,
-  StrContains,
-  StrIndexof,
-  StrReplace,
-  StrReplaceAll,
-  StrPrefixof,
-  StrSuffixof,
-  StrIsDigit,
-  /* Array Theory */
-  Select,
-  Store,
-  /* Quantifiers */
-  // quantifiers can be applied to n arguments where the first n-1
-  // are parameters and the nth is a body which uses the parameters
-  // binds all the parameters from left to right, i.e. so the resulting
-  // term read left to right matches the vector order
-  Forall,
-  Exists,
-  /* Datatype Theory */
-  Apply_Selector,
-  Apply_Tester,
-  Apply_Constructor,
-  // TODO if adding new operator, also add to Python bindings in enums_dec.pxi
-  // and enums_imp.pxi
-  /**
-     Serves as both the number of ops and a null element for builtin operators.
-   */
-  NUM_OPS_AND_NULL
-};
-
 /**
    Represents operators
    An Op made with indices is an indexed operator
  */
-struct Op
+class Op
 {
+ public:
+  /** The operators, named after their SMT-LIB symbols */
+  enum Kind
+  {
+    NONE,  // no operator, as for a symbol or value
+    // Core
+    And,
+    Or,
+    Xor,
+    Not,
+    Implies,
+    Ite,
+    Equal,
+    Distinct,
+    // Uninterpreted functions
+    Apply,
+    // Arithmetic
+    Plus,
+    Minus,
+    Negate,
+    Mult,
+    Div,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+    // Integers only
+    Mod,
+    Abs,
+    Pow,
+    IntDiv,
+    Divisible,
+    // Conversions between integers and reals
+    To_Real,
+    To_Int,
+    Is_Int,
+    // Bit-vectors
+    Concat,
+    Extract,
+    BVNot,
+    BVNeg,
+    BVAnd,
+    BVOr,
+    BVXor,
+    BVNand,
+    BVNor,
+    BVXnor,
+    BVAdd,
+    BVSub,
+    BVMul,
+    BVUdiv,
+    BVSdiv,
+    BVUrem,
+    BVSrem,
+    BVSmod,
+    BVShl,
+    BVAshr,
+    BVLshr,
+    BVComp,
+    BVUlt,
+    BVUle,
+    BVUgt,
+    BVUge,
+    BVSlt,
+    BVSle,
+    BVSgt,
+    BVSge,
+    Zero_Extend,
+    Sign_Extend,
+    Repeat,
+    Rotate_Left,
+    Rotate_Right,
+    // Conversions between bit-vectors and integers
+    UBV_To_Int,
+    BV_To_Nat [[deprecated("use UBV_To_Int")]] = UBV_To_Int,
+    SBV_To_Int,
+    Int_To_BV,
+    // Strings
+    StrLt,
+    StrLeq,
+    StrLen,
+    StrConcat,
+    StrSubstr,
+    StrAt,
+    StrContains,
+    StrIndexof,
+    StrReplace,
+    StrReplaceAll,
+    StrPrefixof,
+    StrSuffixof,
+    StrIsDigit,
+    // Arrays
+    Select,
+    Store,
+    // Quantifiers
+    Forall,
+    Exists,
+    // Datatypes
+    Apply_Selector,
+    Apply_Tester,
+    Apply_Constructor,
+  };
+
+  /** How many kinds there are, Op::NONE included */
+  static constexpr std::size_t num_kinds = Apply_Constructor + 1;
+
   /** The indices of an Op, in order, fixed when the Op is made: only Op can
    *  make one or assign to one
    */
@@ -160,7 +154,7 @@ struct Op
     bool operator!=(const Indices & other) const;
 
    private:
-    friend struct Op;
+    friend class Op;
     Indices() = default;
     explicit Indices(std::uint64_t index0);
     Indices(std::uint64_t index0, std::uint64_t index1);
@@ -172,15 +166,16 @@ struct Op
 
   Op() = default;
   /** @throws IncorrectUsageException for an operator that takes indices */
-  Op(PrimOp o);
+  Op(Kind k);
   /** @throws IncorrectUsageException for an operator that does not take one
    *  index
    */
-  Op(PrimOp o, std::uint64_t index0);
+  Op(Kind k, std::uint64_t index0);
   /** @throws IncorrectUsageException for an operator that does not take two
    *  indices
    */
-  Op(PrimOp o, std::uint64_t index0, std::uint64_t index1);
+  Op(Kind k, std::uint64_t index0, std::uint64_t index1);
+  Kind kind() const;
   std::string to_string() const;
   bool is_null() const;
 
@@ -225,16 +220,18 @@ struct Op
   Sort compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
                     const SortVec & sorts) const;
 
-  PrimOp prim_op = NUM_OPS_AND_NULL;
   Indices indices = {};
+
+ private:
+  Kind kind_ = NONE;
 };
 
-/** Looks up the expected arity of a PrimOp
+/** Looks up the expected arity of an operator
  *  @return a tuple with the minimum and maximum
  *          accepted arity (in that order)
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ *  @throws IncorrectUsageException for Op::NONE
  */
-std::pair<std::size_t, std::size_t> get_arity(PrimOp po);
+std::pair<std::size_t, std::size_t> get_arity(Op::Kind kind);
 
 /** The SMT-LIB theory that declares an operator, or for an operator no
  *  theory declares, the part of SMT-LIB that provides it
@@ -255,14 +252,14 @@ enum class Theory
 };
 
 /** The theory of an operator
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ *  @throws IncorrectUsageException for Op::NONE
  */
-Theory get_theory(PrimOp po);
+Theory get_theory(Op::Kind kind);
 
 /** How many numerals index an operator, e.g. 2 for (_ extract i j)
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ *  @throws IncorrectUsageException for Op::NONE
  */
-std::uint64_t get_num_indices(PrimOp po);
+std::uint64_t get_num_indices(Op::Kind kind);
 
 /* SMT-LIB defines the applications of some operators to more than two
  * arguments in terms of their applications to two, by giving them one of the
@@ -270,35 +267,36 @@ std::uint64_t get_num_indices(PrimOp po);
  * arguments, and builds the applications to two itself where its solver
  * takes no more.
  */
-/** Whether po is :left-assoc, e.g. (- a b c) is (- (- a b) c)
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+/** Whether kind is :left-assoc, e.g. (- a b c) is (- (- a b) c)
+ *  @throws IncorrectUsageException for Op::NONE
  */
-bool is_left_assoc(PrimOp po);
-/** Whether po is :right-assoc, e.g. (=> a b c) is (=> a (=> b c))
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+bool is_left_assoc(Op::Kind kind);
+/** Whether kind is :right-assoc, e.g. (=> a b c) is (=> a (=> b c))
+ *  @throws IncorrectUsageException for Op::NONE
  */
-bool is_right_assoc(PrimOp po);
-/** Whether po is :chainable, e.g. (< a b c) is (and (< a b) (< b c))
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+bool is_right_assoc(Op::Kind kind);
+/** Whether kind is :chainable, e.g. (< a b c) is (and (< a b) (< b c))
+ *  @throws IncorrectUsageException for Op::NONE
  */
-bool is_chainable(PrimOp po);
-/** Whether po is :pairwise, e.g. (distinct a b c) is
+bool is_chainable(Op::Kind kind);
+/** Whether kind is :pairwise, e.g. (distinct a b c) is
  *  (and (distinct a b) (distinct a c) (distinct b c))
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ *  @throws IncorrectUsageException for Op::NONE
  */
-bool is_pairwise(PrimOp po);
-/** Whether po can be applied to more than two arguments: whether it is
+bool is_pairwise(Op::Kind kind);
+/** Whether kind can be applied to more than two arguments: whether it is
  *  :left-assoc, :right-assoc, :chainable or :pairwise
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ *  @throws IncorrectUsageException for Op::NONE
  */
-bool is_variadic(PrimOp po);
+bool is_variadic(Op::Kind kind);
 
 /** Whether an operator applies its first child: a function, constructor,
  *  selector or tester, which SMT-LIB writes in the operator's place
  */
-bool is_apply(PrimOp po);
+bool is_apply(Op::Kind kind);
 
-std::string to_string(PrimOp op);
+std::string to_string(Op::Kind k);
+std::ostream & operator<<(std::ostream & output, Op::Kind k);
 bool operator==(Op o1, Op o2);
 bool operator!=(Op o1, Op o2);
 std::ostream & operator<<(std::ostream & output, const Op o);

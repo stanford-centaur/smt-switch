@@ -306,7 +306,8 @@ class AbsSmtSolver : public internal::SharedBase<AbsSmtSolver>
 
   /* Make a new term
    * @param op the operator to use
-   * @param terms vector of children
+   * @param terms vector of children; for Forall and Exists, the params to
+   *        bind and then the body, the params bound from left to right
    * @return the created term
    * This is the overload a backend implements; the one taking the children
    * as separate arguments below is a shorthand for it.

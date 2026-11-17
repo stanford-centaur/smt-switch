@@ -7,7 +7,7 @@ from libc.stdint cimport uint64_t
 from libcpp.memory cimport static_pointer_cast
 from libcpp.string cimport string
 
-from .primops import int2primop
+from .opkinds import int2opkind
 from .sortkinds import BV, INT, int2sortkind
 
 from .cppapi cimport (
@@ -24,27 +24,27 @@ from .cppapi cimport (
     c_UnorderedTermSet
 )
 from .cppenums cimport c_SortKind, c_BOOL
-from .enums cimport PrimOp, SortKind
+from .enums cimport OpKind, SortKind
 
 
 cdef class Op:
-    def __cinit__(self, prim_op=None, idx0=None, idx1=None):
-        if isinstance(prim_op, PrimOp):
+    def __cinit__(self, kind=None, idx0=None, idx1=None):
+        if isinstance(kind, OpKind):
             if idx0 is None:
-                self.op = c_Op((<PrimOp?> prim_op).po)
+                self.op = c_Op((<OpKind?> kind).ck)
             elif idx1 is None:
-                self.op = c_Op((<PrimOp?> prim_op).po, <uint64_t?> idx0)
+                self.op = c_Op((<OpKind?> kind).ck, <uint64_t?> idx0)
             else:
                 self.op = c_Op(
-                    (<PrimOp?> prim_op).po, <uint64_t?> idx0, <uint64_t?> idx1
+                    (<OpKind?> kind).ck, <uint64_t?> idx0, <uint64_t?> idx1
                 )
         else:
             self.op = c_Op()
 
     @property
-    def prim_op(self):
+    def kind(self):
         # look up the canonical object
-        return int2primop[(<int> self.op.prim_op)]
+        return int2opkind[(<int> self.op.kind())]
 
     @property
     def indices(self):
@@ -80,7 +80,7 @@ cdef class Op:
     def __eq__(self, other):
         if isinstance(other, Op):
             return self.op == (<Op> other).op
-        elif isinstance(other, PrimOp):
+        elif isinstance(other, OpKind):
             return self == Op(other)
         else:
             raise ValueError(
@@ -90,7 +90,7 @@ cdef class Op:
     def __ne__(self, other):
         if isinstance(other, Op):
             return self.op != (<Op> other).op
-        elif isinstance(other, PrimOp):
+        elif isinstance(other, OpKind):
             return self != Op(other)
         else:
             raise ValueError(
@@ -410,7 +410,7 @@ cdef class SmtSolver:
         cdef Term term = Term(self)
         cdef c_TermVec ctv
 
-        if isinstance(op_or_val, PrimOp):
+        if isinstance(op_or_val, OpKind):
             op_or_val = Op(op_or_val)
 
         # expand a list argument
@@ -582,9 +582,9 @@ def get_free_symbols(Term term):
     return python_out_set
 
 
-def op_partition(PrimOp po, Term term):
+def op_partition(OpKind kind, Term term):
     '''
-    Returns a list of nested terms partition by operator po
+    Returns a list of nested terms partition by operator kind
 
     Example
       op_partition(Plus, solver.make_term(Plus, a, solver.make_term(Plus, b, c)))
@@ -592,7 +592,7 @@ def op_partition(PrimOp po, Term term):
     '''
 
     cdef c_TermVec out
-    dref(term.ct).op_partition(po.po, out)
+    dref(term.ct).op_partition(kind.ck, out)
 
     python_out_list = []
     for s in out:

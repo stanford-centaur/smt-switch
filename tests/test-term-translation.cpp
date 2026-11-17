@@ -245,7 +245,7 @@ TEST_P(SelfTranslationTests, BVTransfer)
 {
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tt(s2);
-  Term constraint = s->make_term(Equal, z, s->make_term(BVAdd, x, y));
+  Term constraint = s->make_term(Op::Equal, z, s->make_term(Op::BVAdd, x, y));
   Term T = s->make_term(true);
   Term two = s->make_term(2, bvsort8);
 
@@ -281,8 +281,8 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tt(s2);
 
-  Term xpy = s->make_term(Plus, x, y);
-  Term xpymz = s->make_term(Minus, xpy, z);
+  Term xpy = s->make_term(Op::Plus, x, y);
+  Term xpymz = s->make_term(Op::Minus, xpy, z);
 
   Term xpymz_transfer = tt.transfer_term(xpymz);
   // recover symbols
@@ -293,29 +293,29 @@ TEST_P(SelfTranslationIntTests, IntTransfer)
   {
     s2_symbols[sym->to_string()] = sym;
   }
-  Term xpymz_2 =
-      s2->make_term(Minus,
-                    s2->make_term(Plus, s2_symbols.at("x"), s2_symbols.at("y")),
-                    s2_symbols.at("z"));
+  Term xpymz_2 = s2->make_term(
+      Op::Minus,
+      s2->make_term(Op::Plus, s2_symbols.at("x"), s2_symbols.at("y")),
+      s2_symbols.at("z"));
   ASSERT_EQ(xpymz_transfer, xpymz_2);
   // test that you can retransfer
   xpymz_transfer = tt.transfer_term(xpymz);
   ASSERT_EQ(xpymz_transfer, xpymz_2);
 
   Term two = s->make_term(2, intsort);
-  Term neg_two = s->make_term(Negate, two);
-  Term xp2 = s->make_term(Plus, x, two);
+  Term neg_two = s->make_term(Op::Negate, two);
+  Term xp2 = s->make_term(Op::Plus, x, two);
 
   Term two_transfer = tt.transfer_term(two);
   Term two_2 = s2->make_term(2, intsort);
   ASSERT_EQ(two_transfer, two_2);
 
   Term neg_two_transfer = tt.transfer_term(neg_two);
-  Term neg_two_2 = s2->make_term(Negate, two_2);
+  Term neg_two_2 = s2->make_term(Op::Negate, two_2);
   ASSERT_EQ(neg_two_transfer, neg_two_2);
 
   Term xp2_transfer = tt.transfer_term(xp2);
-  Term xp2_2 = s2->make_term(Plus, s2_symbols.at("x"), two_2);
+  Term xp2_2 = s2->make_term(Op::Plus, s2_symbols.at("x"), two_2);
   ASSERT_EQ(xp2_transfer, xp2_2);
 }
 
@@ -324,9 +324,9 @@ TEST_P(SelfTranslationIntTests, Abs)
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tt(s2);
 
-  Term abs_x_transfer = tt.transfer_term(s->make_term(Abs, x));
-  Term abs_x_2 = s2->make_term(Abs, s2->get_symbol("x"));
-  s2->assert_formula(s2->make_term(Distinct, abs_x_transfer, abs_x_2));
+  Term abs_x_transfer = tt.transfer_term(s->make_term(Op::Abs, x));
+  Term abs_x_2 = s2->make_term(Op::Abs, s2->get_symbol("x"));
+  s2->assert_formula(s2->make_term(Op::Distinct, abs_x_transfer, abs_x_2));
   ASSERT_TRUE(s2->check_sat().is_unsat());
 }
 
@@ -338,9 +338,9 @@ TEST_P(SelfTranslationRealTests, Fractions)
   Term half = s->make_term("1/2", realsort);
   Term neg_half = s->make_term("-1/2", realsort);
   Term constraint =
-      s->make_term(And,
-                   s->make_term(Equal, s->make_term(Plus, x, y), half),
-                   s->make_term(Lt, x, neg_half));
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, s->make_term(Op::Plus, x, y), half),
+                   s->make_term(Op::Lt, x, neg_half));
 
   Term half_transfer = tt.transfer_term(half);
   Term neg_half_transfer = tt.transfer_term(neg_half);
@@ -352,18 +352,18 @@ TEST_P(SelfTranslationRealTests, Fractions)
   Term half_2 = s2->make_term("1/2", realsort2);
   Term neg_half_2 = s2->make_term("-1/2", realsort2);
   Term constraint_2 = s2->make_term(
-      And,
+      Op::And,
       s2->make_term(
-          Equal,
-          s2->make_term(Plus, s2->get_symbol("x"), s2->get_symbol("y")),
+          Op::Equal,
+          s2->make_term(Op::Plus, s2->get_symbol("x"), s2->get_symbol("y")),
           half_2),
-      s2->make_term(Lt, s2->get_symbol("x"), neg_half_2));
+      s2->make_term(Op::Lt, s2->get_symbol("x"), neg_half_2));
 
   s2->assert_formula(s2->make_term(
-      Or,
-      s2->make_term(Distinct, half_transfer, half_2),
-      s2->make_term(Distinct, neg_half_transfer, neg_half_2),
-      s2->make_term(Distinct, constraint_transfer, constraint_2)));
+      Op::Or,
+      s2->make_term(Op::Distinct, half_transfer, half_2),
+      s2->make_term(Op::Distinct, neg_half_transfer, neg_half_2),
+      s2->make_term(Op::Distinct, constraint_transfer, constraint_2)));
   EXPECT_TRUE(s2->check_sat().is_unsat());
 
   s->assert_formula(constraint);
@@ -390,7 +390,7 @@ TEST_P(SelfTranslationRealTests, MalformedFractions)
 
 TEST_P(TranslationTests, And)
 {
-  Term a_and_b = s1->make_term(And, a, b);
+  Term a_and_b = s1->make_term(Op::And, a, b);
   TermTranslator to_s2(s2);
 
   TermTranslator to_s1(s1);
@@ -431,7 +431,7 @@ TEST_P(TranslationTests, SymbolMadeAfterPush)
 
 TEST_P(TranslationTests, Equal)
 {
-  Term a_equal_b = s1->make_term(Equal, a, b);
+  Term a_equal_b = s1->make_term(Op::Equal, a, b);
   TermTranslator to_s2(s2);
 
   TermTranslator to_s1(s1);
@@ -446,7 +446,7 @@ TEST_P(TranslationTests, Equal)
   // Note: boolector might still report that it's a BV1 instead of a Bool
   // but it will consistent
   ASSERT_EQ(a_equal_b->get_sort(), a_equal_b->get_sort());
-  s1->assert_formula(s1->make_term(Distinct, a_equal_b_1, a_equal_b));
+  s1->assert_formula(s1->make_term(Op::Distinct, a_equal_b_1, a_equal_b));
   Result r = s1->check_sat();
   ASSERT_TRUE(r.is_unsat());
 }
@@ -455,10 +455,10 @@ TEST_P(BVTranslationTests, NaryApplications)
 {
   // a source solver may keep these as applications to three arguments, of
   // which a target solver may only take two at a time
-  TermVec bool_terms({ s1->make_term(Implies, { a, b, a }),
-                       s1->make_term(Equal, { x, y, z }),
-                       s1->make_term(Distinct, { x, y, z }) });
-  Term product = s1->make_term(BVMul, { x, y, z });
+  TermVec bool_terms({ s1->make_term(Op::Implies, { a, b, a }),
+                       s1->make_term(Op::Equal, { x, y, z }),
+                       s1->make_term(Op::Distinct, { x, y, z }) });
+  Term product = s1->make_term(Op::BVMul, { x, y, z });
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
 
@@ -466,25 +466,26 @@ TEST_P(BVTranslationTests, NaryApplications)
   for (const Term & t : bool_terms)
   {
     Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), SortKind::BOOL);
-    differences.push_back(s1->make_term(Distinct, t, t_1));
+    differences.push_back(s1->make_term(Op::Distinct, t, t_1));
   }
   Term product_1 =
       to_s1.transfer_term(to_s2.transfer_term(product), SortKind::BV);
-  differences.push_back(s1->make_term(Distinct, product, product_1));
-  s1->assert_formula(s1->make_term(Or, differences));
+  differences.push_back(s1->make_term(Op::Distinct, product, product_1));
+  s1->assert_formula(s1->make_term(Op::Or, differences));
   ASSERT_TRUE(s1->check_sat().is_unsat());
 }
 
 TEST_P(IntTranslationTests, Divisible)
 {
   // MathSAT keeps the constant apart, as the congruence i = 2 mod 3
-  Term divisible = s1->make_term(
-      Op(Divisible, 3), s1->make_term(Minus, i, s1->make_term(2, intsort)));
+  Term divisible =
+      s1->make_term(Op(Op::Divisible, 3),
+                    s1->make_term(Op::Minus, i, s1->make_term(2, intsort)));
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
   Term divisible_1 =
       to_s1.transfer_term(to_s2.transfer_term(divisible), SortKind::BOOL);
-  s1->assert_formula(s1->make_term(Distinct, divisible, divisible_1));
+  s1->assert_formula(s1->make_term(Op::Distinct, divisible, divisible_1));
   ASSERT_TRUE(s1->check_sat().is_unsat());
 }
 
@@ -492,9 +493,9 @@ TEST_P(IntTranslationTests, NaryApplications)
 {
   // a source solver may keep these as applications to three arguments, as
   // Yices2 keeps a sum
-  Term sum = s1->make_term(Plus, { i, j, k });
-  Term difference = s1->make_term(Minus, { i, j, k });
-  Term chain = s1->make_term(Lt, { i, j, k });
+  Term sum = s1->make_term(Op::Plus, { i, j, k });
+  Term difference = s1->make_term(Op::Minus, { i, j, k });
+  Term chain = s1->make_term(Op::Lt, { i, j, k });
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
 
@@ -502,18 +503,18 @@ TEST_P(IntTranslationTests, NaryApplications)
   for (const Term & t : { sum, difference })
   {
     Term t_1 = to_s1.transfer_term(to_s2.transfer_term(t), SortKind::INT);
-    differences.push_back(s1->make_term(Distinct, t, t_1));
+    differences.push_back(s1->make_term(Op::Distinct, t, t_1));
   }
   Term chain_1 =
       to_s1.transfer_term(to_s2.transfer_term(chain), SortKind::BOOL);
-  differences.push_back(s1->make_term(Distinct, chain, chain_1));
-  s1->assert_formula(s1->make_term(Or, differences));
+  differences.push_back(s1->make_term(Op::Distinct, chain, chain_1));
+  s1->assert_formula(s1->make_term(Op::Or, differences));
   ASSERT_TRUE(s1->check_sat().is_unsat());
 }
 
 TEST_P(BVTranslationTests, Ite)
 {
-  Term a_ite_x_y = s1->make_term(Ite, a, x, y);
+  Term a_ite_x_y = s1->make_term(Op::Ite, a, x, y);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
@@ -527,11 +528,11 @@ TEST_P(BVTranslationTests, Ite)
 TEST_P(BVTranslationTests, Concat)
 {
   Sort bvsort1 = s1->make_sort(SortKind::BV, 1);
-  Term x_lt_y = s1->make_term(BVUlt, x, y);
+  Term x_lt_y = s1->make_term(Op::BVUlt, x, y);
   Term bv_x_lt_y = s1->make_term(
-      Ite, x_lt_y, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
+      Op::Ite, x_lt_y, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
 
-  Term concat_term = s1->make_term(Concat, bv_x_lt_y, x);
+  Term concat_term = s1->make_term(Op::Concat, bv_x_lt_y, x);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
@@ -546,9 +547,9 @@ TEST_P(BVTranslationTests, Extract)
 {
   Sort bvsort1 = s1->make_sort(SortKind::BV, 1);
   Term bv_a = s1->make_term(
-      Ite, a, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
+      Op::Ite, a, s1->make_term(1, bvsort1), s1->make_term(0, bvsort1));
 
-  Term ext_bv_a = s1->make_term(Op(Extract, 0, 0), bv_a);
+  Term ext_bv_a = s1->make_term(Op(Op::Extract, 0, 0), bv_a);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
@@ -561,7 +562,7 @@ TEST_P(BVTranslationTests, Extract)
   // this one might get rewritten
   // so it won't be syntactically equivalent
   // but it should still be semantically equivalent
-  s1->assert_formula(s1->make_term(Distinct, ext_bv_a, ext_bv_a_1));
+  s1->assert_formula(s1->make_term(Op::Distinct, ext_bv_a, ext_bv_a_1));
   Result r = s1->check_sat();
   ASSERT_TRUE(r.is_unsat());
 }
@@ -586,13 +587,13 @@ TEST_P(TranslationTests, UninterpretedSort)
   Sort ufsort = s1->make_sort(SortKind::FUNCTION, { uninterp_sort, boolsort });
   Term v = s1->make_symbol("v", uninterp_sort);
   Term f = s1->make_symbol("f", ufsort);
-  Term fv = s1->make_term(Apply, f, v);
+  Term fv = s1->make_term(Op::Apply, f, v);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
 
   Term fv_2 = to_s2.transfer_term(fv);
-  EXPECT_EQ(fv_2->get_op(), Apply);
+  EXPECT_EQ(fv_2->get_op(), Op::Apply);
 
   Term fv_1 = to_s1.transfer_term(fv_2);
   EXPECT_TRUE(round_trip_matches(std::get<1>(GetParam()), s1, fv_1, fv));
@@ -618,7 +619,7 @@ TEST_P(TranslationTests, ApplicationOfFewerArguments)
       s2->make_sort(SortKind::FUNCTION, { u2, s2->make_sort(SortKind::BOOL) }));
 
   TermTranslator to_s2(s2);
-  EXPECT_THROW(to_s2.transfer_term(s1->make_term(Apply, f1, v1, v1)),
+  EXPECT_THROW(to_s2.transfer_term(s1->make_term(Op::Apply, f1, v1, v1)),
                IncorrectUsageException);
 }
 
@@ -641,8 +642,8 @@ TEST_P(BoolArrayTranslationTests, Arrays)
   Term f = s1->make_term(false);
   Term t = s1->make_term(true);
   Term const_arr = s1->make_term(f, arrsort);
-  Term stores = s1->make_term(Store, const_arr, x, t);
-  stores = s1->make_term(Store, stores, y, t);
+  Term stores = s1->make_term(Op::Store, const_arr, x, t);
+  stores = s1->make_term(Op::Store, stores, y, t);
 
   TermTranslator to_s2(s2);
   TermTranslator to_s1(s1);
@@ -660,11 +661,11 @@ TEST_P(BoolArrayTranslationTests, Arrays)
   EXPECT_EQ(stores, stores_1);
 
   // stores is false everywhere except at x and y
-  Term constraint = s1->make_term(And,
-                                  { s1->make_term(Equal, arr, stores),
-                                    s1->make_term(Distinct, z, x),
-                                    s1->make_term(Distinct, z, y),
-                                    s1->make_term(Select, arr, z) });
+  Term constraint = s1->make_term(Op::And,
+                                  { s1->make_term(Op::Equal, arr, stores),
+                                    s1->make_term(Op::Distinct, z, x),
+                                    s1->make_term(Op::Distinct, z, y),
+                                    s1->make_term(Op::Select, arr, z) });
   s1->assert_formula(constraint);
   EXPECT_TRUE(s1->check_sat().is_unsat());
   s2->assert_formula(to_s2.transfer_term(constraint));
@@ -674,11 +675,11 @@ TEST_P(BoolArrayTranslationTests, Arrays)
 TEST_P(BoolArrayTranslationTests, StoreChainValue)
 {
   Term t = s1->make_term(true);
-  Term stores = s1->make_term(Store,
+  Term stores = s1->make_term(Op::Store,
                               s1->make_term(s1->make_term(false), arrsort),
                               s1->make_term(2, bvsort8),
                               t);
-  stores = s1->make_term(Store, stores, s1->make_term(5, bvsort8), t);
+  stores = s1->make_term(Op::Store, stores, s1->make_term(5, bvsort8), t);
   ASSERT_TRUE(stores->is_value());
 
   TermTranslator to_s2(s2);
@@ -691,15 +692,15 @@ TEST_P(BoolArrayTranslationTests, StoreChainValue)
   // stores is true at 2 and 5 and false at 3
   Sort bvsort8_2 = s2->make_sort(SortKind::BV, 8);
   s2->assert_formula(s2->make_term(
-      Not,
+      Op::Not,
       s2->make_term(
-          And,
-          { s2->make_term(Select, stores_2, s2->make_term(2, bvsort8_2)),
-            s2->make_term(Select, stores_2, s2->make_term(5, bvsort8_2)),
+          Op::And,
+          { s2->make_term(Op::Select, stores_2, s2->make_term(2, bvsort8_2)),
+            s2->make_term(Op::Select, stores_2, s2->make_term(5, bvsort8_2)),
             s2->make_term(
-                Not,
+                Op::Not,
                 s2->make_term(
-                    Select, stores_2, s2->make_term(3, bvsort8_2))) })));
+                    Op::Select, stores_2, s2->make_term(3, bvsort8_2))) })));
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
@@ -707,18 +708,19 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
 {
   // MathSAT and Yices2 make 0.0, 1.0 and an Ite over them Ints, and 1/10 a
   // Real, so these Ites have one branch of each
-  auto make_ites = [](const SmtSolver & solver,
-                      const Term & c,
-                      const Term & d) {
-    Sort real = solver->make_sort(SortKind::REAL);
-    Term zero = solver->make_term("0.0", real);
-    Term one = solver->make_term("1.0", real);
-    Term tenth = solver->make_term("1/10", real);
-    return TermVec{ solver->make_term(Ite, c, zero, tenth),
-                    solver->make_term(Ite, c, tenth, zero),
-                    solver->make_term(
-                        Ite, c, solver->make_term(Ite, d, zero, one), tenth) };
-  };
+  auto make_ites =
+      [](const SmtSolver & solver, const Term & c, const Term & d) {
+        Sort real = solver->make_sort(SortKind::REAL);
+        Term zero = solver->make_term("0.0", real);
+        Term one = solver->make_term("1.0", real);
+        Term tenth = solver->make_term("1/10", real);
+        return TermVec{
+          solver->make_term(Op::Ite, c, zero, tenth),
+          solver->make_term(Op::Ite, c, tenth, zero),
+          solver->make_term(
+              Op::Ite, c, solver->make_term(Op::Ite, d, zero, one), tenth)
+        };
+      };
   TermVec ites = make_ites(s1, a, b);
   Sort boolsort2 = s2->make_sort(SortKind::BOOL);
   TermVec expected = make_ites(
@@ -731,9 +733,9 @@ TEST_P(RealTranslationTests, IteOverIntegerValuedReal)
     SCOPED_TRACE(ites[n]->to_string());
     Term ite2 = to_s2.transfer_term(ites[n]);
     EXPECT_EQ(ite2->get_sort()->get_kind(), SortKind::REAL);
-    distinct.push_back(s2->make_term(Distinct, ite2, expected[n]));
+    distinct.push_back(s2->make_term(Op::Distinct, ite2, expected[n]));
   }
-  s2->assert_formula(s2->make_term(Or, distinct));
+  s2->assert_formula(s2->make_term(Op::Or, distinct));
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
@@ -744,8 +746,8 @@ TEST_P(RealTranslationTests, EqualOverIntegerValuedReal)
   Term x = s1->make_symbol("x", realsort);
   Term one = s1->make_term("1.0", realsort);
   TermTranslator to_s2(s2);
-  s2->assert_formula(to_s2.transfer_term(s1->make_term(Equal, x, one)));
-  s2->assert_formula(to_s2.transfer_term(s1->make_term(Distinct, one, x)));
+  s2->assert_formula(to_s2.transfer_term(s1->make_term(Op::Equal, x, one)));
+  s2->assert_formula(to_s2.transfer_term(s1->make_term(Op::Distinct, one, x)));
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
@@ -755,12 +757,14 @@ TEST_P(IntRealTranslationTests, Conversions)
   Term i = s1->make_symbol("i", intsort);
   Term x = s1->make_symbol("x", realsort);
   Term half = s1->make_term(
-      Div, s1->make_term(1, realsort), s1->make_term(2, realsort));
+      Op::Div, s1->make_term(1, realsort), s1->make_term(2, realsort));
   Term constraint = s1->make_term(
-      And,
+      Op::And,
       s1->make_term(
-          Equal, x, s1->make_term(Plus, s1->make_term(To_Real, i), half)),
-      s1->make_term(Distinct, s1->make_term(To_Int, x), i));
+          Op::Equal,
+          x,
+          s1->make_term(Op::Plus, s1->make_term(Op::To_Real, i), half)),
+      s1->make_term(Op::Distinct, s1->make_term(Op::To_Int, x), i));
 
   TermTranslator to_s2(s2);
   s2->assert_formula(to_s2.transfer_term(constraint));
@@ -808,12 +812,12 @@ TEST_P(DatatypeTranslationTests, DatatypeSort)
   Term l2 = to_s2.transfer_term(s1->make_symbol("l", listsort));
   EXPECT_EQ(l2->get_sort(), list2);
   s2->assert_formula(
-      s2->make_term(Apply_Tester, s2->get_tester(list2, "cons"), l2));
+      s2->make_term(Op::Apply_Tester, s2->get_tester(list2, "cons"), l2));
   s2->assert_formula(s2->make_term(
-      Apply_Tester,
+      Op::Apply_Tester,
       s2->get_tester(list2, "nil"),
       s2->make_term(
-          Apply_Selector, s2->get_selector(list2, "cons", "tail"), l2)));
+          Op::Apply_Selector, s2->get_selector(list2, "cons", "tail"), l2)));
   EXPECT_TRUE(s2->check_sat().is_sat());
 }
 
@@ -860,24 +864,24 @@ TEST_P(DatatypeTranslationTests, DatatypeTerms)
   // either disjunct contradicts what the components mean, so s2 refutes the
   // transferred term only if they kept their meaning
   Term five = s1->make_term(5, intsort);
-  Term nil = s1->make_term(Apply_Constructor, nilc);
-  Term list5 = s1->make_term(Apply_Constructor, cons, five, nil);
+  Term nil = s1->make_term(Op::Apply_Constructor, nilc);
+  Term list5 = s1->make_term(Op::Apply_Constructor, cons, five, nil);
   Term l = s1->make_symbol("l", listsort);
-  Term wrong_tester = s1->make_term(And,
-                                    s1->make_term(Equal, l, list5),
-                                    s1->make_term(Apply_Tester, isnil, l));
-  Term wrong_selector =
-      s1->make_term(Distinct, s1->make_term(Apply_Selector, head, list5), five);
+  Term wrong_tester = s1->make_term(Op::And,
+                                    s1->make_term(Op::Equal, l, list5),
+                                    s1->make_term(Op::Apply_Tester, isnil, l));
+  Term wrong_selector = s1->make_term(
+      Op::Distinct, s1->make_term(Op::Apply_Selector, head, list5), five);
   s2->assert_formula(
-      to_s2.transfer_term(s1->make_term(Or, wrong_tester, wrong_selector)));
+      to_s2.transfer_term(s1->make_term(Op::Or, wrong_tester, wrong_selector)));
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 
 TEST_P(DatatypeTranslationTests, DatatypeValues)
 {
-  Term nil =
-      s1->make_term(Apply_Constructor, s1->get_constructor(listsort, "nil"));
-  Term list5 = s1->make_term(Apply_Constructor,
+  Term nil = s1->make_term(Op::Apply_Constructor,
+                           s1->get_constructor(listsort, "nil"));
+  Term list5 = s1->make_term(Op::Apply_Constructor,
                              s1->get_constructor(listsort, "cons"),
                              s1->make_term(5, intsort),
                              nil);
@@ -887,9 +891,9 @@ TEST_P(DatatypeTranslationTests, DatatypeValues)
   EXPECT_TRUE(list5_2->is_value()) << list5_2;
   Sort list2 = to_s2.transfer_sort(listsort);
   Term nil2 =
-      s2->make_term(Apply_Constructor, s2->get_constructor(list2, "nil"));
+      s2->make_term(Op::Apply_Constructor, s2->get_constructor(list2, "nil"));
   EXPECT_EQ(list5_2,
-            s2->make_term(Apply_Constructor,
+            s2->make_term(Op::Apply_Constructor,
                           s2->get_constructor(list2, "cons"),
                           s2->make_term(5, s2->make_sort(SortKind::INT)),
                           nil2));
@@ -934,7 +938,7 @@ TEST_P(SortConstructorTranslationTests, AppliedSorts)
   Term f = s1->make_symbol(
       "f",
       s1->make_sort(SortKind::FUNCTION, SortVec{ list_list_bool, list_bool }));
-  Term eq = s1->make_term(Equal, s1->make_term(Apply, f, ll), l);
+  Term eq = s1->make_term(Op::Equal, s1->make_term(Op::Apply, f, ll), l);
 
   // applying f in s2 is well sorted only if both applied sorts share one
   // constructor there
@@ -966,13 +970,13 @@ TEST_P(QuantifierTranslationTests, Forall)
 {
   // x is the largest value only if every i is at most x
   Term i = s1->make_param("i", bvsort8);
-  Term forall = s1->make_term(Forall, i, s1->make_term(BVUle, i, x));
+  Term forall = s1->make_term(Op::Forall, i, s1->make_term(Op::BVUle, i, x));
   TermTranslator to_s2(s2);
   Term forall2 = to_s2.transfer_term(forall);
-  EXPECT_EQ(forall2->get_op(), Op(Forall));
+  EXPECT_EQ(forall2->get_op(), Op(Op::Forall));
   s2->assert_formula(forall2);
-  s2->assert_formula(
-      to_s2.transfer_term(s1->make_term(Equal, x, s1->make_term(0, bvsort8))));
+  s2->assert_formula(to_s2.transfer_term(
+      s1->make_term(Op::Equal, x, s1->make_term(0, bvsort8))));
   EXPECT_TRUE(s2->check_sat().is_unsat());
 }
 

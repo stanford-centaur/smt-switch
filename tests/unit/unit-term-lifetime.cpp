@@ -46,7 +46,7 @@ TEST_P(TermLifetimeTests, TermsOutliveTheirSolver)
     bv = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bv);
     y = s->make_symbol("y", bv);
-    xpy = s->make_term(BVAdd, x, y);
+    xpy = s->make_term(Op::BVAdd, x, y);
     x_text = x->to_string();
   }
   EXPECT_EQ(xpy->get_sort(), bv);
@@ -65,7 +65,7 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
   Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term y = s->make_symbol("y", bv);
-  Term xpy = s->make_term(BVAdd, x, y);
+  Term xpy = s->make_term(Op::BVAdd, x, y);
   std::string x_text = x->to_string();
   s->reset();
 
@@ -89,8 +89,9 @@ TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirTerm)
   std::vector<std::string> expected;
   TermIter it, end;
   {
-    Term t = s->make_term(
-        BVAdd, s->make_term(BVMul, x, y), s->make_term(BVMul, x, z));
+    Term t = s->make_term(Op::BVAdd,
+                          s->make_term(Op::BVMul, x, y),
+                          s->make_term(Op::BVMul, x, z));
     for (TermIter i = t->begin(); i != t->end(); ++i)
     {
       expected.push_back((*i)->to_string());
@@ -116,8 +117,9 @@ TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirSolver)
     Term x = s->make_symbol("x", bv);
     Term y = s->make_symbol("y", bv);
     Term z = s->make_symbol("z", bv);
-    Term t = s->make_term(
-        BVAdd, s->make_term(BVMul, x, y), s->make_term(BVMul, x, z));
+    Term t = s->make_term(Op::BVAdd,
+                          s->make_term(Op::BVMul, x, y),
+                          s->make_term(Op::BVMul, x, z));
     for (TermIter i = t->begin(); i != t->end(); ++i)
     {
       expected.push_back((*i)->to_string());

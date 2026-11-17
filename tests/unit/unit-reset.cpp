@@ -88,18 +88,18 @@ TEST_P(UnitResetTests, FunctionNameReusedForArray)
   Sort bvsort = s->make_sort(SortKind::BV, 4);
   Term old_f = s->make_symbol(
       "f", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort }));
-  Term old_fx = s->make_term(Apply, old_f, s->make_symbol("x", bvsort));
+  Term old_fx = s->make_term(Op::Apply, old_f, s->make_symbol("x", bvsort));
   s->reset();
 
   // terms held from before the reset read as they did
   EXPECT_EQ(old_f->get_sort()->get_kind(), SortKind::FUNCTION);
-  EXPECT_EQ(old_fx->get_op(), Apply);
+  EXPECT_EQ(old_fx->get_op(), Op::Apply);
 
   bvsort = s->make_sort(SortKind::BV, 4);
   Term f = s->make_symbol("f", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
   Term x = s->make_symbol("x", bvsort);
   EXPECT_EQ(f->get_sort()->get_kind(), SortKind::ARRAY);
-  EXPECT_EQ(s->make_term(Select, f, x)->get_op(), Select);
+  EXPECT_EQ(s->make_term(Op::Select, f, x)->get_op(), Op::Select);
 }
 
 TEST_P(UnitResetTests, ArrayNameReusedForFunction)
@@ -107,19 +107,19 @@ TEST_P(UnitResetTests, ArrayNameReusedForFunction)
   Sort bvsort = s->make_sort(SortKind::BV, 4);
   Term old_f =
       s->make_symbol("f", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
-  Term old_fx = s->make_term(Select, old_f, s->make_symbol("x", bvsort));
+  Term old_fx = s->make_term(Op::Select, old_f, s->make_symbol("x", bvsort));
   s->reset();
 
   // terms held from before the reset read as they did
   EXPECT_EQ(old_f->get_sort()->get_kind(), SortKind::ARRAY);
-  EXPECT_EQ(old_fx->get_op(), Select);
+  EXPECT_EQ(old_fx->get_op(), Op::Select);
 
   bvsort = s->make_sort(SortKind::BV, 4);
   Term f = s->make_symbol(
       "f", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort }));
   Term x = s->make_symbol("x", bvsort);
   EXPECT_EQ(f->get_sort()->get_kind(), SortKind::FUNCTION);
-  EXPECT_EQ(s->make_term(Apply, f, x)->get_op(), Apply);
+  EXPECT_EQ(s->make_term(Op::Apply, f, x)->get_op(), Op::Apply);
 }
 
 TEST_P(UnitResetTests, FunctionNameReusedByNextSolver)
@@ -137,7 +137,7 @@ TEST_P(UnitResetTests, FunctionNameReusedByNextSolver)
   Term f = s->make_symbol("f", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
   Term x = s->make_symbol("x", bvsort);
   EXPECT_EQ(f->get_sort()->get_kind(), SortKind::ARRAY);
-  EXPECT_EQ(s->make_term(Select, f, x)->get_op(), Select);
+  EXPECT_EQ(s->make_term(Op::Select, f, x)->get_op(), Op::Select);
 }
 
 std::vector<SolverConfiguration> working_reset_configurations()

@@ -54,7 +54,7 @@ TEST_P(UnsatCoreTests, UnsatCore)
   s->push();
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
-  Result r = s->check_sat_assuming({ a, b, s->make_term(Not, b) });
+  Result r = s->check_sat_assuming({ a, b, s->make_term(Op::Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;
@@ -76,28 +76,29 @@ TEST_P(UnsatCoreTests, ApplicationInCore)
   Term p = s->make_symbol(
       "p",
       s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, boolsort }));
-  Term pxx = s->make_term(Apply, p, x, x);
-  s->assert_formula(s->make_term(Not, pxx));
+  Term pxx = s->make_term(Op::Apply, p, x, x);
+  s->assert_formula(s->make_term(Op::Not, pxx));
   ASSERT_TRUE(s->check_sat_assuming({ pxx }).is_unsat());
 
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
   ASSERT_EQ(core.size(), 1u);
   EXPECT_EQ(*core.begin(), pxx);
-  EXPECT_EQ((*core.begin())->get_op(), Apply);
+  EXPECT_EQ((*core.begin())->get_op(), Op::Apply);
 }
 
 TEST_P(UnsatCoreTests, CoreOfADroppedAssumption)
 {
   Term p = s->make_symbol("p", boolsort);
   Term q = s->make_symbol("q", boolsort);
-  s->assert_formula(s->make_term(Not, p));
+  s->assert_formula(s->make_term(Op::Not, p));
   // the assumption is not held here, only by the solver
-  ASSERT_TRUE(s->check_sat_assuming({ s->make_term(And, p, q) }).is_unsat());
+  ASSERT_TRUE(
+      s->check_sat_assuming({ s->make_term(Op::And, p, q) }).is_unsat());
 
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);
-  EXPECT_EQ(core, UnorderedTermSet{ s->make_term(And, p, q) });
+  EXPECT_EQ(core, UnorderedTermSet{ s->make_term(Op::And, p, q) });
 }
 
 TEST_P(UnsatCoreTests, CoreNamesTheSymbolNotAParamOfItsName)
@@ -110,7 +111,7 @@ TEST_P(UnsatCoreTests, CoreNamesTheSymbolNotAParamOfItsName)
   Term x = s->make_symbol("x", boolsort);
   Term param = s->make_param("x", boolsort);
   ASSERT_NE(param, x);
-  s->assert_formula(s->make_term(Not, x));
+  s->assert_formula(s->make_term(Op::Not, x));
   ASSERT_TRUE(s->check_sat_assuming({ x }).is_unsat());
 
   UnorderedTermSet core;
@@ -124,8 +125,8 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLit)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
-  Term x_lt_y = s->make_term(BVUlt, x, y);
-  Term x_ge_y = s->make_term(BVUge, x, y);
+  Term x_lt_y = s->make_term(Op::BVUlt, x, y);
+  Term x_ge_y = s->make_term(Op::BVUge, x, y);
 
   Result r = s->check_sat_assuming({ x_lt_y, x_ge_y });
   EXPECT_TRUE(r.is_unsat());
@@ -151,7 +152,7 @@ TEST_P(UnsatCoreTests, UnsatCoreFromList)
   Result r = s->check_sat();
   EXPECT_TRUE(r.is_sat());
 
-  r = s->check_sat_assuming(std::list<Term>{ a, b, s->make_term(Not, b) });
+  r = s->check_sat_assuming(std::list<Term>{ a, b, s->make_term(Op::Not, b) });
   ASSERT_TRUE(r.is_unsat());
 
   UnorderedTermSet core;
@@ -164,8 +165,8 @@ TEST_P(UnsatCoreTests, UnsatCoreNonLitFromSet)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
-  Term x_lt_y = s->make_term(BVUlt, x, y);
-  Term x_ge_y = s->make_term(BVUge, x, y);
+  Term x_lt_y = s->make_term(Op::BVUlt, x, y);
+  Term x_ge_y = s->make_term(Op::BVUge, x, y);
 
   Result r = s->check_sat_assuming(UnorderedTermSet{ x_lt_y, x_ge_y });
   ASSERT_TRUE(r.is_unsat());
@@ -181,7 +182,7 @@ TEST_P(UnsatCoreTests, NoAssumptionsNeeded)
   Term b = s->make_symbol("b", boolsort);
   // make unsat without assumptions
   s->assert_formula(a);
-  Term nota = s->make_term(Not, a);
+  Term nota = s->make_term(Op::Not, a);
   s->assert_formula(nota);
 
   Result r = s->check_sat_assuming({ b });

@@ -124,7 +124,7 @@ Op Z3Term::get_op() const
   }
   else if (term.is_quantifier())
   {
-    return term.is_forall() ? Op(Forall) : Op(Exists);
+    return term.is_forall() ? Op(Op::Forall) : Op(Op::Exists);
   }
   else if (!term.is_app())
   {
@@ -132,7 +132,7 @@ Op Z3Term::get_op() const
   }
   else if (ctx->is_int_power(term))
   {
-    return Op(Pow);
+    return Op(Op::Pow);
   }
   else
   {
@@ -142,109 +142,114 @@ Op Z3Term::get_op() const
     switch (kind)
     {
       // unary
-      case Z3_OP_NOT: return Op(Not);
-      case Z3_OP_UMINUS: return Op(Negate);
-      case Z3_OP_TO_REAL: return Op(To_Real);
-      case Z3_OP_TO_INT: return Op(To_Int);
-      case Z3_OP_IS_INT: return Op(Is_Int);
-      case Z3_OP_BNOT: return Op(BVNot);
+      case Z3_OP_NOT: return Op(Op::Not);
+      case Z3_OP_UMINUS: return Op(Op::Negate);
+      case Z3_OP_TO_REAL: return Op(Op::To_Real);
+      case Z3_OP_TO_INT: return Op(Op::To_Int);
+      case Z3_OP_IS_INT: return Op(Op::Is_Int);
+      case Z3_OP_BNOT: return Op(Op::BVNot);
       case Z3_OP_BNEG:
-        return Op(BVNeg);
+        return Op(Op::BVNeg);
         // binary
-      case Z3_OP_XOR: return Op(Xor);
-      case Z3_OP_IMPLIES: return Op(Implies);
-      case Z3_OP_POWER: return Op(Pow);
-      case Z3_OP_IDIV: return Op(IntDiv);
-      case Z3_OP_DIV: return Op(Div);
-      case Z3_OP_LT: return Op(Lt);
-      case Z3_OP_LE: return Op(Le);
-      case Z3_OP_GT: return Op(Gt);
-      case Z3_OP_GE: return Op(Ge);
-      case Z3_OP_EQ: return Op(Equal);
-      case Z3_OP_MOD: return Op(Mod);
-      case Z3_OP_CONCAT: return Op(Concat);
-      case Z3_OP_BAND: return Op(BVAnd);
-      case Z3_OP_BOR: return Op(BVOr);
-      case Z3_OP_BXOR: return Op(BVXor);
-      case Z3_OP_BNAND: return Op(BVNand);
-      case Z3_OP_BNOR: return Op(BVNor);
-      case Z3_OP_BXNOR: return Op(BVXnor);
-      case Z3_OP_BADD: return Op(BVAdd);
-      case Z3_OP_BSUB: return Op(BVSub);
-      case Z3_OP_BMUL: return Op(BVMul);
-      case Z3_OP_BUDIV: return Op(BVUdiv);
-      case Z3_OP_BUREM: return Op(BVUrem);
-      case Z3_OP_BSDIV: return Op(BVSdiv);
-      case Z3_OP_BSREM: return Op(BVSrem);
-      case Z3_OP_BSMOD: return Op(BVSmod);
-      case Z3_OP_BSHL: return Op(BVShl);
-      case Z3_OP_BASHR: return Op(BVAshr);
-      case Z3_OP_BLSHR: return Op(BVLshr);
-      case Z3_OP_ULT: return Op(BVUlt);
-      case Z3_OP_ULEQ: return Op(BVUle);
-      case Z3_OP_UGT: return Op(BVUgt);
-      case Z3_OP_UGEQ: return Op(BVUge);
-      case Z3_OP_SLEQ: return Op(BVSle);
-      case Z3_OP_SLT: return Op(BVSlt);
-      case Z3_OP_SGEQ: return Op(BVSge);
-      case Z3_OP_SGT: return Op(BVSgt);
+      case Z3_OP_XOR: return Op(Op::Xor);
+      case Z3_OP_IMPLIES: return Op(Op::Implies);
+      case Z3_OP_POWER: return Op(Op::Pow);
+      case Z3_OP_IDIV: return Op(Op::IntDiv);
+      case Z3_OP_DIV: return Op(Op::Div);
+      case Z3_OP_LT: return Op(Op::Lt);
+      case Z3_OP_LE: return Op(Op::Le);
+      case Z3_OP_GT: return Op(Op::Gt);
+      case Z3_OP_GE: return Op(Op::Ge);
+      case Z3_OP_EQ: return Op(Op::Equal);
+      case Z3_OP_MOD: return Op(Op::Mod);
+      case Z3_OP_CONCAT: return Op(Op::Concat);
+      case Z3_OP_BAND: return Op(Op::BVAnd);
+      case Z3_OP_BOR: return Op(Op::BVOr);
+      case Z3_OP_BXOR: return Op(Op::BVXor);
+      case Z3_OP_BNAND: return Op(Op::BVNand);
+      case Z3_OP_BNOR: return Op(Op::BVNor);
+      case Z3_OP_BXNOR: return Op(Op::BVXnor);
+      case Z3_OP_BADD: return Op(Op::BVAdd);
+      case Z3_OP_BSUB: return Op(Op::BVSub);
+      case Z3_OP_BMUL: return Op(Op::BVMul);
+      case Z3_OP_BUDIV: return Op(Op::BVUdiv);
+      case Z3_OP_BUREM: return Op(Op::BVUrem);
+      case Z3_OP_BSDIV: return Op(Op::BVSdiv);
+      case Z3_OP_BSREM: return Op(Op::BVSrem);
+      case Z3_OP_BSMOD: return Op(Op::BVSmod);
+      case Z3_OP_BSHL: return Op(Op::BVShl);
+      case Z3_OP_BASHR: return Op(Op::BVAshr);
+      case Z3_OP_BLSHR: return Op(Op::BVLshr);
+      case Z3_OP_ULT: return Op(Op::BVUlt);
+      case Z3_OP_ULEQ: return Op(Op::BVUle);
+      case Z3_OP_UGT: return Op(Op::BVUgt);
+      case Z3_OP_UGEQ: return Op(Op::BVUge);
+      case Z3_OP_SLEQ: return Op(Op::BVSle);
+      case Z3_OP_SLT: return Op(Op::BVSlt);
+      case Z3_OP_SGEQ: return Op(Op::BVSge);
+      case Z3_OP_SGT: return Op(Op::BVSgt);
       case Z3_OP_SELECT:
-        return Op(Select);
+        return Op(Op::Select);
         // ternary
-      case Z3_OP_ITE: return Op(Ite);
-      case Z3_OP_STORE: return Op(Store);
+      case Z3_OP_ITE: return Op(Op::Ite);
+      case Z3_OP_STORE: return Op(Op::Store);
       case Z3_OP_CONST_ARRAY:
         return Op();
         // variadic
-      case Z3_OP_AND: return Op(And);
-      case Z3_OP_OR: return Op(Or);
-      case Z3_OP_ADD: return Op(Plus);
-      case Z3_OP_SUB: return Op(Minus);
-      case Z3_OP_MUL: return Op(Mult);
+      case Z3_OP_AND: return Op(Op::And);
+      case Z3_OP_OR: return Op(Op::Or);
+      case Z3_OP_ADD: return Op(Op::Plus);
+      case Z3_OP_SUB: return Op(Op::Minus);
+      case Z3_OP_MUL: return Op(Op::Mult);
       case Z3_OP_DISTINCT:
-        return Op(Distinct);
+        return Op(Op::Distinct);
         // indexed
       case Z3_OP_EXTRACT: {
-        return Op(Extract,
+        return Op(Op::Extract,
                   Z3_get_decl_int_parameter(term.ctx(), decl, 0),
                   Z3_get_decl_int_parameter(term.ctx(), decl, 1));
       }
       case Z3_OP_ZERO_EXT: {
-        return Op(Zero_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        return Op(Op::Zero_Extend,
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
       case Z3_OP_SIGN_EXT: {
-        return Op(Sign_Extend, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        return Op(Op::Sign_Extend,
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
       case Z3_OP_REPEAT: {
-        return Op(Repeat, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        return Op(Op::Repeat, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       }
       case Z3_OP_ROTATE_LEFT:
-        return Op(Rotate_Left, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        return Op(Op::Rotate_Left,
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       case Z3_OP_ROTATE_RIGHT:
-        return Op(Rotate_Right, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+        return Op(Op::Rotate_Right,
+                  Z3_get_decl_int_parameter(term.ctx(), decl, 0));
       case Z3_OP_INT2BV: {
         size_t out_width = decl.range().bv_size();
-        return Op(Int_To_BV, out_width);
+        return Op(Op::Int_To_BV, out_width);
       }
-      case Z3_OP_BV2INT: return Op(UBV_To_Int);
+      case Z3_OP_BV2INT: return Op(Op::UBV_To_Int);
 #ifdef SMT_SWITCH_Z3_HAS_SBV2INT
-      case Z3_OP_SBV2INT: return Op(SBV_To_Int);
+      case Z3_OP_SBV2INT: return Op(Op::SBV_To_Int);
 #endif
-      case Z3_OP_UNINTERPRETED: return Op(Apply);
-      case Z3_OP_DT_CONSTRUCTOR: return Op(Apply_Constructor);
-      case Z3_OP_DT_ACCESSOR: return Op(Apply_Selector);
-      case Z3_OP_DT_IS: return Op(Apply_Tester);
+      case Z3_OP_UNINTERPRETED: return Op(Op::Apply);
+      case Z3_OP_DT_CONSTRUCTOR: return Op(Op::Apply_Constructor);
+      case Z3_OP_DT_ACCESSOR: return Op(Op::Apply_Selector);
+      case Z3_OP_DT_IS: return Op(Op::Apply_Tester);
       // Z3 makes divisibility an internal op, which only its name tells apart
       case Z3_OP_INTERNAL:
         if (decl.name().str() == "divisible"
             && Z3_get_decl_num_parameters(term.ctx(), decl) == 1)
         {
-          return Op(Divisible, Z3_get_decl_int_parameter(term.ctx(), decl, 0));
+          return Op(Op::Divisible,
+                    Z3_get_decl_int_parameter(term.ctx(), decl, 0));
         }
         [[fallthrough]];
       default:
         throw NotImplementedException(
-            "smt-switch has no PrimOp for the Z3 operator "
+            "smt-switch has no operator for the Z3 operator "
             + decl.name().str());
     }
   }
@@ -437,24 +442,24 @@ std::size_t Z3Term::get_num_children() const
     return 0;
   }
 
-  const PrimOp po = get_op().prim_op;
-  if (po == Forall || po == Exists || po == Pow)
+  const Op::Kind kind = get_op().kind();
+  if (kind == Op::Forall || kind == Op::Exists || kind == Op::Pow)
   {
     return 2;
   }
   std::size_t num_args = term.num_args();
-  return is_apply(po) ? num_args + 1 : num_args;
+  return is_apply(kind) ? num_args + 1 : num_args;
 }
 
 Term Z3Term::get_child(std::size_t i) const
 {
   // the index as Z3 takes an argument index
   const unsigned pos = backend::narrow<unsigned>(i, "a child position");
-  const PrimOp po = get_op().prim_op;
+  const Op::Kind kind = get_op().kind();
   // smt-switch lists the first bound variable and then the body, which
   // binds the rest; Z3 binds them all in one quantifier, as de Bruijn
   // indices, and keeps their names
-  if (po == Forall || po == Exists)
+  if (kind == Op::Forall || kind == Op::Exists)
   {
     if (pos > 1)
     {
@@ -501,14 +506,14 @@ Term Z3Term::get_child(std::size_t i) const
         term.is_forall() ? z3::forall(rest, body) : z3::exists(rest, body));
   }
   // the base and exponent of the power Z3Context::make_int_power makes
-  if (pos < 2 && po == Pow && term.decl().decl_kind() == Z3_OP_ITE)
+  if (pos < 2 && kind == Op::Pow && term.decl().decl_kind() == Z3_OP_ITE)
   {
     return std::make_shared<Z3Term>(
         ctx, pos == 0 ? term.arg(2).arg(0).arg(0) : term.arg(0).arg(0));
   }
   // smt-switch lists the function, constructor, selector or tester applied
   // as the first child, which Z3 keeps as the decl
-  if (is_apply(po))
+  if (is_apply(kind))
   {
     return pos == 0 ? std::make_shared<Z3Term>(ctx, term.decl())
                     : std::make_shared<Z3Term>(ctx, term.arg(pos - 1));

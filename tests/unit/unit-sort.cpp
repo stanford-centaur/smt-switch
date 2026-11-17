@@ -200,8 +200,9 @@ TEST_P(UnitSortTests, ArrayTermSorts)
   Term b = s->make_symbol("b", arrsort);
   Term i = s->make_symbol("i", bvsort);
   Term c = s->make_symbol("c", boolsort);
-  for (const Term & t :
-       TermVec{ a, s->make_term(Store, a, i, i), s->make_term(Ite, c, a, b) })
+  for (const Term & t : TermVec{ a,
+                                 s->make_term(Op::Store, a, i, i),
+                                 s->make_term(Op::Ite, c, a, b) })
   {
     EXPECT_EQ(t->get_sort()->get_kind(), SortKind::ARRAY) << t;
     EXPECT_EQ(t->get_sort(), arrsort) << t;
@@ -382,7 +383,7 @@ class UninterpretedSorts : public UnitSortTests
     two = s->make_term(2, bvsort);
   }
 
-  Term apply_f(const Term & t) const { return s->make_term(Apply, f, t); }
+  Term apply_f(const Term & t) const { return s->make_term(Op::Apply, f, t); }
 
   Sort usort;
   Term a, b, f, one, two;
@@ -408,7 +409,7 @@ TEST_P(UninterpretedSorts, EqualTermsHaveEqualValues)
   EXPECT_EQ(a->get_sort(), b->get_sort());
 
   s->push();
-  s->assert_formula(s->make_term(Equal, a, b));
+  s->assert_formula(s->make_term(Op::Equal, a, b));
   ASSERT_TRUE(s->check_sat().is_sat());
   Term a_value = s->get_value(a);
   Term b_value = s->get_value(b);
@@ -418,16 +419,16 @@ TEST_P(UninterpretedSorts, EqualTermsHaveEqualValues)
   EXPECT_TRUE(a_value->is_value());
   EXPECT_FALSE(a_value->is_symbol());
 
-  s->assert_formula(s->make_term(Distinct, a, b));
-  s->assert_formula(s->make_term(Equal, a, a_value));
-  s->assert_formula(s->make_term(Equal, b, b_value));
+  s->assert_formula(s->make_term(Op::Distinct, a, b));
+  s->assert_formula(s->make_term(Op::Equal, a, a_value));
+  s->assert_formula(s->make_term(Op::Equal, b, b_value));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
 TEST_P(UninterpretedSorts, FunctionTellsTermsApart)
 {
-  s->assert_formula(s->make_term(Equal, apply_f(a), one));
-  s->assert_formula(s->make_term(Equal, apply_f(b), two));
+  s->assert_formula(s->make_term(Op::Equal, apply_f(a), one));
+  s->assert_formula(s->make_term(Op::Equal, apply_f(b), two));
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
@@ -436,8 +437,8 @@ TEST_P(UninterpretedSorts, FunctionIsCongruentThroughIte)
   Term c = s->make_symbol("c", boolsort);
   s->assert_formula(c);
   s->assert_formula(
-      s->make_term(Equal, apply_f(s->make_term(Ite, c, a, b)), one));
-  s->assert_formula(s->make_term(Equal, apply_f(a), two));
+      s->make_term(Op::Equal, apply_f(s->make_term(Op::Ite, c, a, b)), one));
+  s->assert_formula(s->make_term(Op::Equal, apply_f(a), two));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -445,16 +446,17 @@ TEST_P(UninterpretedSorts, ArrayIndexedBySortReadsItsStore)
 {
   Term arr =
       s->make_symbol("arr", s->make_sort(SortKind::ARRAY, usort, bvsort));
-  Term stored = s->make_term(Store, arr, a, one);
-  s->assert_formula(s->make_term(Equal, s->make_term(Select, stored, a), two));
+  Term stored = s->make_term(Op::Store, arr, a, one);
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Select, stored, a), two));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
 TEST_P(UninterpretedSorts, AssertedEqualityIsUsed)
 {
-  s->assert_formula(s->make_term(Equal, a, b));
-  s->assert_formula(s->make_term(Equal, apply_f(a), one));
-  s->assert_formula(s->make_term(Equal, apply_f(b), two));
+  s->assert_formula(s->make_term(Op::Equal, a, b));
+  s->assert_formula(s->make_term(Op::Equal, apply_f(a), one));
+  s->assert_formula(s->make_term(Op::Equal, apply_f(b), two));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -542,11 +544,11 @@ TEST_P(SortConstructors, FunctionOverAppliedSortIsCongruent)
       "f", s->make_sort(SortKind::FUNCTION, SortVec{ list_e, bvsort }));
   s->assert_formula(c);
   s->assert_formula(
-      s->make_term(Equal,
-                   s->make_term(Apply, f, s->make_term(Ite, c, x, y)),
+      s->make_term(Op::Equal,
+                   s->make_term(Op::Apply, f, s->make_term(Op::Ite, c, x, y)),
                    s->make_term(1, bvsort)));
-  s->assert_formula(
-      s->make_term(Equal, s->make_term(Apply, f, x), s->make_term(2, bvsort)));
+  s->assert_formula(s->make_term(
+      Op::Equal, s->make_term(Op::Apply, f, x), s->make_term(2, bvsort)));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -604,7 +606,7 @@ TEST_P(QuantifiedSortConstructors, BinderPrintsAppliedSort)
   Term p = s->make_param("p", list_e);
   Term f = s->make_symbol(
       "f", s->make_sort(SortKind::FUNCTION, SortVec{ list_e, boolsort }));
-  Term forall = s->make_term(Forall, p, s->make_term(Apply, f, p));
+  Term forall = s->make_term(Op::Forall, p, s->make_term(Op::Apply, f, p));
   EXPECT_THAT(forall->to_string(),
               testing::AllOf(testing::HasSubstr("(List E)"),
                              testing::Not(testing::HasSubstr(
@@ -622,7 +624,7 @@ TEST_P(QuantifiedSortConstructors, BarredSymbolPrintsAsNamed)
   std::string name = "x " + backend::internal_name("sort", 0);
   Term x = s->make_symbol(name, list_e);
   Term p = s->make_param("p", list_e);
-  Term forall = s->make_term(Forall, p, s->make_term(Equal, p, x));
+  Term forall = s->make_term(Op::Forall, p, s->make_term(Op::Equal, p, x));
   EXPECT_THAT(forall->to_string(),
               testing::AllOf(testing::HasSubstr("(List E)"),
                              testing::HasSubstr("|" + name + "|")));

@@ -33,10 +33,11 @@ TEST(BtorExceptions, UnsupportedTheories)
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
 
-  EXPECT_THROW(s->make_term(Ge, x, y), NotImplementedException);
-  EXPECT_THROW(s->make_term(Op(Int_To_BV, 4), x), NotImplementedException);
-  EXPECT_THROW(s->make_term(Op(Not, 3), x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Op(Extract, 3, 0), x, y), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Ge, x, y), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op(Op::Int_To_BV, 4), x), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op(Op::Not, 3), x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Extract, 3, 0), x, y),
+               IncorrectUsageException);
 }
 
 TEST(BtorExceptions, OnlyBitVectorLogics)

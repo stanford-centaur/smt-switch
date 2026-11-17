@@ -133,7 +133,7 @@ Op divisible_op(term_t term)
   {
     no_smt_switch_op(term);
   }
-  return Op(Divisible, n);
+  return Op(Op::Divisible, n);
 }
 
 /** Returns the bits of a bit-vector constant, most significant first */
@@ -178,40 +178,40 @@ Op Yices2Term::get_op() const
   switch (tc)
   {
     // composite terms
-    case YICES_ITE_TERM: return Op(Ite);
+    case YICES_ITE_TERM: return Op(Op::Ite);
     case YICES_APP_TERM:
       // Yices applies an array the way it applies a function
       if (!Yices2InstanceRef::is_function(yices_term_child(term, 0)))
       {
-        return Op(Select);
+        return Op(Op::Select);
       }
-      return Op(Apply);
+      return Op(Op::Apply);
 
-    case YICES_EQ_TERM: return Op(Equal);
-    case YICES_DISTINCT_TERM: return Op(Distinct);
-    case YICES_NOT_TERM: return Op(Not);
-    case YICES_OR_TERM: return Op(Or);
-    case YICES_XOR_TERM: return Op(Xor);
-    case YICES_BV_DIV: return Op(BVUdiv);
-    case YICES_BV_REM: return Op(BVUrem);
-    case YICES_BV_SDIV: return Op(BVSdiv);
-    case YICES_BV_SREM: return Op(BVSrem);
-    case YICES_BV_SMOD: return Op(BVSmod);
-    case YICES_BV_SHL: return Op(BVShl);
-    case YICES_BV_LSHR: return Op(BVLshr);
-    case YICES_BV_ASHR: return Op(BVAshr);
-    case YICES_BV_GE_ATOM: return Op(BVUge);
-    case YICES_BV_SGE_ATOM: return Op(BVSge);
-    case YICES_ARITH_GE_ATOM: return Op(Ge);
-    case YICES_ABS: return Op(Abs);
-    case YICES_RDIV: return Op(Div);
-    case YICES_IDIV: return Op(IntDiv);
-    case YICES_IMOD: return Op(Mod);
+    case YICES_EQ_TERM: return Op(Op::Equal);
+    case YICES_DISTINCT_TERM: return Op(Op::Distinct);
+    case YICES_NOT_TERM: return Op(Op::Not);
+    case YICES_OR_TERM: return Op(Op::Or);
+    case YICES_XOR_TERM: return Op(Op::Xor);
+    case YICES_BV_DIV: return Op(Op::BVUdiv);
+    case YICES_BV_REM: return Op(Op::BVUrem);
+    case YICES_BV_SDIV: return Op(Op::BVSdiv);
+    case YICES_BV_SREM: return Op(Op::BVSrem);
+    case YICES_BV_SMOD: return Op(Op::BVSmod);
+    case YICES_BV_SHL: return Op(Op::BVShl);
+    case YICES_BV_LSHR: return Op(Op::BVLshr);
+    case YICES_BV_ASHR: return Op(Op::BVAshr);
+    case YICES_BV_GE_ATOM: return Op(Op::BVUge);
+    case YICES_BV_SGE_ATOM: return Op(Op::BVSge);
+    case YICES_ARITH_GE_ATOM: return Op(Op::Ge);
+    case YICES_ABS: return Op(Op::Abs);
+    case YICES_RDIV: return Op(Op::Div);
+    case YICES_IDIV: return Op(Op::IntDiv);
+    case YICES_IMOD: return Op(Op::Mod);
     // // sums
     // a single bit-vector monomial, (bv-mul c x), is still a sum, and reads
     // as BVMul over the coefficient and the term, as the arithmetic one does
     case YICES_BV_SUM:
-      return yices_term_num_children(term) == 1 ? Op(BVMul) : Op(BVAdd);
+      return yices_term_num_children(term) == 1 ? Op(Op::BVMul) : Op(Op::BVAdd);
     case YICES_ARITH_FF_SUM: no_smt_switch_op(term);
     case YICES_ARITH_SUM:
       /* Arithmetic sums are represented as polynomials,
@@ -220,17 +220,17 @@ Op Yices2Term::get_op() const
        * (* -1 b) is still of type YICES_ARITH_SUM. To transfer this
        * term, you need to construct the multiply.
        */
-      return yices_term_num_children(term) == 1 ? Op(Mult) : Op(Plus);
+      return yices_term_num_children(term) == 1 ? Op(Op::Mult) : Op(Op::Plus);
     // products
     // a bit-vector power, which no op gives, reads as BVMul over the base
     // and the rest of the power
     case YICES_POWER_PRODUCT:
       if (yices_term_is_bitvector(term))
       {
-        return Op(BVMul);
+        return Op(Op::BVMul);
       }
-      return yices_term_num_children(term) == 1 ? Op(Pow) : Op(Mult);
-    case YICES_UPDATE_TERM: return Op(Store);
+      return yices_term_num_children(term) == 1 ? Op(Op::Pow) : Op(Op::Mult);
+    case YICES_UPDATE_TERM: return Op(Op::Store);
     case YICES_TUPLE_TERM: no_smt_switch_op(term);
     case YICES_FORALL_TERM: no_smt_switch_op(term);
     case YICES_LAMBDA_TERM: return Op();
@@ -239,24 +239,24 @@ Op Yices2Term::get_op() const
       uint32_t high = 0;
       if (extract_argument(term, low, high) != NULL_TERM)
       {
-        return Op(Extract, high, low);
+        return Op(Op::Extract, high, low);
       }
       // an array of Booleans otherwise, read as a concatenation of the
       // width-one vectors the iterator makes of them, split so that the two
       // children Concat takes are the top bit and the rest. One bit on its
       // own is the Ite that widens it.
-      return yices_term_num_children(term) == 1 ? Op(Ite) : Op(Concat);
+      return yices_term_num_children(term) == 1 ? Op(Op::Ite) : Op(Op::Concat);
     }
     case YICES_ARITH_ROOT_ATOM: no_smt_switch_op(term);
     case YICES_CEIL: no_smt_switch_op(term);
-    case YICES_FLOOR: return Op(To_Int);
-    case YICES_IS_INT_ATOM: return Op(Is_Int);
+    case YICES_FLOOR: return Op(Op::To_Int);
+    case YICES_IS_INT_ATOM: return Op(Op::Is_Int);
     case YICES_DIVIDES_ATOM: return divisible_op(term);
     // projections
     case YICES_SELECT_TERM: no_smt_switch_op(term);
     // a bit select is a Boolean, which no op gives for a bit-vector, so
     // it reads as that bit compared against one
-    case YICES_BIT_TERM: return Op(Equal);
+    case YICES_BIT_TERM: return Op(Op::Equal);
     // atomic terms
     case YICES_BOOL_CONSTANT: return Op();
     case YICES_ARITH_CONSTANT: return Op();
@@ -271,7 +271,7 @@ Op Yices2Term::get_op() const
   // unreachable, and here so that a constructor Yices adds is a -Wswitch
   // warning rather than a term silently without an op
   throw InternalException(
-      "smt-switch has no PrimOp for the Yices2 term constructor "
+      "smt-switch has no operator for the Yices2 term constructor "
       + std::to_string(static_cast<int>(tc)));
 }
 

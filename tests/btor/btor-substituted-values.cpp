@@ -28,9 +28,9 @@ TEST(BtorSubstitutedValues, BitVector)
   Sort bvsort4 = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
-  Term sum = s->make_term(BVAdd, x, y);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(1, bvsort4)));
-  s->assert_formula(s->make_term(Equal, y, s->make_term(2, bvsort4)));
+  Term sum = s->make_term(Op::BVAdd, x, y);
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(1, bvsort4)));
+  s->assert_formula(s->make_term(Op::Equal, y, s->make_term(2, bvsort4)));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   EXPECT_TRUE(sum->is_value());
@@ -46,8 +46,8 @@ TEST(BtorSubstitutedValues, Array)
   Term zero = s->make_term(0, bvsort4);
   Term c = s->make_symbol("c", s->make_sort(SortKind::BOOL));
   Term a = s->make_symbol("a", arrsort);
-  Term ite = s->make_term(Ite, c, s->make_term(zero, arrsort), a);
-  Term store = s->make_term(Store, ite, zero, s->make_term(1, bvsort4));
+  Term ite = s->make_term(Op::Ite, c, s->make_term(zero, arrsort), a);
+  Term store = s->make_term(Op::Store, ite, zero, s->make_term(1, bvsort4));
   s->assert_formula(c);
   ASSERT_TRUE(s->check_sat().is_sat());
 

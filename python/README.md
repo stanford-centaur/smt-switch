@@ -42,13 +42,13 @@ y = solver.make_symbol("y", bv8)
 # x + y == 10 and x != 0
 solver.assert_formula(
     solver.make_term(
-        ss.primops.Equal,
-        solver.make_term(ss.primops.BVAdd, x, y),
+        ss.opkinds.Equal,
+        solver.make_term(ss.opkinds.BVAdd, x, y),
         solver.make_term(10, bv8),
     )
 )
 solver.assert_formula(
-    solver.make_term(ss.primops.Distinct, x, solver.make_term(0, bv8))
+    solver.make_term(ss.opkinds.Distinct, x, solver.make_term(0, bv8))
 )
 
 result = solver.check_sat()

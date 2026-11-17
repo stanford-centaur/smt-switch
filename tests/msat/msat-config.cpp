@@ -41,8 +41,8 @@ TEST(MsatConfig, AllAcceptedAfterTerm)
   // the plain configuration has every theory, as ALL asks
   Term x = s->make_symbol("x", intsort);
   Term zero = s->make_term(0, intsort);
-  s->assert_formula(s->make_term(Gt, x, zero));
-  s->assert_formula(s->make_term(Lt, x, zero));
+  s->assert_formula(s->make_term(Op::Gt, x, zero));
+  s->assert_formula(s->make_term(Op::Lt, x, zero));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 

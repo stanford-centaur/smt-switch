@@ -63,9 +63,11 @@ Term model_value_at(const UnorderedTermMap & array_vals,
 
 TEST_P(ArrayModelTests, TestArrayModel)
 {
-  Term constraint1 = s->make_term(Equal, s->make_term(Select, arr, i), one);
-  Term constraint2 = s->make_term(Equal, s->make_term(Select, arr, j), two);
-  s->assert_formula(s->make_term(And, constraint1, constraint2));
+  Term constraint1 =
+      s->make_term(Op::Equal, s->make_term(Op::Select, arr, i), one);
+  Term constraint2 =
+      s->make_term(Op::Equal, s->make_term(Op::Select, arr, j), two);
+  s->assert_formula(s->make_term(Op::And, constraint1, constraint2));
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
@@ -117,13 +119,13 @@ TEST_P(ArrayTests, EqualIndicesEqualReads)
   Term y = s->make_symbol("y", bvsort32);
   Term arr = s->make_symbol("arr", array32_32);
 
-  s->assert_formula(
-      s->make_term(Not,
-                   s->make_term(Implies,
-                                s->make_term(Equal, x, y),
-                                s->make_term(Equal,
-                                             s->make_term(Select, arr, x),
-                                             s->make_term(Select, arr, y)))));
+  s->assert_formula(s->make_term(
+      Op::Not,
+      s->make_term(Op::Implies,
+                   s->make_term(Op::Equal, x, y),
+                   s->make_term(Op::Equal,
+                                s->make_term(Op::Select, arr, x),
+                                s->make_term(Op::Select, arr, y)))));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -136,8 +138,8 @@ TEST_P(ArrayTests, StoreOp)
   Term elem = s->make_symbol("elem", bvsort8);
   Term mem = s->make_symbol("mem", array4_8);
 
-  Term new_array = s->make_term(Store, mem, x, elem);
-  EXPECT_EQ(new_array->get_op(), Store);
+  Term new_array = s->make_term(Op::Store, mem, x, elem);
+  EXPECT_EQ(new_array->get_op(), Op::Store);
 }
 
 TEST_P(ArrayTests, SelectsAgreeWithModel)
@@ -150,15 +152,17 @@ TEST_P(ArrayTests, SelectsAgreeWithModel)
   Term y = s->make_symbol("y", bvsort32);
   Term arr = s->make_symbol("arr", array32_32);
 
-  s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, x0), x1));
-  s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, x1), y));
-  s->assert_formula(s->make_term(Distinct, x1, y));
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Select, arr, x0), x1));
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Select, arr, x1), y));
+  s->assert_formula(s->make_term(Op::Distinct, x1, y));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   Term x1_val = s->get_value(x1);
   Term y_val = s->get_value(y);
-  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x0)), x1_val);
-  EXPECT_EQ(s->get_value(s->make_term(Select, arr, x1)), y_val);
+  EXPECT_EQ(s->get_value(s->make_term(Op::Select, arr, x0)), x1_val);
+  EXPECT_EQ(s->get_value(s->make_term(Op::Select, arr, x1)), y_val);
   EXPECT_NE(x1_val, y_val);
 }
 
@@ -215,10 +219,10 @@ TEST_P(ConstArrayTests, StoreOverConstArray)
 
   // a read at any index other than the stored one sees the base
   Term val = s->make_symbol("val", bvsort8);
-  Term stored = s->make_term(Store, const_arr, idx0, val);
-  s->assert_formula(s->make_term(Distinct, idx0, idx1));
+  Term stored = s->make_term(Op::Store, const_arr, idx0, val);
+  s->assert_formula(s->make_term(Op::Distinct, idx0, idx1));
   s->assert_formula(
-      s->make_term(Distinct, s->make_term(Select, stored, idx1), zero));
+      s->make_term(Op::Distinct, s->make_term(Op::Select, stored, idx1), zero));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -250,10 +254,11 @@ TEST_P(ConstArrayTests, TransfersToAnotherSolver)
   Term arr = s2->make_symbol("arr", arrsort2);
   Term arr2 = s2->make_symbol("arr2", arrsort2);
   Term constraint = s2->make_term(
-      And,
-      s2->make_term(Equal, arr, const_arr2),
-      s2->make_term(
-          Distinct, s2->make_term(Select, arr, tt.transfer_term(idx0)), zero2));
+      Op::And,
+      s2->make_term(Op::Equal, arr, const_arr2),
+      s2->make_term(Op::Distinct,
+                    s2->make_term(Op::Select, arr, tt.transfer_term(idx0)),
+                    zero2));
   s2->assert_formula(
       s2->substitute(constraint, UnorderedTermMap{ { arr, arr2 } }));
   EXPECT_TRUE(s2->check_sat().is_unsat());

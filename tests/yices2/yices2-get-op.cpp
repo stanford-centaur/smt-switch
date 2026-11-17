@@ -43,7 +43,7 @@ TEST(Yices2GetOp, ExtractReadsBackAsExtract)
   Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
 
-  Op extract = Op(Extract, 5, 2);
+  Op extract = Op(Op::Extract, 5, 2);
   Term extracted = s->make_term(extract, x);
   EXPECT_EQ(extracted->get_op(), extract);
   // the bits are not the children smt-switch sees: an extract has one
@@ -52,14 +52,14 @@ TEST(Yices2GetOp, ExtractReadsBackAsExtract)
             extracted);
 
   // one bit wide, so the array holds a single bit
-  Op one_bit = Op(Extract, 3, 3);
+  Op one_bit = Op(Op::Extract, 3, 3);
   Term bit = s->make_term(one_bit, x);
   EXPECT_EQ(bit->get_op(), one_bit);
   EXPECT_EQ(children_of(bit), TermVec{ x });
   EXPECT_EQ(s->make_term(bit->get_op(), children_of(bit)), bit);
 
   // the whole width is the identity, and Yices returns the argument itself
-  EXPECT_EQ(s->make_term(Op(Extract, 7, 0), x), x);
+  EXPECT_EQ(s->make_term(Op(Op::Extract, 7, 0), x), x);
 }
 
 /* Reading a bit array back as an extract cannot mistake some other operator
@@ -73,28 +73,28 @@ TEST(Yices2GetOp, WhatCanonicalisesIntoAnExtract)
   SmtSolver s = Yices2SolverFactory::create(false);
   Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
-  Term extracted = s->make_term(Op(Extract, 5, 2), x);
+  Term extracted = s->make_term(Op(Op::Extract, 5, 2), x);
 
   // a concatenation of two adjacent slices
-  EXPECT_EQ(s->make_term(Concat,
-                         s->make_term(Op(Extract, 5, 4), x),
-                         s->make_term(Op(Extract, 3, 2), x)),
+  EXPECT_EQ(s->make_term(Op::Concat,
+                         s->make_term(Op(Op::Extract, 5, 4), x),
+                         s->make_term(Op(Op::Extract, 3, 2), x)),
             extracted);
 
   // an extract of an extract, whose indices are relative to the inner one
-  EXPECT_EQ(s->make_term(Op(Extract, 1, 0), extracted),
-            s->make_term(Op(Extract, 3, 2), x));
+  EXPECT_EQ(s->make_term(Op(Op::Extract, 1, 0), extracted),
+            s->make_term(Op(Op::Extract, 3, 2), x));
 
   // an extract of a constant shift, which lands on a shifted run
-  Term shifted = s->make_term(BVLshr, x, s->make_term(2, bvsort8));
-  EXPECT_EQ(s->make_term(Op(Extract, 5, 2), shifted),
-            s->make_term(Op(Extract, 7, 4), x));
+  Term shifted = s->make_term(Op::BVLshr, x, s->make_term(2, bvsort8));
+  EXPECT_EQ(s->make_term(Op(Op::Extract, 5, 2), shifted),
+            s->make_term(Op(Op::Extract, 7, 4), x));
 
   // but a gap in the bits is a concatenation and has to keep reading as one
-  Term with_gap = s->make_term(Concat,
-                               s->make_term(Op(Extract, 7, 4), x),
-                               s->make_term(Op(Extract, 1, 0), x));
-  EXPECT_EQ(with_gap->get_op(), Op(Concat));
+  Term with_gap = s->make_term(Op::Concat,
+                               s->make_term(Op(Op::Extract, 7, 4), x),
+                               s->make_term(Op(Op::Extract, 1, 0), x));
+  EXPECT_EQ(with_gap->get_op(), Op(Op::Concat));
 }
 
 // A declared constant, array or function has no children, so no op either.
@@ -116,15 +116,15 @@ TEST(Yices2GetOp, SymbolHasNoOp)
 
   // applying one of them is what carries the op, and the application is not
   // itself a symbol
-  Term applied = s->make_term(Apply, f, x);
-  EXPECT_EQ(applied->get_op(), Op(Apply));
+  Term applied = s->make_term(Op::Apply, f, x);
+  EXPECT_EQ(applied->get_op(), Op(Op::Apply));
   EXPECT_FALSE(applied->is_symbol());
   EXPECT_FALSE(applied->is_symbolic_const());
   EXPECT_EQ(children_of(applied), (TermVec{ f, x }));
   EXPECT_EQ(s->make_term(applied->get_op(), children_of(applied)), applied);
 
-  Term selected = s->make_term(Select, a, x);
-  EXPECT_EQ(selected->get_op(), Op(Select));
+  Term selected = s->make_term(Op::Select, a, x);
+  EXPECT_EQ(selected->get_op(), Op(Op::Select));
   EXPECT_FALSE(selected->is_symbol());
   EXPECT_EQ(children_of(selected), (TermVec{ a, x }));
   EXPECT_EQ(s->make_term(selected->get_op(), children_of(selected)), selected);
@@ -143,13 +143,13 @@ TEST(Yices2GetOp, IterationKeepsAnArrayAnArray)
   Term a = s->make_symbol("a", arrsort);
   Term f = s->make_symbol("f", funsort);
 
-  for (Term over_array :
-       TermVec{ s->make_term(Select, a, x), s->make_term(Store, a, x, x) })
+  for (Term over_array : TermVec{ s->make_term(Op::Select, a, x),
+                                  s->make_term(Op::Store, a, x, x) })
   {
     EXPECT_EQ(children_of(over_array).at(0)->get_sort(), arrsort) << over_array;
   }
 
-  Term applied = s->make_term(Apply, f, x);
+  Term applied = s->make_term(Op::Apply, f, x);
   EXPECT_EQ(children_of(applied).at(0)->get_sort(), funsort);
 }
 

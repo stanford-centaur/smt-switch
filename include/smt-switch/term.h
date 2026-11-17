@@ -149,7 +149,7 @@ class AbsTerm : public internal::SharedBase<AbsTerm>
    *  @param o the operator
    *  @param out the vector the terms are added to
    */
-  void op_partition(PrimOp o, TermVec & out);
+  void op_partition(Op::Kind kind, TermVec & out);
 
   /** Populates a vector with conjuncts from a term
    *  @param out the output vector
@@ -181,7 +181,7 @@ class AbsTerm : public internal::SharedBase<AbsTerm>
    *  @param ops the operators to look for
    *  @param out the set the subterms are added to
    */
-  void get_terms_with_ops(const std::unordered_set<PrimOp> & ops,
+  void get_terms_with_ops(const std::unordered_set<Op::Kind> & ops,
                           UnorderedTermSet & out);
 
   /** returns true iff this term is a literal

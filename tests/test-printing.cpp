@@ -152,18 +152,19 @@ TEST_P(PrintingBitVectorTests, Solving)
   // Equal indices that read differently from the array, or that the
   // function maps apart, are unsatisfiable. In a pushed context, so that
   // popping it makes room for a satisfiable query.
-  Term reads = s->make_term(
-      Equal, s->make_term(Select, arr, x), s->make_term(Select, arr, y));
-  Term apps =
-      s->make_term(Equal, s->make_term(Apply, f, x), s->make_term(Apply, f, y));
+  Term reads = s->make_term(Op::Equal,
+                            s->make_term(Op::Select, arr, x),
+                            s->make_term(Op::Select, arr, y));
+  Term apps = s->make_term(
+      Op::Equal, s->make_term(Op::Apply, f, x), s->make_term(Op::Apply, f, y));
   s->push(1);
   s->assert_formula(
-      s->make_term(And,
-                   s->make_term(Equal, x, y),
-                   s->make_term(Not, s->make_term(And, reads, apps))));
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, x, y),
+                   s->make_term(Op::Not, s->make_term(Op::And, reads, apps))));
   ASSERT_TRUE(s->check_sat().is_unsat());
   s->pop(1);
-  s->assert_formula(s->make_term(Not, b));
+  s->assert_formula(s->make_term(Op::Not, b));
   ASSERT_TRUE(s->check_sat().is_sat());
   s->get_value(b);
 
@@ -173,25 +174,28 @@ TEST_P(PrintingBitVectorTests, Solving)
 
 TEST_P(PrintingBitVectorTests, BitVectorArithmetic)
 {
-  s->assert_formula(s->make_term(Equal, x, make_bv(5)));
-  s->assert_formula(s->make_term(Equal, y, make_bv(7)));
+  s->assert_formula(s->make_term(Op::Equal, x, make_bv(5)));
+  s->assert_formula(s->make_term(Op::Equal, y, make_bv(7)));
   // Yices keeps a sum with a coefficient as a polynomial, a square as a power
   // product and slices as arrays of bits, which each print differently
-  Term sum = s->make_term(BVAdd, x, s->make_term(BVMul, make_bv(3), y));
+  Term sum = s->make_term(Op::BVAdd, x, s->make_term(Op::BVMul, make_bv(3), y));
   s->assert_formula(
-      s->make_term(Equal, s->make_term(BVMul, x, x), make_bv(25)));
-  Op low(Extract, 3, 0);
+      s->make_term(Op::Equal, s->make_term(Op::BVMul, x, x), make_bv(25)));
+  Op low(Op::Extract, 3, 0);
   s->assert_formula(s->make_term(
-      Equal,
-      s->make_term(Concat, s->make_term(low, x), s->make_term(low, y)),
+      Op::Equal,
+      s->make_term(Op::Concat, s->make_term(low, x), s->make_term(low, y)),
       make_bv(0x57)));
-  s->assert_formula(s->make_term(
-      Distinct, s->make_term(low, x), s->make_term(Op(Extract, 7, 4), y)));
-  s->assert_formula(s->make_term(
-      Equal, s->make_term(Ite, s->make_term(BVUlt, x, y), x, y), x));
+  s->assert_formula(s->make_term(Op::Distinct,
+                                 s->make_term(low, x),
+                                 s->make_term(Op(Op::Extract, 7, 4), y)));
+  s->assert_formula(
+      s->make_term(Op::Equal,
+                   s->make_term(Op::Ite, s->make_term(Op::BVUlt, x, y), x, y),
+                   x));
   ASSERT_TRUE(s->check_sat().is_sat());
   s->push(1);
-  s->assert_formula(s->make_term(Distinct, sum, make_bv(26)));
+  s->assert_formula(s->make_term(Op::Distinct, sum, make_bv(26)));
   ASSERT_TRUE(s->check_sat().is_unsat());
   s->pop(1);
 
@@ -209,7 +213,7 @@ TEST_P(PrintingUninterpretedSortTests, DeclaresSorts)
   Sort funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, us });
   Term g = s->make_symbol("g", funsort);
   Term u = s->make_symbol("u", us);
-  s->assert_formula(s->make_term(Equal, s->make_term(Apply, g, x), u));
+  s->assert_formula(s->make_term(Op::Equal, s->make_term(Op::Apply, g, x), u));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   expect_replay({ { "sat" } });
@@ -229,7 +233,7 @@ class PrintingUnsatCoreTests : public PrintingBitVectorTests
 
 TEST_P(PrintingUnsatCoreTests, UnsatAssumptions)
 {
-  s->assert_formula(s->make_term(Not, b));
+  s->assert_formula(s->make_term(Op::Not, b));
   ASSERT_TRUE(s->check_sat_assuming(TermVec{ b }).is_unsat());
   UnorderedTermSet assumptions;
   s->get_unsat_assumptions(assumptions);
@@ -259,14 +263,15 @@ TEST_P(PrintingRealTests, NegativesAndFractions)
 {
   // 2x = -1 and y = x - 3, so x is -1/2 and y is -7/2
   s->assert_formula(
-      s->make_term(Equal,
-                   s->make_term(Mult, s->make_term(2, realsort), x),
+      s->make_term(Op::Equal,
+                   s->make_term(Op::Mult, s->make_term(2, realsort), x),
                    s->make_term(-1, realsort)));
   s->assert_formula(s->make_term(
-      Equal, y, s->make_term(Minus, x, s->make_term(3, realsort))));
+      Op::Equal, y, s->make_term(Op::Minus, x, s->make_term(3, realsort))));
   ASSERT_TRUE(s->check_sat().is_sat());
   s->push(1);
-  s->assert_formula(s->make_term(Distinct, y, s->make_term("-7/2", realsort)));
+  s->assert_formula(
+      s->make_term(Op::Distinct, y, s->make_term("-7/2", realsort)));
   ASSERT_TRUE(s->check_sat().is_unsat());
   s->pop(1);
 
@@ -293,16 +298,16 @@ TEST_P(PrintingDatatypeTests, DeclaresDatatypes)
   // a one-element list is not nil
   Term l = s->make_symbol("l", listsort);
   Term nil =
-      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));
+      s->make_term(Op::Apply_Constructor, s->get_constructor(listsort, "nil"));
   s->assert_formula(
-      s->make_term(Equal,
+      s->make_term(Op::Equal,
                    l,
-                   s->make_term(Apply_Constructor,
+                   s->make_term(Op::Apply_Constructor,
                                 s->get_constructor(listsort, "cons"),
                                 s->make_term(5, intsort),
                                 nil)));
   s->assert_formula(
-      s->make_term(Apply_Tester, s->get_tester(listsort, "nil"), l));
+      s->make_term(Op::Apply_Tester, s->get_tester(listsort, "nil"), l));
   ASSERT_TRUE(s->check_sat().is_unsat());
 
   expect_replay({ { "unsat" } });

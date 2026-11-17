@@ -39,11 +39,11 @@ def test_push_pop_solve(create_solver):
     assert solver.check_sat().is_sat()
 
     solver.push()
-    solver.assert_formula(solver.make_term(ss.primops.Not, y))
+    solver.assert_formula(solver.make_term(ss.opkinds.Not, y))
     assert solver.check_sat().is_sat()
 
     solver.push()
-    solver.assert_formula(solver.make_term(ss.primops.Implies, x, y))
+    solver.assert_formula(solver.make_term(ss.opkinds.Implies, x, y))
     assert solver.check_sat().is_unsat()
 
     solver.pop()

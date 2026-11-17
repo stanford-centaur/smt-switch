@@ -60,9 +60,9 @@ TEST_P(Misuse, GetValueWithProduceModelsOff)
   Term v = s->make_symbol("v", bvsort);
   Term arr =
       s->make_symbol("arr", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
-  s->assert_formula(s->make_term(Equal, v, s->make_term(37, bvsort)));
+  s->assert_formula(s->make_term(Op::Equal, v, s->make_term(37, bvsort)));
   s->assert_formula(s->make_term(
-      Equal, s->make_term(Select, arr, v), s->make_term(9, bvsort)));
+      Op::Equal, s->make_term(Op::Select, arr, v), s->make_term(9, bvsort)));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_THROW(s->get_value(v), IncorrectUsageException);
   Term base;
@@ -109,7 +109,7 @@ TEST_P(Misuse, IllSortedApplication)
 {
   Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
   Term v = s->make_symbol("v", s->make_sort(SortKind::BV, 4));
-  EXPECT_THROW(s->make_term(And, b, v), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::And, b, v), IncorrectUsageException);
 }
 
 TEST_P(Misuse, UnsatAssumptionsAfterSatCheck)

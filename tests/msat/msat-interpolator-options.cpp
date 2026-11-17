@@ -34,8 +34,9 @@ TEST(MsatInterpolatorOptions, RefusesOnlyTheOptionsInterpolationNeeds)
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
-  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
-  Term B = s->make_term(Gt, x, z);
+  Term A = s->make_term(
+      Op::And, s->make_term(Op::Lt, x, y), s->make_term(Op::Lt, y, z));
+  Term B = s->make_term(Op::Gt, x, z);
   Term I;
   EXPECT_TRUE(s->get_interpolant(A, B, I).is_unsat());
   EXPECT_TRUE(I);

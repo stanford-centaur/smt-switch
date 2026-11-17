@@ -172,9 +172,9 @@ class TreeWalkerSteps : public UnitWalkerTests
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
     z = s->make_symbol("z", bvsort);
-    a = s->make_term(BVAdd, x, y);
-    b = s->make_term(BVAdd, y, z);
-    f = s->make_term(BVMul, a, b);
+    a = s->make_term(Op::BVAdd, x, y);
+    b = s->make_term(Op::BVAdd, y, z);
+    f = s->make_term(Op::BVMul, a, b);
   }
   Term x, y, z, a, b, f;
 };
@@ -213,7 +213,7 @@ TEST_P(TreeWalkerSteps, AbortAtTheTopVisitsNothingElse)
 TEST_P(UnitWalkerTests, Simple)
 {
   Term x = s->make_symbol("x", bvsort);
-  Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
+  Term xp1 = s->make_term(Op::BVAdd, x, s->make_term(1, bvsort));
   IdentityWalker iw(s, false);
   EXPECT_EQ(xp1, iw.visit(xp1));
   // visit a second time
@@ -227,10 +227,10 @@ TEST_P(UnitWalkerTests, SimpleSubstitution)
   // only for testing
 
   Term x = s->make_symbol("x", bvsort);
-  Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
+  Term xp1 = s->make_term(Op::BVAdd, x, s->make_term(1, bvsort));
 
   Term y = s->make_symbol("y", bvsort);
-  Term yp1 = s->make_term(BVAdd, y, s->make_term(1, bvsort));
+  Term yp1 = s->make_term(Op::BVAdd, y, s->make_term(1, bvsort));
 
   UnorderedTermMap subs({ { x, y } });
   IdentityWalker iw(s, false, &subs);
@@ -248,11 +248,11 @@ TEST_P(UnitWalkerTests, ArraySubstitution)
 
   Term x = s->make_symbol("x", bvsort);
   Term arr = s->make_symbol("arr", arrsort);
-  Term arrx = s->make_term(Select, arr, x);
+  Term arrx = s->make_term(Op::Select, arr, x);
 
   Term x_0 = s->make_symbol("x@0", bvsort);
   Term arr_0 = s->make_symbol("arr@0", arrsort);
-  Term arrx_0 = s->make_term(Select, arr_0, x_0);
+  Term arrx_0 = s->make_term(Op::Select, arr_0, x_0);
 
   UnorderedTermMap subs({ { x, x_0 }, { arr, arr_0 } });
   IdentityWalker iw(s, false, &subs);
@@ -270,10 +270,10 @@ TEST_P(UnitWalkerTests, FunSubstitution)
   Term f = s->make_symbol("f", funsort);
 
   Term x = s->make_symbol("x", bvsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   Term y = s->make_symbol("y", bvsort);
-  Term fy = s->make_term(Apply, f, y);
+  Term fy = s->make_term(Op::Apply, f, y);
 
   UnorderedTermMap subs({ { x, y } });
   IdentityWalker iw(s, false, &subs);
@@ -285,10 +285,10 @@ TEST_P(UnitWalkerTests, FunSubstitution)
 TEST_P(UnitWalkerTests, OutlivesTheHandleItWasMadeWith)
 {
   Term x = s->make_symbol("x", bvsort);
-  Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
+  Term xp1 = s->make_term(Op::BVAdd, x, s->make_term(1, bvsort));
 
   Term y = s->make_symbol("y", bvsort);
-  Term yp1 = s->make_term(BVAdd, y, s->make_term(1, bvsort));
+  Term yp1 = s->make_term(Op::BVAdd, y, s->make_term(1, bvsort));
 
   UnorderedTermMap subs({ { x, y } });
   std::unique_ptr<IdentityWalker> iw;
@@ -331,7 +331,7 @@ TEST_P(UnitWalkerTests, SimpleTree)
     // test only valid for logging solver
 
     Term x = s->make_symbol("x", bvsort);
-    Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
+    Term xp1 = s->make_term(Op::BVAdd, x, s->make_term(1, bvsort));
 
     TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
@@ -377,9 +377,9 @@ TEST_P(UnitWalkerTests, PathDecomp)
     // construct y=(x+1)+y
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
-    Term xp1 = s->make_term(BVAdd, x, s->make_term(1, bvsort));
-    Term xp1py = s->make_term(BVAdd, xp1, y);
-    Term yexp1py = s->make_term(Equal, y, xp1py);
+    Term xp1 = s->make_term(Op::BVAdd, x, s->make_term(1, bvsort));
+    Term xp1py = s->make_term(Op::BVAdd, xp1, y);
+    Term yexp1py = s->make_term(Op::Equal, y, xp1py);
 
     /* expected_map:
      * y=x+1+y: <y=x+1+y, []>
@@ -451,12 +451,12 @@ TEST_P(UnitWalkerTests, PathTests1)
     // construct (x+x)={(y+y)+[(x+2)-(x+x)]}
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
-    Term xpx = s->make_term(BVAdd, x, x);
-    Term ypy = s->make_term(BVAdd, y, y);
-    Term xp2 = s->make_term(BVAdd, x, s->make_term(2, bvsort));
-    Term lmt = s->make_term(BVSub, xp2, xpx);
-    Term rhs = s->make_term(BVAdd, ypy, lmt);
-    Term fullform = s->make_term(Equal, xpx, rhs);
+    Term xpx = s->make_term(Op::BVAdd, x, x);
+    Term ypy = s->make_term(Op::BVAdd, y, y);
+    Term xp2 = s->make_term(Op::BVAdd, x, s->make_term(2, bvsort));
+    Term lmt = s->make_term(Op::BVSub, xp2, xpx);
+    Term rhs = s->make_term(Op::BVAdd, ypy, lmt);
+    Term fullform = s->make_term(Op::Equal, xpx, rhs);
 
     /* expected_map:
      * (x+x)={(y+y)+[(x+2)-(x+x)]}: <(x+x)={(y+y)+[(x+2)-(x+x)]}, []>
@@ -605,9 +605,9 @@ TEST_P(UnitWalkerTests, PathTests3)
     // construct full formula: (ite (x=2) x 3) = y
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
-    Term xe2 = s->make_term(Equal, x, s->make_term(2, bvsort));
-    Term lhs = s->make_term(Ite, xe2, x, s->make_term(3, bvsort));
-    Term fullform = s->make_term(Equal, lhs, y);
+    Term xe2 = s->make_term(Op::Equal, x, s->make_term(2, bvsort));
+    Term lhs = s->make_term(Op::Ite, xe2, x, s->make_term(3, bvsort));
+    Term fullform = s->make_term(Op::Equal, lhs, y);
 
     TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
@@ -684,9 +684,9 @@ TEST_P(UnitWalkerTests, PathTestsUF1)
     Term x = s->make_symbol("x", bvsort);
     Term f = s->make_symbol("f", funsort);
     Term g = s->make_symbol("g", funsort);
-    Term fx = s->make_term(Apply, f, x);
-    Term gx = s->make_term(Apply, g, x);
-    Term fullform = s->make_term(Equal, fx, gx);
+    Term fx = s->make_term(Op::Apply, f, x);
+    Term gx = s->make_term(Op::Apply, g, x);
+    Term fullform = s->make_term(Op::Equal, fx, gx);
 
     TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
@@ -759,9 +759,9 @@ TEST_P(UnitWalkerTests, PathTestsUF2)
     Term z = s->make_symbol("z", bvsort);
     Term f = s->make_symbol("f", fun2sort);
     Term g = s->make_symbol("g", funsort);
-    Term fyz = s->make_term(Apply, f, y, z);
-    Term gx = s->make_term(Apply, g, x);
-    Term fullform = s->make_term(Equal, fyz, gx);
+    Term fyz = s->make_term(Op::Apply, f, y, z);
+    Term gx = s->make_term(Op::Apply, g, x);
+    Term fullform = s->make_term(Op::Equal, fyz, gx);
 
     TreeWalker::UnorderedTermPairMap passed_map;
     TreeWalker iw(s, false, &passed_map);
@@ -844,12 +844,12 @@ TEST_P(UnitWalkerTests, FreshVars)
     // construct full formula, (x+x) = {(y+y) + [(x+2)-(x+x)]}
     Term x = s->make_symbol("x", bvsort);
     Term y = s->make_symbol("y", bvsort);
-    Term xpx = s->make_term(BVAdd, x, x);
-    Term ypy = s->make_term(BVAdd, y, y);
-    Term xp2 = s->make_term(BVAdd, x, s->make_term(2, bvsort));
-    Term lmt = s->make_term(BVSub, xp2, xpx);
-    Term rhs = s->make_term(BVAdd, ypy, lmt);
-    Term fullform = s->make_term(Equal, xpx, rhs);
+    Term xpx = s->make_term(Op::BVAdd, x, x);
+    Term ypy = s->make_term(Op::BVAdd, y, y);
+    Term xp2 = s->make_term(Op::BVAdd, x, s->make_term(2, bvsort));
+    Term lmt = s->make_term(Op::BVSub, xp2, xpx);
+    Term rhs = s->make_term(Op::BVAdd, ypy, lmt);
+    Term fullform = s->make_term(Op::Equal, xpx, rhs);
 
     TreeWalker::UnorderedTermPairMap passed_map;
     IndicatorTreeWalker itw(s, false, &passed_map);

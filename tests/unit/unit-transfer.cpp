@@ -53,7 +53,7 @@ TEST_P(UnitTransferTests, SimpleUFTransfer)
 {
   Term a = s->make_symbol("a", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fa = s->make_term(Apply, f, a);
+  Term fa = s->make_term(Op::Apply, f, a);
 
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tr(s2);
@@ -73,13 +73,13 @@ TEST_P(UnitTransferTests, MonotonicUF)
   Term x = s->make_param("x", bvsort);
   Term y = s->make_param("y", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
-  Term fy = s->make_term(Apply, f, y);
+  Term fx = s->make_term(Op::Apply, f, x);
+  Term fy = s->make_term(Op::Apply, f, y);
 
-  Term free_x_le_y = s->make_term(BVUle, x, y);
-  Term free_fx_le_fy = s->make_term(BVUle, fx, fy);
-  Term fx_le_fy =
-      s->make_term(Forall, { x }, s->make_term(Forall, { y }, free_fx_le_fy));
+  Term free_x_le_y = s->make_term(Op::BVUle, x, y);
+  Term free_fx_le_fy = s->make_term(Op::BVUle, fx, fy);
+  Term fx_le_fy = s->make_term(
+      Op::Forall, { x }, s->make_term(Op::Forall, { y }, free_fx_le_fy));
 
   SmtSolver s2 = create_solver(GetParam());
   TermTranslator tr(s2);

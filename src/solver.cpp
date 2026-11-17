@@ -289,7 +289,7 @@ Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
                                   + std::to_string(size) + " terms.");
   }
-  if (is_left_assoc(op.prim_op))
+  if (is_left_assoc(op.kind()))
   {
     Term res = terms[0];
     for (std::size_t i = 1; i < size; ++i)
@@ -298,7 +298,7 @@ Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
     }
     return res;
   }
-  else if (is_right_assoc(op.prim_op))
+  else if (is_right_assoc(op.kind()))
   {
     Term res = terms[size - 1];
     for (std::size_t i = 1; i < size; ++i)
@@ -309,14 +309,14 @@ Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
   }
 
   TermVec conjuncts;
-  if (is_chainable(op.prim_op))
+  if (is_chainable(op.kind()))
   {
     for (std::size_t i = 0; i + 1 < size; ++i)
     {
       conjuncts.push_back(make_term(op, terms[i], terms[i + 1]));
     }
   }
-  else if (is_pairwise(op.prim_op))
+  else if (is_pairwise(op.kind()))
   {
     for (std::size_t i = 0; i < size; ++i)
     {
@@ -331,7 +331,7 @@ Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
                                   + std::to_string(size) + " terms.");
   }
-  return conjuncts.size() == 1 ? conjuncts[0] : make_term(And, conjuncts);
+  return conjuncts.size() == 1 ? conjuncts[0] : make_term(Op::And, conjuncts);
 }
 
 void AbsSmtSolver::check_quantifier_binders(const Op & op,

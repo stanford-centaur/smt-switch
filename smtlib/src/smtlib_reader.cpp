@@ -252,14 +252,13 @@ void SmtLibReader::set_logic(const std::string & logic)
 void SmtLibReader::add_theory(LogicTheory theory)
 {
   std::optional<SortKind> sort;
-  std::vector<PrimOp> ops;
+  std::vector<Op::Kind> ops;
   switch (theory)
   {
     case LogicTheory::CORE:
       sort = SortKind::BOOL;
-      ops = {
-        And, Or, Xor, Not, Implies, Ite, Equal, Distinct, Forall, Exists
-      };
+      ops = { Op::And, Op::Or,    Op::Xor,      Op::Not,    Op::Implies,
+              Op::Ite, Op::Equal, Op::Distinct, Op::Forall, Op::Exists };
       break;
     case LogicTheory::UF:
       // no sort or operator, so that neither Function nor apply is
@@ -268,50 +267,55 @@ void SmtLibReader::add_theory(LogicTheory theory)
       break;
     case LogicTheory::IA:
       sort = SortKind::INT;
-      // - with one argument is Negate, which apply_primop picks
-      ops = { Plus, Minus,  Lt,  Le,        Gt,  Ge,
-              Mult, IntDiv, Mod, Divisible, Abs, Pow };
+      // - with one argument is Negate, which apply_op_kind picks
+      ops = { Op::Plus, Op::Minus,  Op::Lt,  Op::Le,        Op::Gt,  Op::Ge,
+              Op::Mult, Op::IntDiv, Op::Mod, Op::Divisible, Op::Abs, Op::Pow };
       if (!strict_)
       {
         // spellings of ** from before SMT-LIB standardized it
-        primops_.emplace("pow", Pow);
-        primops_.emplace("^", Pow);
+        op_kinds_.emplace("pow", Op::Pow);
+        op_kinds_.emplace("^", Op::Pow);
       }
       break;
     case LogicTheory::RA:
       sort = SortKind::REAL;
-      // - with one argument is Negate, which apply_primop picks
-      ops = { Plus, Minus, Lt, Le, Gt, Ge, Mult, Div };
+      // - with one argument is Negate, which apply_op_kind picks
+      ops = { Op::Plus, Op::Minus, Op::Lt,   Op::Le,
+              Op::Gt,   Op::Ge,    Op::Mult, Op::Div };
       break;
-    case LogicTheory::IRA: ops = { To_Real, To_Int, Is_Int }; break;
+    case LogicTheory::IRA: ops = { Op::To_Real, Op::To_Int, Op::Is_Int }; break;
     case LogicTheory::BV:
       sort = SortKind::BV;
-      ops = { Concat,      Extract,     BVNot,  BVNeg,       BVAnd,
-              BVOr,        BVXor,       BVNand, BVNor,       BVXnor,
-              BVComp,      BVAdd,       BVSub,  BVMul,       BVUdiv,
-              BVSdiv,      BVUrem,      BVSrem, BVSmod,      BVShl,
-              BVAshr,      BVLshr,      BVUlt,  BVUle,       BVUgt,
-              BVUge,       BVSlt,       BVSle,  BVSgt,       BVSge,
-              Zero_Extend, Sign_Extend, Repeat, Rotate_Left, Rotate_Right };
+      ops = { Op::Concat, Op::Extract,     Op::BVNot,       Op::BVNeg,
+              Op::BVAnd,  Op::BVOr,        Op::BVXor,       Op::BVNand,
+              Op::BVNor,  Op::BVXnor,      Op::BVComp,      Op::BVAdd,
+              Op::BVSub,  Op::BVMul,       Op::BVUdiv,      Op::BVSdiv,
+              Op::BVUrem, Op::BVSrem,      Op::BVSmod,      Op::BVShl,
+              Op::BVAshr, Op::BVLshr,      Op::BVUlt,       Op::BVUle,
+              Op::BVUgt,  Op::BVUge,       Op::BVSlt,       Op::BVSle,
+              Op::BVSgt,  Op::BVSge,       Op::Zero_Extend, Op::Sign_Extend,
+              Op::Repeat, Op::Rotate_Left, Op::Rotate_Right };
       break;
     case LogicTheory::BVIA:
-      ops = { Int_To_BV, UBV_To_Int, SBV_To_Int };
+      ops = { Op::Int_To_BV, Op::UBV_To_Int, Op::SBV_To_Int };
       if (!strict_)
       {
         // obsolete spellings of int_to_bv and ubv_to_int
-        primops_.emplace("int2bv", Int_To_BV);
-        primops_.emplace("bv2nat", UBV_To_Int);
+        op_kinds_.emplace("int2bv", Op::Int_To_BV);
+        op_kinds_.emplace("bv2nat", Op::UBV_To_Int);
       }
       break;
     case LogicTheory::S:
       sort = SortKind::STRING;
-      ops = { StrLt,       StrLeq,      StrLen,     StrConcat,  StrSubstr,
-              StrAt,       StrContains, StrIndexof, StrReplace, StrReplaceAll,
-              StrPrefixof, StrSuffixof, StrIsDigit };
+      ops = { Op::StrLt,         Op::StrLeq,      Op::StrLen,
+              Op::StrConcat,     Op::StrSubstr,   Op::StrAt,
+              Op::StrContains,   Op::StrIndexof,  Op::StrReplace,
+              Op::StrReplaceAll, Op::StrPrefixof, Op::StrSuffixof,
+              Op::StrIsDigit };
       break;
     case LogicTheory::A:
       sort = SortKind::ARRAY;
-      ops = { Select, Store };
+      ops = { Op::Select, Op::Store };
       break;
     case LogicTheory::NUM_THEORIES: break;
   }
@@ -320,9 +324,9 @@ void SmtLibReader::add_theory(LogicTheory theory)
   {
     sortkinds_.emplace(to_string(*sort), *sort);
   }
-  for (const PrimOp po : ops)
+  for (const Op::Kind kind : ops)
   {
-    primops_.emplace(to_string(po), po);
+    op_kinds_.emplace(to_string(kind), kind);
   }
 }
 
@@ -507,10 +511,10 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
   all_symbols_[name] = fresh_symbol;
 }
 
-PrimOp SmtLibReader::lookup_primop(const std::string & str) const
+Op::Kind SmtLibReader::lookup_op_kind(const std::string & str) const
 {
-  auto it = primops_.find(str);
-  if (it != primops_.end())
+  auto it = op_kinds_.find(str);
+  if (it != op_kinds_.end())
   {
     return it->second;
   }
@@ -518,15 +522,15 @@ PrimOp SmtLibReader::lookup_primop(const std::string & str) const
   {
     // returning null because not in set of operators
     // (at least for the logic that was set)
-    return NUM_OPS_AND_NULL;
+    return Op::NONE;
   }
 }
 
-Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
+Term SmtLibReader::apply_op_kind(Op::Kind kind, TermVec args) const
 {
-  if (po == Minus && args.size() == 1)
+  if (kind == Op::Minus && args.size() == 1)
   {
-    return solver_->make_term(Negate, args[0]);
+    return solver_->make_term(Op::Negate, args[0]);
   }
 
   // SMT-LIB declares the arithmetic operators as (op Real Real s), for which
@@ -534,9 +538,9 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
   // argument of /, syntactic sugar for its conversion with to_real.
   if (lookup_sortkind(to_string(SortKind::INT)) == SortKind::INT
       && lookup_sortkind(to_string(SortKind::REAL)) == SortKind::REAL
-      && (get_theory(po) == Theory::ARITH || get_theory(po) == Theory::REALS
-          || (!strict_ && (po == Equal || po == Distinct)))
-      && (po == Div
+      && (get_theory(kind) == Theory::ARITH || get_theory(kind) == Theory::REALS
+          || (!strict_ && (kind == Op::Equal || kind == Op::Distinct)))
+      && (kind == Op::Div
           || std::any_of(
               args.begin(), args.end(), has_sort_kind(SortKind::REAL))))
   {
@@ -544,25 +548,25 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
     {
       if (has_sort_kind(SortKind::INT, arg))
       {
-        arg = solver_->make_term(To_Real, arg);
+        arg = solver_->make_term(Op::To_Real, arg);
       }
     }
   }
-  return solver_->make_term(po, args);
+  return solver_->make_term(kind, args);
 }
 
 Term SmtLibReader::apply_symbol(const std::string & name, TermVec args)
 {
-  PrimOp po = lookup_primop(name);
-  if (po != NUM_OPS_AND_NULL)
+  Op::Kind kind = lookup_op_kind(name);
+  if (kind != Op::NONE)
   {
-    return apply_primop(po, std::move(args));
+    return apply_op_kind(kind, std::move(args));
   }
   Term uf = lookup_symbol(name);
   if (uf)
   {
     args.insert(args.begin(), uf);
-    return solver_->make_term(Apply, args);
+    return solver_->make_term(Op::Apply, args);
   }
   return apply_define_fun(name, args);
 }

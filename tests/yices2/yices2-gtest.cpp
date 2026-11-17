@@ -45,16 +45,16 @@ TEST_F(Yices2Pow, RefusesExponentAboveUint32)
 {
   // 2^32 + 2, which a 32-bit truncation would read as 2
   Term exponent = s->make_term("4294967298", int_sort);
-  EXPECT_THROW(s->make_term(Pow, a, exponent), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::Pow, a, exponent), NotImplementedException);
 }
 TEST_F(Yices2Pow, RefusesNegativeExponent)
 {
   Term exponent = s->make_term("-1", int_sort);
-  EXPECT_THROW(s->make_term(Pow, a, exponent), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::Pow, a, exponent), NotImplementedException);
 }
 TEST_F(Yices2Pow, RefusesSymbolicExponent)
 {
-  EXPECT_THROW(s->make_term(Pow, a, b), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::Pow, a, b), NotImplementedException);
 }
 
 // Unwrapped, as the logging solver would work out the sort itself
@@ -63,7 +63,7 @@ TEST(Yices2IntToBv, FoldsValueModuloWidth)
   SmtSolver s = Yices2SolverFactory::create(false);
   Sort intsort = s->make_sort(SortKind::INT);
   Sort bvsort8 = s->make_sort(SortKind::BV, 8);
-  Op int_to_bv8(Int_To_BV, 8);
+  Op int_to_bv8(Op::Int_To_BV, 8);
 
   Term five = s->make_term(int_to_bv8, s->make_term("5", intsort));
   EXPECT_EQ(five->get_sort(), bvsort8);
@@ -75,7 +75,7 @@ TEST(Yices2IntToBv, FoldsValueModuloWidth)
       s->make_term(int_to_bv8, s->make_term("1180591620717411303427", intsort)),
       s->make_term(3, bvsort8));
   EXPECT_EQ(
-      s->make_term(Op(Int_To_BV, 100), s->make_term("-1", intsort)),
+      s->make_term(Op(Op::Int_To_BV, 100), s->make_term("-1", intsort)),
       s->make_term(std::string(100, '1'), s->make_sort(SortKind::BV, 100), 2));
 }
 
@@ -83,7 +83,7 @@ TEST(Yices2IntToBv, RefusesSymbol)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
   Term a = s->make_symbol("a", s->make_sort(SortKind::INT));
-  EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), a), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op(Op::Int_To_BV, 8), a), NotImplementedException);
 }
 
 TEST(Yices2IntToBv, RefusesNonInteger)
@@ -91,8 +91,8 @@ TEST(Yices2IntToBv, RefusesNonInteger)
   SmtSolver s = Yices2SolverFactory::create(false);
   Term r = s->make_symbol("r", s->make_sort(SortKind::REAL));
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 8));
-  EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), r), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Op(Int_To_BV, 8), x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Int_To_BV, 8), r), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Int_To_BV, 8), x), IncorrectUsageException);
 }
 
 // Unwrapped, as the logging solver would work out the sort itself
@@ -103,35 +103,35 @@ TEST(Yices2BvToInt, FoldsValue)
   Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term ff = s->make_term(255, bvsort8);
 
-  Term unsigned_ff = s->make_term(UBV_To_Int, ff);
+  Term unsigned_ff = s->make_term(Op::UBV_To_Int, ff);
   EXPECT_EQ(unsigned_ff->get_sort(), intsort);
   EXPECT_EQ(unsigned_ff, s->make_term("255", intsort));
-  EXPECT_EQ(s->make_term(BV_To_Nat, ff), s->make_term("255", intsort));
-  EXPECT_EQ(s->make_term(SBV_To_Int, ff), s->make_term("-1", intsort));
-  EXPECT_EQ(s->make_term(SBV_To_Int, s->make_term(127, bvsort8)),
+  EXPECT_EQ(s->make_term(Op::UBV_To_Int, ff), s->make_term("255", intsort));
+  EXPECT_EQ(s->make_term(Op::SBV_To_Int, ff), s->make_term("-1", intsort));
+  EXPECT_EQ(s->make_term(Op::SBV_To_Int, s->make_term(127, bvsort8)),
             s->make_term("127", intsort));
 
   Term ones100 =
       s->make_term(std::string(100, '1'), s->make_sort(SortKind::BV, 100), 2);
-  EXPECT_EQ(s->make_term(UBV_To_Int, ones100),
+  EXPECT_EQ(s->make_term(Op::UBV_To_Int, ones100),
             s->make_term("1267650600228229401496703205375", intsort));
-  EXPECT_EQ(s->make_term(SBV_To_Int, ones100), s->make_term("-1", intsort));
+  EXPECT_EQ(s->make_term(Op::SBV_To_Int, ones100), s->make_term("-1", intsort));
 }
 
 TEST(Yices2BvToInt, RefusesSymbol)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 8));
-  EXPECT_THROW(s->make_term(UBV_To_Int, x), NotImplementedException);
-  EXPECT_THROW(s->make_term(SBV_To_Int, x), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::UBV_To_Int, x), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::SBV_To_Int, x), NotImplementedException);
 }
 
 TEST(Yices2BvToInt, RefusesNonBitVector)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
   Term a = s->make_symbol("a", s->make_sort(SortKind::INT));
-  EXPECT_THROW(s->make_term(UBV_To_Int, a), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(SBV_To_Int, a), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::UBV_To_Int, a), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::SBV_To_Int, a), IncorrectUsageException);
 }
 
 TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)
@@ -149,7 +149,7 @@ TEST(Yices2SetLogic, RejectedLogicLeavesSolverUsable)
   }
   Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(1, intsort)));
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(1, intsort)));
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
@@ -167,9 +167,9 @@ TEST(Yices2Context, OptionsKeepAssertions)
     SmtSolver s = Yices2SolverFactory::create(false);
     Sort intsort = s->make_sort(SortKind::INT);
     Term y = s->make_symbol("y", intsort);
-    s->assert_formula(s->make_term(Equal, y, s->make_term(3, intsort)));
+    s->assert_formula(s->make_term(Op::Equal, y, s->make_term(3, intsort)));
     s->set_opt(option.first, option.second);
-    s->assert_formula(s->make_term(Equal, y, s->make_term(4, intsort)));
+    s->assert_formula(s->make_term(Op::Equal, y, s->make_term(4, intsort)));
     EXPECT_TRUE(s->check_sat().is_unsat()) << "after setting " << option.first;
   }
 }
@@ -179,12 +179,12 @@ TEST(Yices2Context, ConfigurationAfterFirstAssertionThrows)
   SmtSolver s = Yices2SolverFactory::create(false);
   Sort intsort = s->make_sort(SortKind::INT);
   Term y = s->make_symbol("y", intsort);
-  s->assert_formula(s->make_term(Equal, y, s->make_term(3, intsort)));
+  s->assert_formula(s->make_term(Op::Equal, y, s->make_term(3, intsort)));
   // Yices applies these only when it creates the context, which the
   // assertion did, so changing them now would drop the assertion
   EXPECT_THROW(s->set_opt("incremental", "true"), IncorrectUsageException);
   EXPECT_THROW(s->set_logic("QF_LIA"), IncorrectUsageException);
-  s->assert_formula(s->make_term(Equal, y, s->make_term(4, intsort)));
+  s->assert_formula(s->make_term(Op::Equal, y, s->make_term(4, intsort)));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -225,7 +225,7 @@ TEST(Yices2InstanceRef, StaysWhileAnIteratorIsHeld)
     Sort bv = s->make_sort(SortKind::BV, 4);
     Term x = s->make_symbol("x", bv);
     Term y = s->make_symbol("y", bv);
-    Term t = s->make_term(BVAnd, x, y);
+    Term t = s->make_term(Op::BVAnd, x, y);
     for (TermIter i = t->begin(); i != t->end(); ++i)
     {
       expected.push_back((*i)->to_string());

@@ -53,8 +53,8 @@ TEST_P(StrTests, StrChildren)
   EXPECT_FALSE(strA->is_symbolic_const());
   EXPECT_TRUE(strA->is_value());
 
-  Term tA = s->make_term(StrConcat, t, strA);
-  EXPECT_EQ(tA->get_op(), StrConcat);
+  Term tA = s->make_term(Op::StrConcat, t, strA);
+  EXPECT_EQ(tA->get_op(), Op::StrConcat);
   TermVec children_tA;
   for (auto tt : tA)
   {
@@ -63,8 +63,8 @@ TEST_P(StrTests, StrChildren)
   EXPECT_EQ(children_tA[0], t);
   EXPECT_EQ(children_tA[1], strA);
 
-  Term tw = s->make_term(StrConcat, t, w);
-  EXPECT_EQ(tw->get_op(), StrConcat);
+  Term tw = s->make_term(Op::StrConcat, t, w);
+  EXPECT_EQ(tw->get_op(), Op::StrConcat);
   TermVec children_tw;
   for (auto tt : tw)
   {
@@ -79,7 +79,7 @@ TEST_P(StrTests, EqualVars)
   Sort str_sort = s->make_sort(SortKind::STRING);
   Term x1 = s->make_symbol("x1", str_sort);
   Term x2 = s->make_symbol("x2", str_sort);
-  s->assert_formula(s->make_term(Equal, x1, x2));
+  s->assert_formula(s->make_term(Op::Equal, x1, x2));
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
@@ -126,8 +126,8 @@ TEST_P(StrTests, EqualVarStrVals)
   Term x1 = s->make_symbol("x1", str_sort);
   Term x2 = s->make_symbol("x2", str_sort);
   Term A = s->make_term("A", false, str_sort);
-  s->assert_formula(s->make_term(Equal, x1, A));
-  s->assert_formula(s->make_term(Equal, x2, A));
+  s->assert_formula(s->make_term(Op::Equal, x1, A));
+  s->assert_formula(s->make_term(Op::Equal, x2, A));
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
@@ -151,8 +151,8 @@ TEST_P(StrTests, EqualVarWStrVals)
   Term x1 = s->make_symbol("x1", str_sort);
   Term x2 = s->make_symbol("x2", str_sort);
   Term A = s->make_term(L"A", str_sort);
-  s->assert_formula(s->make_term(Equal, x1, A));
-  s->assert_formula(s->make_term(Equal, x2, A));
+  s->assert_formula(s->make_term(Op::Equal, x1, A));
+  s->assert_formula(s->make_term(Op::Equal, x2, A));
   s->check_sat();
   std::string strx1 = s->get_value(x1)->to_string();
   std::string strx2 = s->get_value(x2)->to_string();
@@ -177,81 +177,89 @@ TEST_P(StrTests, StringOperators)
   Term z = s->make_symbol("z", strsort);
   Term empty = s->make_symbol("empty", strsort);
 
-  Term lenx = s->make_term(StrLen, x);
-  Term leny = s->make_term(StrLen, y);
-  Term lenz = s->make_term(StrLen, z);
-  Term lenempty = s->make_term(StrLen, empty);
+  Term lenx = s->make_term(Op::StrLen, x);
+  Term leny = s->make_term(Op::StrLen, y);
+  Term lenz = s->make_term(Op::StrLen, z);
+  Term lenempty = s->make_term(Op::StrLen, empty);
 
-  Term xx = s->make_term(StrConcat, x, x);
-  Term xy = s->make_term(StrConcat, x, y);
-  Term yx = s->make_term(StrConcat, y, x);
-  Term xxx = s->make_term(StrConcat, xx, x);
-  Term xyy = s->make_term(StrConcat, xy, y);
+  Term xx = s->make_term(Op::StrConcat, x, x);
+  Term xy = s->make_term(Op::StrConcat, x, y);
+  Term yx = s->make_term(Op::StrConcat, y, x);
+  Term xxx = s->make_term(Op::StrConcat, xx, x);
+  Term xyy = s->make_term(Op::StrConcat, xy, y);
 
-  Term substryx = s->make_term(StrSubstr, yx, leny, lenx);
+  Term substryx = s->make_term(Op::StrSubstr, yx, leny, lenx);
 
   TermVec constraints;
-  constraints.push_back(s->make_term(Equal, lenempty, zero));
+  constraints.push_back(s->make_term(Op::Equal, lenempty, zero));
 
   // StrLt
-  constraints.push_back(s->make_term(StrLt, x, y));
-  constraints.push_back(s->make_term(StrLt, yx, xy));
+  constraints.push_back(s->make_term(Op::StrLt, x, y));
+  constraints.push_back(s->make_term(Op::StrLt, yx, xy));
   // StrLeq StrConcat
-  constraints.push_back(s->make_term(StrLeq, z, xy));
+  constraints.push_back(s->make_term(Op::StrLeq, z, xy));
   // StrLen
-  constraints.push_back(s->make_term(Lt, zero, lenz));
+  constraints.push_back(s->make_term(Op::Lt, zero, lenz));
   // StrConcat
-  constraints.push_back(s->make_term(Not, s->make_term(Equal, xy, yx)));
+  constraints.push_back(s->make_term(Op::Not, s->make_term(Op::Equal, xy, yx)));
   // StrSubstr
-  constraints.push_back(s->make_term(Equal, x, substryx));
-  constraints.push_back(s->make_term(Not, s->make_term(Equal, y, substryx)));
+  constraints.push_back(s->make_term(Op::Equal, x, substryx));
   constraints.push_back(
-      s->make_term(Equal, empty, s->make_term(StrSubstr, x, lenx, lenx)));
-  constraints.push_back(
-      s->make_term(Equal, empty, s->make_term(StrSubstr, x, minusone, lenx)));
-  // StrAt
+      s->make_term(Op::Not, s->make_term(Op::Equal, y, substryx)));
   constraints.push_back(s->make_term(
-      Equal, s->make_term(StrLen, s->make_term(StrAt, y, zero)), one));
+      Op::Equal, empty, s->make_term(Op::StrSubstr, x, lenx, lenx)));
+  constraints.push_back(s->make_term(
+      Op::Equal, empty, s->make_term(Op::StrSubstr, x, minusone, lenx)));
+  // StrAt
   constraints.push_back(
-      s->make_term(Equal, empty, s->make_term(StrAt, x, lenx)));
+      s->make_term(Op::Equal,
+                   s->make_term(Op::StrLen, s->make_term(Op::StrAt, y, zero)),
+                   one));
   constraints.push_back(
-      s->make_term(Equal, empty, s->make_term(StrAt, x, minusone)));
+      s->make_term(Op::Equal, empty, s->make_term(Op::StrAt, x, lenx)));
+  constraints.push_back(
+      s->make_term(Op::Equal, empty, s->make_term(Op::StrAt, x, minusone)));
   // StrContains
-  constraints.push_back(s->make_term(Not, s->make_term(StrContains, x, y)));
-  constraints.push_back(s->make_term(StrContains, xy, y));
+  constraints.push_back(
+      s->make_term(Op::Not, s->make_term(Op::StrContains, x, y)));
+  constraints.push_back(s->make_term(Op::StrContains, xy, y));
   // StrIndexof
   constraints.push_back(s->make_term(
-      Equal,
+      Op::Equal,
       lenx,
-      s->make_term(StrIndexof, xyy, y, s->make_term(Minus, lenx, one))));
-  constraints.push_back(
-      s->make_term(Equal, zero, s->make_term(StrIndexof, xy, empty, zero)));
-  constraints.push_back(
-      s->make_term(Equal, minusone, s->make_term(StrIndexof, xy, x, minusone)));
-  constraints.push_back(
-      s->make_term(Equal, minusone, s->make_term(StrIndexof, x, y, lenx)));
-  constraints.push_back(
-      s->make_term(Equal, minusone, s->make_term(StrIndexof, x, y, zero)));
+      s->make_term(
+          Op::StrIndexof, xyy, y, s->make_term(Op::Minus, lenx, one))));
+  constraints.push_back(s->make_term(
+      Op::Equal, zero, s->make_term(Op::StrIndexof, xy, empty, zero)));
+  constraints.push_back(s->make_term(
+      Op::Equal, minusone, s->make_term(Op::StrIndexof, xy, x, minusone)));
+  constraints.push_back(s->make_term(
+      Op::Equal, minusone, s->make_term(Op::StrIndexof, x, y, lenx)));
+  constraints.push_back(s->make_term(
+      Op::Equal, minusone, s->make_term(Op::StrIndexof, x, y, zero)));
   // StrReplace
   constraints.push_back(
-      s->make_term(Equal, xx, s->make_term(StrReplace, xy, y, x)));
+      s->make_term(Op::Equal, xx, s->make_term(Op::StrReplace, xy, y, x)));
   constraints.push_back(
-      s->make_term(Equal, xy, s->make_term(StrReplace, y, empty, x)));
+      s->make_term(Op::Equal, xy, s->make_term(Op::StrReplace, y, empty, x)));
   // StrReplaceAll
   constraints.push_back(
-      s->make_term(Equal, xxx, s->make_term(StrReplaceAll, xyy, y, x)));
-  constraints.push_back(
-      s->make_term(Equal, xyy, s->make_term(StrReplaceAll, xyy, empty, x)));
+      s->make_term(Op::Equal, xxx, s->make_term(Op::StrReplaceAll, xyy, y, x)));
+  constraints.push_back(s->make_term(
+      Op::Equal, xyy, s->make_term(Op::StrReplaceAll, xyy, empty, x)));
   // StrPrefixof
-  constraints.push_back(s->make_term(StrPrefixof, x, xyy));
-  constraints.push_back(s->make_term(Not, s->make_term(StrPrefixof, str1, A)));
+  constraints.push_back(s->make_term(Op::StrPrefixof, x, xyy));
+  constraints.push_back(
+      s->make_term(Op::Not, s->make_term(Op::StrPrefixof, str1, A)));
   // StrSuffixof
-  constraints.push_back(s->make_term(StrSuffixof, y, xyy));
-  constraints.push_back(s->make_term(Not, s->make_term(StrSuffixof, str1, A)));
+  constraints.push_back(s->make_term(Op::StrSuffixof, y, xyy));
+  constraints.push_back(
+      s->make_term(Op::Not, s->make_term(Op::StrSuffixof, str1, A)));
   // StrIsDigit
-  constraints.push_back(s->make_term(StrIsDigit, str1));
-  constraints.push_back(s->make_term(Not, s->make_term(StrIsDigit, A)));
-  constraints.push_back(s->make_term(Not, s->make_term(StrIsDigit, str10)));
+  constraints.push_back(s->make_term(Op::StrIsDigit, str1));
+  constraints.push_back(s->make_term(Op::Not, s->make_term(Op::StrIsDigit, A)));
+  constraints.push_back(
+      s->make_term(Op::Not, s->make_term(Op::StrIsDigit, str10)));
 
   for (const Term & c : constraints)
   {

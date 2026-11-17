@@ -174,23 +174,23 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_and(*env, term))
   {
-    return Op(And);
+    return Op(Op::And);
   }
   else if (msat_term_is_or(*env, term))
   {
-    return Op(Or);
+    return Op(Op::Or);
   }
   else if (msat_term_is_not(*env, term))
   {
-    return Op(Not);
+    return Op(Op::Not);
   }
   else if (msat_term_is_iff(*env, term))
   {
-    return Op(Equal);
+    return Op(Op::Equal);
   }
   else if (msat_term_is_term_ite(*env, term))
   {
-    return Op(Ite);
+    return Op(Op::Ite);
   }
   else if (msat_term_is_constant(*env, term))
   {
@@ -198,35 +198,35 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_uf(*env, term))
   {
-    return Op(Apply);
+    return Op(Op::Apply);
   }
   else if (msat_term_is_equal(*env, term))
   {
-    return Op(Equal);
+    return Op(Op::Equal);
   }
   else if (msat_term_is_leq(*env, term))
   {
-    return Op(Le);
+    return Op(Op::Le);
   }
   else if (msat_term_is_plus(*env, term))
   {
-    return Op(Plus);
+    return Op(Op::Plus);
   }
   else if (msat_term_is_times(*env, term))
   {
-    return Op(Mult);
+    return Op(Op::Mult);
   }
   else if (msat_term_is_divide(*env, term))
   {
-    return Op(Div);
+    return Op(Op::Div);
   }
   else if (msat_term_is_array_read(*env, term))
   {
-    return Op(Select);
+    return Op(Op::Select);
   }
   else if (msat_term_is_array_write(*env, term))
   {
-    return Op(Store);
+    return Op(Op::Store);
   }
   else if (msat_term_is_array_const(*env, term))
   {
@@ -235,87 +235,87 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_bv_concat(*env, term))
   {
-    return Op(Concat);
+    return Op(Op::Concat);
   }
   else if (msat_term_is_bv_or(*env, term))
   {
-    return Op(BVOr);
+    return Op(Op::BVOr);
   }
   else if (msat_term_is_bv_xor(*env, term))
   {
-    return Op(BVXor);
+    return Op(Op::BVXor);
   }
   else if (msat_term_is_bv_and(*env, term))
   {
-    return Op(BVAnd);
+    return Op(Op::BVAnd);
   }
   else if (msat_term_is_bv_not(*env, term))
   {
-    return Op(BVNot);
+    return Op(Op::BVNot);
   }
   else if (msat_term_is_bv_plus(*env, term))
   {
-    return Op(BVAdd);
+    return Op(Op::BVAdd);
   }
   else if (msat_term_is_bv_minus(*env, term))
   {
-    return Op(BVSub);
+    return Op(Op::BVSub);
   }
   else if (msat_term_is_bv_times(*env, term))
   {
-    return Op(BVMul);
+    return Op(Op::BVMul);
   }
   else if (msat_term_is_bv_neg(*env, term))
   {
-    return Op(BVNeg);
+    return Op(Op::BVNeg);
   }
   else if (msat_term_is_bv_udiv(*env, term))
   {
-    return Op(BVUdiv);
+    return Op(Op::BVUdiv);
   }
   else if (msat_term_is_bv_urem(*env, term))
   {
-    return Op(BVUrem);
+    return Op(Op::BVUrem);
   }
   else if (msat_term_is_bv_sdiv(*env, term))
   {
-    return Op(BVSdiv);
+    return Op(Op::BVSdiv);
   }
   else if (msat_term_is_bv_srem(*env, term))
   {
-    return Op(BVSrem);
+    return Op(Op::BVSrem);
   }
   else if (msat_term_is_bv_ult(*env, term))
   {
-    return Op(BVUlt);
+    return Op(Op::BVUlt);
   }
   else if (msat_term_is_bv_uleq(*env, term))
   {
-    return Op(BVUle);
+    return Op(Op::BVUle);
   }
   else if (msat_term_is_bv_slt(*env, term))
   {
-    return Op(BVSlt);
+    return Op(Op::BVSlt);
   }
   else if (msat_term_is_bv_sleq(*env, term))
   {
-    return Op(BVSle);
+    return Op(Op::BVSle);
   }
   else if (msat_term_is_bv_lshl(*env, term))
   {
-    return Op(BVShl);
+    return Op(Op::BVShl);
   }
   else if (msat_term_is_bv_lshr(*env, term))
   {
-    return Op(BVLshr);
+    return Op(Op::BVLshr);
   }
   else if (msat_term_is_bv_ashr(*env, term))
   {
-    return Op(BVAshr);
+    return Op(Op::BVAshr);
   }
   else if (msat_term_is_bv_comp(*env, term))
   {
-    return Op(BVComp);
+    return Op(Op::BVComp);
   }
   else if (is_symbol() || is_value())
   {
@@ -323,23 +323,23 @@ Op MsatTerm::get_op() const
   }
   else if (msat_term_is_floor(*env, term))
   {
-    return Op(To_Int);
+    return Op(Op::To_Int);
   }
   else if (is_congruence(*env, term))
   {
-    return Op(Divisible, congruence_modulus(*env, term));
+    return Op(Op::Divisible, congruence_modulus(*env, term));
   }
   else if (msat_term_is_int_from_ubv(*env, term))
   {
-    return Op(UBV_To_Int);
+    return Op(Op::UBV_To_Int);
   }
   else if (msat_term_is_int_from_sbv(*env, term))
   {
-    return Op(SBV_To_Int);
+    return Op(Op::SBV_To_Int);
   }
   else if (msat_term_is_int_to_bv(*env, term))
   {
-    return Op(Int_To_BV, get_sort()->get_width());
+    return Op(Op::Int_To_BV, get_sort()->get_width());
   }
   else
   {
@@ -347,27 +347,27 @@ Op MsatTerm::get_op() const
     size_t idx1;
     if (msat_term_is_bv_extract(*env, term, &idx0, &idx1))
     {
-      return Op(Extract, idx0, idx1);
+      return Op(Op::Extract, idx0, idx1);
     }
     else if (msat_term_is_bv_zext(*env, term, &idx0))
     {
-      return Op(Zero_Extend, idx0);
+      return Op(Op::Zero_Extend, idx0);
     }
     else if (msat_term_is_bv_sext(*env, term, &idx0))
     {
-      return Op(Sign_Extend, idx0);
+      return Op(Op::Sign_Extend, idx0);
     }
     else if (msat_term_is_bv_rol(*env, term, &idx0))
     {
-      return Op(Rotate_Left, idx0);
+      return Op(Op::Rotate_Left, idx0);
     }
     else if (msat_term_is_bv_ror(*env, term, &idx0))
     {
-      return Op(Rotate_Right, idx0);
+      return Op(Op::Rotate_Right, idx0);
     }
     else
     {
-      std::string msg("smt-switch has no PrimOp for the MathSAT term ");
+      std::string msg("smt-switch has no operator for the MathSAT term ");
       msg += env->to_smtlib2_term(term);
       throw NotImplementedException(msg);
     }

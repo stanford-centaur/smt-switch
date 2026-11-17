@@ -59,24 +59,25 @@ TEST_P(UnitResetAssertionsTests, ResetAssertions)
 {
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
-  Term xpy = s->make_term(BVAdd, x, y);
-  Term xmy = s->make_term(BVSub, x, y);
+  Term xpy = s->make_term(Op::BVAdd, x, y);
+  Term xmy = s->make_term(Op::BVSub, x, y);
 
-  Term constraint = s->make_term(Equal, xpy, xmy);
+  Term constraint = s->make_term(Op::Equal, xpy, xmy);
   s->assert_formula(constraint);
 
   Result r = s->check_sat();
   EXPECT_TRUE(r.is_sat());
 
   Term zero = s->make_term(0, bvsort);
-  Term make_unsat = s->make_term(
-      And, s->make_term(Distinct, x, zero), s->make_term(Distinct, y, zero));
+  Term make_unsat = s->make_term(Op::And,
+                                 s->make_term(Op::Distinct, x, zero),
+                                 s->make_term(Op::Distinct, y, zero));
   Term half_max = s->make_term(128, bvsort);
-  make_unsat = s->make_term(And,
+  make_unsat = s->make_term(Op::And,
                             make_unsat,
-                            s->make_term(And,
-                                         s->make_term(BVUlt, x, half_max),
-                                         s->make_term(BVUlt, y, half_max)));
+                            s->make_term(Op::And,
+                                         s->make_term(Op::BVUlt, x, half_max),
+                                         s->make_term(Op::BVUlt, y, half_max)));
   s->push(2);
   s->assert_formula(make_unsat);
   r = s->check_sat();
@@ -118,15 +119,16 @@ TEST_P(UnitResetAssertionsTests, ResetAssertionsKeepsDeclarations)
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol(
       "f", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort }));
-  s->assert_formula(s->make_term(Equal, s->make_term(Apply, f, x), x));
+  s->assert_formula(s->make_term(Op::Equal, s->make_term(Op::Apply, f, x), x));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   s->reset_assertions();
 
   // both are still declared: usable, and their names taken
   Term three = s->make_term(3, bvsort);
-  s->assert_formula(s->make_term(Equal, s->make_term(Apply, f, x), three));
-  s->assert_formula(s->make_term(Equal, x, three));
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Apply, f, x), three));
+  s->assert_formula(s->make_term(Op::Equal, x, three));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(x), three);
   EXPECT_THROW(s->make_symbol("x", bvsort), IncorrectUsageException);

@@ -28,140 +28,137 @@ namespace smt {
 
 namespace {
 
-// Each PrimOp with the cvc5 kind of its applications, a row per PrimOp in
-// the order of the enum, then the kinds only ever looked up from the kind
+// Each operator with the cvc5 kind of its applications, a row per kind but
+// Op::NONE in the order of the enum, then the kinds only ever looked up from
+// the cvc5 kind
 //
 // Both lookups index an array rather than search this table. get_op runs
 // for every node a traversal visits, and a linear search made it about a
 // third slower than the hash map these replace.
-constexpr std::pair<PrimOp, cvc5::Kind> primop_kinds[] = {
-  { And, cvc5::Kind::AND },
-  { Or, cvc5::Kind::OR },
-  { Xor, cvc5::Kind::XOR },
-  { Not, cvc5::Kind::NOT },
-  { Implies, cvc5::Kind::IMPLIES },
-  { Ite, cvc5::Kind::ITE },
-  { Equal, cvc5::Kind::EQUAL },
-  { Distinct, cvc5::Kind::DISTINCT },
-  { Apply, cvc5::Kind::APPLY_UF },
-  { Plus, cvc5::Kind::ADD },
-  { Minus, cvc5::Kind::SUB },
-  { Negate, cvc5::Kind::NEG },
-  { Mult, cvc5::Kind::MULT },
-  { Div, cvc5::Kind::DIVISION },
-  { Lt, cvc5::Kind::LT },
-  { Le, cvc5::Kind::LEQ },
-  { Gt, cvc5::Kind::GT },
-  { Ge, cvc5::Kind::GEQ },
-  { Mod, cvc5::Kind::INTS_MODULUS },
-  { Abs, cvc5::Kind::ABS },
-  { Pow, cvc5::Kind::POW },
-  { IntDiv, cvc5::Kind::INTS_DIVISION },
-  { Divisible, cvc5::Kind::DIVISIBLE },
-  { To_Real, cvc5::Kind::TO_REAL },
-  { To_Int, cvc5::Kind::TO_INTEGER },
-  { Is_Int, cvc5::Kind::IS_INTEGER },
-  { Concat, cvc5::Kind::BITVECTOR_CONCAT },
-  { Extract, cvc5::Kind::BITVECTOR_EXTRACT },
-  { BVNot, cvc5::Kind::BITVECTOR_NOT },
-  { BVNeg, cvc5::Kind::BITVECTOR_NEG },
-  { BVAnd, cvc5::Kind::BITVECTOR_AND },
-  { BVOr, cvc5::Kind::BITVECTOR_OR },
-  { BVXor, cvc5::Kind::BITVECTOR_XOR },
-  { BVNand, cvc5::Kind::BITVECTOR_NAND },
-  { BVNor, cvc5::Kind::BITVECTOR_NOR },
-  { BVXnor, cvc5::Kind::BITVECTOR_XNOR },
-  { BVAdd, cvc5::Kind::BITVECTOR_ADD },
-  { BVSub, cvc5::Kind::BITVECTOR_SUB },
-  { BVMul, cvc5::Kind::BITVECTOR_MULT },
-  { BVUdiv, cvc5::Kind::BITVECTOR_UDIV },
-  { BVSdiv, cvc5::Kind::BITVECTOR_SDIV },
-  { BVUrem, cvc5::Kind::BITVECTOR_UREM },
-  { BVSrem, cvc5::Kind::BITVECTOR_SREM },
-  { BVSmod, cvc5::Kind::BITVECTOR_SMOD },
-  { BVShl, cvc5::Kind::BITVECTOR_SHL },
-  { BVAshr, cvc5::Kind::BITVECTOR_ASHR },
-  { BVLshr, cvc5::Kind::BITVECTOR_LSHR },
-  { BVComp, cvc5::Kind::BITVECTOR_COMP },
-  { BVUlt, cvc5::Kind::BITVECTOR_ULT },
-  { BVUle, cvc5::Kind::BITVECTOR_ULE },
-  { BVUgt, cvc5::Kind::BITVECTOR_UGT },
-  { BVUge, cvc5::Kind::BITVECTOR_UGE },
-  { BVSlt, cvc5::Kind::BITVECTOR_SLT },
-  { BVSle, cvc5::Kind::BITVECTOR_SLE },
-  { BVSgt, cvc5::Kind::BITVECTOR_SGT },
-  { BVSge, cvc5::Kind::BITVECTOR_SGE },
-  { Zero_Extend, cvc5::Kind::BITVECTOR_ZERO_EXTEND },
-  { Sign_Extend, cvc5::Kind::BITVECTOR_SIGN_EXTEND },
-  { Repeat, cvc5::Kind::BITVECTOR_REPEAT },
-  { Rotate_Left, cvc5::Kind::BITVECTOR_ROTATE_LEFT },
-  { Rotate_Right, cvc5::Kind::BITVECTOR_ROTATE_RIGHT },
-  { BV_To_Nat, cvc5::Kind::BITVECTOR_UBV_TO_INT },
-  { UBV_To_Int, cvc5::Kind::BITVECTOR_UBV_TO_INT },
-  { SBV_To_Int, cvc5::Kind::BITVECTOR_SBV_TO_INT },
-  { Int_To_BV, cvc5::Kind::INT_TO_BITVECTOR },
-  { StrLt, cvc5::Kind::STRING_LT },
-  { StrLeq, cvc5::Kind::STRING_LEQ },
-  { StrLen, cvc5::Kind::STRING_LENGTH },
-  { StrConcat, cvc5::Kind::STRING_CONCAT },
-  { StrSubstr, cvc5::Kind::STRING_SUBSTR },
-  { StrAt, cvc5::Kind::STRING_CHARAT },
-  { StrContains, cvc5::Kind::STRING_CONTAINS },
-  { StrIndexof, cvc5::Kind::STRING_INDEXOF },
-  { StrReplace, cvc5::Kind::STRING_REPLACE },
-  { StrReplaceAll, cvc5::Kind::STRING_REPLACE_ALL },
-  { StrPrefixof, cvc5::Kind::STRING_PREFIX },
-  { StrSuffixof, cvc5::Kind::STRING_SUFFIX },
-  { StrIsDigit, cvc5::Kind::STRING_IS_DIGIT },
-  { Select, cvc5::Kind::SELECT },
-  { Store, cvc5::Kind::STORE },
-  { Forall, cvc5::Kind::FORALL },
-  { Exists, cvc5::Kind::EXISTS },
-  { Apply_Selector, cvc5::Kind::APPLY_SELECTOR },
-  { Apply_Tester, cvc5::Kind::APPLY_TESTER },
-  { Apply_Constructor, cvc5::Kind::APPLY_CONSTRUCTOR },
+constexpr std::pair<Op::Kind, cvc5::Kind> kind_pairs[] = {
+  { Op::And, cvc5::Kind::AND },
+  { Op::Or, cvc5::Kind::OR },
+  { Op::Xor, cvc5::Kind::XOR },
+  { Op::Not, cvc5::Kind::NOT },
+  { Op::Implies, cvc5::Kind::IMPLIES },
+  { Op::Ite, cvc5::Kind::ITE },
+  { Op::Equal, cvc5::Kind::EQUAL },
+  { Op::Distinct, cvc5::Kind::DISTINCT },
+  { Op::Apply, cvc5::Kind::APPLY_UF },
+  { Op::Plus, cvc5::Kind::ADD },
+  { Op::Minus, cvc5::Kind::SUB },
+  { Op::Negate, cvc5::Kind::NEG },
+  { Op::Mult, cvc5::Kind::MULT },
+  { Op::Div, cvc5::Kind::DIVISION },
+  { Op::Lt, cvc5::Kind::LT },
+  { Op::Le, cvc5::Kind::LEQ },
+  { Op::Gt, cvc5::Kind::GT },
+  { Op::Ge, cvc5::Kind::GEQ },
+  { Op::Mod, cvc5::Kind::INTS_MODULUS },
+  { Op::Abs, cvc5::Kind::ABS },
+  { Op::Pow, cvc5::Kind::POW },
+  { Op::IntDiv, cvc5::Kind::INTS_DIVISION },
+  { Op::Divisible, cvc5::Kind::DIVISIBLE },
+  { Op::To_Real, cvc5::Kind::TO_REAL },
+  { Op::To_Int, cvc5::Kind::TO_INTEGER },
+  { Op::Is_Int, cvc5::Kind::IS_INTEGER },
+  { Op::Concat, cvc5::Kind::BITVECTOR_CONCAT },
+  { Op::Extract, cvc5::Kind::BITVECTOR_EXTRACT },
+  { Op::BVNot, cvc5::Kind::BITVECTOR_NOT },
+  { Op::BVNeg, cvc5::Kind::BITVECTOR_NEG },
+  { Op::BVAnd, cvc5::Kind::BITVECTOR_AND },
+  { Op::BVOr, cvc5::Kind::BITVECTOR_OR },
+  { Op::BVXor, cvc5::Kind::BITVECTOR_XOR },
+  { Op::BVNand, cvc5::Kind::BITVECTOR_NAND },
+  { Op::BVNor, cvc5::Kind::BITVECTOR_NOR },
+  { Op::BVXnor, cvc5::Kind::BITVECTOR_XNOR },
+  { Op::BVAdd, cvc5::Kind::BITVECTOR_ADD },
+  { Op::BVSub, cvc5::Kind::BITVECTOR_SUB },
+  { Op::BVMul, cvc5::Kind::BITVECTOR_MULT },
+  { Op::BVUdiv, cvc5::Kind::BITVECTOR_UDIV },
+  { Op::BVSdiv, cvc5::Kind::BITVECTOR_SDIV },
+  { Op::BVUrem, cvc5::Kind::BITVECTOR_UREM },
+  { Op::BVSrem, cvc5::Kind::BITVECTOR_SREM },
+  { Op::BVSmod, cvc5::Kind::BITVECTOR_SMOD },
+  { Op::BVShl, cvc5::Kind::BITVECTOR_SHL },
+  { Op::BVAshr, cvc5::Kind::BITVECTOR_ASHR },
+  { Op::BVLshr, cvc5::Kind::BITVECTOR_LSHR },
+  { Op::BVComp, cvc5::Kind::BITVECTOR_COMP },
+  { Op::BVUlt, cvc5::Kind::BITVECTOR_ULT },
+  { Op::BVUle, cvc5::Kind::BITVECTOR_ULE },
+  { Op::BVUgt, cvc5::Kind::BITVECTOR_UGT },
+  { Op::BVUge, cvc5::Kind::BITVECTOR_UGE },
+  { Op::BVSlt, cvc5::Kind::BITVECTOR_SLT },
+  { Op::BVSle, cvc5::Kind::BITVECTOR_SLE },
+  { Op::BVSgt, cvc5::Kind::BITVECTOR_SGT },
+  { Op::BVSge, cvc5::Kind::BITVECTOR_SGE },
+  { Op::Zero_Extend, cvc5::Kind::BITVECTOR_ZERO_EXTEND },
+  { Op::Sign_Extend, cvc5::Kind::BITVECTOR_SIGN_EXTEND },
+  { Op::Repeat, cvc5::Kind::BITVECTOR_REPEAT },
+  { Op::Rotate_Left, cvc5::Kind::BITVECTOR_ROTATE_LEFT },
+  { Op::Rotate_Right, cvc5::Kind::BITVECTOR_ROTATE_RIGHT },
+  { Op::UBV_To_Int, cvc5::Kind::BITVECTOR_UBV_TO_INT },
+  { Op::SBV_To_Int, cvc5::Kind::BITVECTOR_SBV_TO_INT },
+  { Op::Int_To_BV, cvc5::Kind::INT_TO_BITVECTOR },
+  { Op::StrLt, cvc5::Kind::STRING_LT },
+  { Op::StrLeq, cvc5::Kind::STRING_LEQ },
+  { Op::StrLen, cvc5::Kind::STRING_LENGTH },
+  { Op::StrConcat, cvc5::Kind::STRING_CONCAT },
+  { Op::StrSubstr, cvc5::Kind::STRING_SUBSTR },
+  { Op::StrAt, cvc5::Kind::STRING_CHARAT },
+  { Op::StrContains, cvc5::Kind::STRING_CONTAINS },
+  { Op::StrIndexof, cvc5::Kind::STRING_INDEXOF },
+  { Op::StrReplace, cvc5::Kind::STRING_REPLACE },
+  { Op::StrReplaceAll, cvc5::Kind::STRING_REPLACE_ALL },
+  { Op::StrPrefixof, cvc5::Kind::STRING_PREFIX },
+  { Op::StrSuffixof, cvc5::Kind::STRING_SUFFIX },
+  { Op::StrIsDigit, cvc5::Kind::STRING_IS_DIGIT },
+  { Op::Select, cvc5::Kind::SELECT },
+  { Op::Store, cvc5::Kind::STORE },
+  { Op::Forall, cvc5::Kind::FORALL },
+  { Op::Exists, cvc5::Kind::EXISTS },
+  { Op::Apply_Selector, cvc5::Kind::APPLY_SELECTOR },
+  { Op::Apply_Tester, cvc5::Kind::APPLY_TESTER },
+  { Op::Apply_Constructor, cvc5::Kind::APPLY_CONSTRUCTOR },
   // The deprecated cvc5 kind for UBV_To_Int, only ever looked up from the kind
-  { UBV_To_Int, cvc5::Kind::BITVECTOR_TO_NAT },
+  { Op::UBV_To_Int, cvc5::Kind::BITVECTOR_TO_NAT },
 };
 
 constexpr bool rows_follow_enum()
 {
-  for (std::size_t i = 0; i < NUM_OPS_AND_NULL; ++i)
+  for (std::size_t i = 0; i < Op::num_kinds - 1; ++i)
   {
-    if (primop_kinds[i].first != static_cast<PrimOp>(i))
+    if (kind_pairs[i].first != static_cast<Op::Kind>(i + 1))
     {
       return false;
     }
   }
   return true;
 }
-static_assert(std::size(primop_kinds) >= NUM_OPS_AND_NULL && rows_follow_enum(),
-              "primop_kinds needs a row per PrimOp, in the order of the enum");
+static_assert(std::size(kind_pairs) >= Op::num_kinds - 1 && rows_follow_enum(),
+              "kind_pairs needs a row per kind but Op::NONE, in the order "
+              "of the enum");
 
 // The cvc5 kinds, from INTERNAL_KIND up to LAST_KIND, as array indices
 constexpr int first_kind = static_cast<int>(cvc5::Kind::INTERNAL_KIND);
 constexpr std::size_t num_kinds =
     static_cast<int>(cvc5::Kind::LAST_KIND) - first_kind;
 
-// The PrimOp of each cvc5 kind, from the last row that has it, or
-// NUM_OPS_AND_NULL for a kind that no PrimOp stands for
-struct KindPrimops
+// The operator of each cvc5 kind, from the last row that has it, or
+// Op::NONE for a kind that no operator stands for
+struct OpKindTable
 {
-  constexpr KindPrimops()
+  constexpr OpKindTable()
   {
-    for (PrimOp & po : primops)
+    for (const std::pair<Op::Kind, cvc5::Kind> & row : kind_pairs)
     {
-      po = NUM_OPS_AND_NULL;
-    }
-    for (const std::pair<PrimOp, cvc5::Kind> & row : primop_kinds)
-    {
-      primops[static_cast<std::size_t>(static_cast<int>(row.second)
-                                       - first_kind)] = row.first;
+      op_kinds[static_cast<std::size_t>(static_cast<int>(row.second)
+                                        - first_kind)] = row.first;
     }
   }
-  std::array<PrimOp, num_kinds> primops = {};
+  std::array<Op::Kind, num_kinds> op_kinds = {};
 };
-constexpr KindPrimops kind_primops;
+constexpr OpKindTable op_kind_table;
 
 // Whether a cvc5 term is a literal, an abstract value, a constructor
 // applied to values or a store of values
@@ -220,33 +217,32 @@ std::uint64_t op_index(cvc5::Op op, std::size_t i)
 // struct for hashing
 std::hash<cvc5::Term> termhash;
 
-/** The PrimOp of the applications of kind
- *  @throws NotImplementedException for a kind that no PrimOp stands for
+/** The operator of the applications of kind
+ *  @throws NotImplementedException for a kind that no operator stands for
  */
-PrimOp to_primop(cvc5::Kind kind)
+Op::Kind to_op_kind(cvc5::Kind kind)
 {
   const int i = static_cast<int>(kind) - first_kind;
   if (i < 0 || static_cast<std::size_t>(i) >= num_kinds
-      || kind_primops.primops[i] == NUM_OPS_AND_NULL)
+      || op_kind_table.op_kinds[i] == Op::NONE)
   {
-    throw NotImplementedException("smt-switch has no PrimOp for the cvc5 Kind "
-                                  + std::to_string(kind));
+    throw NotImplementedException(
+        "smt-switch has no operator for the cvc5 Kind " + std::to_string(kind));
   }
-  return kind_primops.primops[i];
+  return op_kind_table.op_kinds[i];
 }
 
-/** The cvc5 kind of the applications of po
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
- *          value
+/** The cvc5 kind of the applications of k
+ *  @throws IncorrectUsageException for Op::NONE or an out-of-range value
  */
-cvc5::Kind to_cvc5_kind(PrimOp po)
+cvc5::Kind to_cvc5_kind(Op::Kind k)
 {
-  if (po >= NUM_OPS_AND_NULL)
+  if (k == Op::NONE || k >= Op::num_kinds)
   {
-    throw IncorrectUsageException("cvc5 has no kind for the PrimOp "
-                                  + std::to_string(static_cast<int>(po)));
+    throw IncorrectUsageException("cvc5 has no kind for the operator kind "
+                                  + std::to_string(static_cast<int>(k)));
   }
-  return primop_kinds[po].second;
+  return kind_pairs[k - 1].second;
 }
 
 /** The application of op to children, made by tm. A quantifier binds its
@@ -257,8 +253,8 @@ cvc5::Term make_application(cvc5::TermManager & tm,
                             const Op & op,
                             std::vector<cvc5::Term> children)
 {
-  const cvc5::Kind kind = to_cvc5_kind(op.prim_op);
-  if (op.prim_op == Forall || op.prim_op == Exists)
+  const cvc5::Kind kind = to_cvc5_kind(op.kind());
+  if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     cvc5::Term res = children.back();
     children.pop_back();
@@ -325,12 +321,12 @@ Op Cvc5Term::get_op() const
     return Op();
   }
 
-  const PrimOp po = to_primop(cvc5_kind);
+  const Op::Kind op_kind = to_op_kind(cvc5_kind);
 
   // Create an smt-switch Op and return it.
   if (cvc5_op.isIndexed())
   {
-    const std::uint64_t num_indices = get_num_indices(po);
+    const std::uint64_t num_indices = get_num_indices(op_kind);
     if (num_indices == 0)
     {
       throw NotImplementedException(
@@ -339,16 +335,16 @@ Op Cvc5Term::get_op() const
     }
     if (num_indices == 1)
     {
-      return Op(po, op_index(cvc5_op, 0));
+      return Op(op_kind, op_index(cvc5_op, 0));
     }
     else
     {
-      return Op(po, op_index(cvc5_op, 0), op_index(cvc5_op, 1));
+      return Op(op_kind, op_index(cvc5_op, 0), op_index(cvc5_op, 1));
     }
   }
   else
   {
-    return Op(po);
+    return Op(op_kind);
   }
 }
 

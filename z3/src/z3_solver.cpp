@@ -120,23 +120,23 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
   return result;
 }
 
-/** Refuses po applied to num_args arguments, which this backend has no Z3
+/** Refuses kind applied to num_args arguments, which this backend has no Z3
  *  call for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
+[[noreturn]] void throw_unsupported(Op::Kind kind, size_t num_args)
 {
-  const std::pair<size_t, size_t> arity = get_arity(po);
+  const std::pair<size_t, size_t> arity = get_arity(kind);
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("Z3 does not support the operator "
-                                + to_string(po));
+                                + to_string(kind));
 }
 
 /** The term of op applied to one argument
@@ -144,41 +144,40 @@ Z3_ast ext_Z3_mk_real_div(Z3_context c, Z3_ast t1, Z3_ast t2)
  */
 Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
 {
-  switch (op.prim_op)
+  switch (op.kind())
   {
-    case Not: return Z3_mk_not(c, a);
-    case Negate: return Z3_mk_unary_minus(c, a);
-    case Abs: return ext_Z3_mk_abs(c, a);
-    case To_Real: return Z3_mk_int2real(c, a);
-    case To_Int: return Z3_mk_real2int(c, a);
-    case Is_Int: return Z3_mk_is_int(c, a);
-    case Extract:
+    case Op::Not: return Z3_mk_not(c, a);
+    case Op::Negate: return Z3_mk_unary_minus(c, a);
+    case Op::Abs: return ext_Z3_mk_abs(c, a);
+    case Op::To_Real: return Z3_mk_int2real(c, a);
+    case Op::To_Int: return Z3_mk_real2int(c, a);
+    case Op::Is_Int: return Z3_mk_is_int(c, a);
+    case Op::Extract:
       return Z3_mk_extract(c,
                            backend::narrow_index(op, op.indices[0]),
                            backend::narrow_index(op, op.indices[1]),
                            a);
-    case BVNot: return Z3_mk_bvnot(c, a);
-    case BVNeg: return Z3_mk_bvneg(c, a);
-    case Zero_Extend:
+    case Op::BVNot: return Z3_mk_bvnot(c, a);
+    case Op::BVNeg: return Z3_mk_bvneg(c, a);
+    case Op::Zero_Extend:
       return Z3_mk_zero_ext(c, backend::narrow_index(op, op.indices[0]), a);
-    case Sign_Extend:
+    case Op::Sign_Extend:
       return Z3_mk_sign_ext(c, backend::narrow_index(op, op.indices[0]), a);
-    case Repeat:
+    case Op::Repeat:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
       return Z3_mk_repeat(c, backend::narrow_index(op, op.indices[0]), a);
-    case Rotate_Left:
+    case Op::Rotate_Left:
       return Z3_mk_rotate_left(c, backend::narrow_index(op, op.indices[0]), a);
-    case Rotate_Right:
+    case Op::Rotate_Right:
       return Z3_mk_rotate_right(c, backend::narrow_index(op, op.indices[0]), a);
-    case BV_To_Nat:
-    case UBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ false);
-    case SBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ true);
-    case Int_To_BV:
+    case Op::UBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ false);
+    case Op::SBV_To_Int: return Z3_mk_bv2int(c, a, /* is_signed */ true);
+    case Op::Int_To_BV:
       return Z3_mk_int2bv(c, backend::narrow_index(op, op.indices[0]), a);
-    case Divisible:
+    case Op::Divisible:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
@@ -190,64 +189,64 @@ Z3_ast unary_term(Z3_context c, const Op & op, Z3_ast a)
                     backend::narrow<int>(op.indices[0], "a divisible index"),
                     Z3_mk_int_sort(c)),
           a);
-    default: throw_unsupported(op.prim_op, 1);
+    default: throw_unsupported(op.kind(), 1);
   }
 }
 
-/** The term of po applied to two arguments
+/** The term of kind applied to two arguments
  *  @throws as throw_unsupported where this backend has no such op
  */
-Z3_ast binary_term(Z3_context c, PrimOp po, Z3_ast a, Z3_ast b)
+Z3_ast binary_term(Z3_context c, Op::Kind kind, Z3_ast a, Z3_ast b)
 {
   const std::array<Z3_ast, 2> args{ { a, b } };
-  switch (po)
+  switch (kind)
   {
-    case And: return Z3_mk_and(c, 2, args.data());
-    case Or: return Z3_mk_or(c, 2, args.data());
-    case Xor: return Z3_mk_xor(c, a, b);
-    case Implies: return Z3_mk_implies(c, a, b);
-    case Equal: return Z3_mk_eq(c, a, b);
-    case Distinct: return Z3_mk_distinct(c, 2, args.data());
-    case Plus: return Z3_mk_add(c, 2, args.data());
-    case Minus: return Z3_mk_sub(c, 2, args.data());
-    case Mult: return Z3_mk_mul(c, 2, args.data());
-    case Div: return ext_Z3_mk_real_div(c, a, b);
-    case Lt: return Z3_mk_lt(c, a, b);
-    case Le: return Z3_mk_le(c, a, b);
-    case Gt: return Z3_mk_gt(c, a, b);
-    case Ge: return Z3_mk_ge(c, a, b);
-    case Mod: return Z3_mk_mod(c, a, b);
-    case Pow: return Z3_mk_power(c, a, b);
-    case IntDiv: return Z3_mk_div(c, a, b);
-    case Concat: return Z3_mk_concat(c, a, b);
-    case BVAnd: return Z3_mk_bvand(c, a, b);
-    case BVOr: return Z3_mk_bvor(c, a, b);
-    case BVXor: return Z3_mk_bvxor(c, a, b);
-    case BVNand: return Z3_mk_bvnand(c, a, b);
-    case BVNor: return Z3_mk_bvnor(c, a, b);
-    case BVXnor: return Z3_mk_bvxnor(c, a, b);
-    case BVAdd: return Z3_mk_bvadd(c, a, b);
-    case BVSub: return Z3_mk_bvsub(c, a, b);
-    case BVMul: return Z3_mk_bvmul(c, a, b);
-    case BVUdiv: return Z3_mk_bvudiv(c, a, b);
-    case BVSdiv: return Z3_mk_bvsdiv(c, a, b);
-    case BVUrem: return Z3_mk_bvurem(c, a, b);
-    case BVSrem: return Z3_mk_bvsrem(c, a, b);
-    case BVSmod: return Z3_mk_bvsmod(c, a, b);
-    case BVShl: return Z3_mk_bvshl(c, a, b);
-    case BVAshr: return Z3_mk_bvashr(c, a, b);
-    case BVLshr: return Z3_mk_bvlshr(c, a, b);
-    case BVComp: return ext_Z3_mk_bvcomp(c, a, b);
-    case BVUlt: return Z3_mk_bvult(c, a, b);
-    case BVUle: return Z3_mk_bvule(c, a, b);
-    case BVUgt: return Z3_mk_bvugt(c, a, b);
-    case BVUge: return Z3_mk_bvuge(c, a, b);
-    case BVSlt: return Z3_mk_bvslt(c, a, b);
-    case BVSle: return Z3_mk_bvsle(c, a, b);
-    case BVSgt: return Z3_mk_bvsgt(c, a, b);
-    case BVSge: return Z3_mk_bvsge(c, a, b);
-    case Select: return Z3_mk_select(c, a, b);
-    default: throw_unsupported(po, 2);
+    case Op::And: return Z3_mk_and(c, 2, args.data());
+    case Op::Or: return Z3_mk_or(c, 2, args.data());
+    case Op::Xor: return Z3_mk_xor(c, a, b);
+    case Op::Implies: return Z3_mk_implies(c, a, b);
+    case Op::Equal: return Z3_mk_eq(c, a, b);
+    case Op::Distinct: return Z3_mk_distinct(c, 2, args.data());
+    case Op::Plus: return Z3_mk_add(c, 2, args.data());
+    case Op::Minus: return Z3_mk_sub(c, 2, args.data());
+    case Op::Mult: return Z3_mk_mul(c, 2, args.data());
+    case Op::Div: return ext_Z3_mk_real_div(c, a, b);
+    case Op::Lt: return Z3_mk_lt(c, a, b);
+    case Op::Le: return Z3_mk_le(c, a, b);
+    case Op::Gt: return Z3_mk_gt(c, a, b);
+    case Op::Ge: return Z3_mk_ge(c, a, b);
+    case Op::Mod: return Z3_mk_mod(c, a, b);
+    case Op::Pow: return Z3_mk_power(c, a, b);
+    case Op::IntDiv: return Z3_mk_div(c, a, b);
+    case Op::Concat: return Z3_mk_concat(c, a, b);
+    case Op::BVAnd: return Z3_mk_bvand(c, a, b);
+    case Op::BVOr: return Z3_mk_bvor(c, a, b);
+    case Op::BVXor: return Z3_mk_bvxor(c, a, b);
+    case Op::BVNand: return Z3_mk_bvnand(c, a, b);
+    case Op::BVNor: return Z3_mk_bvnor(c, a, b);
+    case Op::BVXnor: return Z3_mk_bvxnor(c, a, b);
+    case Op::BVAdd: return Z3_mk_bvadd(c, a, b);
+    case Op::BVSub: return Z3_mk_bvsub(c, a, b);
+    case Op::BVMul: return Z3_mk_bvmul(c, a, b);
+    case Op::BVUdiv: return Z3_mk_bvudiv(c, a, b);
+    case Op::BVSdiv: return Z3_mk_bvsdiv(c, a, b);
+    case Op::BVUrem: return Z3_mk_bvurem(c, a, b);
+    case Op::BVSrem: return Z3_mk_bvsrem(c, a, b);
+    case Op::BVSmod: return Z3_mk_bvsmod(c, a, b);
+    case Op::BVShl: return Z3_mk_bvshl(c, a, b);
+    case Op::BVAshr: return Z3_mk_bvashr(c, a, b);
+    case Op::BVLshr: return Z3_mk_bvlshr(c, a, b);
+    case Op::BVComp: return ext_Z3_mk_bvcomp(c, a, b);
+    case Op::BVUlt: return Z3_mk_bvult(c, a, b);
+    case Op::BVUle: return Z3_mk_bvule(c, a, b);
+    case Op::BVUgt: return Z3_mk_bvugt(c, a, b);
+    case Op::BVUge: return Z3_mk_bvuge(c, a, b);
+    case Op::BVSlt: return Z3_mk_bvslt(c, a, b);
+    case Op::BVSle: return Z3_mk_bvsle(c, a, b);
+    case Op::BVSgt: return Z3_mk_bvsgt(c, a, b);
+    case Op::BVSge: return Z3_mk_bvsge(c, a, b);
+    case Op::Select: return Z3_mk_select(c, a, b);
+    default: throw_unsupported(kind, 2);
   }
 }
 
@@ -260,14 +259,14 @@ Term variadic_term(const std::shared_ptr<Z3Context> & ctx,
 {
   const unsigned n = backend::narrow_num_args(args.size());
   Z3_ast res;
-  switch (op.prim_op)
+  switch (op.kind())
   {
-    case And: res = Z3_mk_and(*ctx, n, args.data()); break;
-    case Or: res = Z3_mk_or(*ctx, n, args.data()); break;
-    case Distinct: res = Z3_mk_distinct(*ctx, n, args.data()); break;
-    case Plus: res = Z3_mk_add(*ctx, n, args.data()); break;
-    case Minus: res = Z3_mk_sub(*ctx, n, args.data()); break;
-    case Mult: res = Z3_mk_mul(*ctx, n, args.data()); break;
+    case Op::And: res = Z3_mk_and(*ctx, n, args.data()); break;
+    case Op::Or: res = Z3_mk_or(*ctx, n, args.data()); break;
+    case Op::Distinct: res = Z3_mk_distinct(*ctx, n, args.data()); break;
+    case Op::Plus: res = Z3_mk_add(*ctx, n, args.data()); break;
+    case Op::Minus: res = Z3_mk_sub(*ctx, n, args.data()); break;
+    case Op::Mult: res = Z3_mk_mul(*ctx, n, args.data()); break;
     default: return nullptr;
   }
   return std::make_shared<Z3Term>(ctx, to_expr(*ctx, res));
@@ -1124,7 +1123,7 @@ try
     throw IncorrectUsageException("Can't apply " + op.to_string()
                                   + " to zero terms");
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     check_quantifier_binders(op, terms);
   }
@@ -1135,7 +1134,7 @@ try
 
     if (zterm->is_function)
     {
-      if (op.prim_op != Apply_Constructor)
+      if (op.kind() != Op::Apply_Constructor)
       {
         throw IncorrectUsageException("Can't apply " + op.to_string()
                                       + " to a function");
@@ -1152,16 +1151,17 @@ try
 
   // Z3 represents datatype constructors, testers and selectors as functions,
   // so applying one is an Apply
-  if ((op == Apply_Constructor || op == Apply_Tester || op == Apply_Selector)
+  if ((op == Op::Apply_Constructor || op == Op::Apply_Tester
+       || op == Op::Apply_Selector)
       && get_z3_term(terms[0])->is_function)
   {
-    op = Op(Apply);
+    op = Op(Op::Apply);
   }
 
   // the operands, leaving out the function an Apply applies
   std::vector<Z3_ast> zargs;
   zargs.reserve(size);
-  for (size_t i = op.prim_op == Apply ? 1 : 0; i < size; ++i)
+  for (size_t i = op.kind() == Op::Apply ? 1 : 0; i < size; ++i)
   {
     std::shared_ptr<Z3Term> zterm = get_z3_term(terms[i]);
     if (zterm->is_function)
@@ -1172,7 +1172,7 @@ try
     zargs.push_back(zterm->term);
   }
 
-  if (op.prim_op == Apply)
+  if (op.kind() == Op::Apply)
   {
     std::shared_ptr<Z3Term> zfun = get_z3_term(terms[0]);
     if (!zfun->is_function)
@@ -1185,7 +1185,7 @@ try
     res = Z3_mk_app(
         *ctx, zfun->z_func, backend::narrow_num_args(size - 1), zargs.data());
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     // the last term is the body, bound by the rest one quantifier each, as a
     // quantifier binds one param (see ops.cpp)
@@ -1194,12 +1194,12 @@ try
     {
       z3::expr_vector param(*ctx);
       param.push_back(to_expr(*ctx, zargs[i]));
-      body = op.prim_op == Forall ? z3::forall(param, body)
-                                  : z3::exists(param, body);
+      body = op.kind() == Op::Forall ? z3::forall(param, body)
+                                     : z3::exists(param, body);
     }
     return std::make_shared<Z3Term>(ctx, body);
   }
-  else if (op.prim_op == Pow && size == 2
+  else if (op.kind() == Op::Pow && size == 2
            && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[0])) == Z3_INT_SORT
            && Z3_get_sort_kind(*ctx, Z3_get_sort(*ctx, zargs[1]))
                   == Z3_INT_SORT)
@@ -1210,13 +1210,13 @@ try
   }
   else if (size == 2)
   {
-    res = binary_term(*ctx, op.prim_op, zargs[0], zargs[1]);
+    res = binary_term(*ctx, op.kind(), zargs[0], zargs[1]);
   }
-  else if (size == 3 && op.prim_op == Ite)
+  else if (size == 3 && op.kind() == Op::Ite)
   {
     res = Z3_mk_ite(*ctx, zargs[0], zargs[1], zargs[2]);
   }
-  else if (size == 3 && op.prim_op == Store)
+  else if (size == 3 && op.kind() == Op::Store)
   {
     res = Z3_mk_store(*ctx, zargs[0], zargs[1], zargs[2]);
   }

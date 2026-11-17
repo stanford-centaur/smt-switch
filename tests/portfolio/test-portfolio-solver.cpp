@@ -106,7 +106,7 @@ Term make_int_term()
   SmtSolver s = term_maker({ SolverAttribute::THEORY_INT });
   Sort int_sort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", int_sort);
-  return s->make_term(Gt, x, s->make_term(0, int_sort));
+  return s->make_term(Op::Gt, x, s->make_term(0, int_sort));
 }
 
 TEST(PortfolioSolver, TwoPortfoliosFindSat)
@@ -136,18 +136,18 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
     {
       if (i != j)
       {
-        Term x = s->make_term(Not, s->make_term(Equal, nts[i], nts[j]));
+        Term x = s->make_term(Op::Not, s->make_term(Op::Equal, nts[i], nts[j]));
         neqs.push_back(x);
       }
     }
-    Term y = s->make_term(BVSle, nts[i], ten24);
+    Term y = s->make_term(Op::BVSle, nts[i], ten24);
     neqs.push_back(y);
   }
 
-  Term test_term = s->make_term(Equal, neqs[0], neqs[0]);
+  Term test_term = s->make_term(Op::Equal, neqs[0], neqs[0]);
   for (Term t : neqs)
   {
-    test_term = s->make_term(And, t, test_term);
+    test_term = s->make_term(Op::And, t, test_term);
   }
 
   PortfolioSolver p(two_members_each_with({ SolverAttribute::THEORY_BV }),

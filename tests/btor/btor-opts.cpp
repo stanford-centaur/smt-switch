@@ -62,7 +62,7 @@ TEST(BtorOpts, ModelsTurnedOffAgain)
   s->set_opt("produce-models", "false");
   Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(1, bv8)));
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(1, bv8)));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_THROW(s->get_value(x), Exception);
 }
@@ -83,7 +83,7 @@ TEST(BtorOpts, UnsatAssumptionsTurnedOffAgain)
   s->set_opt("produce-unsat-assumptions", "true");
   s->set_opt("produce-unsat-assumptions", "false");
   Term a = s->make_symbol("a", s->make_sort(SortKind::BOOL));
-  s->assert_formula(s->make_term(Not, a));
+  s->assert_formula(s->make_term(Op::Not, a));
   ASSERT_TRUE(s->check_sat_assuming({ a }).is_unsat());
   UnorderedTermSet core;
   EXPECT_THROW(s->get_unsat_assumptions(core), IncorrectUsageException);
@@ -96,7 +96,7 @@ TEST(BtorOpts, IncrementalAloneGivesNoUnsatAssumptions)
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_opt("incremental", "true");
   Term a = s->make_symbol("a", s->make_sort(SortKind::BOOL));
-  s->assert_formula(s->make_term(Not, a));
+  s->assert_formula(s->make_term(Op::Not, a));
   ASSERT_TRUE(s->check_sat_assuming({ a }).is_unsat());
   UnorderedTermSet core;
   EXPECT_THROW(s->get_unsat_assumptions(core), IncorrectUsageException);
@@ -110,7 +110,7 @@ TEST(BtorOpts, UnsatAssumptionsKeepIncrementalOn)
 
   // the refusal left incremental on, so the assumptions still work
   Term a = s->make_symbol("a", s->make_sort(SortKind::BOOL));
-  s->assert_formula(s->make_term(Not, a));
+  s->assert_formula(s->make_term(Op::Not, a));
   ASSERT_TRUE(s->check_sat_assuming({ a }).is_unsat());
   UnorderedTermSet core;
   s->get_unsat_assumptions(core);

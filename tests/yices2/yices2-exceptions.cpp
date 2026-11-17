@@ -56,10 +56,10 @@ TEST(Yices2Exceptions, MissingOperatorsAreNotImplemented)
   Term y = s->make_symbol("y", bvsort);
 
   Term p = s->make_param("p", bvsort);
-  Term body = s->make_term(Equal, p, y);
+  Term body = s->make_term(Op::Equal, p, y);
 
-  EXPECT_THROW(s->make_term(Apply_Tester, x, y), NotImplementedException);
-  EXPECT_THROW(s->make_term(Forall, p, body), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::Apply_Tester, x, y), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::Forall, p, body), NotImplementedException);
 }
 
 TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
@@ -69,9 +69,10 @@ TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
-  EXPECT_THROW(s->make_term(Op(Not, 3), x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Op(Extract, 3, 0), x, y), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Not, 3), x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Extract, 3, 0), x, y),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Concat, x), IncorrectUsageException);
 }
 
 // checks s, first telling started that its thread is running
@@ -96,7 +97,7 @@ TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
   {
     for (size_t j = i + 1; j < vars.size(); ++j)
     {
-      hard->assert_formula(hard->make_term(Distinct, vars[i], vars[j]));
+      hard->assert_formula(hard->make_term(Op::Distinct, vars[i], vars[j]));
     }
   }
 

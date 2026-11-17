@@ -12,7 +12,7 @@ def test_unit_op(create_solver):
     solver = create_solver(logging=False)
 
     null_op = ss.Op()
-    ext = ss.Op(ss.primops.Extract, 2, 0)
+    ext = ss.Op(ss.opkinds.Extract, 2, 0)
 
     x = solver.make_symbol("x", solver.make_sort(ss.sortkinds.BV, 4))
 
@@ -35,12 +35,12 @@ def test_unit_op_indices():
     assert null_op.idx1 is None
 
     extend_by = 5
-    one = ss.Op(ss.primops.Zero_Extend, extend_by)
+    one = ss.Op(ss.opkinds.Zero_Extend, extend_by)
     assert one.num_idx == 1
     assert one.idx0 == extend_by
     assert one.idx1 is None
 
-    two = ss.Op(ss.primops.Extract, 2, 0)
+    two = ss.Op(ss.opkinds.Extract, 2, 0)
     assert (two.idx0, two.idx1) == (2, 0)
 
     # indices is the canonical accessor; the three above derive from it
@@ -49,7 +49,7 @@ def test_unit_op_indices():
     assert two.indices == (2, 0)
 
     with pytest.raises(OverflowError):
-        ss.Op(ss.primops.Extract, -1, 0)
+        ss.Op(ss.opkinds.Extract, -1, 0)
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -82,7 +82,7 @@ def test_unit_iter(create_solver):
         "f", solver.make_sort(ss.sortkinds.FUNCTION, [bvsort, bvsort])
     )
 
-    fx = solver.make_term(ss.primops.Apply, f, x)
+    fx = solver.make_term(ss.opkinds.Apply, f, x)
 
     assert list(fx) == [f, x], "Children should be f then x"
 
@@ -97,7 +97,7 @@ def test_bool(create_solver):
     y = solver.make_symbol("y", boolsort)
 
     solver.assert_formula(
-        solver.make_term(ss.primops.And, x, solver.make_term(ss.primops.Not, y))
+        solver.make_term(ss.opkinds.And, x, solver.make_term(ss.opkinds.Not, y))
     )
     solver.check_sat()
     xv = solver.get_value(x)
@@ -129,9 +129,9 @@ def test_check_sat_assuming(create_solver):
     x = solver.make_symbol("x", bvsort8)
     b = solver.make_symbol("b", boolsort)
 
-    xeq0 = solver.make_term(ss.primops.Equal, x, solver.make_term(0, bvsort8))
-    solver.assert_formula(solver.make_term(ss.primops.Not, xeq0))
-    solver.assert_formula(solver.make_term(ss.primops.Implies, b, xeq0))
+    xeq0 = solver.make_term(ss.opkinds.Equal, x, solver.make_term(0, bvsort8))
+    solver.assert_formula(solver.make_term(ss.opkinds.Not, xeq0))
+    solver.assert_formula(solver.make_term(ss.opkinds.Implies, b, xeq0))
 
     # Passing the formula xeq0 rather than a literal would violate
     # check_sat_assuming's documented precondition, but only mathsat enforces
@@ -145,7 +145,7 @@ def test_check_sat_assuming(create_solver):
 
     # a Term iterates over its children, so this would assume b
     with pytest.raises(TypeError):
-        solver.check_sat_assuming(solver.make_term(ss.primops.Not, b))
+        solver.check_sat_assuming(solver.make_term(ss.opkinds.Not, b))
 
 
 @pytest.mark.parametrize("create_solver", ss.solvers.values())
@@ -158,10 +158,10 @@ def test_multi_arg_fun(create_solver):
     vs2 = [solver.make_symbol(f"y{i}", bvsort) for i in range(7)]
 
     f = solver.make_symbol("f", funsort)
-    res = solver.make_term(ss.primops.Apply, [f, *vs])
-    assert res == solver.make_term(ss.primops.Apply, f, *vs)
+    res = solver.make_term(ss.opkinds.Apply, [f, *vs])
+    assert res == solver.make_term(ss.opkinds.Apply, f, *vs)
 
-    res2 = solver.make_term(ss.primops.Apply, f, *vs2)
+    res2 = solver.make_term(ss.opkinds.Apply, f, *vs2)
     assert res != res2
     args = [f, *vs2]
-    assert res2 == solver.make_term(ss.primops.Apply, args)
+    assert res2 == solver.make_term(ss.opkinds.Apply, args)

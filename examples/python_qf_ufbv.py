@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import smt_switch as ss
-from smt_switch.primops import Apply, BVAnd, BVUge, Distinct, Equal, Extract
+from smt_switch.opkinds import Apply, BVAnd, BVUge, Distinct, Equal, Extract
 
 if __name__ == "__main__":
     s = ss.create_btor_solver(logging=True)

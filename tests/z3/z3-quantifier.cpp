@@ -32,7 +32,7 @@ TEST(Z3Quantifier, BindingSeveralListsTheFirstThenTheRest)
   Term i = s->make_param("i", bv);
   Term j = s->make_param("j", bv);
   Term x = s->make_symbol("x", bv);
-  Term body = s->make_term(BVUle, s->make_term(BVAdd, i, j), x);
+  Term body = s->make_term(Op::BVUle, s->make_term(Op::BVAdd, i, j), x);
 
   auto ctx = std::static_pointer_cast<Z3Context>(s->get_z3_context());
   z3::expr_vector bound(*ctx);
@@ -42,11 +42,11 @@ TEST(Z3Quantifier, BindingSeveralListsTheFirstThenTheRest)
       ctx,
       z3::forall(bound, std::static_pointer_cast<Z3Term>(body)->get_z3_expr()));
 
-  EXPECT_EQ(both->get_op(), Forall);
+  EXPECT_EQ(both->get_op(), Op::Forall);
   TermVec children(both->begin(), both->end());
   ASSERT_EQ(children.size(), 2u);
   EXPECT_EQ(children[0], i);
-  EXPECT_EQ(children[1], s->make_term(Forall, j, body));
+  EXPECT_EQ(children[1], s->make_term(Op::Forall, j, body));
 }
 
 }  // namespace

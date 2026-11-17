@@ -54,8 +54,8 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducer)
 
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
-  Term formula = s->make_term(And, a, b);
-  TermVec assump({ s->make_term(Not, a), s->make_term(Not, b) });
+  Term formula = s->make_term(Op::And, a, b);
+  TermVec assump({ s->make_term(Op::Not, a), s->make_term(Op::Not, b) });
   TermVec red, rem;
 
   uscr.reduce_assump_unsatcore(formula, assump, red, &rem);
@@ -71,16 +71,16 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducerSingle)
   Term a = s->make_symbol("a", bvsort32);
   Term b = s->make_symbol("b", bvsort32);
 
-  Op ext = Op(Extract, 15, 0);
+  Op ext = Op(Op::Extract, 15, 0);
   Term a0 = s->make_term(ext, a);
   Term b0 = s->make_term(ext, b);
 
-  Term ab = s->make_term(BVAnd, a, b);
-  Term t1 = s->make_term(BVUge, a0, b0);
-  Term t2 = s->make_term(BVUge, ab, a);
-  Term t3 = s->make_term(BVUge, ab, b);
+  Term ab = s->make_term(Op::BVAnd, a, b);
+  Term t1 = s->make_term(Op::BVUge, a0, b0);
+  Term t2 = s->make_term(Op::BVUge, ab, a);
+  Term t3 = s->make_term(Op::BVUge, ab, b);
 
-  Term formula = s->make_term(Distinct, a, b);
+  Term formula = s->make_term(Op::Distinct, a, b);
   TermVec assumps({ t1, t2, t3 });
   TermVec red, rem;
 
@@ -103,8 +103,8 @@ TEST_P(UnsatCoreReducerTests, UnsatCoreReducerLinear)
 
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
-  Term formula = s->make_term(And, a, b);
-  TermVec assump({ s->make_term(Not, a), s->make_term(Not, b) });
+  Term formula = s->make_term(Op::And, a, b);
+  TermVec assump({ s->make_term(Op::Not, a), s->make_term(Op::Not, b) });
   TermVec red, rem;
 
   uscr.linear_reduce_assump_unsatcore(formula, assump, red, &rem);
@@ -118,7 +118,7 @@ TEST_P(UnsatCoreReducerTests, LinearRefusesRepeatedAssumption)
   UnsatCoreReducer uscr(r);
 
   Term a = s->make_symbol("a", boolsort);
-  Term not_a = s->make_term(Not, a);
+  Term not_a = s->make_term(Op::Not, a);
   TermVec red;
   EXPECT_THROW(uscr.linear_reduce_assump_unsatcore(a, { not_a, not_a }, red),
                IncorrectUsageException);
@@ -145,8 +145,8 @@ TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
 
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
-  Term formula = s->make_term(And, a, b);
-  TermVec assump({ s->make_term(Not, a), s->make_term(Not, b) });
+  Term formula = s->make_term(Op::And, a, b);
+  TermVec assump({ s->make_term(Op::Not, a), s->make_term(Op::Not, b) });
   TermVec red;
   EXPECT_THROW(uscr.reduce_assump_unsatcore(formula, assump, red),
                SolverException);

@@ -37,15 +37,15 @@ TEST(MsatForeignHandle, AnotherSolversTermsRefused)
   Term x = s->make_symbol("x", bv8);
   Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", other_bv8);
-  Term p = other->make_term(Equal, y, y);
+  Term p = other->make_term(Op::Equal, y, y);
   Term f = other->make_symbol(
       "f",
       other->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, other_bv8 }));
 
   EXPECT_THROW(s->assert_formula(p), IncorrectUsageException);
   EXPECT_THROW(s->check_sat_assuming(TermVec{ p }), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVAdd, x, y), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Apply, f, x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVAdd, x, y), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Apply, f, x), IncorrectUsageException);
   EXPECT_THROW(s->substitute(x, { { x, y } }), IncorrectUsageException);
   EXPECT_THROW(s->substitute(x, { { y, x } }), IncorrectUsageException);
   EXPECT_THROW(s->substitute(y, { { x, x } }), IncorrectUsageException);
@@ -64,7 +64,7 @@ TEST(MsatForeignHandle, AnotherSolversAssertionRefused)
   Term b = other->make_symbol("b", other->make_sort(SortKind::BOOL));
   s->assert_formula(a);
 
-  EXPECT_THROW(s->assert_formula(other->make_term(Not, b)),
+  EXPECT_THROW(s->assert_formula(other->make_term(Op::Not, b)),
                IncorrectUsageException);
   EXPECT_TRUE(s->check_sat().is_sat());
 }
@@ -94,7 +94,7 @@ TEST(MsatForeignHandle, HandlesFromBeforeResetRefused)
   SmtSolver s = MsatSolverFactory::create(false);
   Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
-  Term p = s->make_term(Equal, x, x);
+  Term p = s->make_term(Op::Equal, x, x);
   s->reset();
 
   EXPECT_THROW(s->assert_formula(p), IncorrectUsageException);
@@ -107,12 +107,12 @@ TEST(MsatForeignHandle, AnotherInterpolatorsTermsRefused)
   SmtInterpolator other = MsatSolverFactory::create_interpolator();
   Sort other_bv8 = other->make_sort(SortKind::BV, 8);
   Term y = other->make_symbol("y", other_bv8);
-  Term other_a = other->make_term(Equal, y, other->make_term(0, other_bv8));
-  Term other_b = other->make_term(Equal, y, other->make_term(1, other_bv8));
+  Term other_a = other->make_term(Op::Equal, y, other->make_term(0, other_bv8));
+  Term other_b = other->make_term(Op::Equal, y, other->make_term(1, other_bv8));
   Sort bv8 = itp->make_sort(SortKind::BV, 8);
   Term x = itp->make_symbol("x", bv8);
-  Term a = itp->make_term(Equal, x, itp->make_term(0, bv8));
-  Term b = itp->make_term(Equal, x, itp->make_term(1, bv8));
+  Term a = itp->make_term(Op::Equal, x, itp->make_term(0, bv8));
+  Term b = itp->make_term(Op::Equal, x, itp->make_term(1, bv8));
 
   Term out_I;
   EXPECT_THROW(itp->get_interpolant(a, other_b, out_I),

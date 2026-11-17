@@ -107,7 +107,7 @@ void SmtLibParser::error(const location_type & l, const std::string & m)
 %nterm <TermVec> sorted_arg_list
 %nterm <TermVec> sorted_param_list
 %nterm <Op> indexed_op
-%nterm <PrimOp> indexed_name
+%nterm <Op::Kind> indexed_name
 %nterm <std::string> stringlit
 %nterm <std::string> number
 %nterm <std::string> number_or_string
@@ -180,7 +180,7 @@ term_s_expr:
   {
     TermVec params = $5;
     params.push_back($7);  // the body follows the parameters in smt-switch
-    $$ = drv.solver()->make_term(drv.lookup_primop($2), params);
+    $$ = drv.solver()->make_term(drv.lookup_op_kind($2), params);
   }
 | LP LET open_scope LP let_term_bindings RP term_s_expr close_scope RP
   { $$ = $7; }
@@ -282,8 +282,8 @@ indexed_name:
   indprefix SYMBOL
   {
     const std::string & name = $2;
-    $$ = drv.lookup_primop(name);
-    if ($$ == NUM_OPS_AND_NULL)
+    $$ = drv.lookup_op_kind(name);
+    if ($$ == Op::NONE)
     {
       throw syntax_error(@2, "Unexpected symbol in indexed operator: " + name);
     }

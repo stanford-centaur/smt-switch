@@ -30,61 +30,62 @@ namespace smt {
 
 namespace {
 
-// Each PrimOp Bitwuzla supports with the Bitwuzla kind of its applications,
-// in the order of the enum, then the kinds only ever looked up from the kind
+// Each operator Bitwuzla supports with the Bitwuzla kind of its
+// applications, in the order of the enum, then the kinds only ever looked up
+// from the Bitwuzla kind
 //
 // Both lookups index an array built from this table rather than search it,
 // as get_op runs for every node a traversal visits.
-constexpr std::pair<PrimOp, bitwuzla::Kind> primop_kinds[] = {
-  { And, bitwuzla::Kind::AND },
-  { Or, bitwuzla::Kind::OR },
-  { Xor, bitwuzla::Kind::XOR },
-  { Not, bitwuzla::Kind::NOT },
-  { Implies, bitwuzla::Kind::IMPLIES },
-  { Ite, bitwuzla::Kind::ITE },
-  { Equal, bitwuzla::Kind::EQUAL },
-  { Distinct, bitwuzla::Kind::DISTINCT },
-  { Apply, bitwuzla::Kind::APPLY },
-  { Concat, bitwuzla::Kind::BV_CONCAT },
-  { Extract, bitwuzla::Kind::BV_EXTRACT },
-  { BVNot, bitwuzla::Kind::BV_NOT },
-  { BVNeg, bitwuzla::Kind::BV_NEG },
-  { BVAnd, bitwuzla::Kind::BV_AND },
-  { BVOr, bitwuzla::Kind::BV_OR },
-  { BVXor, bitwuzla::Kind::BV_XOR },
-  { BVNand, bitwuzla::Kind::BV_NAND },
-  { BVNor, bitwuzla::Kind::BV_NOR },
-  { BVXnor, bitwuzla::Kind::BV_XNOR },
-  { BVAdd, bitwuzla::Kind::BV_ADD },
-  { BVSub, bitwuzla::Kind::BV_SUB },
-  { BVMul, bitwuzla::Kind::BV_MUL },
-  { BVUdiv, bitwuzla::Kind::BV_UDIV },
-  { BVSdiv, bitwuzla::Kind::BV_SDIV },
-  { BVUrem, bitwuzla::Kind::BV_UREM },
-  { BVSrem, bitwuzla::Kind::BV_SREM },
-  { BVSmod, bitwuzla::Kind::BV_SMOD },
-  { BVShl, bitwuzla::Kind::BV_SHL },
-  { BVAshr, bitwuzla::Kind::BV_ASHR },
-  { BVLshr, bitwuzla::Kind::BV_SHR },
-  { BVComp, bitwuzla::Kind::BV_COMP },
-  { BVUlt, bitwuzla::Kind::BV_ULT },
-  { BVUle, bitwuzla::Kind::BV_ULE },
-  { BVUgt, bitwuzla::Kind::BV_UGT },
-  { BVUge, bitwuzla::Kind::BV_UGE },
-  { BVSlt, bitwuzla::Kind::BV_SLT },
-  { BVSle, bitwuzla::Kind::BV_SLE },
-  { BVSgt, bitwuzla::Kind::BV_SGT },
-  { BVSge, bitwuzla::Kind::BV_SGE },
-  { Zero_Extend, bitwuzla::Kind::BV_ZERO_EXTEND },
-  { Sign_Extend, bitwuzla::Kind::BV_SIGN_EXTEND },
-  { Repeat, bitwuzla::Kind::BV_REPEAT },
-  { Rotate_Left, bitwuzla::Kind::BV_ROLI },
-  { Rotate_Right, bitwuzla::Kind::BV_RORI },
-  { Select, bitwuzla::Kind::ARRAY_SELECT },
-  { Store, bitwuzla::Kind::ARRAY_STORE },
-  { Forall, bitwuzla::Kind::FORALL },
-  { Exists, bitwuzla::Kind::EXISTS },
-  { Equal, bitwuzla::Kind::IFF },
+constexpr std::pair<Op::Kind, bitwuzla::Kind> kind_pairs[] = {
+  { Op::And, bitwuzla::Kind::AND },
+  { Op::Or, bitwuzla::Kind::OR },
+  { Op::Xor, bitwuzla::Kind::XOR },
+  { Op::Not, bitwuzla::Kind::NOT },
+  { Op::Implies, bitwuzla::Kind::IMPLIES },
+  { Op::Ite, bitwuzla::Kind::ITE },
+  { Op::Equal, bitwuzla::Kind::EQUAL },
+  { Op::Distinct, bitwuzla::Kind::DISTINCT },
+  { Op::Apply, bitwuzla::Kind::APPLY },
+  { Op::Concat, bitwuzla::Kind::BV_CONCAT },
+  { Op::Extract, bitwuzla::Kind::BV_EXTRACT },
+  { Op::BVNot, bitwuzla::Kind::BV_NOT },
+  { Op::BVNeg, bitwuzla::Kind::BV_NEG },
+  { Op::BVAnd, bitwuzla::Kind::BV_AND },
+  { Op::BVOr, bitwuzla::Kind::BV_OR },
+  { Op::BVXor, bitwuzla::Kind::BV_XOR },
+  { Op::BVNand, bitwuzla::Kind::BV_NAND },
+  { Op::BVNor, bitwuzla::Kind::BV_NOR },
+  { Op::BVXnor, bitwuzla::Kind::BV_XNOR },
+  { Op::BVAdd, bitwuzla::Kind::BV_ADD },
+  { Op::BVSub, bitwuzla::Kind::BV_SUB },
+  { Op::BVMul, bitwuzla::Kind::BV_MUL },
+  { Op::BVUdiv, bitwuzla::Kind::BV_UDIV },
+  { Op::BVSdiv, bitwuzla::Kind::BV_SDIV },
+  { Op::BVUrem, bitwuzla::Kind::BV_UREM },
+  { Op::BVSrem, bitwuzla::Kind::BV_SREM },
+  { Op::BVSmod, bitwuzla::Kind::BV_SMOD },
+  { Op::BVShl, bitwuzla::Kind::BV_SHL },
+  { Op::BVAshr, bitwuzla::Kind::BV_ASHR },
+  { Op::BVLshr, bitwuzla::Kind::BV_SHR },
+  { Op::BVComp, bitwuzla::Kind::BV_COMP },
+  { Op::BVUlt, bitwuzla::Kind::BV_ULT },
+  { Op::BVUle, bitwuzla::Kind::BV_ULE },
+  { Op::BVUgt, bitwuzla::Kind::BV_UGT },
+  { Op::BVUge, bitwuzla::Kind::BV_UGE },
+  { Op::BVSlt, bitwuzla::Kind::BV_SLT },
+  { Op::BVSle, bitwuzla::Kind::BV_SLE },
+  { Op::BVSgt, bitwuzla::Kind::BV_SGT },
+  { Op::BVSge, bitwuzla::Kind::BV_SGE },
+  { Op::Zero_Extend, bitwuzla::Kind::BV_ZERO_EXTEND },
+  { Op::Sign_Extend, bitwuzla::Kind::BV_SIGN_EXTEND },
+  { Op::Repeat, bitwuzla::Kind::BV_REPEAT },
+  { Op::Rotate_Left, bitwuzla::Kind::BV_ROLI },
+  { Op::Rotate_Right, bitwuzla::Kind::BV_RORI },
+  { Op::Select, bitwuzla::Kind::ARRAY_SELECT },
+  { Op::Store, bitwuzla::Kind::ARRAY_STORE },
+  { Op::Forall, bitwuzla::Kind::FORALL },
+  { Op::Exists, bitwuzla::Kind::EXISTS },
+  { Op::Equal, bitwuzla::Kind::IFF },
 };
 
 /** One more than the largest kind in the table, which Bitwuzla's own count
@@ -93,7 +94,7 @@ constexpr std::pair<PrimOp, bitwuzla::Kind> primop_kinds[] = {
 constexpr std::size_t table_kinds()
 {
   std::size_t n = 0;
-  for (const std::pair<PrimOp, bitwuzla::Kind> & row : primop_kinds)
+  for (const std::pair<Op::Kind, bitwuzla::Kind> & row : kind_pairs)
   {
     n = std::max(n, static_cast<std::size_t>(row.second) + 1);
   }
@@ -101,9 +102,9 @@ constexpr std::size_t table_kinds()
 }
 constexpr std::size_t num_kinds = table_kinds();
 
-// The row of each PrimOp, the first that has it, or -1 for one Bitwuzla does
-// not support, and the PrimOp of each kind, from the last row that has it,
-// or NUM_OPS_AND_NULL for one that no PrimOp stands for
+// The row of each operator kind, the first that has it, or -1 for one
+// Bitwuzla does not support, and the operator of each Bitwuzla kind, from the
+// last row that has it, or Op::NONE for one that no operator stands for
 struct KindTables
 {
   constexpr KindTables()
@@ -112,56 +113,53 @@ struct KindTables
     {
       row = -1;
     }
-    for (PrimOp & po : primops)
+    for (std::size_t i = 0; i < std::size(kind_pairs); ++i)
     {
-      po = NUM_OPS_AND_NULL;
-    }
-    for (std::size_t i = 0; i < std::size(primop_kinds); ++i)
-    {
-      const std::pair<PrimOp, bitwuzla::Kind> & row = primop_kinds[i];
+      const std::pair<Op::Kind, bitwuzla::Kind> & row = kind_pairs[i];
       if (rows[row.first] < 0)
       {
         rows[row.first] = static_cast<int>(i);
       }
-      primops[static_cast<std::size_t>(row.second)] = row.first;
+      op_kinds[static_cast<std::size_t>(row.second)] = row.first;
     }
   }
-  std::array<int, NUM_OPS_AND_NULL> rows = {};
-  std::array<PrimOp, num_kinds> primops = {};
+  std::array<int, Op::num_kinds> rows = {};
+  std::array<Op::Kind, num_kinds> op_kinds = {};
 };
 constexpr KindTables kind_tables;
 
-/** The PrimOp of the applications of kind
- *  @throws NotImplementedException for a kind that no PrimOp stands for
+/** The operator of the applications of kind
+ *  @throws NotImplementedException for a kind that no operator stands for
  */
-PrimOp to_primop(bitwuzla::Kind kind)
+Op::Kind to_op_kind(bitwuzla::Kind kind)
 {
   const std::size_t i = static_cast<std::size_t>(kind);
-  if (i >= num_kinds || kind_tables.primops[i] == NUM_OPS_AND_NULL)
+  if (i >= num_kinds || kind_tables.op_kinds[i] == Op::NONE)
   {
     throw NotImplementedException(
-        "smt-switch has no PrimOp for the Bitwuzla kind "
+        "smt-switch has no operator for the Bitwuzla kind "
         + std::to_string(kind));
   }
-  return kind_tables.primops[i];
+  return kind_tables.op_kinds[i];
 }
 
-/** The Bitwuzla kind of the applications of po
+/** The Bitwuzla kind of the applications of k
+ *  @throws IncorrectUsageException for Op::NONE or an out-of-range value
  *  @throws NotImplementedException for an operator Bitwuzla does not support
  */
-bitwuzla::Kind to_bitwuzla_kind(PrimOp po)
+bitwuzla::Kind to_bitwuzla_kind(Op::Kind k)
 {
-  if (po >= NUM_OPS_AND_NULL)
+  if (k == Op::NONE || k >= Op::num_kinds)
   {
-    throw IncorrectUsageException("Can't make a term with the operator "
-                                  + smt::to_string(po));
+    throw IncorrectUsageException("Can't make a term with the operator kind "
+                                  + std::to_string(static_cast<int>(k)));
   }
-  if (kind_tables.rows[po] < 0)
+  if (kind_tables.rows[k] < 0)
   {
     throw NotImplementedException("Bitwuzla does not support the operator "
-                                  + smt::to_string(po));
+                                  + smt::to_string(k));
   }
-  return primop_kinds[kind_tables.rows[po]].second;
+  return kind_pairs[kind_tables.rows[k]].second;
 }
 
 }  // namespace
@@ -177,7 +175,7 @@ BzlaTerm::BzlaTerm(const std::shared_ptr<BzlaTermManager> & manager,
                    const std::vector<bitwuzla::Term> & children)
     : tm(manager),
       term(manager->mk_term(
-          to_bitwuzla_kind(op.prim_op),
+          to_bitwuzla_kind(op.kind()),
           children,
           std::vector<std::uint64_t>(op.indices.begin(), op.indices.end())))
 {
@@ -208,25 +206,25 @@ Op BzlaTerm::get_op() const
     return Op();
   }
 
-  PrimOp po = to_primop(bkind);
+  Op::Kind op_kind = to_op_kind(bkind);
 
-  if (get_num_indices(po) > 0)
+  if (get_num_indices(op_kind) > 0)
   {
     std::size_t num_indices = term.num_indices();
     std::vector<std::uint64_t> indices = term.indices();
     std::uint64_t idx0 = indices[0];
     if (num_indices == 1)
     {
-      return Op(po, idx0);
+      return Op(op_kind, idx0);
     }
     else
     {
       std::uint64_t idx1 = indices[1];
-      return Op(po, idx0, idx1);
+      return Op(op_kind, idx0, idx1);
     }
   }
 
-  return Op(po);
+  return Op(op_kind);
 }
 
 Sort BzlaTerm::get_sort() const

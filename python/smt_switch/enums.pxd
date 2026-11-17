@@ -1,7 +1,7 @@
-from .cppenums cimport c_PrimOp, c_SolverEnum, c_SortKind
+from .cppenums cimport c_OpKind, c_SolverEnum, c_SortKind
 
-cdef class PrimOp:
-    cdef c_PrimOp po
+cdef class OpKind:
+    cdef c_OpKind ck
 
 
 cdef class SolverEnum:

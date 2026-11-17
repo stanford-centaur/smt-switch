@@ -35,39 +35,39 @@ namespace smt {
 
 namespace {
 
-/** The PrimOp of the nodes of kind k, or NUM_OPS_AND_NULL for a kind whose
+/** The operator kind of the nodes of kind k, or Op::NONE for a kind whose
  *  nodes are not applications
- *  @throws Exception for a kind with no PrimOp
+ *  @throws Exception for a kind with no operator kind
  */
-PrimOp primop_of(BtorNodeKind k)
+Op::Kind op_kind_of(BtorNodeKind k)
 {
   switch (k)
   {
-    case BTOR_BV_CONST_NODE: return NUM_OPS_AND_NULL;
-    case BTOR_VAR_NODE: return NUM_OPS_AND_NULL;
-    case BTOR_PARAM_NODE: return NUM_OPS_AND_NULL;
-    case BTOR_BV_SLICE_NODE: return Extract;
-    case BTOR_BV_AND_NODE: return BVAnd;
+    case BTOR_BV_CONST_NODE: return Op::NONE;
+    case BTOR_VAR_NODE: return Op::NONE;
+    case BTOR_PARAM_NODE: return Op::NONE;
+    case BTOR_BV_SLICE_NODE: return Op::Extract;
+    case BTOR_BV_AND_NODE: return Op::BVAnd;
     // BVComp makes the same node, but Equal is the more common reading.
-    case BTOR_BV_EQ_NODE: return Equal;
-    case BTOR_FUN_EQ_NODE: return Equal;
-    case BTOR_BV_ADD_NODE: return BVAdd;
-    case BTOR_BV_MUL_NODE: return BVMul;
-    case BTOR_BV_ULT_NODE: return BVUlt;
-    case BTOR_BV_SLL_NODE: return BVShl;
-    case BTOR_BV_SRL_NODE: return BVLshr;
-    case BTOR_BV_UDIV_NODE: return BVUdiv;
-    case BTOR_BV_UREM_NODE: return BVUrem;
-    case BTOR_BV_CONCAT_NODE: return Concat;
-    case BTOR_APPLY_NODE: return Apply;
-    case BTOR_FORALL_NODE: return Forall;
-    case BTOR_EXISTS_NODE: return Exists;
-    case BTOR_COND_NODE: return Ite;
-    case BTOR_UF_NODE: return NUM_OPS_AND_NULL;
-    case BTOR_UPDATE_NODE: return Store;
+    case BTOR_BV_EQ_NODE: return Op::Equal;
+    case BTOR_FUN_EQ_NODE: return Op::Equal;
+    case BTOR_BV_ADD_NODE: return Op::BVAdd;
+    case BTOR_BV_MUL_NODE: return Op::BVMul;
+    case BTOR_BV_ULT_NODE: return Op::BVUlt;
+    case BTOR_BV_SLL_NODE: return Op::BVShl;
+    case BTOR_BV_SRL_NODE: return Op::BVLshr;
+    case BTOR_BV_UDIV_NODE: return Op::BVUdiv;
+    case BTOR_BV_UREM_NODE: return Op::BVUrem;
+    case BTOR_BV_CONCAT_NODE: return Op::Concat;
+    case BTOR_APPLY_NODE: return Op::Apply;
+    case BTOR_FORALL_NODE: return Op::Forall;
+    case BTOR_EXISTS_NODE: return Op::Exists;
+    case BTOR_COND_NODE: return Op::Ite;
+    case BTOR_UF_NODE: return Op::NONE;
+    case BTOR_UPDATE_NODE: return Op::Store;
     default:
       throw NotImplementedException(
-          "smt-switch has no PrimOp for the Boolector node kind "
+          "smt-switch has no operator for the Boolector node kind "
           + std::to_string(k));
   }
 }
@@ -127,11 +127,11 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   // handle special cases
   if ((k == BTOR_APPLY_NODE) && btor_node_real_addr(bn->e[0])->is_array)
   {
-    op = Op(Select);
+    op = Op(Op::Select);
   }
   else if (k == BTOR_BV_SLICE_NODE)
   {
-    op = Op(Extract,
+    op = Op(Op::Extract,
             btor_node_bv_slice_get_upper(bn),
             btor_node_bv_slice_get_lower(bn));
   }
@@ -142,7 +142,7 @@ Op lookup_op(Btor * btor, BoolectorNode * n)
   }
   else
   {
-    op = Op(primop_of(k));
+    op = Op(op_kind_of(k));
   }
   return op;
 }
@@ -216,7 +216,7 @@ Op BoolectorTerm::get_op() const
 
   if (is_negated())
   {
-    op = Op(BVNot);
+    op = Op(Op::BVNot);
   }
   else if (!symbol)
   {

@@ -42,7 +42,7 @@ TermVec pigeonhole(AbsSmtSolver & s)
   {
     for (size_t j = i + 1; j < vars.size(); ++j)
     {
-      distincts.push_back(s.make_term(Distinct, vars[i], vars[j]));
+      distincts.push_back(s.make_term(Op::Distinct, vars[i], vars[j]));
     }
   }
   return distincts;
@@ -69,10 +69,10 @@ TEST(MsatTimeLimit, StopsAnInterpolationQuery)
   s->set_opt("time-limit", "0.1");
   TermVec distincts = pigeonhole(*s);
   const size_t half = distincts.size() / 2;
-  Term A =
-      s->make_term(And, TermVec(distincts.begin(), distincts.begin() + half));
+  Term A = s->make_term(Op::And,
+                        TermVec(distincts.begin(), distincts.begin() + half));
   Term B =
-      s->make_term(And, TermVec(distincts.begin() + half, distincts.end()));
+      s->make_term(Op::And, TermVec(distincts.begin() + half, distincts.end()));
   Term I;
   Result r = s->get_interpolant(A, B, I);
   EXPECT_TRUE(r.is_unknown());
@@ -82,9 +82,9 @@ TEST(MsatTimeLimit, StopsAnInterpolationQuery)
   Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
-  EXPECT_TRUE(
-      s->get_interpolant(s->make_term(Lt, x, y), s->make_term(Lt, y, x), I)
-          .is_unsat());
+  EXPECT_TRUE(s->get_interpolant(
+                   s->make_term(Op::Lt, x, y), s->make_term(Op::Lt, y, x), I)
+                  .is_unsat());
   EXPECT_TRUE(I);
 }
 
