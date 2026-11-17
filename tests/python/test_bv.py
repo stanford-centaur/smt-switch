@@ -18,9 +18,9 @@ def test_bvadd(create_solver):
     x = solver.make_symbol("x", bvsort8)
     y = solver.make_symbol("y", bvsort8)
     expected_sum = 6
-    xpy = solver.make_term(ss.primops.BVAdd, x, y)
+    xpy = solver.make_term(ss.opkinds.BVAdd, x, y)
     solver.assert_formula(
-        solver.make_term(ss.primops.Equal, xpy, solver.make_term(expected_sum, bvsort8))
+        solver.make_term(ss.opkinds.Equal, xpy, solver.make_term(expected_sum, bvsort8))
     )
 
     solver.check_sat()
@@ -59,10 +59,10 @@ def test_hackers_delight(create_solver):
     b = solver.make_symbol("b", bv32)
 
     # x is a or b
-    x_eq_a = solver.make_term(ss.primops.Equal, x, a)
+    x_eq_a = solver.make_term(ss.opkinds.Equal, x, a)
     solver.assert_formula(
         solver.make_term(
-            ss.primops.And, x_eq_a, solver.make_term(ss.primops.Equal, x, b)
+            ss.opkinds.And, x_eq_a, solver.make_term(ss.opkinds.Equal, x, b)
         )
     )
 
@@ -72,7 +72,7 @@ def test_hackers_delight(create_solver):
     xn_ = solver.make_symbol("xn_", bv32)
 
     ite_assignment = solver.make_term(
-        ss.primops.Equal, xn, solver.make_term(ss.primops.Ite, x_eq_a, b, a)
+        ss.opkinds.Equal, xn, solver.make_term(ss.opkinds.Ite, x_eq_a, b, a)
     )
 
     solver.assert_formula(ite_assignment)
@@ -81,13 +81,13 @@ def test_hackers_delight(create_solver):
     solver.push()
     # Encoding option 1
     assignment1 = solver.make_term(
-        ss.primops.Equal,
+        ss.opkinds.Equal,
         xn_,
-        solver.make_term(ss.primops.BVXor, a, solver.make_term(ss.primops.BVXor, b, x)),
+        solver.make_term(ss.opkinds.BVXor, a, solver.make_term(ss.opkinds.BVXor, b, x)),
     )
 
     solver.assert_formula(assignment1)
-    solver.assert_formula(solver.make_term(ss.primops.Distinct, xn, xn_))
+    solver.assert_formula(solver.make_term(ss.opkinds.Distinct, xn, xn_))
     r = solver.check_sat()
     assert r.is_unsat()
     # Pop the context
@@ -95,12 +95,12 @@ def test_hackers_delight(create_solver):
 
     solver.push()
     assignment2 = solver.make_term(
-        ss.primops.Equal,
+        ss.opkinds.Equal,
         xn_,
-        solver.make_term(ss.primops.BVSub, solver.make_term(ss.primops.BVAdd, a, b), x),
+        solver.make_term(ss.opkinds.BVSub, solver.make_term(ss.opkinds.BVAdd, a, b), x),
     )
     solver.assert_formula(assignment2)
-    solver.assert_formula(solver.make_term(ss.primops.Distinct, xn, xn_))
+    solver.assert_formula(solver.make_term(ss.opkinds.Distinct, xn, xn_))
     r = solver.check_sat()
     assert r.is_unsat()
     solver.pop()
@@ -120,30 +120,30 @@ def test_complex_expr(create_solver):
     d = solver.make_symbol("d", bv32)
 
     abcd = solver.make_term(
-        ss.primops.Concat,
+        ss.opkinds.Concat,
         a,
         solver.make_term(
-            ss.primops.Concat, b, solver.make_term(ss.primops.Concat, c, d)
+            ss.opkinds.Concat, b, solver.make_term(ss.opkinds.Concat, c, d)
         ),
     )
 
-    t0 = solver.make_term(ss.primops.BVXor, x, y)
-    t1 = solver.make_term(ss.primops.BVSub, x, abcd)
-    t2 = solver.make_term(ss.primops.BVAdd, t0, t1)
-    t3 = solver.make_term(Op(ss.primops.Extract, 31, 0), t0)
-    t4 = solver.make_term(ss.primops.BVOr, t3, c)
-    t5 = solver.make_term(ss.primops.BVAshr, b, d)
+    t0 = solver.make_term(ss.opkinds.BVXor, x, y)
+    t1 = solver.make_term(ss.opkinds.BVSub, x, abcd)
+    t2 = solver.make_term(ss.opkinds.BVAdd, t0, t1)
+    t3 = solver.make_term(Op(ss.opkinds.Extract, 31, 0), t0)
+    t4 = solver.make_term(ss.opkinds.BVOr, t3, c)
+    t5 = solver.make_term(ss.opkinds.BVAshr, b, d)
     t6 = solver.make_term(
-        ss.primops.Concat,
+        ss.opkinds.Concat,
         t4,
         solver.make_term(
-            ss.primops.Concat, a, solver.make_term(ss.primops.Concat, t5, b)
+            ss.opkinds.Concat, a, solver.make_term(ss.opkinds.Concat, t5, b)
         ),
     )
     t7 = solver.make_term(
-        ss.primops.Ite, solver.make_term(ss.primops.BVUle, x, y), t2, t6
+        ss.opkinds.Ite, solver.make_term(ss.opkinds.BVUle, x, y), t2, t6
     )
-    t8 = solver.make_term(ss.primops.BVLshr, t7, t0)
+    t8 = solver.make_term(ss.opkinds.BVLshr, t7, t0)
 
     t8_sub = solver.substitute(t8, {x: x, y: y, a: a, b: b, c: c, d: d})
     # should be identical
@@ -156,9 +156,9 @@ def test_bv_ops(create_solver):
     bvsort32 = solver.make_sort(ss.sortkinds.BV, 32)
 
     one = solver.make_term(1, bvsort32)
-    t0 = solver.make_term(ss.Op(ss.primops.Rotate_Left, 3), one)
-    t = solver.make_term(ss.Op(ss.primops.Rotate_Right, 3), t0)
-    constraint = solver.make_term(ss.primops.Distinct, one, t)
+    t0 = solver.make_term(ss.Op(ss.opkinds.Rotate_Left, 3), one)
+    t = solver.make_term(ss.Op(ss.opkinds.Rotate_Right, 3), t0)
+    constraint = solver.make_term(ss.opkinds.Distinct, one, t)
     solver.assert_formula(constraint)
     r = solver.check_sat()
     assert r.is_unsat(), f"{one} and {t} should be identical"

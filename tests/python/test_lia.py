@@ -27,18 +27,18 @@ def test_simple(create_solver):
     five = solver.make_term(5, intsort)
 
     t1 = solver.make_term(
-        ss.primops.Plus,
-        solver.make_term(ss.primops.Mult, two, x),
-        solver.make_term(ss.primops.Mult, three, y),
+        ss.opkinds.Plus,
+        solver.make_term(ss.opkinds.Mult, two, x),
+        solver.make_term(ss.opkinds.Mult, three, y),
     )
     t2 = solver.make_term(
-        ss.primops.Minus,
-        solver.make_term(ss.primops.Mult, five, y),
-        solver.make_term(ss.primops.Mult, three, z),
+        ss.opkinds.Minus,
+        solver.make_term(ss.opkinds.Mult, five, y),
+        solver.make_term(ss.opkinds.Mult, three, z),
     )
 
-    f1 = solver.make_term(ss.primops.Lt, t1, five)
-    f2 = solver.make_term(ss.primops.Ge, t2, two)
+    f1 = solver.make_term(ss.opkinds.Lt, t1, five)
+    f2 = solver.make_term(ss.opkinds.Ge, t2, two)
 
     solver.assert_formula(f1)
     solver.assert_formula(f2)

@@ -57,6 +57,6 @@ notice-rgx = '(?m)^# SPDX-FileCopyrightText: \d{4} the smt-switch authors$'
 # modules are Cython .pyx files and __init__.py is generated from
 # __init__.py.in at build time. Adding python/ to `src` does not help, because
 # ruff would then see the directory and call `smt_switch` first-party while
-# leaving `smt_switch.primops` third-party, splitting the package in two.
+# leaving `smt_switch.opkinds` third-party, splitting the package in two.
 [lint.isort]
 known-first-party = ["smt_switch"]

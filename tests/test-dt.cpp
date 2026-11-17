@@ -116,15 +116,15 @@ TEST_P(Datatypes, ConstructorFromTermVec)
 
   Term three = s->make_term(3, intsort);
   Term triple =
-      s->make_term(Apply_Constructor,
+      s->make_term(Op::Apply_Constructor,
                    TermVec{ s->get_constructor(triplesort, "mktriple"),
                             s->make_term(1, intsort),
                             s->make_term(2, intsort),
                             three });
   Term third = s->make_term(
-      Apply_Selector,
+      Op::Apply_Selector,
       TermVec{ s->get_selector(triplesort, "mktriple", "third"), triple });
-  s->assert_formula(s->make_term(Distinct, third, three));
+  s->assert_formula(s->make_term(Op::Distinct, third, three));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -215,18 +215,18 @@ TEST_P(Datatypes, DatatypeDecl)
   Term isNil = s->get_tester(listsort, "nil");
 
   // Datatype ops
-  Term nilterm = s->make_term(Apply_Constructor, nil);
-  Term list5 = s->make_term(Apply_Constructor, cons, five, nilterm);
-  Term five_again = s->make_term(Apply_Selector, head, list5);
+  Term nilterm = s->make_term(Op::Apply_Constructor, nil);
+  Term list5 = s->make_term(Op::Apply_Constructor, cons, five, nilterm);
+  Term five_again = s->make_term(Op::Apply_Selector, head, list5);
 
   // Expected booleans
 
-  s->assert_formula(s->make_term(Equal, five, five_again));
+  s->assert_formula(s->make_term(Op::Equal, five, five_again));
 
-  s->assert_formula(s->make_term(Apply_Tester, isNil, nilterm));
+  s->assert_formula(s->make_term(Op::Apply_Tester, isNil, nilterm));
 
   s->assert_formula(
-      s->make_term(Not, s->make_term(Apply_Tester, isNil, list5)));
+      s->make_term(Op::Not, s->make_term(Op::Apply_Tester, isNil, list5)));
 
   Result res = s->check_sat();
 
@@ -367,10 +367,11 @@ TEST_P(Datatypes, ConstructorAndSelectorNamesOfOtherTerms)
   EXPECT_THROW(isnil->get_selector_name(), IncorrectUsageException);
   EXPECT_THROW(head->get_constructor_name(), IncorrectUsageException);
   // an application is not what it applies
-  EXPECT_THROW(s->make_term(Apply_Constructor, nilc)->get_constructor_name(),
-               IncorrectUsageException);
+  EXPECT_THROW(
+      s->make_term(Op::Apply_Constructor, nilc)->get_constructor_name(),
+      IncorrectUsageException);
   Term l = s->make_symbol("l", listsort);
-  EXPECT_THROW(s->make_term(Apply_Selector, head, l)->get_selector_name(),
+  EXPECT_THROW(s->make_term(Op::Apply_Selector, head, l)->get_selector_name(),
                IncorrectUsageException);
   EXPECT_THROW(l->get_constructor_name(), IncorrectUsageException);
 }
@@ -494,19 +495,19 @@ TEST_P(Datatypes, PrintsAsSmtlib)
 
   // a nullary constructor applied is a constant
   Term nil =
-      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));
+      s->make_term(Op::Apply_Constructor, s->get_constructor(listsort, "nil"));
   EXPECT_EQ(nil->to_string(), "nil");
-  Term list5 = s->make_term(Apply_Constructor,
+  Term list5 = s->make_term(Op::Apply_Constructor,
                             s->get_constructor(listsort, "cons"),
                             s->make_term(5, intsort),
                             nil);
   EXPECT_EQ(list5->to_string(), "(cons 5 nil)");
   EXPECT_EQ(
       s->make_term(
-           Apply_Selector, s->get_selector(listsort, "cons", "head"), list5)
+           Op::Apply_Selector, s->get_selector(listsort, "cons", "head"), list5)
           ->to_string(),
       "(head (cons 5 nil))");
-  EXPECT_EQ(s->make_term(Apply_Tester, s->get_tester(listsort, "nil"), nil)
+  EXPECT_EQ(s->make_term(Op::Apply_Tester, s->get_tester(listsort, "nil"), nil)
                 ->to_string(),
             "((_ is nil) nil)");
 }
@@ -545,24 +546,24 @@ TEST_P(Datatypes, ComponentsAndApplications)
   // a nullary constructor, which SMT-LIB writes as a constant
   Term l = s->make_symbol("l", listsort);
   Term five = s->make_term(5, intsort);
-  Term nil = s->make_term(Apply_Constructor, nilc);
+  Term nil = s->make_term(Op::Apply_Constructor, nilc);
   EXPECT_FALSE(nil->is_symbol());
-  EXPECT_EQ(nil->get_op(), Op(Apply_Constructor));
+  EXPECT_EQ(nil->get_op(), Op(Op::Apply_Constructor));
   EXPECT_THAT(TermVec(nil->begin(), nil->end()), ElementsAre(nilc));
-  Term list5 = s->make_term(Apply_Constructor, cons, five, nil);
-  EXPECT_EQ(list5->get_op(), Op(Apply_Constructor));
+  Term list5 = s->make_term(Op::Apply_Constructor, cons, five, nil);
+  EXPECT_EQ(list5->get_op(), Op(Op::Apply_Constructor));
   EXPECT_THAT(TermVec(list5->begin(), list5->end()),
               ElementsAre(cons, five, nil));
-  Term head_l = s->make_term(Apply_Selector, head, l);
-  EXPECT_EQ(head_l->get_op(), Op(Apply_Selector));
+  Term head_l = s->make_term(Op::Apply_Selector, head, l);
+  EXPECT_EQ(head_l->get_op(), Op(Op::Apply_Selector));
   EXPECT_THAT(TermVec(head_l->begin(), head_l->end()), ElementsAre(head, l));
-  Term isnil_l = s->make_term(Apply_Tester, isnil, l);
-  EXPECT_EQ(isnil_l->get_op(), Op(Apply_Tester));
+  Term isnil_l = s->make_term(Op::Apply_Tester, isnil, l);
+  EXPECT_EQ(isnil_l->get_op(), Op(Op::Apply_Tester));
   EXPECT_THAT(TermVec(isnil_l->begin(), isnil_l->end()), ElementsAre(isnil, l));
 
   // only the declared constant is free, not the constructor it is compared to
   UnorderedTermSet free_consts;
-  s->make_term(Equal, l, nil)->get_free_symbolic_consts(free_consts);
+  s->make_term(Op::Equal, l, nil)->get_free_symbolic_consts(free_consts);
   EXPECT_EQ(free_consts, UnorderedTermSet{ l });
 }
 
@@ -577,25 +578,25 @@ TEST_P(Datatypes, ConstructorsOverValuesAreValues)
   Sort listsort = s->make_sort(listdecl);
   Term cons = s->get_constructor(listsort, "cons");
   Term nil =
-      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil"));
+      s->make_term(Op::Apply_Constructor, s->get_constructor(listsort, "nil"));
   Term five = s->make_term(5, intsort);
-  Term list5 = s->make_term(Apply_Constructor, cons, five, nil);
+  Term list5 = s->make_term(Op::Apply_Constructor, cons, five, nil);
   Term l = s->make_symbol("l", listsort);
 
   EXPECT_TRUE(nil->is_value());
   EXPECT_TRUE(list5->is_value());
-  EXPECT_FALSE(s->make_term(Apply_Constructor, cons, five, l)->is_value());
-  EXPECT_FALSE(s->make_term(Apply_Selector,
+  EXPECT_FALSE(s->make_term(Op::Apply_Constructor, cons, five, l)->is_value());
+  EXPECT_FALSE(s->make_term(Op::Apply_Selector,
                             s->get_selector(listsort, "cons", "tail"),
                             list5)
                    ->is_value());
 
   // the solver reads the values as the lists they are
-  s->assert_formula(s->make_term(Equal, l, list5));
+  s->assert_formula(s->make_term(Op::Equal, l, list5));
   s->assert_formula(s->make_term(
-      Distinct,
+      Op::Distinct,
       s->make_term(
-          Apply_Selector, s->get_selector(listsort, "cons", "head"), l),
+          Op::Apply_Selector, s->get_selector(listsort, "cons", "head"), l),
       five));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
@@ -616,12 +617,12 @@ TEST_P(Datatypes, ModelValueIsValue)
   s->add_constructor(listdecl, consdecl);
   Sort listsort = s->make_sort(listdecl);
   Term list5 = s->make_term(
-      Apply_Constructor,
+      Op::Apply_Constructor,
       s->get_constructor(listsort, "cons"),
       s->make_term(5, intsort),
-      s->make_term(Apply_Constructor, s->get_constructor(listsort, "nil")));
+      s->make_term(Op::Apply_Constructor, s->get_constructor(listsort, "nil")));
   Term l = s->make_symbol("l", listsort);
-  s->assert_formula(s->make_term(Equal, l, list5));
+  s->assert_formula(s->make_term(Op::Equal, l, list5));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   Term value = s->get_value(l);
@@ -709,17 +710,19 @@ TEST_P(Datatypes, SecondDatatypeOfANameIsRefusedOrSeparate)
 
   EXPECT_THAT(first->get_datatype()->get_constructor_names(),
               ElementsAre("one"));
-  EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(first, "one"))
-                ->get_sort(),
-            first);
+  EXPECT_EQ(
+      s->make_term(Op::Apply_Constructor, s->get_constructor(first, "one"))
+          ->get_sort(),
+      first);
   if (second)
   {
     EXPECT_NE(first, second);
     EXPECT_THAT(second->get_datatype()->get_constructor_names(),
                 ElementsAre("two"));
-    EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(second, "two"))
-                  ->get_sort(),
-              second);
+    EXPECT_EQ(
+        s->make_term(Op::Apply_Constructor, s->get_constructor(second, "two"))
+            ->get_sort(),
+        second);
   }
 }
 
@@ -743,14 +746,16 @@ TEST_P(Datatypes, SecondDatatypeOfANameInOneCallIsRefusedOrSeparate)
   EXPECT_NE(sorts[0], sorts[1]);
   EXPECT_THAT(sorts[0]->get_datatype()->get_constructor_names(),
               ElementsAre("one"));
-  EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(sorts[0], "one"))
-                ->get_sort(),
-            sorts[0]);
+  EXPECT_EQ(
+      s->make_term(Op::Apply_Constructor, s->get_constructor(sorts[0], "one"))
+          ->get_sort(),
+      sorts[0]);
   EXPECT_THAT(sorts[1]->get_datatype()->get_constructor_names(),
               ElementsAre("two"));
-  EXPECT_EQ(s->make_term(Apply_Constructor, s->get_constructor(sorts[1], "two"))
-                ->get_sort(),
-            sorts[1]);
+  EXPECT_EQ(
+      s->make_term(Op::Apply_Constructor, s->get_constructor(sorts[1], "two"))
+          ->get_sort(),
+      sorts[1]);
 }
 
 TEST_P(Datatypes, ConstructorDeclsCompareSelectorSorts)

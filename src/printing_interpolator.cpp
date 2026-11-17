@@ -263,7 +263,7 @@ Result PrintingInterpolator::print_query(const TermVec & formulae,
             I = model_interpolants.empty() ? make_term(true)
                 : model_interpolants.size() == 1
                     ? model_interpolants[0]
-                    : make_term(And, model_interpolants);
+                    : make_term(Op::And, model_interpolants);
           }
           out_I.push_back(I);
           return r;

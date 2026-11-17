@@ -55,8 +55,8 @@ TEST(Yices2Params, ParamIsNotASymbolicConstant)
   EXPECT_NE(p, s->make_param("q", bvsort8));
 
   // and a parameter composes like any other term
-  Term sum = s->make_term(BVAdd, p, x);
-  EXPECT_EQ(sum->get_op(), Op(BVAdd));
+  Term sum = s->make_term(Op::BVAdd, p, x);
+  EXPECT_EQ(sum->get_op(), Op(Op::BVAdd));
 }
 
 }  // namespace

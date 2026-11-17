@@ -224,23 +224,22 @@ class SmtLibReader
    */
   virtual void new_symbol(const std::string & name, const Sort & sort);
 
-  /** Look up a primitive operator by a string
-   *  @param str the string representation of this PrimOp
-   *  @return the associated PrimOp
-   *  Returns NUM_OPS_AND_NULL if there's no match
+  /** Look up an operator kind by its SMT-LIB symbol
+   *  @param str the symbol
+   *  @return the operator kind, or Op::NONE if there's no match
    */
-  PrimOp lookup_primop(const std::string & str) const;
+  Op::Kind lookup_op_kind(const std::string & str) const;
 
   /** Apply a primitive operator to its arguments, where unary - is the
    *  negation. In a logic of both Ints and Reals, an operator over Reals
    *  takes an Int argument next to a Real one as a Real, and / takes every
    *  Int argument as one, as the SMT-LIB logic AUFLIRA defines it. Outside
    *  strict mode, so do = and distinct.
-   *  @param po the operator
+   *  @param kind the operator kind
    *  @param args its arguments
    *  @return the application
    */
-  Term apply_primop(PrimOp po, TermVec args) const;
+  Term apply_op_kind(Op::Kind kind, TermVec args) const;
 
   /** Apply a symbol to arguments: a primitive operator of the logic, a
    *  declared function, or else a define-fun
@@ -359,8 +358,8 @@ class SmtLibReader
   bool allow_ufs_ = false;  ///< set to true if declaring functions
                             ///< is supported in the set logic
 
-  std::unordered_map<std::string, PrimOp>
-      primops_ = {};  ///< available primops with set logic
+  std::unordered_map<std::string, Op::Kind>
+      op_kinds_ = {};  ///< available operator kinds with the set logic
 
   std::unordered_map<std::string, SortKind>
       sortkinds_ = {};  ///< available sortkinds with set logic

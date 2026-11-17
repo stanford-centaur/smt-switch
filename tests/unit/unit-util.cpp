@@ -90,7 +90,7 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
   Term conjunction = symbols[0];
   for (size_t j = 1; j < symbols.size(); ++j)
   {
-    conjunction = s->make_term(And, conjunction, symbols[j]);
+    conjunction = s->make_term(Op::And, conjunction, symbols[j]);
   }
 
   TermVec conjuncts;
@@ -119,7 +119,7 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
   Term rebuilt = conjuncts[0];
   for (size_t j = 1; j < conjuncts.size(); ++j)
   {
-    rebuilt = s->make_term(And, rebuilt, conjuncts[j]);
+    rebuilt = s->make_term(Op::And, rebuilt, conjuncts[j]);
   }
   ASSERT_TRUE(round_trip_matches(GetParam(), s, rebuilt, conjunction));
 }
@@ -136,7 +136,7 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
   Term disjunction = symbols[0];
   for (size_t j = 1; j < symbols.size(); ++j)
   {
-    disjunction = s->make_term(Or, disjunction, symbols[j]);
+    disjunction = s->make_term(Op::Or, disjunction, symbols[j]);
   }
 
   TermVec disjuncts;
@@ -157,21 +157,21 @@ TEST_P(UnitUtilTests, DisjunctivePartition)
 
 TEST_P(UnitUtilTests, TermsWithOps)
 {
-  Term inner = s->make_term(And, symbols[2], symbols[3]);
-  Term disjunction = s->make_term(Or, symbols[1], inner);
-  Term outer = s->make_term(And, symbols[0], disjunction);
+  Term inner = s->make_term(Op::And, symbols[2], symbols[3]);
+  Term disjunction = s->make_term(Op::Or, symbols[1], inner);
+  Term outer = s->make_term(Op::And, symbols[0], disjunction);
 
   UnorderedTermSet conjunctions;
-  outer->get_terms_with_ops({ And }, conjunctions);
+  outer->get_terms_with_ops({ Op::And }, conjunctions);
   UnorderedTermSet connectives;
-  outer->get_terms_with_ops({ And, Or }, connectives);
+  outer->get_terms_with_ops({ Op::And, Op::Or }, connectives);
   UnorderedTermSet none;
   outer->get_terms_with_ops({}, none);
 
   EXPECT_TRUE(none.empty());
   for (const Term & t : connectives)
   {
-    EXPECT_TRUE(t->get_op() == And || t->get_op() == Or);
+    EXPECT_TRUE(t->get_op() == Op::And || t->get_op() == Op::Or);
   }
   // only a logging solver keeps the terms as built
   if (GetParam().is_logging_solver)
@@ -195,15 +195,15 @@ TEST_P(UnitUtilIntTests, Oracles)
     Term int1 = s->make_symbol("int1", int_sort);
     Term bv1 = s->make_symbol("bv1", bv_sort);
 
-    Term term1 = s->make_term(Plus, int1, int1);
-    term1 = s->make_term(Mult, term1, int1);
-    term1 = s->make_term(Lt, term1, int1);
+    Term term1 = s->make_term(Op::Plus, int1, int1);
+    term1 = s->make_term(Op::Mult, term1, int1);
+    term1 = s->make_term(Op::Lt, term1, int1);
 
-    Term term2 = s->make_term(BVAdd, bv1, bv1);
-    term2 = s->make_term(BVMul, term2, bv1);
-    term2 = s->make_term(BVUlt, term2, bv1);
+    Term term2 = s->make_term(Op::BVAdd, bv1, bv1);
+    term2 = s->make_term(Op::BVMul, term2, bv1);
+    term2 = s->make_term(Op::BVUlt, term2, bv1);
 
-    Term term = s->make_term(And, term1, term2);
+    Term term = s->make_term(Op::And, term1, term2);
 
     UnorderedTermSet expected_symbols, concrete_symbols;
     expected_symbols.insert(int1);
@@ -211,13 +211,13 @@ TEST_P(UnitUtilIntTests, Oracles)
     term->get_free_symbolic_consts(concrete_symbols);
 
     std::unordered_set<Op> expected_ops, concrete_ops;
-    expected_ops.insert(Op(And));
-    expected_ops.insert(Op(Plus));
-    expected_ops.insert(Op(Mult));
-    expected_ops.insert(Op(Lt));
-    expected_ops.insert(Op(BVAdd));
-    expected_ops.insert(Op(BVMul));
-    expected_ops.insert(Op(BVUlt));
+    expected_ops.insert(Op(Op::And));
+    expected_ops.insert(Op(Op::Plus));
+    expected_ops.insert(Op(Op::Mult));
+    expected_ops.insert(Op(Op::Lt));
+    expected_ops.insert(Op(Op::BVAdd));
+    expected_ops.insert(Op(Op::BVMul));
+    expected_ops.insert(Op(Op::BVUlt));
     term->get_ops(concrete_ops);
 
     ASSERT_EQ(expected_symbols, concrete_symbols);
@@ -231,10 +231,14 @@ TEST_P(UnitUtilDimacsTests, ToDimacs)
   Term b = s->make_symbol("b", boolsort);
   Term c = s->make_symbol("c", boolsort);
   Term d = s->make_symbol("d", boolsort);
-  Term clause1 = s->make_term(Or, a, s->make_term(Or, b, s->make_term(Not, c)));
-  Term clause2 = s->make_term(Or, b, s->make_term(Or, s->make_term(Not, c), d));
-  Term clause3 = s->make_term(Or, d, s->make_term(Or, s->make_term(Not, c), a));
-  Term cnf = s->make_term(And, clause1, s->make_term(And, clause2, clause3));
+  Term clause1 = s->make_term(
+      Op::Or, a, s->make_term(Op::Or, b, s->make_term(Op::Not, c)));
+  Term clause2 = s->make_term(
+      Op::Or, b, s->make_term(Op::Or, s->make_term(Op::Not, c), d));
+  Term clause3 = s->make_term(
+      Op::Or, d, s->make_term(Op::Or, s->make_term(Op::Not, c), a));
+  Term cnf =
+      s->make_term(Op::And, clause1, s->make_term(Op::And, clause2, clause3));
   // The terms in the output string is not in accordance with the order of the
   // input because of how to function is operating on the terms , a dry run will
   // show how the mapping of symbol to integer happens
@@ -252,9 +256,10 @@ TEST_P(UnitUtilDimacsTests, ToDimacs)
 
   // Test 2
   Term clause4 = a;
-  Term clause5 = s->make_term(Not, b);
-  Term clause6 = s->make_term(Or, a, b);
-  Term cnf2 = s->make_term(And, clause4, s->make_term(And, clause5, clause6));
+  Term clause5 = s->make_term(Op::Not, b);
+  Term clause6 = s->make_term(Op::Or, a, b);
+  Term cnf2 =
+      s->make_term(Op::And, clause4, s->make_term(Op::And, clause5, clause6));
   std::ostringstream y2;
   cnf::to_dimacs(cnf2, y2);  // cnf2 = ((a) /\ (~b) /\ (a v b))
   std::string ret2 = y2.str();
@@ -271,7 +276,8 @@ TEST_P(UnitUtilDimacsTests, ToDimacs)
 
   // Testing empty clause
   Term clause7 = s->make_term(false);
-  Term cnf4 = s->make_term(And, clause5, s->make_term(And, clause7, clause1));
+  Term cnf4 =
+      s->make_term(Op::And, clause5, s->make_term(Op::And, clause7, clause1));
   std::ostringstream y4;
   cnf::to_dimacs(cnf4, y4);  // cnf4 = ((~b) /\ (False) /\ (a v b v ~c))
   std::string ret4 = y4.str();
@@ -287,17 +293,20 @@ TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
   std::ostringstream y;
   EXPECT_THROW(cnf::to_dimacs(x, y), IncorrectUsageException);
-  EXPECT_THROW(cnf::to_dimacs(s->make_term(Implies, a, b), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Op::Implies, a, b), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf::to_dimacs(s->make_term(Or, a, s->make_term(And, b, c)), y),
+  EXPECT_THROW(
+      cnf::to_dimacs(s->make_term(Op::Or, a, s->make_term(Op::And, b, c)), y),
+      IncorrectUsageException);
+  EXPECT_THROW(
+      cnf::to_dimacs(s->make_term(Op::Not, s->make_term(Op::And, a, b)), y),
+      IncorrectUsageException);
+  EXPECT_THROW(
+      cnf::to_dimacs(s->make_term(Op::Not, s->make_term(Op::Not, a)), y),
+      IncorrectUsageException);
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Op::Or, a, s->make_term(true)), y),
                IncorrectUsageException);
-  EXPECT_THROW(cnf::to_dimacs(s->make_term(Not, s->make_term(And, a, b)), y),
-               IncorrectUsageException);
-  EXPECT_THROW(cnf::to_dimacs(s->make_term(Not, s->make_term(Not, a)), y),
-               IncorrectUsageException);
-  EXPECT_THROW(cnf::to_dimacs(s->make_term(Or, a, s->make_term(true)), y),
-               IncorrectUsageException);
-  EXPECT_THROW(cnf::to_dimacs(s->make_term(And, a, s->make_term(true)), y),
+  EXPECT_THROW(cnf::to_dimacs(s->make_term(Op::And, a, s->make_term(true)), y),
                IncorrectUsageException);
 }
 
@@ -310,9 +319,9 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term t = s->make_symbol("t", boolsort);
 
   // a=((p or q) and r) implies (not t)
-  Term a = s->make_term(Implies,
-                        s->make_term(And, s->make_term(Or, p, q), r),
-                        s->make_term(Not, t));
+  Term a = s->make_term(Op::Implies,
+                        s->make_term(Op::And, s->make_term(Op::Or, p, q), r),
+                        s->make_term(Op::Not, t));
 
   Term cnf1 = cnf::convert(a, s);
 
@@ -340,7 +349,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
                               << expected << std::endl;
 
   // b=Not(p xor q)
-  Term b = s->make_term(Not, s->make_term(Xor, p, q));
+  Term b = s->make_term(Op::Not, s->make_term(Op::Xor, p, q));
   Term cnf2 = cnf::convert(b, s);
 
   s->push();
@@ -366,7 +375,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
                               << std::endl;
 
   // c=((not p) and p)
-  Term c = s->make_term(And, s->make_term(Not, p), p);
+  Term c = s->make_term(Op::And, s->make_term(Op::Not, p), p);
   Term cnf3 = cnf::convert(c, s);
 
   s->push();
@@ -383,11 +392,11 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   expected = "(and (not p) p)";
   ASSERT_TRUE(st == expected);
 
-  Term d1 = s->make_term(Or, p, q);
-  Term d2 = s->make_term(Or, r, t);
+  Term d1 = s->make_term(Op::Or, p, q);
+  Term d2 = s->make_term(Op::Or, r, t);
 
   // d3=((p or q) and (r or t))
-  Term d3 = s->make_term(And, d1, d2);
+  Term d3 = s->make_term(Op::And, d1, d2);
 
   Term cnf4 = cnf::convert(d3, s);
 
@@ -448,7 +457,7 @@ TEST_P(UnitUtilDimacsTests, tseitin)
 
   // g=OR(p, q, r, t)
 
-  Term g = s->make_term(Or, vec);
+  Term g = s->make_term(Op::Or, vec);
   Term cnf7 = cnf::convert(g, s);
 
   s->push();
@@ -475,22 +484,25 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   vecs.push_back(q);
   vecs.push_back(r);
   vecs.push_back(t);
-  Term ne = s->make_term(Or, vecs);
+  Term ne = s->make_term(Op::Or, vecs);
   bool check = cnf::is_cnf(ne);
   ASSERT_TRUE(check);
-  ne = s->make_term(Xor, vecs);
+  ne = s->make_term(Op::Xor, vecs);
   check = cnf::is_cnf(ne);
   ASSERT_FALSE(check);
-  ne = s->make_term(And, vecs);
+  ne = s->make_term(Op::And, vecs);
   check = cnf::is_cnf(ne);
   ASSERT_TRUE(check);
-  ne = s->make_term(And, s->make_term(Or, p, q), s->make_term(Or, r, t));
+  ne = s->make_term(
+      Op::And, s->make_term(Op::Or, p, q), s->make_term(Op::Or, r, t));
   check = cnf::is_cnf(ne);
   ASSERT_TRUE(check);
-  ne = s->make_term(Implies, s->make_term(Or, p, q), s->make_term(Or, r, t));
+  ne = s->make_term(
+      Op::Implies, s->make_term(Op::Or, p, q), s->make_term(Op::Or, r, t));
   check = cnf::is_cnf(ne);
   ASSERT_FALSE(check);
-  ne = s->make_term(And, s->make_term(Equal, p, q), s->make_term(Or, r, t));
+  ne = s->make_term(
+      Op::And, s->make_term(Op::Equal, p, q), s->make_term(Op::Or, r, t));
   check = cnf::is_cnf(ne);
   ASSERT_FALSE(check);
 
@@ -499,19 +511,20 @@ TEST_P(UnitUtilDimacsTests, tseitin)
   Term false_term = s->make_term(false);
 
   // formula=and(true, p)
-  Term formula = s->make_term(And, true_term, p);
+  Term formula = s->make_term(Op::And, true_term, p);
   Term as = cnf::convert(formula, s);
   ASSERT_TRUE(as == p);
 
   // formula=and(or(p, true), or(q, false))
-  formula = s->make_term(
-      And, s->make_term(Or, p, true_term), s->make_term(Or, q, false_term));
+  formula = s->make_term(Op::And,
+                         s->make_term(Op::Or, p, true_term),
+                         s->make_term(Op::Or, q, false_term));
   as = cnf::convert(formula, s);
   ASSERT_TRUE(as == q);
 
   // h=((true->false)<->Or(p, q))
   Term h = s->make_term(
-      Equal, s->make_term(Implies, tr, fa), s->make_term(Or, p, q));
+      Op::Equal, s->make_term(Op::Implies, tr, fa), s->make_term(Op::Or, p, q));
 
   Term cnf8 = cnf::convert(h, s);
 
@@ -562,7 +575,7 @@ class ToCnf : public testing::Test,
       for (int i = 0; i < 3; ++i)
       {
         Term v = TermVec{ p, q, r }[i];
-        assumptions.push_back((bits >> i) & 1 ? v : s->make_term(Not, v));
+        assumptions.push_back((bits >> i) & 1 ? v : s->make_term(Op::Not, v));
       }
       bool formula_is_sat = s->check_sat_assuming(assumptions).is_sat();
       assumptions[0] = cnf;
@@ -581,41 +594,43 @@ class ToCnf : public testing::Test,
 TEST_P(ToCnf, ConnectivesKeepEveryAssignment)
 {
   Term formula =
-      s->make_term(And,
-                   { s->make_term(Or, p, q),
-                     s->make_term(Implies, q, s->make_term(Not, r)),
-                     s->make_term(Xor, p, r),
-                     s->make_term(Equal, p, s->make_term(Or, q, r)) });
+      s->make_term(Op::And,
+                   { s->make_term(Op::Or, p, q),
+                     s->make_term(Op::Implies, q, s->make_term(Op::Not, r)),
+                     s->make_term(Op::Xor, p, r),
+                     s->make_term(Op::Equal, p, s->make_term(Op::Or, q, r)) });
   expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, NaryImpliesKeepsEveryAssignment)
 {
-  Term formula = s->make_term(
-      And, s->make_term(Implies, { p, q, r }), s->make_term(Or, p, q));
+  Term formula = s->make_term(Op::And,
+                              s->make_term(Op::Implies, { p, q, r }),
+                              s->make_term(Op::Or, p, q));
   expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, NaryEqualKeepsEveryAssignment)
 {
-  Term formula = s->make_term(
-      Or, s->make_term(Equal, { p, q, r }), s->make_term(And, p, r));
+  Term formula = s->make_term(Op::Or,
+                              s->make_term(Op::Equal, { p, q, r }),
+                              s->make_term(Op::And, p, r));
   expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, NestedNaryXorKeepsEveryAssignment)
 {
-  Term formula =
-      s->make_term(Or, s->make_term(Xor, { p, q, r }), s->make_term(And, p, q));
+  Term formula = s->make_term(
+      Op::Or, s->make_term(Op::Xor, { p, q, r }), s->make_term(Op::And, p, q));
   expect_same_answer_per_assignment(formula, cnf::convert(formula, s));
 }
 
 TEST_P(ToCnf, IteIsKeptAsAnAtom)
 {
-  Term formula = s->make_term(And,
-                              { s->make_term(Ite, p, q, r),
-                                s->make_term(Not, p),
-                                s->make_term(Not, r) });
+  Term formula = s->make_term(Op::And,
+                              { s->make_term(Op::Ite, p, q, r),
+                                s->make_term(Op::Not, p),
+                                s->make_term(Op::Not, r) });
   Term cnf = cnf::convert(formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
   expect_same_answer_per_assignment(formula, cnf);
@@ -623,10 +638,10 @@ TEST_P(ToCnf, IteIsKeptAsAnAtom)
 
 TEST_P(ToCnf, DistinctIsKeptAsAnAtom)
 {
-  Term formula = s->make_term(And,
-                              { s->make_term(Distinct, p, q),
-                                s->make_term(Not, p),
-                                s->make_term(Not, q) });
+  Term formula = s->make_term(Op::And,
+                              { s->make_term(Op::Distinct, p, q),
+                                s->make_term(Op::Not, p),
+                                s->make_term(Op::Not, q) });
   Term cnf = cnf::convert(formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
   expect_same_answer_per_assignment(formula, cnf);
@@ -635,26 +650,28 @@ TEST_P(ToCnf, DistinctIsKeptAsAnAtom)
 TEST_P(ToCnf, BitVectorAtomsAreKept)
 {
   Term formula = s->make_term(
-      And,
-      s->make_term(Or, s->make_term(BVUlt, x, y), s->make_term(Equal, x, y)),
-      s->make_term(BVUlt, y, x));
+      Op::And,
+      s->make_term(
+          Op::Or, s->make_term(Op::BVUlt, x, y), s->make_term(Op::Equal, x, y)),
+      s->make_term(Op::BVUlt, y, x));
   Term cnf = cnf::convert(formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf }).is_unsat()) << cnf;
 
-  Term sat_formula = s->make_term(Or,
-                                  s->make_term(BVUlt, x, y),
-                                  s->make_term(Not, s->make_term(Equal, x, y)));
+  Term sat_formula =
+      s->make_term(Op::Or,
+                   s->make_term(Op::BVUlt, x, y),
+                   s->make_term(Op::Not, s->make_term(Op::Equal, x, y)));
   Term sat_cnf = cnf::convert(sat_formula, s);
   EXPECT_TRUE(s->check_sat_assuming({ sat_cnf }).is_sat()) << sat_cnf;
 }
 
 TEST_P(ToCnf, TopLevelAtomIsReturned)
 {
-  Term atom = s->make_term(BVUlt, x, y);
+  Term atom = s->make_term(Op::BVUlt, x, y);
   Term cnf = cnf::convert(atom, s);
   EXPECT_TRUE(s->check_sat_assuming({ cnf, atom }).is_sat()) << cnf;
   EXPECT_TRUE(
-      s->check_sat_assuming({ cnf, s->make_term(Not, atom) }).is_unsat())
+      s->check_sat_assuming({ cnf, s->make_term(Op::Not, atom) }).is_unsat())
       << cnf;
   // a raw solver may store the atom as a connective, e.g. Yices2 builds
   // (bvult x y) as (not (bvge x y)), so only a logging solver keeps it whole
@@ -669,7 +686,7 @@ TEST_P(ToCnf, TopLevelAtomIsReturned)
  */
 void expect_equivalent(const SmtSolver & s, const Term & a, const Term & b)
 {
-  s->assert_formula(s->make_term(Not, s->make_term(Equal, a, b)));
+  s->assert_formula(s->make_term(Op::Not, s->make_term(Op::Equal, a, b)));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -735,7 +752,7 @@ TEST_P(CastTermArithmetic, IntToReal)
   {
     EXPECT_EQ(r->get_sort(), realsort);
   }
-  expect_equivalent(s, r, s->make_term(To_Real, n));
+  expect_equivalent(s, r, s->make_term(Op::To_Real, n));
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CastOp);
@@ -752,27 +769,27 @@ class CastOp : public CastTerm
 
 TEST_P(CastOp, BitVectorOpOverBooleans)
 {
-  Term t = s->cast_op(BVAnd, { x, y });
+  Term t = s->cast_op(Op::BVAnd, { x, y });
   EXPECT_EQ(t->get_sort(), boolsort);
-  expect_equivalent(s, t, s->make_term(And, x, y));
+  expect_equivalent(s, t, s->make_term(Op::And, x, y));
 }
 
 TEST_P(CastOp, BooleansUnderBitVectorOp)
 {
   Term z = s->make_symbol("z", bv1sort);
-  Term t = s->cast_op(BVAdd, { x, z });
+  Term t = s->cast_op(Op::BVAdd, { x, z });
   EXPECT_EQ(t->get_sort(), bv1sort);
-  expect_equivalent(s, t, s->make_term(BVAdd, s->cast_term(x, bv1sort), z));
+  expect_equivalent(s, t, s->make_term(Op::BVAdd, s->cast_term(x, bv1sort), z));
 }
 
 TEST_P(CastOp, LeavesAWellSortedApplicationAlone)
 {
-  Term t = s->cast_op(And, { x, y });
+  Term t = s->cast_op(Op::And, { x, y });
   EXPECT_EQ(t->get_sort(), boolsort);
   // only a logging solver keeps the operator it was given
   if (GetParam().is_logging_solver)
   {
-    EXPECT_EQ(t->get_op(), Op(And));
+    EXPECT_EQ(t->get_op(), Op(Op::And));
   }
 }
 
@@ -835,8 +852,8 @@ class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
     z = s->make_symbol("z", bvsort);
     b = s->make_symbol("b", boolsort);
     c = s->make_symbol("c", boolsort);
-    less = s->make_term(BVUlt, x, y);
-    equal = s->make_term(Equal, x, z);
+    less = s->make_term(Op::BVUlt, x, y);
+    equal = s->make_term(Op::Equal, x, z);
   }
   SmtSolver s;
   Sort boolsort;
@@ -847,7 +864,7 @@ TEST_P(IsTheoryAtom, TheoryRelations)
 {
   EXPECT_TRUE(less->is_theory_atom());
   EXPECT_TRUE(equal->is_theory_atom());
-  EXPECT_TRUE(s->make_term(Distinct, x, y, z)->is_theory_atom());
+  EXPECT_TRUE(s->make_term(Op::Distinct, x, y, z)->is_theory_atom());
 }
 
 TEST_P(IsTheoryAtom, ConnectivesAndLeaves)
@@ -855,10 +872,10 @@ TEST_P(IsTheoryAtom, ConnectivesAndLeaves)
   EXPECT_FALSE(b->is_theory_atom());
   EXPECT_FALSE(s->make_term(true)->is_theory_atom());
   EXPECT_FALSE(x->is_theory_atom());
-  EXPECT_FALSE(s->make_term(And, b, less)->is_theory_atom());
-  EXPECT_FALSE(s->make_term(Not, less)->is_theory_atom());
-  EXPECT_FALSE(s->make_term(Ite, b, less, c)->is_theory_atom());
-  EXPECT_FALSE(s->make_term(Equal, b, less)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Op::And, b, less)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Op::Not, less)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Op::Ite, b, less, c)->is_theory_atom());
+  EXPECT_FALSE(s->make_term(Op::Equal, b, less)->is_theory_atom());
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetTheoryAtoms);
@@ -868,9 +885,10 @@ class GetTheoryAtoms : public IsTheoryAtom
 
 TEST_P(GetTheoryAtoms, StopsAtAtoms)
 {
-  Term f = s->make_term(And,
-                        s->make_term(Or, less, b),
-                        s->make_term(Not, s->make_term(Equal, c, equal)));
+  Term f =
+      s->make_term(Op::And,
+                   s->make_term(Op::Or, less, b),
+                   s->make_term(Op::Not, s->make_term(Op::Equal, c, equal)));
   UnorderedTermSet atoms;
   s->get_theory_atoms(f, atoms);
   EXPECT_EQ(atoms, (UnorderedTermSet{ less, equal }));
@@ -878,7 +896,7 @@ TEST_P(GetTheoryAtoms, StopsAtAtoms)
 
 TEST_P(GetTheoryAtoms, SplitsIfThenElse)
 {
-  Term f = s->make_term(BVUlt, s->make_term(Ite, less, x, y), z);
+  Term f = s->make_term(Op::BVUlt, s->make_term(Op::Ite, less, x, y), z);
   UnorderedTermSet whole;
   s->get_theory_atoms(f, whole);
   EXPECT_EQ(whole, (UnorderedTermSet{ f }));
@@ -886,8 +904,9 @@ TEST_P(GetTheoryAtoms, SplitsIfThenElse)
   UnorderedTermSet split;
   s->get_theory_atoms(f, split, /* split_ites */ true);
   EXPECT_EQ(split,
-            (UnorderedTermSet{
-                less, s->make_term(BVUlt, x, z), s->make_term(BVUlt, y, z) }));
+            (UnorderedTermSet{ less,
+                               s->make_term(Op::BVUlt, x, z),
+                               s->make_term(Op::BVUlt, y, z) }));
 }
 
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
@@ -938,44 +957,46 @@ class GetJustifyingSymbols : public testing::TestWithParam<SolverEnum>
 
 TEST_P(GetJustifyingSymbols, TrueDisjunctNeedsOnlyItself)
 {
-  Term t = s->make_term(Or, a, b);
-  EXPECT_EQ(justify(t, { a, s->make_term(Not, b) }), (UnorderedTermSet{ a }));
+  Term t = s->make_term(Op::Or, a, b);
+  EXPECT_EQ(justify(t, { a, s->make_term(Op::Not, b) }),
+            (UnorderedTermSet{ a }));
 }
 
 TEST_P(GetJustifyingSymbols, FalseConjunctNeedsOnlyItself)
 {
-  Term t = s->make_term(And, a, b, c);
-  EXPECT_EQ(justify(t, { a, s->make_term(Not, b), c }),
+  Term t = s->make_term(Op::And, a, b, c);
+  EXPECT_EQ(justify(t, { a, s->make_term(Op::Not, b), c }),
             (UnorderedTermSet{ b }));
 }
 
 TEST_P(GetJustifyingSymbols, TrueConjunctionNeedsEveryConjunct)
 {
-  Term t = s->make_term(And, a, b);
+  Term t = s->make_term(Op::And, a, b);
   EXPECT_EQ(justify(t, { a, b }), (UnorderedTermSet{ a, b }));
 }
 
 TEST_P(GetJustifyingSymbols, FalsePremiseNeedsOnlyItself)
 {
-  Term t = s->make_term(Implies, a, b);
-  EXPECT_EQ(justify(t, { s->make_term(Not, a), b }), (UnorderedTermSet{ a }));
+  Term t = s->make_term(Op::Implies, a, b);
+  EXPECT_EQ(justify(t, { s->make_term(Op::Not, a), b }),
+            (UnorderedTermSet{ a }));
 }
 
 TEST_P(GetJustifyingSymbols, IfThenElseNeedsOnlyTheTakenBranch)
 {
-  Term t = s->make_term(Ite, a, x, y);
+  Term t = s->make_term(Op::Ite, a, x, y);
   EXPECT_EQ(justify(t, { a }), (UnorderedTermSet{ a, x }));
 }
 
 TEST_P(GetJustifyingSymbols, ZeroOperandDecidesBitVectorAnd)
 {
-  Term t = s->make_term(BVAnd, x, y);
+  Term t = s->make_term(Op::BVAnd, x, y);
   Term zero = s->make_term(0, bvsort);
   Term five = s->make_term(5, bvsort);
-  EXPECT_EQ(
-      justify(t,
-              { s->make_term(Equal, x, zero), s->make_term(Equal, y, five) }),
-      (UnorderedTermSet{ x }));
+  EXPECT_EQ(justify(t,
+                    { s->make_term(Op::Equal, x, zero),
+                      s->make_term(Op::Equal, y, five) }),
+            (UnorderedTermSet{ x }));
 }
 
 INSTANTIATE_TEST_SUITE_P(UnitUtil,
@@ -1092,39 +1113,39 @@ class SmtLibApplication
 
 TEST_P(SmtLibApplication, OpThenChildren)
 {
-  EXPECT_EQ(smtlib::application(Op(Plus), { x, y }), "(+ x y)");
+  EXPECT_EQ(smtlib::application(Op(Op::Plus), { x, y }), "(+ x y)");
 }
 
 TEST_P(SmtLibApplication, AppliedFunctionStandsForTheOp)
 {
   Term f = s->make_symbol(
       "f", s->make_sort(SortKind::FUNCTION, { intsort, intsort }));
-  EXPECT_EQ(smtlib::application(Op(Apply), { f, x }), "(f x)");
+  EXPECT_EQ(smtlib::application(Op(Op::Apply), { f, x }), "(f x)");
 }
 
 TEST_P(SmtLibApplication, QuantifierListsItsVariableWithItsSort)
 {
   Term p = s->make_param("p", intsort);
-  Term body = s->make_term(Ge, p, x);
+  Term body = s->make_term(Op::Ge, p, x);
   // the children's text is given, so the body need not print alike everywhere
   auto term_text = [&](const Term & t) {
     return t == p ? std::string("p") : std::string("body");
   };
-  EXPECT_EQ(smtlib::application(Op(Forall), { p, body }, term_text),
+  EXPECT_EQ(smtlib::application(Op(Op::Forall), { p, body }, term_text),
             "(forall ((p Int)) body)");
 }
 
 TEST_P(SmtLibApplication, PowerIsAProduct)
 {
-  EXPECT_EQ(smtlib::application(Op(Pow), { x, s->make_term(3, intsort) }),
+  EXPECT_EQ(smtlib::application(Op(Op::Pow), { x, s->make_term(3, intsort) }),
             "(* x x x)");
 }
 
 TEST_P(SmtLibApplication, PowerWithoutAProduct)
 {
-  EXPECT_EQ(smtlib::application(Op(Pow), { x, s->make_term(0, intsort) }),
+  EXPECT_EQ(smtlib::application(Op(Op::Pow), { x, s->make_term(0, intsort) }),
             "(** x 0)");
-  EXPECT_EQ(smtlib::application(Op(Pow), { x, x }), "(** x x)");
+  EXPECT_EQ(smtlib::application(Op(Op::Pow), { x, x }), "(** x x)");
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -1259,8 +1280,8 @@ TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
       "p", s->make_sort(SortKind::FUNCTION, { usort, boolsort }));
   Term u = s->make_symbol("u", usort);
   Term x = s->make_symbol("x", intsort);
-  Term a = s->make_term(Apply, p, u);
-  Term b = s->make_term(Gt, x, s->make_term(0, intsort));
+  Term a = s->make_term(Op::Apply, p, u);
+  Term b = s->make_term(Op::Gt, x, s->make_term(0, intsort));
   std::ostringstream out;
   smtlib::benchmark(out, "QF_UFLIA", { a, b });
   EXPECT_EQ(out.str(),
@@ -1285,7 +1306,7 @@ TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
   Sort usort = s->make_sort("my sort", 0);
   Term u = s->make_symbol("u", usort);
   Term v = s->make_symbol("v", usort);
-  Term eq = s->make_term(Equal, u, v);
+  Term eq = s->make_term(Op::Equal, u, v);
   std::ostringstream out;
   smtlib::benchmark(out, "QF_UF", { eq });
   EXPECT_EQ(out.str(),
@@ -1316,8 +1337,8 @@ TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
   Term b = s->make_symbol("b", first);
   Term c = s->make_symbol("c", second);
   Term d = s->make_symbol("d", second);
-  Term ab = s->make_term(Equal, a, b);
-  Term cd = s->make_term(Equal, c, d);
+  Term ab = s->make_term(Op::Equal, a, b);
+  Term cd = s->make_term(Op::Equal, c, d);
   std::ostringstream out;
   smtlib::benchmark(out, "QF_UF", { ab, cd });
   EXPECT_EQ(out.str(),
@@ -1352,7 +1373,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresTheSortConstructor)
   Sort fint = s->make_sort(s->make_sort("F", 1), { intsort });
   Term a = s->make_symbol("a", fint);
   Term b = s->make_symbol("b", fint);
-  Term eq = s->make_term(Equal, a, b);
+  Term eq = s->make_term(Op::Equal, a, b);
   std::ostringstream out;
   smtlib::benchmark(out, "ALL", { eq });
   EXPECT_EQ(out.str(),
@@ -1369,10 +1390,10 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
   Sort f = s->make_sort("F", 1);
   Sort fint = s->make_sort(f, { intsort });
   Sort fbool = s->make_sort(f, { s->make_sort(SortKind::BOOL) });
-  Term ab =
-      s->make_term(Equal, s->make_symbol("a", fint), s->make_symbol("b", fint));
+  Term ab = s->make_term(
+      Op::Equal, s->make_symbol("a", fint), s->make_symbol("b", fint));
   Term cd = s->make_term(
-      Equal, s->make_symbol("c", fbool), s->make_symbol("d", fbool));
+      Op::Equal, s->make_symbol("c", fbool), s->make_symbol("d", fbool));
   std::ostringstream out;
   smtlib::benchmark(out, "ALL", { ab, cd });
   EXPECT_EQ(out.str(),
@@ -1405,10 +1426,12 @@ TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
   }
   Sort first_int = s->make_sort(first, { intsort });
   Sort second_int = s->make_sort(second, { intsort });
-  Term ab = s->make_term(
-      Equal, s->make_symbol("a", first_int), s->make_symbol("b", first_int));
-  Term cd = s->make_term(
-      Equal, s->make_symbol("c", second_int), s->make_symbol("d", second_int));
+  Term ab = s->make_term(Op::Equal,
+                         s->make_symbol("a", first_int),
+                         s->make_symbol("b", first_int));
+  Term cd = s->make_term(Op::Equal,
+                         s->make_symbol("c", second_int),
+                         s->make_symbol("d", second_int));
   std::ostringstream out;
   smtlib::benchmark(out, "ALL", { ab, cd });
   EXPECT_EQ(out.str(),
@@ -1450,7 +1473,7 @@ TEST_P(SmtLibBenchmarkDatatypes, DeclaresTheDatatypeWithItsConstructors)
   Sort list = s->make_sort(listdecl);
   Term l = s->make_symbol("l", list);
   Term m = s->make_symbol("m", list);
-  Term d = s->make_term(Distinct, l, m);
+  Term d = s->make_term(Op::Distinct, l, m);
   std::ostringstream out;
   smtlib::benchmark(out, "ALL", { d });
   EXPECT_EQ(out.str(),
@@ -1483,9 +1506,9 @@ TEST_P(SmtLibBenchmarkDatatypes, RefusesTwoDatatypesWithTheSameName)
     return;
   }
   Term ab = s->make_term(
-      Equal, s->make_symbol("a", first), s->make_symbol("b", first));
+      Op::Equal, s->make_symbol("a", first), s->make_symbol("b", first));
   Term cd = s->make_term(
-      Equal, s->make_symbol("c", second), s->make_symbol("d", second));
+      Op::Equal, s->make_symbol("c", second), s->make_symbol("d", second));
   std::ostringstream out;
   EXPECT_THROW(smtlib::benchmark(out, "ALL", { ab, cd }),
                NotImplementedException);
@@ -1509,7 +1532,7 @@ TEST_P(SmtLibBenchmarkQuantifiers, LeavesBoundVariablesUndeclared)
 {
   Term x = s->make_symbol("x", intsort);
   Term i = s->make_param("i", intsort);
-  Term forall = s->make_term(Forall, i, s->make_term(Le, i, x));
+  Term forall = s->make_term(Op::Forall, i, s->make_term(Op::Le, i, x));
   std::ostringstream out;
   smtlib::benchmark(out, "ALL", { forall });
   EXPECT_EQ(out.str(),
@@ -1552,10 +1575,10 @@ TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
   }
   Term a = s->make_symbol("a", first);
   Term y = s->make_param("y", first);
-  Term forall = s->make_term(Forall, y, s->make_term(Equal, y, a));
+  Term forall = s->make_term(Op::Forall, y, s->make_term(Op::Equal, y, a));
   Term c = s->make_symbol("c", second);
   Term d = s->make_symbol("d", second);
-  Term cd = s->make_term(Equal, c, d);
+  Term cd = s->make_term(Op::Equal, c, d);
   std::ostringstream out;
   smtlib::benchmark(out, "UF", { forall, cd });
   EXPECT_EQ(out.str(),

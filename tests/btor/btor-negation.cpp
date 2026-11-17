@@ -35,17 +35,17 @@ TEST(BtorNegation, LiteSolver)
   Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
   Term five = s->make_term(5, bvsort8);
-  Term ult5 = s->make_term(BVUlt, x, five);
-  Term nult5 = s->make_term(Not, ult5);
+  Term ult5 = s->make_term(Op::BVUlt, x, five);
+  Term nult5 = s->make_term(Op::Not, ult5);
 
   // Boolector turns everything into bv ops
-  EXPECT_EQ(nult5->get_op(), BVNot);
+  EXPECT_EQ(nult5->get_op(), Op::BVNot);
   for (auto c : nult5)
   {
     EXPECT_EQ(c, ult5);
   }
-  EXPECT_EQ(s->make_term(Not, nult5), ult5);
-  EXPECT_EQ(s->make_term(Not, nult5)->get_op(), BVUlt);
+  EXPECT_EQ(s->make_term(Op::Not, nult5), ult5);
+  EXPECT_EQ(s->make_term(Op::Not, nult5)->get_op(), Op::BVUlt);
 }
 
 TEST(BtorNegation, InversionFromSubstitution)
@@ -57,17 +57,17 @@ TEST(BtorNegation, InversionFromSubstitution)
   Sort bvsort4 = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
-  Term bvxor = s->make_term(BVXor, x, y);
-  Term bvxnor = s->make_term(BVXnor, x, y);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(0b1111, bvsort4)));
+  Term bvxor = s->make_term(Op::BVXor, x, y);
+  Term bvxnor = s->make_term(Op::BVXnor, x, y);
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(0b1111, bvsort4)));
   ASSERT_TRUE(s->check_sat().is_sat());
 
-  EXPECT_EQ(bvxor->get_op(), BVNot);
+  EXPECT_EQ(bvxor->get_op(), Op::BVNot);
   TermVec children(bvxor->begin(), bvxor->end());
   ASSERT_EQ(children.size(), 1);
   EXPECT_EQ(children[0], y);
   EXPECT_EQ(bvxor->to_string(), "(bvnot y)");
-  EXPECT_NE(bvxnor->get_op(), BVNot);
+  EXPECT_NE(bvxnor->get_op(), Op::BVNot);
   EXPECT_EQ(bvxnor->to_string(), "y");
 }
 
@@ -80,18 +80,18 @@ TEST(BtorNegation, LoggingSolver)
   Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
   Term five = s->make_term(5, bvsort8);
-  Term ult5 = s->make_term(BVUlt, x, five);
-  Term nult5 = s->make_term(Not, ult5);
+  Term ult5 = s->make_term(Op::BVUlt, x, five);
+  Term nult5 = s->make_term(Op::Not, ult5);
 
-  EXPECT_EQ(nult5->get_op(), Not);
+  EXPECT_EQ(nult5->get_op(), Op::Not);
   for (auto c : nult5)
   {
     EXPECT_EQ(c, ult5);
   }
 
   // terms no longer rewritten on the fly
-  EXPECT_NE(s->make_term(Not, nult5), ult5);
-  EXPECT_EQ(s->make_term(Not, nult5)->get_op(), Not);
+  EXPECT_NE(s->make_term(Op::Not, nult5), ult5);
+  EXPECT_EQ(s->make_term(Op::Not, nult5)->get_op(), Op::Not);
 }
 
 }  // namespace

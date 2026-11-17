@@ -577,7 +577,7 @@ Term LoggingSolver::get_value(const Term & t) const
     Term res = make_term(out_const_base, sort);
     for (auto elem : pairs)
     {
-      res = make_term(Store, res, elem.first, elem.second);
+      res = make_term(Op::Store, res, elem.first, elem.second);
     }
     return res;
   }
@@ -589,7 +589,7 @@ Term LoggingSolver::wrap_value(const Term & wrapped_val,
                                const Sort & sort) const
 {
   Op op = wrapped_val->get_op();
-  if (op.prim_op == Apply_Constructor)
+  if (op.kind() == Op::Apply_Constructor)
   {
     // the constructor comes first, then its arguments in selector order
     TermVec wrapped_children(wrapped_val->begin(), wrapped_val->end());

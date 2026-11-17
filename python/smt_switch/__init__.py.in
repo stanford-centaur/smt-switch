@@ -16,7 +16,7 @@ from .api import (
     get_free_symbols,
     op_partition,
 )
-from .enums import PrimOp, SolverEnum, SortKind
+from .enums import OpKind, SolverEnum, SortKind
 
 # Which solver factories this module defines depends on which backends CMake
 # built, so they cannot be imported by name.

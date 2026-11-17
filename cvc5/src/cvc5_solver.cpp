@@ -856,18 +856,19 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string()
                                   + " to zero terms");
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     check_quantifier_binders(op, terms);
   }
-  else if (op.prim_op == Divisible && op.indices[0] < 1)
+  else if (op.kind() == Op::Divisible && op.indices[0] < 1)
   {
     throw IncorrectUsageException(
         "Can't apply divisible with an index less than 1");
   }
   // Operators that SMT-LIB applies to more than two arguments, but that cvc5
   // only applies to two
-  else if (terms.size() > 2 && (op.prim_op == StrLt || op.prim_op == StrLeq))
+  else if (terms.size() > 2
+           && (op.kind() == Op::StrLt || op.kind() == Op::StrLeq))
   {
     return make_nary_term(op, terms);
   }
@@ -883,7 +884,7 @@ Term Cvc5Solver::make_term(Op op, const TermVec & terms) const
       cterms.push_back(cterm->term);
     }
     // cvc5 solves a power only for a constant nonnegative exponent
-    if (op.prim_op == Pow && cterms.size() == 2
+    if (op.kind() == Op::Pow && cterms.size() == 2
         && (!cterms[1].isIntegerValue()
             || cterms[1].getIntegerValue().front() == '-'))
     {

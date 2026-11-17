@@ -56,7 +56,7 @@ TEST_P(UnitTests, TermIter)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   TermIter it = fx->begin();
   TermIter it2;
@@ -70,7 +70,7 @@ TEST_P(UnitTests, CannotDereferencePastTheChildren)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   EXPECT_THROW(*x->begin(), IncorrectUsageException);
   EXPECT_THROW(*f->begin(), IncorrectUsageException);
@@ -83,13 +83,13 @@ TEST_P(UnitTests, NestedApplication)
   Term y = s->make_symbol("y", bvsort);
   Term g = s->make_symbol(
       "g", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
-  Term gxy = s->make_term(Apply, g, x, y);
-  Term eq = s->make_term(Equal, gxy, x);
+  Term gxy = s->make_term(Op::Apply, g, x, y);
+  Term eq = s->make_term(Op::Equal, gxy, x);
   // the solver may order the children either way
   TermVec children(eq->begin(), eq->end());
   auto it = std::find(children.begin(), children.end(), gxy);
   ASSERT_NE(it, children.end());
-  EXPECT_EQ((*it)->get_op(), Apply);
+  EXPECT_EQ((*it)->get_op(), Op::Apply);
   ASSERT_NE((*it)->begin(), (*it)->end());
   EXPECT_EQ((*(*it)->begin())->get_sort()->get_kind(), SortKind::FUNCTION);
 }
@@ -117,15 +117,15 @@ TEST_P(ConstArrUnitTests, IdentityWalker)
   Term arr = s->make_symbol("arr", arrsort);
   Term f = s->make_symbol("f", funsort);
 
-  Term fx = s->make_term(Apply, f, x);
-  Term ypfx = s->make_term(BVAdd, y, fx);
-  Term xmy = s->make_term(BVMul, y, x);
-  Term shift = s->make_term(BVShl, xmy, ypfx);
+  Term fx = s->make_term(Op::Apply, f, x);
+  Term ypfx = s->make_term(Op::BVAdd, y, fx);
+  Term xmy = s->make_term(Op::BVMul, y, x);
+  Term shift = s->make_term(Op::BVShl, xmy, ypfx);
   Term constarr = s->make_term(s->make_term(0, bvsort), arrsort);
 
-  Term store_0 = s->make_term(Store, constarr, x, xmy);
-  Term store_1 = s->make_term(Store, store_0, y, shift);
-  Term final_term = s->make_term(Select, store_1, ypfx);
+  Term store_0 = s->make_term(Op::Store, constarr, x, xmy);
+  Term store_1 = s->make_term(Op::Store, store_0, y, shift);
+  Term final_term = s->make_term(Op::Select, store_1, ypfx);
 
   IdentityWalker iw(s, false);  // don't clear the cache between calls
   Term id_final_term = iw.visit(final_term);
@@ -136,7 +136,7 @@ TEST_P(UnitTests, InputIterator)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
   TermVec children(fx->begin(), fx->end());
   ASSERT_EQ(children[0], f);
   ASSERT_EQ(children[1], x);
@@ -146,7 +146,7 @@ TEST_P(UnitTests, ConstTermRangeFor)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  const Term fx = s->make_term(Apply, f, x);
+  const Term fx = s->make_term(Op::Apply, f, x);
 
   TermVec children;
   for (const Term & c : fx)
@@ -160,10 +160,10 @@ TEST_P(UnitTests, CopyIter)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   Term v = s->make_symbol("v", bvsort);
-  Term fv = s->make_term(Apply, f, v);
+  Term fv = s->make_term(Op::Apply, f, v);
 
   ASSERT_NE(fx, fv);
 
@@ -180,7 +180,7 @@ TEST_P(UnitTests, CopyDefaultConstructedIter)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   TermIter empty;
   TermIter copy(empty);
@@ -205,7 +205,7 @@ TEST_P(UnitTests, InequalityNegatesEquality)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   TermIter first = fx->begin();
   TermIter same = fx->begin();
@@ -218,7 +218,7 @@ TEST_P(UnitTests, SelfAssignIter)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   TermIter it = fx->begin();
   ++it;
@@ -237,7 +237,7 @@ TEST_P(UnitTests, MoveIter)
 
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   TermIter it = fx->begin();
   TermIter moved(std::move(it));

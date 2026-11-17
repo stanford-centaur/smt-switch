@@ -185,7 +185,7 @@ std::size_t GenericTerm::hash() const { return str_hash(compute_string()); }
 // may have been simplified to a value by the underlying solver
 bool GenericTerm::is_value() const
 {
-  if (op.prim_op == Apply_Constructor)
+  if (op.kind() == Op::Apply_Constructor)
   {
     // The first child is the constructor itself.
     for (std::size_t i = 1; i < children->size(); ++i)

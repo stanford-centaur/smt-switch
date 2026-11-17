@@ -39,17 +39,17 @@ TEST(Z3ForeignTerm, AnotherSolversTermsRefused)
   Term other_f = other->make_symbol(
       "f",
       other->make_sort(SortKind::FUNCTION, SortVec{ other_bv8, other_bv8 }));
-  Term other_p = other->make_term(Equal, other_x, other_x);
+  Term other_p = other->make_term(Op::Equal, other_x, other_x);
 
   EXPECT_THROW(s->assert_formula(other_p), IncorrectUsageException);
   EXPECT_THROW(s->check_sat_assuming(TermVec{ other_p }),
                IncorrectUsageException);
   EXPECT_THROW(s->make_term(other_x, arr), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVNot, other_x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVAdd, x, other_x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVAdd, other_x, x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Apply, other_f, x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Apply, f, other_x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVNot, other_x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVAdd, x, other_x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVAdd, other_x, x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Apply, other_f, x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Apply, f, other_x), IncorrectUsageException);
   EXPECT_THROW(s->substitute(other_x, UnorderedTermMap{}),
                IncorrectUsageException);
   EXPECT_THROW(s->substitute(x, UnorderedTermMap{ { x, other_x } }),

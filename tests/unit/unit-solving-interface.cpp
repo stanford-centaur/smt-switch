@@ -50,7 +50,7 @@ std::string dump_equality(SmtSolver s, const std::string & filename)
 {
   Sort bvsort = s->make_sort(SortKind::BV, 4);
   s->assert_formula(s->make_term(
-      Equal, s->make_symbol("x", bvsort), s->make_symbol("y", bvsort)));
+      Op::Equal, s->make_symbol("x", bvsort), s->make_symbol("y", bvsort)));
   s->dump_smt2(filename);
   std::ifstream in(filename);
   std::stringstream contents;
@@ -105,11 +105,11 @@ TEST_P(UnitSolveTests, CheckSatAssuming)
   Term b2 = s->make_symbol("b2", boolsort);
   Term x = s->make_symbol("x", bvsort);
 
-  Term nb2 = s->make_term(Not, b2);
-  Term xeq0 = s->make_term(Equal, x, s->make_term(0, bvsort));
-  Term nxeq0 = s->make_term(Not, xeq0);
-  s->assert_formula(s->make_term(Implies, b1, xeq0));
-  s->assert_formula(s->make_term(Implies, nb2, nxeq0));
+  Term nb2 = s->make_term(Op::Not, b2);
+  Term xeq0 = s->make_term(Op::Equal, x, s->make_term(0, bvsort));
+  Term nxeq0 = s->make_term(Op::Not, xeq0);
+  s->assert_formula(s->make_term(Op::Implies, b1, xeq0));
+  s->assert_formula(s->make_term(Op::Implies, nb2, nxeq0));
 
   Result r = s->check_sat_assuming(TermVec{ xeq0, nb2 });
   EXPECT_TRUE(r.is_unsat());
@@ -139,7 +139,7 @@ TEST_P(UnitSolveTests, NoAssumptions)
   Term b = s->make_symbol("b", boolsort);
   s->assert_formula(b);
   EXPECT_TRUE(s->check_sat_assuming(TermVec{}).is_sat());
-  s->assert_formula(s->make_term(Not, b));
+  s->assert_formula(s->make_term(Op::Not, b));
   EXPECT_TRUE(s->check_sat_assuming(TermVec{}).is_unsat());
 }
 
@@ -158,7 +158,7 @@ TEST_P(UnitSolveTests, SatisfiableAssumption)
   Term b = s->make_symbol("b", boolsort);
   Term x = s->make_symbol("x", bvsort);
   s->assert_formula(s->make_term(
-      Implies, b, s->make_term(Equal, x, s->make_term(0, bvsort))));
+      Op::Implies, b, s->make_term(Op::Equal, x, s->make_term(0, bvsort))));
   // the model follows the assumption
   ASSERT_TRUE(s->check_sat_assuming(TermVec{ b }).is_sat());
   EXPECT_EQ(s->get_value(x)->to_int(), 0);
@@ -172,10 +172,11 @@ TEST_P(UnitSolveTests, ModelFollowsUnconstrainedAssumptions)
   Term c = s->make_symbol("c", boolsort);
   s->assert_formula(c);
   // satisfied by c alone, so it leaves b2 unconstrained
-  s->assert_formula(s->make_term(Or, b2, c));
+  s->assert_formula(s->make_term(Op::Or, b2, c));
   // b1 and b3 occur in no assertion
   ASSERT_TRUE(
-      s->check_sat_assuming(TermVec{ b1, b2, s->make_term(Not, b3) }).is_sat());
+      s->check_sat_assuming(TermVec{ b1, b2, s->make_term(Op::Not, b3) })
+          .is_sat());
   EXPECT_TRUE(s->get_value(b1)->to_bool());
   EXPECT_TRUE(s->get_value(b2)->to_bool());
   EXPECT_FALSE(s->get_value(b3)->to_bool());
@@ -187,7 +188,7 @@ TEST_P(UnitSolveTests, NonBooleanAssumptionAssumesNothing)
   Term x = s->make_symbol("x", bvsort);
   s->assert_formula(p);
 
-  EXPECT_THROW(s->check_sat_assuming(TermVec{ s->make_term(Not, p), x }),
+  EXPECT_THROW(s->check_sat_assuming(TermVec{ s->make_term(Op::Not, p), x }),
                IncorrectUsageException);
   // the (not p) before the refused assumption must not have been assumed
   EXPECT_TRUE(s->check_sat().is_sat());

@@ -64,7 +64,8 @@ class TimeLimitTests : public testing::Test,
     {
       for (size_t j = i + 1; j < num_vars; ++j)
       {
-        solver->assert_formula(solver->make_term(Distinct, vars[i], vars[j]));
+        solver->assert_formula(
+            solver->make_term(Op::Distinct, vars[i], vars[j]));
       }
     }
     return b;
@@ -141,13 +142,13 @@ TEST_P(TimeLimitTests, ResetDropsTimeLimit)
   for (size_t i = 0; i < 7; ++i)
   {
     vars.push_back(s->make_symbol("x" + std::to_string(i), bvsort));
-    s->assert_formula(s->make_term(BVUlt, vars.back(), holes));
+    s->assert_formula(s->make_term(Op::BVUlt, vars.back(), holes));
   }
   for (size_t i = 0; i < vars.size(); ++i)
   {
     for (size_t j = i + 1; j < vars.size(); ++j)
     {
-      s->assert_formula(s->make_term(Distinct, vars[i], vars[j]));
+      s->assert_formula(s->make_term(Op::Distinct, vars[i], vars[j]));
     }
   }
   EXPECT_TRUE(s->check_sat().is_unsat());

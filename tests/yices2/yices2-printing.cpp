@@ -46,7 +46,7 @@ TEST(Yices2InterpolationPrinting, ReplaysEachCheckOfAQuery)
   s->set_logic("QF_LIA");
   Term p = s->make_symbol("p", s->make_sort(SortKind::BOOL));
   Term I;
-  ASSERT_TRUE(s->get_interpolant(p, s->make_term(Not, p), I).is_unsat());
+  ASSERT_TRUE(s->get_interpolant(p, s->make_term(Op::Not, p), I).is_unsat());
   if (yices2_binary.empty())
   {
     GTEST_SKIP() << "configure found no yices-smt2 executable";

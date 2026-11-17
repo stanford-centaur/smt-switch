@@ -293,20 +293,20 @@ std::string application(
     const std::function<std::string(const Term &)> & term_text,
     const std::function<std::string(const Sort &)> & sort_text)
 {
-  if (op.prim_op == Apply_Constructor && children.size() == 1)
+  if (op.kind() == Op::Apply_Constructor && children.size() == 1)
   {
     return get_text(children[0], term_text);
   }
-  if (op.prim_op == Forall || op.prim_op == Exists)
+  if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     const Term & var = children[0];
     return "(" + op.to_string() + " ((" + get_text(var, term_text) + " "
            + get_text(var->get_sort(), sort_text) + ")) "
            + get_text(children[1], term_text) + ")";
   }
-  const bool bv_power =
-      op.prim_op == Pow && children[0]->get_sort()->get_kind() == SortKind::BV;
-  if (op.prim_op == Pow && children[1]->is_value()
+  const bool bv_power = op.kind() == Op::Pow
+                        && children[0]->get_sort()->get_kind() == SortKind::BV;
+  if (op.kind() == Op::Pow && children[1]->is_value()
       && (bv_power || children[1]->to_signed_int() >= 2))
   {
     std::string res = bv_power ? "(bvmul" : "(*";
@@ -317,7 +317,7 @@ std::string application(
     return res + ")";
   }
   std::string res = "(";
-  if (!is_apply(op.prim_op))
+  if (!is_apply(op.kind()))
   {
     res += op.to_string() + " ";
   }

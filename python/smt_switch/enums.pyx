@@ -41,21 +41,21 @@ cdef class SolverEnum:
         return <int> self.se
 
 
-cdef class PrimOp:
-    def __eq__(self, PrimOp other):
-        return (<int> self.po) == (<int> other.po)
+cdef class OpKind:
+    def __eq__(self, OpKind other):
+        return (<int> self.ck) == (<int> other.ck)
 
-    def __ne__(self, PrimOp other):
-        return (<int> self.po) != (<int> other.po)
+    def __ne__(self, OpKind other):
+        return (<int> self.ck) != (<int> other.ck)
 
     def __hash__(self):
-        return (<int> self.po)
+        return (<int> self.ck)
 
     def __str__(self):
-        return to_string(self.po).decode()
+        return to_string(self.ck).decode()
 
     def __repr__(self):
-        return to_string(self.po).decode()
+        return to_string(self.ck).decode()
 
     def as_int(self):
-        return <int> self.po
+        return <int> self.ck

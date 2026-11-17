@@ -61,22 +61,22 @@ TEST_P(UnitTermIdTests, BasicTest)
   EXPECT_NE(one->get_id(), two->get_id());
   EXPECT_NE(one, two);
 
-  Term a_and_b = s->make_term(And, a, b);
+  Term a_and_b = s->make_term(Op::And, a, b);
   EXPECT_NE(b->get_id(), a_and_b->get_id());
 
-  Term a_and_b_2 = s->make_term(And, a, b);
+  Term a_and_b_2 = s->make_term(Op::And, a, b);
   EXPECT_EQ(a_and_b->get_id(), a_and_b_2->get_id());
 
-  Term xp1 = s->make_term(BVAdd, x, one);
+  Term xp1 = s->make_term(Op::BVAdd, x, one);
   EXPECT_NE(x->get_id(), xp1->get_id());
 
-  Term xp1_2 = s->make_term(BVAdd, x, one);
+  Term xp1_2 = s->make_term(Op::BVAdd, x, one);
   EXPECT_EQ(xp1->get_id(), xp1_2->get_id());
 
-  Term yp1 = s->make_term(BVAdd, y, one);
+  Term yp1 = s->make_term(Op::BVAdd, y, one);
   EXPECT_NE(y->get_id(), yp1->get_id());
 
-  Term yp1_2 = s->make_term(BVAdd, y, one);
+  Term yp1_2 = s->make_term(Op::BVAdd, y, one);
   EXPECT_EQ(yp1->get_id(), yp1->get_id());
 }
 

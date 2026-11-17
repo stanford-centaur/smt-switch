@@ -189,287 +189,318 @@ class QuantifierRoundTripTests : public OpRoundTripTests
 
 TEST_P(BoolRoundTripTests, Equal)
 {
-  expect_round_trip(s->make_term(Equal, p, q));
+  expect_round_trip(s->make_term(Op::Equal, p, q));
 }
 
-TEST_P(BoolRoundTripTests, And) { expect_round_trip(s->make_term(And, p, q)); }
+TEST_P(BoolRoundTripTests, And)
+{
+  expect_round_trip(s->make_term(Op::And, p, q));
+}
 
-TEST_P(BoolRoundTripTests, Or) { expect_round_trip(s->make_term(Or, p, q)); }
+TEST_P(BoolRoundTripTests, Or)
+{
+  expect_round_trip(s->make_term(Op::Or, p, q));
+}
 
-TEST_P(BoolRoundTripTests, Xor) { expect_round_trip(s->make_term(Xor, p, q)); }
+TEST_P(BoolRoundTripTests, Xor)
+{
+  expect_round_trip(s->make_term(Op::Xor, p, q));
+}
 
-TEST_P(BoolRoundTripTests, Not) { expect_round_trip(s->make_term(Not, p)); }
+TEST_P(BoolRoundTripTests, Not) { expect_round_trip(s->make_term(Op::Not, p)); }
 
 TEST_P(BoolRoundTripTests, Implies)
 {
-  expect_round_trip(s->make_term(Implies, p, q));
+  expect_round_trip(s->make_term(Op::Implies, p, q));
 }
 
 TEST_P(BoolRoundTripTests, Ite)
 {
-  expect_round_trip(s->make_term(Ite, p, q, r));
+  expect_round_trip(s->make_term(Op::Ite, p, q, r));
 }
 
 TEST_P(BoolRoundTripTests, Distinct)
 {
-  expect_round_trip(s->make_term(Distinct, p, q));
+  expect_round_trip(s->make_term(Op::Distinct, p, q));
 }
 
-TEST_P(BVRoundTripTests, BVNot) { expect_round_trip(s->make_term(BVNot, x)); }
+TEST_P(BVRoundTripTests, BVNot)
+{
+  expect_round_trip(s->make_term(Op::BVNot, x));
+}
 
-TEST_P(BVRoundTripTests, BVNeg) { expect_round_trip(s->make_term(BVNeg, x)); }
+TEST_P(BVRoundTripTests, BVNeg)
+{
+  expect_round_trip(s->make_term(Op::BVNeg, x));
+}
 
 TEST_P(BVRoundTripTests, BVAnd)
 {
-  expect_round_trip(s->make_term(BVAnd, x, y));
+  expect_round_trip(s->make_term(Op::BVAnd, x, y));
 }
 
-TEST_P(BVRoundTripTests, BVOr) { expect_round_trip(s->make_term(BVOr, x, y)); }
+TEST_P(BVRoundTripTests, BVOr)
+{
+  expect_round_trip(s->make_term(Op::BVOr, x, y));
+}
 
 TEST_P(BVRoundTripTests, BVXor)
 {
-  expect_round_trip(s->make_term(BVXor, x, y));
+  expect_round_trip(s->make_term(Op::BVXor, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVNand)
 {
-  expect_round_trip(s->make_term(BVNand, x, y));
+  expect_round_trip(s->make_term(Op::BVNand, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVNor)
 {
-  expect_round_trip(s->make_term(BVNor, x, y));
+  expect_round_trip(s->make_term(Op::BVNor, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVXnor)
 {
-  expect_round_trip(s->make_term(BVXnor, x, y));
+  expect_round_trip(s->make_term(Op::BVXnor, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVComp)
 {
-  expect_round_trip(s->make_term(BVComp, x, y));
+  expect_round_trip(s->make_term(Op::BVComp, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVAdd)
 {
-  expect_round_trip(s->make_term(BVAdd, x, y));
+  expect_round_trip(s->make_term(Op::BVAdd, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSub)
 {
-  expect_round_trip(s->make_term(BVSub, x, y));
+  expect_round_trip(s->make_term(Op::BVSub, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVMul)
 {
-  expect_round_trip(s->make_term(BVMul, x, y));
+  expect_round_trip(s->make_term(Op::BVMul, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVUdiv)
 {
-  expect_round_trip(s->make_term(BVUdiv, x, y));
+  expect_round_trip(s->make_term(Op::BVUdiv, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSdiv)
 {
-  expect_round_trip(s->make_term(BVSdiv, x, y));
+  expect_round_trip(s->make_term(Op::BVSdiv, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVUrem)
 {
-  expect_round_trip(s->make_term(BVUrem, x, y));
+  expect_round_trip(s->make_term(Op::BVUrem, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSrem)
 {
-  expect_round_trip(s->make_term(BVSrem, x, y));
+  expect_round_trip(s->make_term(Op::BVSrem, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSmod)
 {
-  expect_round_trip(s->make_term(BVSmod, x, y));
+  expect_round_trip(s->make_term(Op::BVSmod, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVShl)
 {
-  expect_round_trip(s->make_term(BVShl, x, y));
+  expect_round_trip(s->make_term(Op::BVShl, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVAshr)
 {
-  expect_round_trip(s->make_term(BVAshr, x, y));
+  expect_round_trip(s->make_term(Op::BVAshr, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVLshr)
 {
-  expect_round_trip(s->make_term(BVLshr, x, y));
+  expect_round_trip(s->make_term(Op::BVLshr, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVUlt)
 {
-  expect_round_trip(s->make_term(BVUlt, x, y));
+  expect_round_trip(s->make_term(Op::BVUlt, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVUle)
 {
-  expect_round_trip(s->make_term(BVUle, x, y));
+  expect_round_trip(s->make_term(Op::BVUle, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVUgt)
 {
-  expect_round_trip(s->make_term(BVUgt, x, y));
+  expect_round_trip(s->make_term(Op::BVUgt, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVUge)
 {
-  expect_round_trip(s->make_term(BVUge, x, y));
+  expect_round_trip(s->make_term(Op::BVUge, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSlt)
 {
-  expect_round_trip(s->make_term(BVSlt, x, y));
+  expect_round_trip(s->make_term(Op::BVSlt, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSle)
 {
-  expect_round_trip(s->make_term(BVSle, x, y));
+  expect_round_trip(s->make_term(Op::BVSle, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSgt)
 {
-  expect_round_trip(s->make_term(BVSgt, x, y));
+  expect_round_trip(s->make_term(Op::BVSgt, x, y));
 }
 
 TEST_P(BVRoundTripTests, BVSge)
 {
-  expect_round_trip(s->make_term(BVSge, x, y));
+  expect_round_trip(s->make_term(Op::BVSge, x, y));
 }
 
 TEST_P(BVRoundTripTests, Concat)
 {
-  expect_round_trip(s->make_term(Concat, x, y));
+  expect_round_trip(s->make_term(Op::Concat, x, y));
 }
 
 TEST_P(BVRoundTripTests, Extract)
 {
-  expect_round_trip(s->make_term(Op(Extract, 2, 1), x));
+  expect_round_trip(s->make_term(Op(Op::Extract, 2, 1), x));
 }
 
 TEST_P(BVRoundTripTests, ZeroExtend)
 {
-  expect_round_trip(s->make_term(Op(Zero_Extend, 2), x));
+  expect_round_trip(s->make_term(Op(Op::Zero_Extend, 2), x));
 }
 
 TEST_P(BVRoundTripTests, SignExtend)
 {
-  expect_round_trip(s->make_term(Op(Sign_Extend, 2), x));
+  expect_round_trip(s->make_term(Op(Op::Sign_Extend, 2), x));
 }
 
 TEST_P(BVRoundTripTests, Repeat)
 {
-  expect_round_trip(s->make_term(Op(Repeat, 2), x));
+  expect_round_trip(s->make_term(Op(Op::Repeat, 2), x));
 }
 
 TEST_P(BVRoundTripTests, RotateLeft)
 {
-  expect_round_trip(s->make_term(Op(Rotate_Left, 2), x));
+  expect_round_trip(s->make_term(Op(Op::Rotate_Left, 2), x));
 }
 
 TEST_P(BVRoundTripTests, RotateRight)
 {
-  expect_round_trip(s->make_term(Op(Rotate_Right, 2), x));
+  expect_round_trip(s->make_term(Op(Op::Rotate_Right, 2), x));
 }
 
 TEST_P(BVRoundTripTests, SumOfProduct)
 {
-  expect_round_trip(s->make_term(BVAdd, x, s->make_term(BVMul, y, x)));
+  expect_round_trip(s->make_term(Op::BVAdd, x, s->make_term(Op::BVMul, y, x)));
 }
 
 TEST_P(BVRoundTripTests, Square)
 {
-  expect_round_trip(s->make_term(BVMul, x, x));
+  expect_round_trip(s->make_term(Op::BVMul, x, x));
 }
 
 TEST_P(BVRoundTripTests, Cube)
 {
-  expect_round_trip(s->make_term(BVMul, x, s->make_term(BVMul, x, x)));
+  expect_round_trip(s->make_term(Op::BVMul, x, s->make_term(Op::BVMul, x, x)));
 }
 
 TEST_P(BVRoundTripTests, ProductOfSquare)
 {
-  expect_round_trip(s->make_term(BVMul, y, s->make_term(BVMul, x, x)));
+  expect_round_trip(s->make_term(Op::BVMul, y, s->make_term(Op::BVMul, x, x)));
 }
 
-TEST_P(IntRoundTripTests, Plus) { expect_round_trip(s->make_term(Plus, a, b)); }
+TEST_P(IntRoundTripTests, Plus)
+{
+  expect_round_trip(s->make_term(Op::Plus, a, b));
+}
 
 TEST_P(IntRoundTripTests, Minus)
 {
-  expect_round_trip(s->make_term(Minus, a, b));
+  expect_round_trip(s->make_term(Op::Minus, a, b));
 }
 
 TEST_P(IntRoundTripTests, Negate)
 {
-  expect_round_trip(s->make_term(Negate, a));
+  expect_round_trip(s->make_term(Op::Negate, a));
 }
 
-TEST_P(IntRoundTripTests, Mult) { expect_round_trip(s->make_term(Mult, a, b)); }
+TEST_P(IntRoundTripTests, Mult)
+{
+  expect_round_trip(s->make_term(Op::Mult, a, b));
+}
 
 TEST_P(IntRoundTripTests, IntDiv)
 {
-  expect_round_trip(s->make_term(IntDiv, a, b));
+  expect_round_trip(s->make_term(Op::IntDiv, a, b));
 }
 
-TEST_P(IntRoundTripTests, Mod) { expect_round_trip(s->make_term(Mod, a, b)); }
+TEST_P(IntRoundTripTests, Mod)
+{
+  expect_round_trip(s->make_term(Op::Mod, a, b));
+}
 
 TEST_P(IntRoundTripTests, Divisible)
 {
-  expect_round_trip(s->make_term(Op(Divisible, 3), a));
+  expect_round_trip(s->make_term(Op(Op::Divisible, 3), a));
 }
 
 TEST_P(IntRoundTripTests, DivisibleWithConstant)
 {
   // MathSAT keeps the constant apart, as the congruence a = 2 mod 3
-  expect_round_trip(s->make_term(
-      Op(Divisible, 3), s->make_term(Minus, a, s->make_term(2, intsort))));
+  expect_round_trip(
+      s->make_term(Op(Op::Divisible, 3),
+                   s->make_term(Op::Minus, a, s->make_term(2, intsort))));
 }
 
-TEST_P(IntRoundTripTests, Abs) { expect_round_trip(s->make_term(Abs, a)); }
+TEST_P(IntRoundTripTests, Abs) { expect_round_trip(s->make_term(Op::Abs, a)); }
 
 TEST_P(IntRoundTripTests, Pow)
 {
-  expect_round_trip(s->make_term(Pow, a, s->make_term(4, intsort)));
+  expect_round_trip(s->make_term(Op::Pow, a, s->make_term(4, intsort)));
 }
 
-TEST_P(IntRoundTripTests, Lt) { expect_round_trip(s->make_term(Lt, a, b)); }
+TEST_P(IntRoundTripTests, Lt) { expect_round_trip(s->make_term(Op::Lt, a, b)); }
 
-TEST_P(IntRoundTripTests, Le) { expect_round_trip(s->make_term(Le, a, b)); }
+TEST_P(IntRoundTripTests, Le) { expect_round_trip(s->make_term(Op::Le, a, b)); }
 
-TEST_P(IntRoundTripTests, Gt) { expect_round_trip(s->make_term(Gt, a, b)); }
+TEST_P(IntRoundTripTests, Gt) { expect_round_trip(s->make_term(Op::Gt, a, b)); }
 
-TEST_P(IntRoundTripTests, Ge) { expect_round_trip(s->make_term(Ge, a, b)); }
+TEST_P(IntRoundTripTests, Ge) { expect_round_trip(s->make_term(Op::Ge, a, b)); }
 
 TEST_P(IntRoundTripTests, ScaledSum)
 {
-  expect_round_trip(
-      s->make_term(Plus, s->make_term(Mult, s->make_term(2, intsort), a), b));
+  expect_round_trip(s->make_term(
+      Op::Plus, s->make_term(Op::Mult, s->make_term(2, intsort), a), b));
 }
 
 TEST_P(IntRoundTripTests, ScaledTerm)
 {
-  expect_round_trip(s->make_term(Mult, s->make_term(-1, intsort), b));
+  expect_round_trip(s->make_term(Op::Mult, s->make_term(-1, intsort), b));
 }
 
 TEST_P(IntRoundTripTests, ConstantSummand)
 {
-  expect_round_trip(s->make_term(Plus, a, s->make_term(2, intsort)));
+  expect_round_trip(s->make_term(Op::Plus, a, s->make_term(2, intsort)));
 }
 
-TEST_P(RealRoundTripTests, Div) { expect_round_trip(s->make_term(Div, u, v)); }
+TEST_P(RealRoundTripTests, Div)
+{
+  expect_round_trip(s->make_term(Op::Div, u, v));
+}
 
 TEST_P(RealRoundTripTests, ToReal)
 {
-  Term t = s->make_term(To_Real, a);
+  Term t = s->make_term(Op::To_Real, a);
   if (t == a)
   {
     GTEST_SKIP() << "the solver treats Int as a subtype of Real, so " << t
@@ -480,63 +511,63 @@ TEST_P(RealRoundTripTests, ToReal)
 
 TEST_P(RealRoundTripTests, ToInt)
 {
-  expect_round_trip(s->make_term(To_Int, u));
+  expect_round_trip(s->make_term(Op::To_Int, u));
 }
 
 TEST_P(RealRoundTripTests, IsInt)
 {
-  expect_round_trip(s->make_term(Is_Int, u));
+  expect_round_trip(s->make_term(Op::Is_Int, u));
 }
 
 TEST_P(IntBVRoundTripTests, UBVToInt)
 {
-  expect_round_trip(s->make_term(UBV_To_Int, x));
+  expect_round_trip(s->make_term(Op::UBV_To_Int, x));
 }
 
 TEST_P(IntBVRoundTripTests, SBVToInt)
 {
-  expect_round_trip(s->make_term(SBV_To_Int, x));
+  expect_round_trip(s->make_term(Op::SBV_To_Int, x));
 }
 
 TEST_P(IntBVRoundTripTests, IntToBV)
 {
-  expect_round_trip(s->make_term(Op(Int_To_BV, 4), a));
+  expect_round_trip(s->make_term(Op(Op::Int_To_BV, 4), a));
 }
 
 TEST_P(ArrayRoundTripTests, Select)
 {
-  expect_round_trip(s->make_term(Select, arr, x));
+  expect_round_trip(s->make_term(Op::Select, arr, x));
 }
 
 TEST_P(ArrayRoundTripTests, Store)
 {
-  expect_round_trip(s->make_term(Store, arr, x, y));
+  expect_round_trip(s->make_term(Op::Store, arr, x, y));
 }
 
 TEST_P(FunRoundTripTests, ApplyUnary)
 {
-  expect_round_trip(s->make_term(Apply, f, x));
+  expect_round_trip(s->make_term(Op::Apply, f, x));
 }
 
 TEST_P(FunRoundTripTests, ApplyBinary)
 {
-  expect_round_trip(s->make_term(Apply, g, x, y));
+  expect_round_trip(s->make_term(Op::Apply, g, x, y));
 }
 
 TEST_P(QuantifierRoundTripTests, Forall)
 {
-  expect_round_trip(s->make_term(Forall, i, s->make_term(BVUle, i, x)));
+  expect_round_trip(s->make_term(Op::Forall, i, s->make_term(Op::BVUle, i, x)));
 }
 
 TEST_P(QuantifierRoundTripTests, Exists)
 {
-  expect_round_trip(s->make_term(Exists, i, s->make_term(BVUle, i, x)));
+  expect_round_trip(s->make_term(Op::Exists, i, s->make_term(Op::BVUle, i, x)));
 }
 
 TEST_P(QuantifierRoundTripTests, ForallTwoParams)
 {
-  Term body = s->make_term(BVUle, s->make_term(BVAdd, i, j), x);
-  expect_round_trip(s->make_term(Forall, { i, j, body }));
+  Term body = s->make_term(Op::BVUle, s->make_term(Op::BVAdd, i, j), x);
+  expect_round_trip(s->make_term(Op::Forall, { i, j, body }));
 }
 
 INSTANTIATE_TEST_SUITE_P(

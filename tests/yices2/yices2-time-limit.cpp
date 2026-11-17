@@ -47,7 +47,7 @@ void assert_pigeonhole(const SmtSolver & s)
   {
     for (size_t j = i + 1; j < vars.size(); ++j)
     {
-      s->assert_formula(s->make_term(Distinct, vars[i], vars[j]));
+      s->assert_formula(s->make_term(Op::Distinct, vars[i], vars[j]));
     }
   }
 }

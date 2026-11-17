@@ -72,7 +72,7 @@ bool UnsatCoreReducer::reduce_assump_unsatcore(const Term & formula,
   for (const auto & a : cand_res)
   {
     Term l = label(a);
-    reducer_->assert_formula(reducer_->make_term(Implies, l, a));
+    reducer_->assert_formula(reducer_->make_term(Op::Implies, l, a));
     bool_assump.push_back(l);
   }
 
@@ -179,7 +179,7 @@ bool UnsatCoreReducer::linear_reduce_assump_unsatcore(const Term & formula,
   for (const auto & a : cand_res)
   {
     Term l = label(a);
-    reducer_->assert_formula(reducer_->make_term(Implies, l, a));
+    reducer_->assert_formula(reducer_->make_term(Op::Implies, l, a));
     bool_assump.push_back(l);
     label_to_cand_.emplace(l, a);
   }

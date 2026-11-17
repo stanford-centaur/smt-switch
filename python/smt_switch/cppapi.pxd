@@ -5,7 +5,7 @@ from libcpp.unordered_map cimport unordered_map
 from libcpp.unordered_set cimport unordered_set
 from libcpp.vector cimport vector
 
-from .cppenums cimport c_PrimOp, c_SortKind
+from .cppenums cimport c_OpKind, c_SortKind
 
 ctypedef shared_ptr[AbsSort] c_Sort
 ctypedef shared_ptr[AbsTerm] c_Term
@@ -44,12 +44,12 @@ cdef extern from "smt-switch/ops.h" namespace "smt":
 
     cdef cppclass c_Op "smt::Op":
         c_Op() except +
-        c_Op(c_PrimOp o) except +
-        c_Op(c_PrimOp o, uint64_t idx0) except +
-        c_Op(c_PrimOp o, uint64_t idx0, uint64_t idx1) except +
+        c_Op(c_OpKind o) except +
+        c_Op(c_OpKind o, uint64_t idx0) except +
+        c_Op(c_OpKind o, uint64_t idx0, uint64_t idx1) except +
         string to_string() except +
         bint is_null() except +
-        c_PrimOp prim_op
+        c_OpKind kind() except +
         c_OpIndices indices
 
     bint operator==(c_Op op1, c_Op op2) except +
@@ -79,7 +79,7 @@ cdef extern from "smt-switch/term.h" namespace "smt":
         int64_t to_signed_int() except +
         c_TermIter begin() except +
         c_TermIter end() except +
-        void op_partition(c_PrimOp po, c_TermVec & out) except +
+        void op_partition(c_OpKind kind, c_TermVec & out) except +
         void conjunctive_partition(c_TermVec & out, bint include_bvand) except +
         void get_free_symbolic_consts(c_UnorderedTermSet & out) except +
         void get_free_symbols(c_UnorderedTermSet & out) except +

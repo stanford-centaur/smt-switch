@@ -37,9 +37,9 @@ enum class Assoc
 };
 
 /** What SMT-LIB defines for an operator */
-struct PrimOpInfo
+struct KindInfo
 {
-  PrimOp op;
+  Op::Kind kind;
   const char * name;
   Theory theory;
   std::uint64_t num_indices;
@@ -48,101 +48,116 @@ struct PrimOpInfo
   Assoc assoc;
 };
 
-// one row per PrimOp, in the order of the enum
-constexpr PrimOpInfo primop_info[] = {
-  { And, "and", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
-  { Or, "or", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
-  { Xor, "xor", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
-  { Not, "not", Theory::CORE, 0, 1, 1, Assoc::NONE },
-  { Implies, "=>", Theory::CORE, 0, 2, INT_MAX, Assoc::RIGHT },
-  { Ite, "ite", Theory::CORE, 0, 3, 3, Assoc::NONE },
-  { Equal, "=", Theory::CORE, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { Distinct, "distinct", Theory::CORE, 0, 2, INT_MAX, Assoc::PAIRWISE },
+// one row per kind but Op::NONE, in the order of the enum
+constexpr KindInfo kind_info[] = {
+  { Op::And, "and", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Or, "or", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Xor, "xor", Theory::CORE, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Not, "not", Theory::CORE, 0, 1, 1, Assoc::NONE },
+  { Op::Implies, "=>", Theory::CORE, 0, 2, INT_MAX, Assoc::RIGHT },
+  { Op::Ite, "ite", Theory::CORE, 0, 3, 3, Assoc::NONE },
+  { Op::Equal, "=", Theory::CORE, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::Distinct, "distinct", Theory::CORE, 0, 2, INT_MAX, Assoc::PAIRWISE },
   // at least the function and one argument
   // of course, to be well-sorted the number of arguments must
   // match the function domain
-  { Apply, "apply", Theory::UF, 0, 2, INT_MAX, Assoc::NONE },
-  { Plus, "+", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
-  { Minus, "-", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
-  { Negate, "-", Theory::ARITH, 0, 1, 1, Assoc::NONE },
-  { Mult, "*", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
-  { Div, "/", Theory::REALS, 0, 2, INT_MAX, Assoc::LEFT },
-  { Lt, "<", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { Le, "<=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { Gt, ">", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { Ge, ">=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { Mod, "mod", Theory::INTS, 0, 2, 2, Assoc::NONE },
-  { Abs, "abs", Theory::INTS, 0, 1, 1, Assoc::NONE },
-  { Pow, "**", Theory::INTS, 0, 2, 2, Assoc::NONE },
-  { IntDiv, "div", Theory::INTS, 0, 2, INT_MAX, Assoc::LEFT },
-  { Divisible, "divisible", Theory::INTS, 1, 1, 1, Assoc::NONE },
-  { To_Real, "to_real", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
-  { To_Int, "to_int", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
-  { Is_Int, "is_int", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
-  { Concat, "concat", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { Extract, "extract", Theory::BITVECTORS, 2, 1, 1, Assoc::NONE },
-  { BVNot, "bvnot", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
-  { BVNeg, "bvneg", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
-  { BVAnd, "bvand", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
-  { BVOr, "bvor", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
-  { BVXor, "bvxor", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
-  { BVNand, "bvnand", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVNor, "bvnor", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVXnor, "bvxnor", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVAdd, "bvadd", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
-  { BVSub, "bvsub", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVMul, "bvmul", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
-  { BVUdiv, "bvudiv", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSdiv, "bvsdiv", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVUrem, "bvurem", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSrem, "bvsrem", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSmod, "bvsmod", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVShl, "bvshl", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVAshr, "bvashr", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVLshr, "bvlshr", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVComp, "bvcomp", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVUlt, "bvult", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVUle, "bvule", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVUgt, "bvugt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVUge, "bvuge", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSlt, "bvslt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSle, "bvsle", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSgt, "bvsgt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { BVSge, "bvsge", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
-  { Zero_Extend, "zero_extend", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
-  { Sign_Extend, "sign_extend", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
-  { Repeat, "repeat", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
-  { Rotate_Left, "rotate_left", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
-  { Rotate_Right, "rotate_right", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
-  { BV_To_Nat, "ubv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
-  { UBV_To_Int, "ubv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
-  { SBV_To_Int, "sbv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
-  { Int_To_BV, "int_to_bv", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
-  { StrLt, "str.<", Theory::STRINGS, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { StrLeq, "str.<=", Theory::STRINGS, 0, 2, INT_MAX, Assoc::CHAINABLE },
-  { StrLen, "str.len", Theory::STRINGS, 0, 1, 1, Assoc::NONE },
-  { StrConcat, "str.++", Theory::STRINGS, 0, 2, INT_MAX, Assoc::LEFT },
-  { StrSubstr, "str.substr", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
-  { StrAt, "str.at", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
-  { StrContains, "str.contains", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
-  { StrIndexof, "str.indexof", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
-  { StrReplace, "str.replace", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
-  { StrReplaceAll, "str.replace_all", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
-  { StrPrefixof, "str.prefixof", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
-  { StrSuffixof, "str.suffixof", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
-  { StrIsDigit, "str.is_digit", Theory::STRINGS, 0, 1, 1, Assoc::NONE },
-  { Select, "select", Theory::ARRAYS, 0, 2, 2, Assoc::NONE },
-  { Store, "store", Theory::ARRAYS, 0, 3, 3, Assoc::NONE },
-  // to make term traversal easier considering the differences
-  // in the underlying solver's handling of quantifiers, smt-switch
-  // always uses the form <Forall/Exists> bound_param . body
-  // i.e. it takes two arguments, the parameter to bind and the body
-  { Forall, "forall", Theory::QUANTIFIERS, 0, 2, 2, Assoc::NONE },
-  { Exists, "exists", Theory::QUANTIFIERS, 0, 2, 2, Assoc::NONE },
-  { Apply_Selector, "apply_selector", Theory::DATATYPES, 0, 2, 2, Assoc::NONE },
-  { Apply_Tester, "apply_tester", Theory::DATATYPES, 0, 2, 2, Assoc::NONE },
+  { Op::Apply, "apply", Theory::UF, 0, 2, INT_MAX, Assoc::NONE },
+  { Op::Plus, "+", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Minus, "-", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Negate, "-", Theory::ARITH, 0, 1, 1, Assoc::NONE },
+  { Op::Mult, "*", Theory::ARITH, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Div, "/", Theory::REALS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Lt, "<", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::Le, "<=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::Gt, ">", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::Ge, ">=", Theory::ARITH, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::Mod, "mod", Theory::INTS, 0, 2, 2, Assoc::NONE },
+  { Op::Abs, "abs", Theory::INTS, 0, 1, 1, Assoc::NONE },
+  { Op::Pow, "**", Theory::INTS, 0, 2, 2, Assoc::NONE },
+  { Op::IntDiv, "div", Theory::INTS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::Divisible, "divisible", Theory::INTS, 1, 1, 1, Assoc::NONE },
+  { Op::To_Real, "to_real", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
+  { Op::To_Int, "to_int", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
+  { Op::Is_Int, "is_int", Theory::REALS_INTS, 0, 1, 1, Assoc::NONE },
+  { Op::Concat, "concat", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::Extract, "extract", Theory::BITVECTORS, 2, 1, 1, Assoc::NONE },
+  { Op::BVNot, "bvnot", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { Op::BVNeg, "bvneg", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { Op::BVAnd, "bvand", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::BVOr, "bvor", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::BVXor, "bvxor", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::BVNand, "bvnand", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVNor, "bvnor", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVXnor, "bvxnor", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVAdd, "bvadd", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::BVSub, "bvsub", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVMul, "bvmul", Theory::BITVECTORS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::BVUdiv, "bvudiv", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSdiv, "bvsdiv", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVUrem, "bvurem", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSrem, "bvsrem", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSmod, "bvsmod", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVShl, "bvshl", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVAshr, "bvashr", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVLshr, "bvlshr", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVComp, "bvcomp", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVUlt, "bvult", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVUle, "bvule", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVUgt, "bvugt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVUge, "bvuge", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSlt, "bvslt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSle, "bvsle", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSgt, "bvsgt", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::BVSge, "bvsge", Theory::BITVECTORS, 0, 2, 2, Assoc::NONE },
+  { Op::Zero_Extend, "zero_extend", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Op::Sign_Extend, "sign_extend", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Op::Repeat, "repeat", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Op::Rotate_Left, "rotate_left", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Op::Rotate_Right,
+    "rotate_right",
+    Theory::BITVECTORS,
+    1,
+    1,
+    1,
+    Assoc::NONE },
+  { Op::UBV_To_Int, "ubv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { Op::SBV_To_Int, "sbv_to_int", Theory::BITVECTORS, 0, 1, 1, Assoc::NONE },
+  { Op::Int_To_BV, "int_to_bv", Theory::BITVECTORS, 1, 1, 1, Assoc::NONE },
+  { Op::StrLt, "str.<", Theory::STRINGS, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::StrLeq, "str.<=", Theory::STRINGS, 0, 2, INT_MAX, Assoc::CHAINABLE },
+  { Op::StrLen, "str.len", Theory::STRINGS, 0, 1, 1, Assoc::NONE },
+  { Op::StrConcat, "str.++", Theory::STRINGS, 0, 2, INT_MAX, Assoc::LEFT },
+  { Op::StrSubstr, "str.substr", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { Op::StrAt, "str.at", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { Op::StrContains, "str.contains", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { Op::StrIndexof, "str.indexof", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { Op::StrReplace, "str.replace", Theory::STRINGS, 0, 3, 3, Assoc::NONE },
+  { Op::StrReplaceAll,
+    "str.replace_all",
+    Theory::STRINGS,
+    0,
+    3,
+    3,
+    Assoc::NONE },
+  { Op::StrPrefixof, "str.prefixof", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { Op::StrSuffixof, "str.suffixof", Theory::STRINGS, 0, 2, 2, Assoc::NONE },
+  { Op::StrIsDigit, "str.is_digit", Theory::STRINGS, 0, 1, 1, Assoc::NONE },
+  { Op::Select, "select", Theory::ARRAYS, 0, 2, 2, Assoc::NONE },
+  { Op::Store, "store", Theory::ARRAYS, 0, 3, 3, Assoc::NONE },
+  // A quantifier binds one parameter, so make_term nests one per parameter;
+  // a logging term keeps the parameters as they were given.
+  { Op::Forall, "forall", Theory::QUANTIFIERS, 0, 2, 2, Assoc::NONE },
+  { Op::Exists, "exists", Theory::QUANTIFIERS, 0, 2, 2, Assoc::NONE },
+  { Op::Apply_Selector,
+    "apply_selector",
+    Theory::DATATYPES,
+    0,
+    2,
+    2,
+    Assoc::NONE },
+  { Op::Apply_Tester, "apply_tester", Theory::DATATYPES, 0, 2, 2, Assoc::NONE },
   // a nullary constructor is applied to nothing but itself
-  { Apply_Constructor,
+  { Op::Apply_Constructor,
     "apply_constructor",
     Theory::DATATYPES,
     0,
@@ -151,14 +166,14 @@ constexpr PrimOpInfo primop_info[] = {
     Assoc::NONE },
 };
 
-static_assert(std::size(primop_info) == NUM_OPS_AND_NULL,
-              "primop_info needs one row per PrimOp");
+static_assert(std::size(kind_info) == Op::num_kinds - 1,
+              "kind_info needs one row per kind but Op::NONE");
 
 constexpr bool rows_follow_enum()
 {
-  for (std::size_t i = 0; i < std::size(primop_info); ++i)
+  for (std::size_t i = 0; i < std::size(kind_info); ++i)
   {
-    if (primop_info[i].op != static_cast<PrimOp>(i))
+    if (kind_info[i].kind != static_cast<Op::Kind>(i + 1))
     {
       return false;
     }
@@ -166,35 +181,34 @@ constexpr bool rows_follow_enum()
   return true;
 }
 static_assert(rows_follow_enum(),
-              "primop_info's rows must be in the order of the PrimOp enum");
+              "kind_info's rows must be in the order of Op::Kind");
 
-/** The row of po
+/** The row of kind
  *  @param caller the public function asking, for the message
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
- *          value
+ *  @throws IncorrectUsageException for Op::NONE or an out-of-range value
  */
-const PrimOpInfo & info(PrimOp po, const char * caller)
+const KindInfo & info(Op::Kind kind, const char * caller)
 {
-  const auto i = static_cast<std::size_t>(po);
-  if (i >= std::size(primop_info))
+  const auto i = static_cast<std::size_t>(kind);
+  if (kind == Op::NONE || i >= Op::num_kinds)
   {
     throw IncorrectUsageException(std::string(caller)
-                                  + " got a PrimOp that is not an operator: "
-                                  + std::to_string(static_cast<int>(po)));
+                                  + " got a kind that is not an operator: "
+                                  + std::to_string(static_cast<int>(kind)));
   }
-  return primop_info[i];
+  return kind_info[i - 1];
 }
 
-/** @throws IncorrectUsageException unless po takes given indices; the null
- *  operator takes none
+/** @throws IncorrectUsageException unless kind takes given indices; Op::NONE
+ * takes none
  */
-void check_num_indices(PrimOp po, std::uint64_t given)
+void check_num_indices(Op::Kind kind, std::uint64_t given)
 {
   const std::uint64_t expected =
-      (po == NUM_OPS_AND_NULL && given == 0) ? 0 : get_num_indices(po);
+      (kind == Op::NONE && given == 0) ? 0 : get_num_indices(kind);
   if (given != expected)
   {
-    throw IncorrectUsageException(to_string(po) + " takes "
+    throw IncorrectUsageException(to_string(kind) + " takes "
                                   + std::to_string(expected)
                                   + (expected == 1 ? " index" : " indices")
                                   + ", not " + std::to_string(given));
@@ -203,13 +217,18 @@ void check_num_indices(PrimOp po, std::uint64_t given)
 
 }  // namespace
 
-std::string to_string(PrimOp op)
+std::string to_string(Op::Kind kind)
 {
-  if (op == NUM_OPS_AND_NULL)
+  if (kind == Op::NONE)
   {
     return "null";
   }
-  return info(op, "to_string").name;
+  return info(kind, "to_string").name;
+}
+
+std::ostream & operator<<(std::ostream & output, Op::Kind kind)
+{
+  return output << to_string(kind);
 }
 
 Op::Indices::Indices(std::uint64_t index0) : values{ { index0, 0 } }, count(1)
@@ -248,27 +267,29 @@ bool Op::Indices::operator!=(const Indices & other) const
   return !(*this == other);
 }
 
-Op::Op(PrimOp o) : prim_op(o) { check_num_indices(o, 0); }
+Op::Op(Kind kind) : kind_(kind) { check_num_indices(kind, 0); }
 
-Op::Op(PrimOp o, std::uint64_t index0) : prim_op(o), indices(index0)
+Op::Op(Kind kind, std::uint64_t index0) : indices(index0), kind_(kind)
 {
-  check_num_indices(o, 1);
+  check_num_indices(kind, 1);
 }
 
-Op::Op(PrimOp o, std::uint64_t index0, std::uint64_t index1)
-    : prim_op(o), indices(index0, index1)
+Op::Op(Kind kind, std::uint64_t index0, std::uint64_t index1)
+    : indices(index0, index1), kind_(kind)
 {
-  check_num_indices(o, 2);
+  check_num_indices(kind, 2);
 }
+
+Op::Kind Op::kind() const { return kind_; }
 
 std::string Op::to_string() const
 {
   if (indices.empty())
   {
-    return smt::to_string(prim_op);
+    return smt::to_string(kind_);
   }
 
-  std::string res = "(_ " + smt::to_string(prim_op);
+  std::string res = "(_ " + smt::to_string(kind_);
   for (std::uint64_t index : indices)
   {
     res += " " + std::to_string(index);
@@ -277,30 +298,30 @@ std::string Op::to_string() const
   return res;
 }
 
-bool Op::is_null() const { return prim_op == NUM_OPS_AND_NULL; }
+bool Op::is_null() const { return kind_ == NONE; }
 
-std::pair<std::size_t, std::size_t> get_arity(PrimOp po)
+std::pair<std::size_t, std::size_t> get_arity(Op::Kind kind)
 {
-  const PrimOpInfo & row = info(po, "get_arity");
+  const KindInfo & row = info(kind, "get_arity");
   return { row.min_arity, row.max_arity };
 }
 
-Theory get_theory(PrimOp po) { return info(po, "get_theory").theory; }
+Theory get_theory(Op::Kind kind) { return info(kind, "get_theory").theory; }
 
-std::uint64_t get_num_indices(PrimOp po)
+std::uint64_t get_num_indices(Op::Kind kind)
 {
-  return info(po, "get_num_indices").num_indices;
+  return info(kind, "get_num_indices").num_indices;
 }
 
-bool is_apply(PrimOp po)
+bool is_apply(Op::Kind kind)
 {
-  return po == Apply || po == Apply_Constructor || po == Apply_Selector
-         || po == Apply_Tester;
+  return kind == Op::Apply || kind == Op::Apply_Constructor
+         || kind == Op::Apply_Selector || kind == Op::Apply_Tester;
 }
 
 bool operator==(Op o1, Op o2)
 {
-  return o1.prim_op == o2.prim_op && o1.indices == o2.indices;
+  return o1.kind() == o2.kind() && o1.indices == o2.indices;
 }
 
 bool operator!=(Op o1, Op o2) { return !(o1 == o2); }
@@ -311,29 +332,29 @@ std::ostream & operator<<(std::ostream & output, const Op o)
   return output;
 }
 
-bool is_left_assoc(PrimOp po)
+bool is_left_assoc(Op::Kind kind)
 {
-  return info(po, "is_left_assoc").assoc == Assoc::LEFT;
+  return info(kind, "is_left_assoc").assoc == Assoc::LEFT;
 }
 
-bool is_right_assoc(PrimOp po)
+bool is_right_assoc(Op::Kind kind)
 {
-  return info(po, "is_right_assoc").assoc == Assoc::RIGHT;
+  return info(kind, "is_right_assoc").assoc == Assoc::RIGHT;
 }
 
-bool is_chainable(PrimOp po)
+bool is_chainable(Op::Kind kind)
 {
-  return info(po, "is_chainable").assoc == Assoc::CHAINABLE;
+  return info(kind, "is_chainable").assoc == Assoc::CHAINABLE;
 }
 
-bool is_pairwise(PrimOp po)
+bool is_pairwise(Op::Kind kind)
 {
-  return info(po, "is_pairwise").assoc == Assoc::PAIRWISE;
+  return info(kind, "is_pairwise").assoc == Assoc::PAIRWISE;
 }
 
-bool is_variadic(PrimOp po)
+bool is_variadic(Op::Kind kind)
 {
-  return info(po, "is_variadic").assoc != Assoc::NONE;
+  return info(kind, "is_variadic").assoc != Assoc::NONE;
 }
 
 }  // namespace smt
@@ -343,7 +364,7 @@ namespace std {
 size_t hash<smt::Op>::operator()(const smt::Op o) const
 {
   // the primitive op and the indices, which == compares
-  size_t h = hash<smt::PrimOp>{}(o.prim_op);
+  size_t h = hash<smt::Op::Kind>{}(o.kind());
   for (uint64_t index : o.indices)
   {
     smt::backend::hash_combine(h, index);

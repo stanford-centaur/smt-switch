@@ -68,7 +68,7 @@ TEST_P(SortingNetworkTests, TestSortingNetwork)
     if (num_true < NUM_VARS)
     {
       // ensure there aren't more than num_true set to true
-      solver->assert_formula(solver->make_term(Not, sorted[num_true]));
+      solver->assert_formula(solver->make_term(Op::Not, sorted[num_true]));
     }
 
     solver->check_sat();

@@ -51,7 +51,8 @@ TermVec SortingNetwork::sorting_network(const TermVec & unsorted) const
 
 TermVec SortingNetwork::sort_two(const Term & t1, const Term & t2) const
 {
-  return { solver_->make_term(Or, t1, t2), solver_->make_term(And, t1, t2) };
+  return { solver_->make_term(Op::Or, t1, t2),
+           solver_->make_term(Op::And, t1, t2) };
 }
 
 TermVec SortingNetwork::merge(const TermVec & sorted1,

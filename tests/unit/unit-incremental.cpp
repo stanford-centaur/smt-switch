@@ -57,13 +57,13 @@ TEST_P(UnitIncrementalTests, ContextLevel)
 
   s->push();
   EXPECT_EQ(s->get_context_level(), 1);
-  s->assert_formula(s->make_term(Not, b));
+  s->assert_formula(s->make_term(Op::Not, b));
   r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 
   s->push();
   EXPECT_EQ(s->get_context_level(), 2);
-  s->assert_formula(s->make_term(Or, s->make_term(Not, a), b));
+  s->assert_formula(s->make_term(Op::Or, s->make_term(Op::Not, a), b));
 
   r = s->check_sat();
   ASSERT_TRUE(r.is_unsat());
@@ -81,7 +81,7 @@ TEST_P(UnitIncrementalTests, ContextLevel)
 
   s->push(5);
   EXPECT_EQ(s->get_context_level(), 5);
-  s->assert_formula(s->make_term(Not, a));
+  s->assert_formula(s->make_term(Op::Not, a));
   r = s->check_sat();
   ASSERT_TRUE(r.is_unsat());
 
@@ -101,7 +101,7 @@ TEST_P(UnitIncrementalTests, PopPastThePushesIsRefused)
   s->assert_formula(a);
   EXPECT_THROW(s->pop(2), IncorrectUsageException);
   EXPECT_EQ(s->get_context_level(), 1);
-  s->assert_formula(s->make_term(Not, a));
+  s->assert_formula(s->make_term(Op::Not, a));
   EXPECT_TRUE(s->check_sat().is_unsat());
   s->pop();
   EXPECT_TRUE(s->check_sat().is_sat());

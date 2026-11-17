@@ -51,12 +51,12 @@ TEST_P(UnitTestsHashTable, HashTable)
 {
   Term x = s->make_symbol("x", bvsort);
   Term one = s->make_term(1, bvsort);
-  Term xp1 = s->make_term(BVAdd, x, one);
+  Term xp1 = s->make_term(Op::BVAdd, x, one);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
-  Term fxeqxp1 = s->make_term(Equal, fx, xp1);
+  Term fx = s->make_term(Op::Apply, f, x);
+  Term fxeqxp1 = s->make_term(Op::Equal, fx, xp1);
 
-  Term xp1_2 = s->make_term(BVAdd, x, one);
+  Term xp1_2 = s->make_term(Op::BVAdd, x, one);
   Term cp_xp1_2 = xp1_2;
   ASSERT_EQ(xp1_2.use_count(), 2);
   ASSERT_EQ(cp_xp1_2.use_count(), 2);

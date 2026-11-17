@@ -40,25 +40,25 @@ TEST(MsatAssumptionClauses, ClearedOnEveryCall)
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
 
-  s->assert_formula(s->make_term(Equal, z, s->make_term(BVAdd, y, z)));
-  s->assert_formula(s->make_term(Equal, z, s->make_term(BVSub, y, z)));
+  s->assert_formula(s->make_term(Op::Equal, z, s->make_term(Op::BVAdd, y, z)));
+  s->assert_formula(s->make_term(Op::Equal, z, s->make_term(Op::BVSub, y, z)));
   Result r = s->check_sat();
   EXPECT_TRUE(r.is_sat());
 
   Term assumption0 =
-      s->make_term(And,
-                   s->make_term(Distinct, x, s->make_term(0, bvsort8)),
-                   s->make_term(Distinct, y, s->make_term(0, bvsort8)));
+      s->make_term(Op::And,
+                   s->make_term(Op::Distinct, x, s->make_term(0, bvsort8)),
+                   s->make_term(Op::Distinct, y, s->make_term(0, bvsort8)));
 
   Sort boolsort = s->make_sort(SortKind::BOOL);
   Term il0 = s->make_symbol("il0", boolsort);
-  s->assert_formula(s->make_term(Implies, il0, assumption0));
+  s->assert_formula(s->make_term(Op::Implies, il0, assumption0));
   r = s->check_sat_assuming(TermVec{ il0 });
   EXPECT_TRUE(r.is_unsat());
 
   Term il1 = s->make_symbol("il1", boolsort);
-  Term assumption1 = s->make_term(Equal, x, s->make_term(1, bvsort8));
-  s->assert_formula(s->make_term(Implies, il1, assumption1));
+  Term assumption1 = s->make_term(Op::Equal, x, s->make_term(1, bvsort8));
+  s->assert_formula(s->make_term(Op::Implies, il1, assumption1));
   r = s->check_sat_assuming({ il1 });
   ASSERT_TRUE(r.is_sat());
   EXPECT_EQ(s->get_value(x)->to_int(), 1);

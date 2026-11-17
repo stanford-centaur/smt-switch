@@ -86,97 +86,99 @@ class DatatypeSortedness : public UnitSortInferenceTests
 
 TEST_P(UnitSortInferenceTests, SortRules)
 {
-  EXPECT_TRUE(Op(Equal).check_sortedness(SortVec{ boolsort, boolsort }));
-  EXPECT_TRUE(Op(Equal).check_sortedness(SortVec{ bvsort4, bvsort4 }));
-  EXPECT_TRUE(Op(Equal).check_sortedness(SortVec{ arrsort, arrsort }));
-  EXPECT_TRUE(Op(Equal).check_sortedness(SortVec{ funsort, funsort }));
-  EXPECT_FALSE(Op(Equal).check_sortedness(SortVec{ boolsort, bvsort4 }));
-  EXPECT_FALSE(Op(Equal).check_sortedness(SortVec{ bvsort4, bvsort5 }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness(SortVec{ boolsort, boolsort }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness(SortVec{ bvsort4, bvsort4 }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness(SortVec{ arrsort, arrsort }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness(SortVec{ funsort, funsort }));
+  EXPECT_FALSE(Op(Op::Equal).check_sortedness(SortVec{ boolsort, bvsort4 }));
+  EXPECT_FALSE(Op(Op::Equal).check_sortedness(SortVec{ bvsort4, bvsort5 }));
 
-  EXPECT_FALSE(Op(Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort5 }));
+  EXPECT_FALSE(
+      Op(Op::Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort5 }));
 
-  EXPECT_TRUE(Op(Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort4 }));
-  EXPECT_TRUE(Op(Not).check_sortedness(SortVec{ boolsort }));
+  EXPECT_TRUE(
+      Op(Op::Ite).check_sortedness(SortVec{ boolsort, bvsort4, bvsort4 }));
+  EXPECT_TRUE(Op(Op::Not).check_sortedness(SortVec{ boolsort }));
 
-  EXPECT_TRUE(Op(BVNot).check_sortedness(SortVec{ bvsort4 }));
+  EXPECT_TRUE(Op(Op::BVNot).check_sortedness(SortVec{ bvsort4 }));
 }
 
 TEST_P(UnitSortInferenceTests, SortednessTooFewSorts)
 {
-  EXPECT_FALSE(Op(Equal).check_sortedness(SortVec{}));
-  EXPECT_FALSE(Op(Ite).check_sortedness(SortVec{}));
-  EXPECT_FALSE(Op(Ite).check_sortedness(SortVec{ boolsort, bvsort4 }));
-  EXPECT_FALSE(Op(Apply).check_sortedness(SortVec{}));
-  EXPECT_FALSE(Op(BVAnd).check_sortedness(SortVec{}));
-  EXPECT_FALSE(Op(Select).check_sortedness(SortVec{}));
-  EXPECT_FALSE(Op(Store).check_sortedness(SortVec{}));
+  EXPECT_FALSE(Op(Op::Equal).check_sortedness(SortVec{}));
+  EXPECT_FALSE(Op(Op::Ite).check_sortedness(SortVec{}));
+  EXPECT_FALSE(Op(Op::Ite).check_sortedness(SortVec{ boolsort, bvsort4 }));
+  EXPECT_FALSE(Op(Op::Apply).check_sortedness(SortVec{}));
+  EXPECT_FALSE(Op(Op::BVAnd).check_sortedness(SortVec{}));
+  EXPECT_FALSE(Op(Op::Select).check_sortedness(SortVec{}));
+  EXPECT_FALSE(Op(Op::Store).check_sortedness(SortVec{}));
 }
 
 TEST_P(UnitSortInferenceTests, SortComputationTooFewArguments)
 {
-  EXPECT_THROW(Op(And).compute_sort(s, SortVec{}), IncorrectUsageException);
-  EXPECT_THROW(Op(Concat).compute_sort(s, SortVec{ bvsort4 }),
+  EXPECT_THROW(Op(Op::And).compute_sort(s, SortVec{}), IncorrectUsageException);
+  EXPECT_THROW(Op(Op::Concat).compute_sort(s, SortVec{ bvsort4 }),
                IncorrectUsageException);
-  EXPECT_THROW(Op(Concat).compute_sort(s, TermVec{ p }),
+  EXPECT_THROW(Op(Op::Concat).compute_sort(s, TermVec{ p }),
                IncorrectUsageException);
-  EXPECT_THROW(Op(Ite).compute_sort(s, TermVec{ b1, p }),
+  EXPECT_THROW(Op(Op::Ite).compute_sort(s, TermVec{ b1, p }),
                IncorrectUsageException);
 }
 
 TEST_P(UnitSortInferenceTests, SortednessTests)
 {
   /******** Booleans ********/
-  EXPECT_TRUE(Op(Equal).check_sortedness({ b1, b2 }));
-  EXPECT_TRUE(Op(Distinct).check_sortedness({ b1, b2 }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness({ b1, b2 }));
+  EXPECT_TRUE(Op(Op::Distinct).check_sortedness({ b1, b2 }));
 
-  EXPECT_TRUE(Op(And).check_sortedness({ b1, b2 }));
-  EXPECT_TRUE(Op(Xor).check_sortedness({ b1, b2 }));
+  EXPECT_TRUE(Op(Op::And).check_sortedness({ b1, b2 }));
+  EXPECT_TRUE(Op(Op::Xor).check_sortedness({ b1, b2 }));
   // wrong operator, except where Booleans are bit-vectors of width one
   if (!solver_has_attribute(s->get_solver_enum(),
                             SolverAttribute::BOOL_BV1_ALIASING))
   {
-    EXPECT_FALSE(Op(BVAnd).check_sortedness({ b1, b2 }));
+    EXPECT_FALSE(Op(Op::BVAnd).check_sortedness({ b1, b2 }));
   }
 
-  EXPECT_FALSE(Op(Ge).check_sortedness({ b1, b2 }));
+  EXPECT_FALSE(Op(Op::Ge).check_sortedness({ b1, b2 }));
 
   // wrong number of arguments
-  EXPECT_FALSE(Op(Xor).check_sortedness({ b1 }));
+  EXPECT_FALSE(Op(Op::Xor).check_sortedness({ b1 }));
 
   /******* Bitvectors *******/
-  EXPECT_TRUE(Op(Equal).check_sortedness({ p, q }));
-  EXPECT_TRUE(Op(Distinct).check_sortedness({ p, q }));
-  EXPECT_TRUE(Op(BVAdd).check_sortedness({ p, q }));
-  EXPECT_TRUE(Op(BVAnd).check_sortedness({ p, q }));
-  EXPECT_TRUE(Op(BVAdd).check_sortedness({ p, q }));
-  EXPECT_TRUE(Op(BVUlt).check_sortedness({ p, q }));
-  EXPECT_TRUE(Op(BVNeg).check_sortedness({ p }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness({ p, q }));
+  EXPECT_TRUE(Op(Op::Distinct).check_sortedness({ p, q }));
+  EXPECT_TRUE(Op(Op::BVAdd).check_sortedness({ p, q }));
+  EXPECT_TRUE(Op(Op::BVAnd).check_sortedness({ p, q }));
+  EXPECT_TRUE(Op(Op::BVAdd).check_sortedness({ p, q }));
+  EXPECT_TRUE(Op(Op::BVUlt).check_sortedness({ p, q }));
+  EXPECT_TRUE(Op(Op::BVNeg).check_sortedness({ p }));
   // different bit-widths
-  EXPECT_FALSE(Op(BVAdd).check_sortedness({ p, w }));
-  EXPECT_FALSE(Op(Distinct).check_sortedness({ p, w }));
+  EXPECT_FALSE(Op(Op::BVAdd).check_sortedness({ p, w }));
+  EXPECT_FALSE(Op(Op::Distinct).check_sortedness({ p, w }));
 
   /********* Arrays ********/
-  EXPECT_TRUE(Op(Select).check_sortedness({ arr, p }));
-  EXPECT_TRUE(Op(Store).check_sortedness({ arr, p, q }));
-  EXPECT_TRUE(
-      Op(Equal).check_sortedness({ arr, s->make_term(Store, arr, p, q) }));
+  EXPECT_TRUE(Op(Op::Select).check_sortedness({ arr, p }));
+  EXPECT_TRUE(Op(Op::Store).check_sortedness({ arr, p, q }));
+  EXPECT_TRUE(Op(Op::Equal).check_sortedness(
+      { arr, s->make_term(Op::Store, arr, p, q) }));
   // wrong bit-width
-  EXPECT_FALSE(Op(Select).check_sortedness({ arr, w }));
-  EXPECT_FALSE(Op(Store).check_sortedness({ arr, p, w }));
-  EXPECT_FALSE(Op(Store).check_sortedness({ arr, w, p }));
+  EXPECT_FALSE(Op(Op::Select).check_sortedness({ arr, w }));
+  EXPECT_FALSE(Op(Op::Store).check_sortedness({ arr, p, w }));
+  EXPECT_FALSE(Op(Op::Store).check_sortedness({ arr, w, p }));
 
   // BTOR doesn't support getting the sort of a function yet
   if (s->get_solver_enum() != BTOR)
   {
     /********* Functions ********/
-    EXPECT_TRUE(Op(Apply).check_sortedness({ f, p, q }));
+    EXPECT_TRUE(Op(Op::Apply).check_sortedness({ f, p, q }));
     // wrong type
-    EXPECT_FALSE(Op(Apply).check_sortedness({ f, p, w }));
-    EXPECT_FALSE(Op(Apply).check_sortedness({ f, arr, q }));
+    EXPECT_FALSE(Op(Op::Apply).check_sortedness({ f, p, w }));
+    EXPECT_FALSE(Op(Op::Apply).check_sortedness({ f, arr, q }));
     // wrong number of arguments
-    EXPECT_FALSE(Op(Apply).check_sortedness({ f }));
-    EXPECT_FALSE(Op(Apply).check_sortedness({ f, p }));
-    EXPECT_FALSE(Op(Apply).check_sortedness({ f, arr }));
+    EXPECT_FALSE(Op(Op::Apply).check_sortedness({ f }));
+    EXPECT_FALSE(Op(Op::Apply).check_sortedness({ f, p }));
+    EXPECT_FALSE(Op(Op::Apply).check_sortedness({ f, arr }));
   }
 
   /************** Quantifiers (if supported) ******************/
@@ -184,16 +186,17 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   {
     Term param = s->make_param("param", bvsort4);
     EXPECT_TRUE(param->is_param());
-    Term body = s->make_term(Equal, param, s->make_term(0, bvsort4));
-    EXPECT_TRUE(Op(Exists).check_sortedness({ param, body }));
+    Term body = s->make_term(Op::Equal, param, s->make_term(0, bvsort4));
+    EXPECT_TRUE(Op(Op::Exists).check_sortedness({ param, body }));
     // not a parameter
-    EXPECT_FALSE(Op(Exists).check_sortedness({ q, body }));
+    EXPECT_FALSE(Op(Op::Exists).check_sortedness({ q, body }));
     // not a formula for the body
     EXPECT_FALSE(
-        Op(Exists).check_sortedness({ param, s->make_term(BVAdd, param, q) }));
+        Op(Op::Exists)
+            .check_sortedness({ param, s->make_term(Op::BVAdd, param, q) }));
 
     // bind param
-    Term forallparam = s->make_term(Forall, param, body);
+    Term forallparam = s->make_term(Op::Forall, param, body);
     EXPECT_TRUE(param->is_param());  // should still be considered a parameter
                                      // after binding
   }
@@ -201,27 +204,27 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
 
 TEST_P(UnitSortInferenceTests, SortComputationBVIndexBounds)
 {
-  EXPECT_EQ(Op(Extract, 3, 3).compute_sort(s, { bvsort4 })->get_width(), 1);
-  EXPECT_THROW(Op(Extract, 2, 3).compute_sort(s, { bvsort4 }),
+  EXPECT_EQ(Op(Op::Extract, 3, 3).compute_sort(s, { bvsort4 })->get_width(), 1);
+  EXPECT_THROW(Op(Op::Extract, 2, 3).compute_sort(s, { bvsort4 }),
                IncorrectUsageException);
-  EXPECT_THROW(Op(Extract, 4, 0).compute_sort(s, { bvsort4 }),
+  EXPECT_THROW(Op(Op::Extract, 4, 0).compute_sort(s, { bvsort4 }),
                IncorrectUsageException);
 }
 
 TEST_P(UnitSortInferenceTests, SortComputationWidthOverflow)
 {
   constexpr std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
-  EXPECT_THROW(Op(Zero_Extend, max).compute_sort(s, { bvsort4 }),
+  EXPECT_THROW(Op(Op::Zero_Extend, max).compute_sort(s, { bvsort4 }),
                IncorrectUsageException);
-  EXPECT_THROW(Op(Sign_Extend, max - 3).compute_sort(s, { bvsort4 }),
+  EXPECT_THROW(Op(Op::Sign_Extend, max - 3).compute_sort(s, { bvsort4 }),
                IncorrectUsageException);
-  EXPECT_THROW(Op(Repeat, max / 4 + 1).compute_sort(s, { bvsort4 }),
+  EXPECT_THROW(Op(Op::Repeat, max / 4 + 1).compute_sort(s, { bvsort4 }),
                IncorrectUsageException);
   if (GetParam().solver_enum == GENERIC_SOLVER)
   {
     // its sorts are smt-switch's own, so they can be this wide
     Sort wide = s->make_sort(SortKind::BV, max - 3);
-    EXPECT_THROW(Op(Concat).compute_sort(s, { wide, bvsort4 }),
+    EXPECT_THROW(Op(Op::Concat).compute_sort(s, { wide, bvsort4 }),
                  IncorrectUsageException);
   }
 }
@@ -229,107 +232,110 @@ TEST_P(UnitSortInferenceTests, SortComputationWidthOverflow)
 TEST_P(UnitSortInferenceTests, SortComputation)
 {
   /******** Booleans ********/
-  EXPECT_EQ(boolsort, Op(Equal).compute_sort(s, { b1, b2 }));
-  EXPECT_EQ(boolsort, Op(Equal).compute_sort(s, { boolsort, boolsort }));
-  EXPECT_EQ(boolsort, Op(Distinct).compute_sort(s, { boolsort, boolsort }));
+  EXPECT_EQ(boolsort, Op(Op::Equal).compute_sort(s, { b1, b2 }));
+  EXPECT_EQ(boolsort, Op(Op::Equal).compute_sort(s, { boolsort, boolsort }));
+  EXPECT_EQ(boolsort, Op(Op::Distinct).compute_sort(s, { boolsort, boolsort }));
 
   /******* Bitvectors *******/
-  EXPECT_EQ(boolsort, Op(Equal).compute_sort(s, { p, q }));
-  EXPECT_EQ(boolsort, Op(Equal).compute_sort(s, { bvsort4, bvsort4 }));
-  EXPECT_EQ(boolsort, Op(BVUlt).compute_sort(s, { p, q }));
-  EXPECT_EQ(boolsort, Op(BVUlt).compute_sort(s, { bvsort4, bvsort4 }));
-  EXPECT_EQ(bvsort4, Op(BVAdd).compute_sort(s, { p, q }));
-  EXPECT_EQ(bvsort4, Op(BVAdd).compute_sort(s, { bvsort4, bvsort4 }));
-  EXPECT_EQ(bvsort4, Op(BVNeg).compute_sort(s, { p }));
-  EXPECT_EQ(bvsort4, Op(BVNeg).compute_sort(s, { bvsort4 }));
+  EXPECT_EQ(boolsort, Op(Op::Equal).compute_sort(s, { p, q }));
+  EXPECT_EQ(boolsort, Op(Op::Equal).compute_sort(s, { bvsort4, bvsort4 }));
+  EXPECT_EQ(boolsort, Op(Op::BVUlt).compute_sort(s, { p, q }));
+  EXPECT_EQ(boolsort, Op(Op::BVUlt).compute_sort(s, { bvsort4, bvsort4 }));
+  EXPECT_EQ(bvsort4, Op(Op::BVAdd).compute_sort(s, { p, q }));
+  EXPECT_EQ(bvsort4, Op(Op::BVAdd).compute_sort(s, { bvsort4, bvsort4 }));
+  EXPECT_EQ(bvsort4, Op(Op::BVNeg).compute_sort(s, { p }));
+  EXPECT_EQ(bvsort4, Op(Op::BVNeg).compute_sort(s, { bvsort4 }));
 
   Sort bvsort3 = s->make_sort(SortKind::BV, 3);
   Sort bvsort9 = s->make_sort(SortKind::BV, 9);
   Sort bvsort12 = s->make_sort(SortKind::BV, 12);
-  EXPECT_EQ(bvsort3, Op(Extract, 2, 0).compute_sort(s, { p }));
-  EXPECT_EQ(bvsort3, Op(Extract, 2, 0).compute_sort(s, { bvsort4 }));
-  EXPECT_EQ(bvsort9, Op(Concat).compute_sort(s, { p, w }));
-  EXPECT_EQ(bvsort12, Op(Repeat, 3).compute_sort(s, { p }));
+  EXPECT_EQ(bvsort3, Op(Op::Extract, 2, 0).compute_sort(s, { p }));
+  EXPECT_EQ(bvsort3, Op(Op::Extract, 2, 0).compute_sort(s, { bvsort4 }));
+  EXPECT_EQ(bvsort9, Op(Op::Concat).compute_sort(s, { p, w }));
+  EXPECT_EQ(bvsort12, Op(Op::Repeat, 3).compute_sort(s, { p }));
 
-  EXPECT_NE(bvsort9, Op(Concat).compute_sort(s, { bvsort4, bvsort4 }));
+  EXPECT_NE(bvsort9, Op(Op::Concat).compute_sort(s, { bvsort4, bvsort4 }));
 
   // /********* Arrays ********/
-  EXPECT_EQ(bvsort4, Op(Select).compute_sort(s, { arr, p }));
-  EXPECT_EQ(bvsort4, Op(Select).compute_sort(s, { arrsort, bvsort4 }));
-  EXPECT_EQ(arrsort, Op(Store).compute_sort(s, { arrsort, bvsort4, bvsort4 }));
-  EXPECT_EQ(arrsort, Op(Store).compute_sort(s, { arr, p, q }));
+  EXPECT_EQ(bvsort4, Op(Op::Select).compute_sort(s, { arr, p }));
+  EXPECT_EQ(bvsort4, Op(Op::Select).compute_sort(s, { arrsort, bvsort4 }));
+  EXPECT_EQ(arrsort,
+            Op(Op::Store).compute_sort(s, { arrsort, bvsort4, bvsort4 }));
+  EXPECT_EQ(arrsort, Op(Op::Store).compute_sort(s, { arr, p, q }));
 
   // BTOR doesn't support getting the sort of a function yet
   if (s->get_solver_enum() != BTOR)
   {
     /********* Functions ********/
-    EXPECT_EQ(boolsort, Op(Apply).compute_sort(s, { f, p, q }));
+    EXPECT_EQ(boolsort, Op(Op::Apply).compute_sort(s, { f, p, q }));
     EXPECT_EQ(boolsort,
-              Op(Apply).compute_sort(s, { funsort, bvsort4, bvsort4 }));
+              Op(Op::Apply).compute_sort(s, { funsort, bvsort4, bvsort4 }));
   }
 }
 
 TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortedness)
 {
-  EXPECT_TRUE(Op(Gt).check_sortedness({ x, y }));
-  EXPECT_TRUE(Op(Ge).check_sortedness({ xint, yint }));
-  EXPECT_TRUE(Op(Lt).check_sortedness({ x, y }));
-  EXPECT_TRUE(Op(Le).check_sortedness({ xint, yint }));
+  EXPECT_TRUE(Op(Op::Gt).check_sortedness({ x, y }));
+  EXPECT_TRUE(Op(Op::Ge).check_sortedness({ xint, yint }));
+  EXPECT_TRUE(Op(Op::Lt).check_sortedness({ x, y }));
+  EXPECT_TRUE(Op(Op::Le).check_sortedness({ xint, yint }));
 
-  EXPECT_TRUE(Op(Plus).check_sortedness({ x, y }));
-  EXPECT_TRUE(Op(Plus).check_sortedness({ xint, yint }));
-  EXPECT_TRUE(Op(Minus).check_sortedness({ x, y }));
-  EXPECT_TRUE(Op(Minus).check_sortedness({ xint, yint }));
-  EXPECT_TRUE(Op(Negate).check_sortedness({ xint }));
-  EXPECT_TRUE(Op(Abs).check_sortedness({ xint }));
+  EXPECT_TRUE(Op(Op::Plus).check_sortedness({ x, y }));
+  EXPECT_TRUE(Op(Op::Plus).check_sortedness({ xint, yint }));
+  EXPECT_TRUE(Op(Op::Minus).check_sortedness({ x, y }));
+  EXPECT_TRUE(Op(Op::Minus).check_sortedness({ xint, yint }));
+  EXPECT_TRUE(Op(Op::Negate).check_sortedness({ xint }));
+  EXPECT_TRUE(Op(Op::Abs).check_sortedness({ xint }));
 
-  EXPECT_TRUE(Op(To_Int).check_sortedness({ x }));
-  EXPECT_TRUE(Op(To_Real).check_sortedness({ xint }));
-  EXPECT_TRUE(Op(Is_Int).check_sortedness({ x }));
+  EXPECT_TRUE(Op(Op::To_Int).check_sortedness({ x }));
+  EXPECT_TRUE(Op(Op::To_Real).check_sortedness({ xint }));
+  EXPECT_TRUE(Op(Op::Is_Int).check_sortedness({ x }));
 
   // wrong operators
-  EXPECT_FALSE(Op(To_Real).check_sortedness({ x }));
-  EXPECT_FALSE(Op(To_Int).check_sortedness({ xint }));
-  EXPECT_FALSE(Op(Is_Int).check_sortedness({ xint }));
-  EXPECT_FALSE(Op(BVUgt).check_sortedness({ x, y }));
-  EXPECT_FALSE(Op(BVSgt).check_sortedness({ xint, yint }));
-  EXPECT_FALSE(Op(BVUlt).check_sortedness({ x, y }));
-  EXPECT_FALSE(Op(BVSge).check_sortedness({ xint, yint }));
-  EXPECT_FALSE(Op(BVAdd).check_sortedness({ xint, yint }));
+  EXPECT_FALSE(Op(Op::To_Real).check_sortedness({ x }));
+  EXPECT_FALSE(Op(Op::To_Int).check_sortedness({ xint }));
+  EXPECT_FALSE(Op(Op::Is_Int).check_sortedness({ xint }));
+  EXPECT_FALSE(Op(Op::BVUgt).check_sortedness({ x, y }));
+  EXPECT_FALSE(Op(Op::BVSgt).check_sortedness({ xint, yint }));
+  EXPECT_FALSE(Op(Op::BVUlt).check_sortedness({ x, y }));
+  EXPECT_FALSE(Op(Op::BVSge).check_sortedness({ xint, yint }));
+  EXPECT_FALSE(Op(Op::BVAdd).check_sortedness({ xint, yint }));
 
   // wrong number of arguments
-  EXPECT_FALSE(Op(Negate).check_sortedness({ xint, yint }));
-  EXPECT_FALSE(Op(Abs).check_sortedness({ xint, yint }));
+  EXPECT_FALSE(Op(Op::Negate).check_sortedness({ xint, yint }));
+  EXPECT_FALSE(Op(Op::Abs).check_sortedness({ xint, yint }));
 }
 
 TEST_P(UnitArithmeticSortInferenceTests, ArithmeticSortComputation)
 {
-  EXPECT_EQ(boolsort, Op(Equal).compute_sort(s, { x, y }));
-  EXPECT_EQ(boolsort, Op(Equal).compute_sort(s, { realsort, realsort }));
+  EXPECT_EQ(boolsort, Op(Op::Equal).compute_sort(s, { x, y }));
+  EXPECT_EQ(boolsort, Op(Op::Equal).compute_sort(s, { realsort, realsort }));
 
-  EXPECT_EQ(boolsort, Op(Ge).compute_sort(s, { x, y }));
-  EXPECT_EQ(boolsort, Op(Le).compute_sort(s, { realsort, realsort }));
+  EXPECT_EQ(boolsort, Op(Op::Ge).compute_sort(s, { x, y }));
+  EXPECT_EQ(boolsort, Op(Op::Le).compute_sort(s, { realsort, realsort }));
 
-  EXPECT_EQ(realsort, Op(Plus).compute_sort(s, { x, y }));
-  EXPECT_EQ(realsort, Op(Minus).compute_sort(s, { realsort, realsort }));
+  EXPECT_EQ(realsort, Op(Op::Plus).compute_sort(s, { x, y }));
+  EXPECT_EQ(realsort, Op(Op::Minus).compute_sort(s, { realsort, realsort }));
 
-  EXPECT_EQ(intsort, Op(Plus).compute_sort(s, { xint, yint }));
-  EXPECT_EQ(intsort, Op(Minus).compute_sort(s, { intsort, intsort }));
+  EXPECT_EQ(intsort, Op(Op::Plus).compute_sort(s, { xint, yint }));
+  EXPECT_EQ(intsort, Op(Op::Minus).compute_sort(s, { intsort, intsort }));
 
   // over an Int and a Real, the result is a Real
-  EXPECT_EQ(realsort, Op(Plus).compute_sort(s, { xint, y }));
-  EXPECT_EQ(realsort, Op(Minus).compute_sort(s, { x, yint }));
-  EXPECT_EQ(realsort, Op(Mult).compute_sort(s, { intsort, realsort, intsort }));
+  EXPECT_EQ(realsort, Op(Op::Plus).compute_sort(s, { xint, y }));
+  EXPECT_EQ(realsort, Op(Op::Minus).compute_sort(s, { x, yint }));
+  EXPECT_EQ(realsort,
+            Op(Op::Mult).compute_sort(s, { intsort, realsort, intsort }));
 
   Sort aritharrsort = s->make_sort(SortKind::ARRAY, intsort, realsort);
   Term aritharr = s->make_symbol("aritharr", aritharrsort);
 
   // /********* Arrays ********/
-  EXPECT_EQ(realsort, Op(Select).compute_sort(s, { aritharr, yint }));
-  EXPECT_EQ(realsort, Op(Select).compute_sort(s, { aritharrsort, intsort }));
+  EXPECT_EQ(realsort, Op(Op::Select).compute_sort(s, { aritharr, yint }));
+  EXPECT_EQ(realsort,
+            Op(Op::Select).compute_sort(s, { aritharrsort, intsort }));
   EXPECT_EQ(aritharrsort,
-            Op(Store).compute_sort(s, { aritharrsort, intsort, realsort }));
-  EXPECT_EQ(aritharrsort, Op(Store).compute_sort(s, { aritharr, xint, y }));
+            Op(Op::Store).compute_sort(s, { aritharrsort, intsort, realsort }));
+  EXPECT_EQ(aritharrsort, Op(Op::Store).compute_sort(s, { aritharr, xint, y }));
 }
 
 TEST_P(DatatypeSortedness, ComponentApplications)
@@ -349,21 +355,21 @@ TEST_P(DatatypeSortedness, ComponentApplications)
   Term value = s->get_selector(maybesort, "just", "value");
   Term m = s->make_symbol("m", maybesort);
 
-  EXPECT_TRUE(Op(Apply_Constructor).check_sortedness({ nothing }));
-  EXPECT_TRUE(Op(Apply_Constructor).check_sortedness({ just, p }));
-  EXPECT_TRUE(Op(Apply_Tester).check_sortedness({ is_just, m }));
-  EXPECT_TRUE(Op(Apply_Selector).check_sortedness({ value, m }));
+  EXPECT_TRUE(Op(Op::Apply_Constructor).check_sortedness({ nothing }));
+  EXPECT_TRUE(Op(Op::Apply_Constructor).check_sortedness({ just, p }));
+  EXPECT_TRUE(Op(Op::Apply_Tester).check_sortedness({ is_just, m }));
+  EXPECT_TRUE(Op(Op::Apply_Selector).check_sortedness({ value, m }));
 
   // a head that is not a datatype component
-  EXPECT_FALSE(Op(Apply_Constructor).check_sortedness({ p }));
-  EXPECT_FALSE(Op(Apply_Tester).check_sortedness({ p, m }));
-  EXPECT_FALSE(Op(Apply_Selector).check_sortedness({ arr, m }));
+  EXPECT_FALSE(Op(Op::Apply_Constructor).check_sortedness({ p }));
+  EXPECT_FALSE(Op(Op::Apply_Tester).check_sortedness({ p, m }));
+  EXPECT_FALSE(Op(Op::Apply_Selector).check_sortedness({ arr, m }));
   // an argument that is not a datatype term
-  EXPECT_FALSE(Op(Apply_Tester).check_sortedness({ is_just, p }));
-  EXPECT_FALSE(Op(Apply_Selector).check_sortedness({ value, p }));
+  EXPECT_FALSE(Op(Op::Apply_Tester).check_sortedness({ is_just, p }));
+  EXPECT_FALSE(Op(Op::Apply_Selector).check_sortedness({ value, p }));
   // a missing argument
-  EXPECT_FALSE(Op(Apply_Tester).check_sortedness({ is_just }));
-  EXPECT_FALSE(Op(Apply_Selector).check_sortedness({ value }));
+  EXPECT_FALSE(Op(Op::Apply_Tester).check_sortedness({ is_just }));
+  EXPECT_FALSE(Op(Op::Apply_Selector).check_sortedness({ value }));
 }
 
 TEST_P(DatatypeSortedness, ComponentApplicationSorts)
@@ -378,14 +384,14 @@ TEST_P(DatatypeSortedness, ComponentApplicationSorts)
   Sort maybesort = s->make_sort(maybedecl);
   Term m = s->make_symbol("m", maybesort);
 
-  EXPECT_EQ(Op(Apply_Constructor)
+  EXPECT_EQ(Op(Op::Apply_Constructor)
                 .compute_sort(s, { s->get_constructor(maybesort, "just"), p }),
             maybesort);
+  EXPECT_EQ(Op(Op::Apply_Tester)
+                .compute_sort(s, { s->get_tester(maybesort, "just"), m }),
+            s->make_sort(SortKind::BOOL));
   EXPECT_EQ(
-      Op(Apply_Tester).compute_sort(s, { s->get_tester(maybesort, "just"), m }),
-      s->make_sort(SortKind::BOOL));
-  EXPECT_EQ(
-      Op(Apply_Selector)
+      Op(Op::Apply_Selector)
           .compute_sort(s, { s->get_selector(maybesort, "just", "value"), m }),
       bvsort4);
 }

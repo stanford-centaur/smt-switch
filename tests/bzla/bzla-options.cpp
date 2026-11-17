@@ -67,7 +67,7 @@ TEST(BzlaOptions, TakenAgainAfterReset)
   Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
   Term one = s->make_term(1, bv8);
-  s->assert_formula(s->make_term(Equal, x, one));
+  s->assert_formula(s->make_term(Op::Equal, x, one));
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(s->get_value(x), one);
 }

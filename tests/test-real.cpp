@@ -61,20 +61,20 @@ class RealArithmeticTests
 TEST_P(RealArithmeticTests, ProductAndSum)
 {
   // x * y = 6 and x + y = 5 with x > y have the one solution x = 3, y = 2
-  s->assert_formula(
-      s->make_term(Equal, s->make_term(Mult, x, y), s->make_term(6, realsort)));
-  s->assert_formula(
-      s->make_term(Equal, s->make_term(Plus, x, y), s->make_term(5, realsort)));
-  s->assert_formula(s->make_term(Gt, x, y));
+  s->assert_formula(s->make_term(
+      Op::Equal, s->make_term(Op::Mult, x, y), s->make_term(6, realsort)));
+  s->assert_formula(s->make_term(
+      Op::Equal, s->make_term(Op::Plus, x, y), s->make_term(5, realsort)));
+  s->assert_formula(s->make_term(Op::Gt, x, y));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   // checked as the only solution rather than read from the model, which
   // some backends give as an Int
   s->push();
   s->assert_formula(
-      s->make_term(Or,
-                   s->make_term(Distinct, x, s->make_term(3, realsort)),
-                   s->make_term(Distinct, y, s->make_term(2, realsort))));
+      s->make_term(Op::Or,
+                   s->make_term(Op::Distinct, x, s->make_term(3, realsort)),
+                   s->make_term(Op::Distinct, y, s->make_term(2, realsort))));
   EXPECT_TRUE(s->check_sat().is_unsat());
   s->pop();
 }
@@ -87,15 +87,15 @@ TEST_P(RealArithmeticTests, IrrationalSolution)
   {
     GTEST_SKIP() << "MathSAT does not answer x * x = 2 within minutes";
   }
-  s->assert_formula(
-      s->make_term(Equal, s->make_term(Mult, x, x), s->make_term(2, realsort)));
+  s->assert_formula(s->make_term(
+      Op::Equal, s->make_term(Op::Mult, x, x), s->make_term(2, realsort)));
   EXPECT_TRUE(s->check_sat().is_sat());
 }
 
 TEST_P(RealArithmeticTests, NoSolution)
 {
-  s->assert_formula(
-      s->make_term(Lt, s->make_term(Mult, x, x), s->make_term(0, realsort)));
+  s->assert_formula(s->make_term(
+      Op::Lt, s->make_term(Op::Mult, x, x), s->make_term(0, realsort)));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 

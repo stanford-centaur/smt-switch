@@ -384,8 +384,9 @@ Result AbsSmtInterpolator::sequence_from_interpolants(const TermVec & formulae,
       continue;
     }
     TermVec rest(formulae.begin() + i + 1, formulae.end());
-    Term B = rest.size() == 1 ? rest.front() : make_term(And, rest);
-    Term A = i == 0 ? formulae[i] : make_term(And, out_I[i - 1], formulae[i]);
+    Term B = rest.size() == 1 ? rest.front() : make_term(Op::And, rest);
+    Term A =
+        i == 0 ? formulae[i] : make_term(Op::And, out_I[i - 1], formulae[i]);
     Term I;
     Result r = compute_interpolant(A, B, I);
     // only the first split can be satisfiable: each later one is unsat by

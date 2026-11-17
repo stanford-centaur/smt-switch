@@ -53,7 +53,7 @@ class ToIntTests : public testing::Test,
   {
     Term x = s->make_symbol("x" + std::to_string(num_symbols++), t->get_sort());
     s->push();
-    s->assert_formula(s->make_term(Equal, x, t));
+    s->assert_formula(s->make_term(Op::Equal, x, t));
     Result r = s->check_sat();
     EXPECT_TRUE(r.is_sat());
     Term v = s->get_value(x);
@@ -90,7 +90,7 @@ class ToIntIntTests : public ToIntTests
     for (int64_t a : addends)
     {
       Term addend = s->make_term(a, intsort);
-      sum = sum ? s->make_term(Plus, sum, addend) : addend;
+      sum = sum ? s->make_term(Op::Plus, sum, addend) : addend;
     }
     res.push_back(model_value(sum));
     return res;
@@ -357,8 +357,8 @@ TEST_P(ToIntRealTests, IntegralValue)
 TEST_P(ToIntRealTests, NonIntegralValue)
 {
   Sort realsort = s->make_sort(SortKind::REAL);
-  Term half =
-      s->make_term(Div, s->make_term(1, realsort), s->make_term(2, realsort));
+  Term half = s->make_term(
+      Op::Div, s->make_term(1, realsort), s->make_term(2, realsort));
   Term v = model_value(half);
   SCOPED_TRACE(v->to_string());
   EXPECT_THROW(v->to_int(), IncorrectUsageException);

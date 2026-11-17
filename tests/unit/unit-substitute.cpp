@@ -37,7 +37,7 @@ class UnitSubstituteTests
     bvsort = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
-    xpy = s->make_term(BVAdd, x, y);
+    xpy = s->make_term(Op::BVAdd, x, y);
 
     a = s->make_symbol("a", bvsort);
     b = s->make_symbol("b", bvsort);
@@ -56,7 +56,7 @@ TEST_P(UnitSubstituteTests, CheckSubstitution1)
 {
   UnorderedTermMap subs_map({ { x, a }, { y, b } });
   Term apb = s->substitute(xpy, subs_map);
-  Term apb_expect = s->make_term(BVAdd, a, b);
+  Term apb_expect = s->make_term(Op::BVAdd, a, b);
   EXPECT_EQ(apb, apb_expect);
 }
 
@@ -64,7 +64,7 @@ TEST_P(UnitSubstituteTests, CheckSubstitution2)
 {
   UnorderedTermMap subs_map({ { x, a } });
   Term apy = s->substitute(xpy, subs_map);
-  Term apy_expect = s->make_term(BVAdd, a, y);
+  Term apy_expect = s->make_term(Op::BVAdd, a, y);
   EXPECT_EQ(apy, apy_expect);
 }
 
@@ -75,10 +75,10 @@ TEST_P(UnitSubstituteTests, EmptySubstitution)
 
 TEST_P(UnitSubstituteTests, CheckSubstitution3)
 {
-  Term apb = s->make_term(BVAdd, a, b);
+  Term apb = s->make_term(Op::BVAdd, a, b);
   UnorderedTermMap subs_map({ { x, xpy }, { y, apb } });
   Term result = s->substitute(xpy, subs_map);
-  Term expect = s->make_term(BVAdd, xpy, apb);
+  Term expect = s->make_term(Op::BVAdd, xpy, apb);
   EXPECT_EQ(result, expect);
 }
 
@@ -91,9 +91,10 @@ TEST_P(UnitSubstituteTests, SubstitutesUnderNestedTerms)
   Term idx0 = s->make_symbol("idx0", bvsort);
   Term w = s->make_symbol("w", bvsort);
   auto constraint = [&](Term array, Term index, Term u, Term v) {
-    return s->make_term(Equal,
-                        s->make_term(Select, array, index),
-                        s->make_term(BVAdd, u, s->make_term(BVMul, v, w)));
+    return s->make_term(
+        Op::Equal,
+        s->make_term(Op::Select, array, index),
+        s->make_term(Op::BVAdd, u, s->make_term(Op::BVMul, v, w)));
   };
   // w is not in the map, so it stays
   Term result =
@@ -106,9 +107,9 @@ TEST_P(UnitSubstituteTests, SubstitutesUnderApplication)
 {
   Term g = s->make_symbol(
       "g", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
-  Term result = s->substitute(s->make_term(Apply, g, x, y), { { x, a } });
-  EXPECT_EQ(result, s->make_term(Apply, g, a, y));
-  EXPECT_EQ(result->get_op(), Apply);
+  Term result = s->substitute(s->make_term(Op::Apply, g, x, y), { { x, a } });
+  EXPECT_EQ(result, s->make_term(Op::Apply, g, a, y));
+  EXPECT_EQ(result->get_op(), Op::Apply);
 }
 
 TEST_P(UnitSubstituteIterTests, SimpleSubstitution)
@@ -142,7 +143,7 @@ TEST_P(UnitSubstituteTests, SimpleSubstitutionWalker)
 {
   // substitution walker can substitute arbitrary terms
   // not just symbol keys
-  Term apb_spec = s->make_term(BVAdd, a, b);
+  Term apb_spec = s->make_term(Op::BVAdd, a, b);
   UnorderedTermMap subs_map({ { xpy, apb_spec } });
   SubstitutionWalker sw(s, subs_map);
 
@@ -156,7 +157,7 @@ TEST_P(UnitSubstituteTests, SimpleSubstitutionWalker)
 
 TEST_P(UnitSubstituteTests, SubstitutesCompositeKeyOrNotImplemented)
 {
-  Term outer = s->make_term(BVMul, xpy, x);
+  Term outer = s->make_term(Op::BVMul, xpy, x);
   UnorderedTermMap subs_map({ { xpy, a } });
   Term res;
   try
@@ -169,10 +170,10 @@ TEST_P(UnitSubstituteTests, SubstitutesCompositeKeyOrNotImplemented)
     // exception escapes and fails the test
     return;
   }
-  EXPECT_EQ(res, s->make_term(BVMul, a, x));
+  EXPECT_EQ(res, s->make_term(Op::BVMul, a, x));
   EXPECT_EQ(s->substitute(xpy, subs_map), a);
   TermVec both = s->substitute_terms({ outer, xpy }, subs_map);
-  EXPECT_EQ(both[0], s->make_term(BVMul, a, x));
+  EXPECT_EQ(both[0], s->make_term(Op::BVMul, a, x));
   EXPECT_EQ(both[1], a);
 }
 

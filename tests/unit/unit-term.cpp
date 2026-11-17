@@ -69,7 +69,7 @@ TEST_P(UnitTermTests, FunOp)
 {
   Term x = s->make_symbol("x", bvsort);
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
 
   ASSERT_TRUE(x->is_symbol());
   ASSERT_TRUE(x->is_symbolic_const());
@@ -80,7 +80,7 @@ TEST_P(UnitTermTests, FunOp)
   EXPECT_FALSE(x->is_value());
   EXPECT_FALSE(f->is_value());
 
-  EXPECT_EQ(fx->get_op(), Apply);
+  EXPECT_EQ(fx->get_op(), Op::Apply);
   ASSERT_NE(fx->begin(), fx->end());
   EXPECT_EQ(*fx->begin(), f);
   EXPECT_EQ(fx->get_sort(), bvsort);
@@ -99,11 +99,11 @@ TEST_P(UnitTermTests, MultiArgFunOp)
       s->make_sort(SortKind::FUNCTION,
                    SortVec{ bvsort, bvsort8, bvsort, boolsort }));
 
-  Term gxy = s->make_term(Apply, g, x, y);
-  EXPECT_EQ(gxy->get_op(), Apply);
+  Term gxy = s->make_term(Op::Apply, g, x, y);
+  EXPECT_EQ(gxy->get_op(), Op::Apply);
   EXPECT_EQ(gxy->get_sort(), bvsort8);
-  Term hxyx = s->make_term(Apply, TermVec{ h, x, y, x });
-  EXPECT_EQ(hxyx->get_op(), Apply);
+  Term hxyx = s->make_term(Op::Apply, TermVec{ h, x, y, x });
+  EXPECT_EQ(hxyx->get_op(), Op::Apply);
   EXPECT_EQ(hxyx->get_sort(), boolsort);
 }
 
@@ -168,22 +168,24 @@ TEST_P(UnitTermTests, TermShorthands)
   Term b = s->make_symbol("b", boolsort);
   Term c = s->make_symbol("c", boolsort);
   Term d = s->make_symbol("d", boolsort);
-  EXPECT_EQ(s->make_term(Not, a), s->make_term(Not, TermVec{ a }));
-  EXPECT_EQ(s->make_term(Xor, a, b), s->make_term(Xor, TermVec{ a, b }));
-  EXPECT_EQ(s->make_term(Ite, a, b, c), s->make_term(Ite, TermVec{ a, b, c }));
-  EXPECT_EQ(s->make_term(And, a, b, c, d),
-            s->make_term(And, TermVec{ a, b, c, d }));
+  EXPECT_EQ(s->make_term(Op::Not, a), s->make_term(Op::Not, TermVec{ a }));
+  EXPECT_EQ(s->make_term(Op::Xor, a, b),
+            s->make_term(Op::Xor, TermVec{ a, b }));
+  EXPECT_EQ(s->make_term(Op::Ite, a, b, c),
+            s->make_term(Op::Ite, TermVec{ a, b, c }));
+  EXPECT_EQ(s->make_term(Op::And, a, b, c, d),
+            s->make_term(Op::And, TermVec{ a, b, c, d }));
 }
 
 TEST_P(UnitTermTests, BVSorts)
 {
   EXPECT_EQ(s->make_term(5, bvsort)->get_sort(), bvsort);
   Term x = s->make_symbol("x", bvsort);
-  EXPECT_EQ(s->make_term(Concat, x, x)->get_sort(),
+  EXPECT_EQ(s->make_term(Op::Concat, x, x)->get_sort(),
             s->make_sort(SortKind::BV, 8));
-  EXPECT_EQ(s->make_term(Op(Extract, 2, 1), x)->get_sort(),
+  EXPECT_EQ(s->make_term(Op(Op::Extract, 2, 1), x)->get_sort(),
             s->make_sort(SortKind::BV, 2));
-  EXPECT_EQ(s->make_term(Op(Zero_Extend, 1), x)->get_sort(),
+  EXPECT_EQ(s->make_term(Op(Op::Zero_Extend, 1), x)->get_sort(),
             s->make_sort(SortKind::BV, 5));
 }
 
@@ -202,9 +204,9 @@ TEST_P(UnitTermTests, SymbolSurvivesSubstitution)
   Term b = s->make_symbol("b", bvsort);
   Term arr = s->make_symbol("arr", arrsort);
   Term arr2 = s->make_symbol("arr2", arrsort);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(BVAdd, a, b)));
-  s->assert_formula(s->make_term(Equal, y, s->make_term(5, bvsort)));
-  s->assert_formula(s->make_term(Equal, arr, arr2));
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(Op::BVAdd, a, b)));
+  s->assert_formula(s->make_term(Op::Equal, y, s->make_term(5, bvsort)));
+  s->assert_formula(s->make_term(Op::Equal, arr, arr2));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   for (const Term & t : { x, y, arr })
@@ -244,18 +246,18 @@ TEST_P(UnitTermTests, TermContainers)
   for (size_t i = 1; i < num_terms; ++i)
   {
     s->assert_formula(
-        s->make_term(Equal, v[i], s->make_term(BVAdd, v[i - 1], one)));
+        s->make_term(Op::Equal, v[i], s->make_term(Op::BVAdd, v[i - 1], one)));
   }
 
   Term zero = s->make_term(0, bvsort8);
   EXPECT_TRUE(zero->is_value());
   EXPECT_FALSE(v[0]->is_value());
   EXPECT_TRUE(v[0]->is_symbolic_const());
-  s->assert_formula(s->make_term(Equal, v[0], zero));
+  s->assert_formula(s->make_term(Op::Equal, v[0], zero));
 
   for (const Term & x : uts)
   {
-    s->assert_formula(s->make_term(Equal, x, utm.at(x)));
+    s->assert_formula(s->make_term(Op::Equal, x, utm.at(x)));
   }
 
   ASSERT_TRUE(s->check_sat().is_sat());
@@ -324,7 +326,7 @@ TEST_P(UnitTermArithTests, Sorts)
   // not an integer, which MathSAT and Yices2 would give sort Int
   EXPECT_EQ(s->make_term("1/2", realsort)->get_sort(), realsort);
   Term u = s->make_symbol("u", realsort);
-  EXPECT_EQ(s->make_term(Is_Int, u)->get_sort(), boolsort);
+  EXPECT_EQ(s->make_term(Op::Is_Int, u)->get_sort(), boolsort);
 }
 
 TEST_P(UnitTermArithTests, NegatedValueIsDifferent)
@@ -371,10 +373,11 @@ TEST_P(UnitTermArithTests, RealStringValues)
   {
     SCOPED_TRACE(val);
     Term expected = s->make_term(
-        Div, s->make_term(num, realsort), s->make_term(den, realsort));
+        Op::Div, s->make_term(num, realsort), s->make_term(den, realsort));
     s->push();
     s->assert_formula(s->make_term(
-        Not, s->make_term(Equal, s->make_term(val, realsort), expected)));
+        Op::Not,
+        s->make_term(Op::Equal, s->make_term(val, realsort), expected)));
     EXPECT_TRUE(s->check_sat().is_unsat());
     s->pop();
   }
@@ -383,10 +386,10 @@ TEST_P(UnitTermArithTests, RealStringValues)
 TEST_P(UnitTermArithTests, SpacedFractionString)
 {
   // as TermTranslator writes a fraction
-  Term half =
-      s->make_term(Div, s->make_term(1, realsort), s->make_term(2, realsort));
+  Term half = s->make_term(
+      Op::Div, s->make_term(1, realsort), s->make_term(2, realsort));
   s->assert_formula(s->make_term(
-      Not, s->make_term(Equal, s->make_term("1 / 2", realsort), half)));
+      Op::Not, s->make_term(Op::Equal, s->make_term("1 / 2", realsort), half)));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -394,9 +397,9 @@ TEST_P(UnitTermArithTests, ToReal)
 {
   Term i = s->make_symbol("i", intsort);
   Term x = s->make_symbol("x", realsort);
-  s->assert_formula(s->make_term(Equal, x, s->make_term(To_Real, i)));
-  s->assert_formula(s->make_term(Equal, i, s->make_term(2, intsort)));
-  s->assert_formula(s->make_term(Distinct, x, s->make_term(2, realsort)));
+  s->assert_formula(s->make_term(Op::Equal, x, s->make_term(Op::To_Real, i)));
+  s->assert_formula(s->make_term(Op::Equal, i, s->make_term(2, intsort)));
+  s->assert_formula(s->make_term(Op::Distinct, x, s->make_term(2, realsort)));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -408,22 +411,22 @@ TEST_P(UnitTermArithTests, IteOverIntegerValuedReal)
   Term x = s->make_symbol("x", realsort);
   Term zero = s->make_term("0.0", realsort);
   Term tenth = s->make_term("1/10", realsort);
-  Term not_b = s->make_term(Not, b);
-  for (const Term & ite : { s->make_term(Ite, b, zero, tenth),
-                            s->make_term(Ite, not_b, tenth, zero) })
+  Term not_b = s->make_term(Op::Not, b);
+  for (const Term & ite : { s->make_term(Op::Ite, b, zero, tenth),
+                            s->make_term(Op::Ite, not_b, tenth, zero) })
   {
     SCOPED_TRACE(ite->to_string());
     EXPECT_EQ(ite->get_sort(), realsort);
     s->push();
-    s->assert_formula(s->make_term(Equal, x, ite));
+    s->assert_formula(s->make_term(Op::Equal, x, ite));
     s->assert_formula(b);
-    s->assert_formula(s->make_term(Gt, x, zero));
+    s->assert_formula(s->make_term(Op::Gt, x, zero));
     EXPECT_TRUE(s->check_sat().is_unsat());
     s->pop();
     s->push();
-    s->assert_formula(s->make_term(Equal, x, ite));
+    s->assert_formula(s->make_term(Op::Equal, x, ite));
     s->assert_formula(not_b);
-    s->assert_formula(s->make_term(Lt, x, tenth));
+    s->assert_formula(s->make_term(Op::Lt, x, tenth));
     EXPECT_TRUE(s->check_sat().is_unsat());
     s->pop();
   }
@@ -514,10 +517,10 @@ TEST_P(NegativeBVTests, SignedStringsAtTheEndsOfTheRange)
 
 TEST_P(NegativeBVTests, CancelsItsPositive)
 {
-  Term sum =
-      s->make_term(BVAdd, s->make_term(4, bvsort), s->make_term(-4, bvsort));
-  s->assert_formula(
-      s->make_term(Not, s->make_term(Equal, sum, s->make_term(0, bvsort))));
+  Term sum = s->make_term(
+      Op::BVAdd, s->make_term(4, bvsort), s->make_term(-4, bvsort));
+  s->assert_formula(s->make_term(
+      Op::Not, s->make_term(Op::Equal, sum, s->make_term(0, bvsort))));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 
@@ -528,10 +531,10 @@ TEST_P(NegativeIntTests, IntAndStringAgree)
 
 TEST_P(NegativeIntTests, CancelsItsPositive)
 {
-  Term sum =
-      s->make_term(Plus, s->make_term(5, intsort), s->make_term(-5, intsort));
-  s->assert_formula(
-      s->make_term(Not, s->make_term(Equal, sum, s->make_term(0, intsort))));
+  Term sum = s->make_term(
+      Op::Plus, s->make_term(5, intsort), s->make_term(-5, intsort));
+  s->assert_formula(s->make_term(
+      Op::Not, s->make_term(Op::Equal, sum, s->make_term(0, intsort))));
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
 

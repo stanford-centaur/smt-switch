@@ -56,6 +56,16 @@ def test_symbol_name_round_trip(solver_str):
         assert converter.back(converter.convert(x)) == x
 
 
+@pytest.mark.parametrize("solver_str", fe.SWITCH_SOLVERS.keys())
+def test_application_round_trip(solver_str):
+    x = sc.Symbol("x", st.BV8)
+    y = sc.Symbol("y", st.BV8)
+    t = sc.BVConcat(x, y)
+    with fe.Solver(solver_str) as solver:
+        converter = solver.converter
+        assert converter.back(converter.convert(t)) == t
+
+
 @pytest.mark.parametrize(
     "solver_str",
     [k for k, v in fe.SWITCH_SOLVERS.items() if sl.QF_LRA in v.LOGICS],

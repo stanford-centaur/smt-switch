@@ -318,8 +318,8 @@ Term make_power(const GenericSolver & solver,
     return base;
   }
   Term half = make_power(solver, base, exponent / 2);
-  Term square = solver.make_term(Mult, half, half);
-  return exponent % 2 == 0 ? square : solver.make_term(Mult, square, base);
+  Term square = solver.make_term(Op::Mult, half, half);
+  return exponent % 2 == 0 ? square : solver.make_term(Op::Mult, square, base);
 }
 
 }  // namespace
@@ -1833,17 +1833,17 @@ Term GenericSolver::make_param(const std::string name, const Sort & sort) const
 
 Term GenericSolver::make_term(const Op op, const TermVec & terms) const
 {
-  if (op.prim_op == Forall || op.prim_op == Exists)
+  if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     check_quantifier_binders(op, terms);
   }
-  else if (op.prim_op == Divisible && op.indices[0] < 1)
+  else if (op.kind() == Op::Divisible && op.indices[0] < 1)
   {
     throw IncorrectUsageException("Can't create divisible with index < 1");
   }
 
   // A power to a constant exponent is unfolded, as not all solvers support it.
-  if (op.prim_op == Pow && terms.size() == 2 && terms[1]->is_value())
+  if (op.kind() == Op::Pow && terms.size() == 2 && terms[1]->is_value())
   {
     if (!op.check_sortedness(terms))
     {
@@ -1859,18 +1859,18 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
     Term one = make_term(1, sort);
     Term minus_one = make_term(-1, sort);
     // We can always compute exponents of 1 and -1.
-    return make_term(Ite,
-                     make_term(Equal, terms[0], one),
+    return make_term(Op::Ite,
+                     make_term(Op::Equal, terms[0], one),
                      one,
-                     make_term(Ite,
-                               make_term(Equal, terms[0], minus_one),
+                     make_term(Op::Ite,
+                               make_term(Op::Equal, terms[0], minus_one),
                                exponent % 2 == 0 ? one : minus_one,
                                make_term(0, sort)));
   }
 
   // a quantifier binds one parameter (see ops.cpp), so `forall x y . body`
   // is made as `forall x . forall y . body`
-  if ((op.prim_op == Forall || op.prim_op == Exists) && terms.size() > 2)
+  if ((op.kind() == Op::Forall || op.kind() == Op::Exists) && terms.size() > 2)
   {
     Term body = terms.back();
     for (auto it = std::next(terms.rbegin()); it != terms.rend(); ++it)
@@ -1895,7 +1895,7 @@ Term GenericSolver::make_term(const Op op, const TermVec & terms) const
   {
     // The sorts are checked, so a binary refusing a power, which has a
     // symbolic exponent here, does not read SMT-LIB's **.
-    if (op.prim_op != Pow)
+    if (op.kind() != Op::Pow)
     {
       throw;
     }
@@ -2082,7 +2082,7 @@ UnorderedTermSet GenericSolver::get_assumptions_from_string(
           "The get-unsat-assumptions response names an unknown term " + name
           + ": " + result);
     }
-    literals.insert(positive ? it->second : make_term(Not, it->second));
+    literals.insert(positive ? it->second : make_term(Op::Not, it->second));
   }
   return literals;
 }
@@ -2298,7 +2298,7 @@ std::string GenericSolver::assumption_name(const Term & assumption)
   }
   std::string name = name_it->second;
   bool is_literal = assumption->is_symbolic_const()
-                    || (assumption->get_op() == Not
+                    || (assumption->get_op() == Op::Not
                         && (*assumption->begin())->is_symbolic_const());
   if (is_literal)
   {

@@ -133,7 +133,7 @@ testing::AssertionResult round_trip_matches(const SolverConfiguration & config,
   }
 
   // only it knows what it rewrote the term into
-  solver->assert_formula(solver->make_term(Distinct, read_back, original));
+  solver->assert_formula(solver->make_term(Op::Distinct, read_back, original));
   if (solver->check_sat().is_unsat())
   {
     return testing::AssertionSuccess();

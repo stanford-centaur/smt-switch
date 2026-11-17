@@ -44,14 +44,14 @@ class OpDefinitionTests
   void expect_equivalent(const Term & term, const Term & definition)
   {
     // Not and Equal rather than Distinct, which is under test itself
-    expect_valid(s->make_term(Equal, term, definition));
+    expect_valid(s->make_term(Op::Equal, term, definition));
   }
 
   /** Expects formula to hold in every model */
   void expect_valid(const Term & formula)
   {
     s->push();
-    s->assert_formula(s->make_term(Not, formula));
+    s->assert_formula(s->make_term(Op::Not, formula));
     EXPECT_TRUE(s->check_sat().is_unsat()) << formula << " can be false";
     s->pop();
   }
@@ -110,51 +110,54 @@ class RealOpDefinitionTests : public OpDefinitionTests
 
 TEST_P(BoolOpDefinitionTests, Xor)
 {
-  expect_equivalent(s->make_term(Xor, a, b),
-                    s->make_term(Or,
-                                 s->make_term(And, a, s->make_term(Not, b)),
-                                 s->make_term(And, s->make_term(Not, a), b)));
+  expect_equivalent(
+      s->make_term(Op::Xor, a, b),
+      s->make_term(Op::Or,
+                   s->make_term(Op::And, a, s->make_term(Op::Not, b)),
+                   s->make_term(Op::And, s->make_term(Op::Not, a), b)));
 }
 
 TEST_P(BoolOpDefinitionTests, Implies)
 {
   expect_equivalent(
-      s->make_term(Implies, a, b),
-      s->make_term(Not, s->make_term(And, a, s->make_term(Not, b))));
+      s->make_term(Op::Implies, a, b),
+      s->make_term(Op::Not,
+                   s->make_term(Op::And, a, s->make_term(Op::Not, b))));
 }
 
 TEST_P(BoolOpDefinitionTests, Distinct)
 {
-  expect_equivalent(s->make_term(Distinct, a, b),
-                    s->make_term(Not, s->make_term(Equal, a, b)));
+  expect_equivalent(s->make_term(Op::Distinct, a, b),
+                    s->make_term(Op::Not, s->make_term(Op::Equal, a, b)));
 }
 
 TEST_P(BoolOpDefinitionTests, Ite)
 {
-  Term ite = s->make_term(Ite, a, b, c);
+  Term ite = s->make_term(Op::Ite, a, b, c);
   expect_valid(s->make_term(
-      And,
-      s->make_term(Implies, a, s->make_term(Equal, ite, b)),
-      s->make_term(
-          Implies, s->make_term(Not, a), s->make_term(Equal, ite, c))));
+      Op::And,
+      s->make_term(Op::Implies, a, s->make_term(Op::Equal, ite, b)),
+      s->make_term(Op::Implies,
+                   s->make_term(Op::Not, a),
+                   s->make_term(Op::Equal, ite, c))));
 }
 
 TEST_P(BVOpDefinitionTests, BVNand)
 {
-  expect_equivalent(s->make_term(BVNand, x, y),
-                    s->make_term(BVNot, s->make_term(BVAnd, x, y)));
+  expect_equivalent(s->make_term(Op::BVNand, x, y),
+                    s->make_term(Op::BVNot, s->make_term(Op::BVAnd, x, y)));
 }
 
 TEST_P(BVOpDefinitionTests, BVNor)
 {
-  expect_equivalent(s->make_term(BVNor, x, y),
-                    s->make_term(BVNot, s->make_term(BVOr, x, y)));
+  expect_equivalent(s->make_term(Op::BVNor, x, y),
+                    s->make_term(Op::BVNot, s->make_term(Op::BVOr, x, y)));
 }
 
 TEST_P(BVOpDefinitionTests, BVXnor)
 {
-  expect_equivalent(s->make_term(BVXnor, x, y),
-                    s->make_term(BVNot, s->make_term(BVXor, x, y)));
+  expect_equivalent(s->make_term(Op::BVXnor, x, y),
+                    s->make_term(Op::BVNot, s->make_term(Op::BVXor, x, y)));
 }
 
 TEST_P(BVOpDefinitionTests, BVSmod)
@@ -165,80 +168,84 @@ TEST_P(BVOpDefinitionTests, BVSmod)
   Term one_1bit = s->make_term(1, s->make_sort(SortKind::BV, 1));
   Term zero_width = s->make_term(0, s->make_sort(SortKind::BV, width));
 
-  Term msb_x = s->make_term(Op(Extract, width - 1, width - 1), x);
-  Term msb_y = s->make_term(Op(Extract, width - 1, width - 1), y);
-  Term x_nonneg = s->make_term(Equal, msb_x, zero_1bit);
-  Term y_nonneg = s->make_term(Equal, msb_y, zero_1bit);
-  Term x_neg = s->make_term(Equal, msb_x, one_1bit);
-  Term y_neg = s->make_term(Equal, msb_y, one_1bit);
+  Term msb_x = s->make_term(Op(Op::Extract, width - 1, width - 1), x);
+  Term msb_y = s->make_term(Op(Op::Extract, width - 1, width - 1), y);
+  Term x_nonneg = s->make_term(Op::Equal, msb_x, zero_1bit);
+  Term y_nonneg = s->make_term(Op::Equal, msb_y, zero_1bit);
+  Term x_neg = s->make_term(Op::Equal, msb_x, one_1bit);
+  Term y_neg = s->make_term(Op::Equal, msb_y, one_1bit);
 
-  Term abs_x = s->make_term(Ite, x_nonneg, x, s->make_term(BVNeg, x));
-  Term abs_y = s->make_term(Ite, y_nonneg, y, s->make_term(BVNeg, y));
-  Term u = s->make_term(BVUrem, abs_x, abs_y);
+  Term abs_x = s->make_term(Op::Ite, x_nonneg, x, s->make_term(Op::BVNeg, x));
+  Term abs_y = s->make_term(Op::Ite, y_nonneg, y, s->make_term(Op::BVNeg, y));
+  Term u = s->make_term(Op::BVUrem, abs_x, abs_y);
 
   Term smod_def = s->make_term(
-      Ite,
-      s->make_term(Equal, u, zero_width),
+      Op::Ite,
+      s->make_term(Op::Equal, u, zero_width),
       u,
-      s->make_term(Ite,
-                   s->make_term(And, x_nonneg, y_nonneg),
-                   u,
-                   s->make_term(Ite,
-                                s->make_term(And, x_neg, y_nonneg),
-                                s->make_term(BVAdd, s->make_term(BVNeg, u), y),
-                                s->make_term(Ite,
-                                             s->make_term(And, x_nonneg, y_neg),
-                                             s->make_term(BVAdd, u, y),
-                                             s->make_term(BVNeg, u)))));
+      s->make_term(
+          Op::Ite,
+          s->make_term(Op::And, x_nonneg, y_nonneg),
+          u,
+          s->make_term(Op::Ite,
+                       s->make_term(Op::And, x_neg, y_nonneg),
+                       s->make_term(Op::BVAdd, s->make_term(Op::BVNeg, u), y),
+                       s->make_term(Op::Ite,
+                                    s->make_term(Op::And, x_nonneg, y_neg),
+                                    s->make_term(Op::BVAdd, u, y),
+                                    s->make_term(Op::BVNeg, u)))));
 
-  expect_equivalent(s->make_term(BVSmod, x, y), smod_def);
+  expect_equivalent(s->make_term(Op::BVSmod, x, y), smod_def);
 }
 
 TEST_P(BVOpDefinitionTests, BVUgt)
 {
-  expect_equivalent(s->make_term(BVUgt, x, y),
-                    s->make_term(Not, s->make_term(BVUle, x, y)));
+  expect_equivalent(s->make_term(Op::BVUgt, x, y),
+                    s->make_term(Op::Not, s->make_term(Op::BVUle, x, y)));
 }
 
 TEST_P(BVOpDefinitionTests, BVUge)
 {
-  expect_equivalent(s->make_term(BVUge, x, y),
-                    s->make_term(Not, s->make_term(BVUlt, x, y)));
+  expect_equivalent(s->make_term(Op::BVUge, x, y),
+                    s->make_term(Op::Not, s->make_term(Op::BVUlt, x, y)));
 }
 
 TEST_P(BVOpDefinitionTests, BVSgt)
 {
-  expect_equivalent(s->make_term(BVSgt, x, y),
-                    s->make_term(Not, s->make_term(BVSle, x, y)));
+  expect_equivalent(s->make_term(Op::BVSgt, x, y),
+                    s->make_term(Op::Not, s->make_term(Op::BVSle, x, y)));
 }
 
 TEST_P(BVOpDefinitionTests, BVSge)
 {
-  expect_equivalent(s->make_term(BVSge, x, y),
-                    s->make_term(Not, s->make_term(BVSlt, x, y)));
+  expect_equivalent(s->make_term(Op::BVSge, x, y),
+                    s->make_term(Op::Not, s->make_term(Op::BVSlt, x, y)));
 }
 
 TEST_P(IntOpDefinitionTests, Negate)
 {
-  expect_equivalent(s->make_term(Plus, w, s->make_term(Negate, w)), zero);
+  expect_equivalent(s->make_term(Op::Plus, w, s->make_term(Op::Negate, w)),
+                    zero);
 }
 
 TEST_P(IntOpDefinitionTests, Abs)
 {
-  expect_valid(s->make_term(Ge, s->make_term(Abs, v), zero));
+  expect_valid(s->make_term(Op::Ge, s->make_term(Op::Abs, v), zero));
 }
 
 TEST_P(IntOpDefinitionTests, Pow)
 {
   Sort intsort = v->get_sort();
   Term three = s->make_term(3, intsort);
-  EXPECT_EQ(s->make_term(Pow, v, three)->get_sort(), intsort);
+  EXPECT_EQ(s->make_term(Op::Pow, v, three)->get_sort(), intsort);
   // a constant base keeps these linear
-  expect_equivalent(s->make_term(Pow, s->make_term(-2, intsort), three),
+  expect_equivalent(s->make_term(Op::Pow, s->make_term(-2, intsort), three),
                     s->make_term(-8, intsort));
-  expect_equivalent(s->make_term(Pow, three, zero), s->make_term(1, intsort));
-  expect_equivalent(s->make_term(Pow, zero, zero), s->make_term(1, intsort));
-  expect_equivalent(s->make_term(Pow, v, s->make_term(1, intsort)), v);
+  expect_equivalent(s->make_term(Op::Pow, three, zero),
+                    s->make_term(1, intsort));
+  expect_equivalent(s->make_term(Op::Pow, zero, zero),
+                    s->make_term(1, intsort));
+  expect_equivalent(s->make_term(Op::Pow, v, s->make_term(1, intsort)), v);
 }
 
 TEST_P(IntOpDefinitionTests, PowByNegativeExponent)
@@ -254,7 +261,7 @@ TEST_P(IntOpDefinitionTests, PowByNegativeExponent)
     try
     {
       power = s->make_term(
-          Pow, s->make_term(c[0], intsort), s->make_term(c[1], intsort));
+          Op::Pow, s->make_term(c[0], intsort), s->make_term(c[1], intsort));
     }
     catch (const NotImplementedException & e)
     {
@@ -269,44 +276,47 @@ TEST_P(IntOpDefinitionTests, Divisible)
   Sort intsort = v->get_sort();
   Term three = s->make_term(3, intsort);
   Term two = s->make_term(2, intsort);
-  expect_equivalent(s->make_term(Op(Divisible, 3), v),
-                    s->make_term(Equal, s->make_term(Mod, v, three), zero));
-  expect_equivalent(s->make_term(Op(Divisible, 3), s->make_term(Minus, v, two)),
-                    s->make_term(Equal, s->make_term(Mod, v, three), two));
+  expect_equivalent(
+      s->make_term(Op(Op::Divisible, 3), v),
+      s->make_term(Op::Equal, s->make_term(Op::Mod, v, three), zero));
+  expect_equivalent(
+      s->make_term(Op(Op::Divisible, 3), s->make_term(Op::Minus, v, two)),
+      s->make_term(Op::Equal, s->make_term(Op::Mod, v, three), two));
 }
 
 TEST_P(IntOpDefinitionTests, Minus)
 {
-  expect_equivalent(s->make_term(Minus, v, v), zero);
+  expect_equivalent(s->make_term(Op::Minus, v, v), zero);
 }
 
 TEST_P(IntOpDefinitionTests, Lt)
 {
-  expect_equivalent(s->make_term(Lt, w, v),
-                    s->make_term(Not, s->make_term(Ge, w, v)));
+  expect_equivalent(s->make_term(Op::Lt, w, v),
+                    s->make_term(Op::Not, s->make_term(Op::Ge, w, v)));
 }
 
 TEST_P(IntOpDefinitionTests, Gt)
 {
-  expect_equivalent(s->make_term(Gt, w, v),
-                    s->make_term(Not, s->make_term(Le, w, v)));
+  expect_equivalent(s->make_term(Op::Gt, w, v),
+                    s->make_term(Op::Not, s->make_term(Op::Le, w, v)));
 }
 
 TEST_P(IntOpDefinitionTests, Ge)
 {
-  expect_equivalent(s->make_term(Ge, w, v),
-                    s->make_term(Not, s->make_term(Lt, w, v)));
+  expect_equivalent(s->make_term(Op::Ge, w, v),
+                    s->make_term(Op::Not, s->make_term(Op::Lt, w, v)));
 }
 
 TEST_P(IntOpDefinitionTests, Ite)
 {
   Term cond = s->make_symbol("cond", s->make_sort(SortKind::BOOL));
-  Term ite = s->make_term(Ite, cond, v, w);
+  Term ite = s->make_term(Op::Ite, cond, v, w);
   expect_valid(s->make_term(
-      And,
-      s->make_term(Implies, cond, s->make_term(Equal, ite, v)),
-      s->make_term(
-          Implies, s->make_term(Not, cond), s->make_term(Equal, ite, w))));
+      Op::And,
+      s->make_term(Op::Implies, cond, s->make_term(Op::Equal, ite, v)),
+      s->make_term(Op::Implies,
+                   s->make_term(Op::Not, cond),
+                   s->make_term(Op::Equal, ite, w))));
 }
 
 TEST_P(RealOpDefinitionTests, ToReal)
@@ -315,8 +325,8 @@ TEST_P(RealOpDefinitionTests, ToReal)
   Term two = s->make_term(2, s->make_sort(SortKind::INT));
   // MathSAT and Yices2 give an integer-valued Real the sort Int, so only
   // the value is checked
-  Term to_real = s->make_term(To_Real, two);
-  expect_valid(s->make_term(Equal, to_real, s->make_term("2.0", realsort)));
+  Term to_real = s->make_term(Op::To_Real, two);
+  expect_valid(s->make_term(Op::Equal, to_real, s->make_term("2.0", realsort)));
 }
 
 TEST_P(RealOpDefinitionTests, ToInt)
@@ -324,27 +334,28 @@ TEST_P(RealOpDefinitionTests, ToInt)
   // To_Int rounds down, so -2.5 becomes -3
   Sort realsort = s->make_sort(SortKind::REAL);
   Sort intsort = s->make_sort(SortKind::INT);
-  Term up = s->make_term(To_Int, s->make_term("2.5", realsort));
-  Term down = s->make_term(To_Int, s->make_term("-2.5", realsort));
+  Term up = s->make_term(Op::To_Int, s->make_term("2.5", realsort));
+  Term down = s->make_term(Op::To_Int, s->make_term("-2.5", realsort));
   EXPECT_EQ(up->get_sort(), intsort);
   expect_valid(
-      s->make_term(And,
-                   s->make_term(Equal, up, s->make_term(2, intsort)),
-                   s->make_term(Equal, down, s->make_term(-3, intsort))));
+      s->make_term(Op::And,
+                   s->make_term(Op::Equal, up, s->make_term(2, intsort)),
+                   s->make_term(Op::Equal, down, s->make_term(-3, intsort))));
 }
 
 TEST_P(RealOpDefinitionTests, AbsOfReal)
 {
   Sort realsort = s->make_sort(SortKind::REAL);
-  Term abs = s->make_term(Abs, s->make_term("-2.5", realsort));
+  Term abs = s->make_term(Op::Abs, s->make_term("-2.5", realsort));
   EXPECT_EQ(abs->get_sort(), realsort);
-  expect_valid(s->make_term(Equal, abs, s->make_term("2.5", realsort)));
+  expect_valid(s->make_term(Op::Equal, abs, s->make_term("2.5", realsort)));
 }
 
 TEST_P(RealOpDefinitionTests, IsInt)
 {
   Term one_point_three = s->make_term("1.3", s->make_sort(SortKind::REAL));
-  expect_valid(s->make_term(Not, s->make_term(Is_Int, one_point_three)));
+  expect_valid(
+      s->make_term(Op::Not, s->make_term(Op::Is_Int, one_point_three)));
 }
 
 INSTANTIATE_TEST_SUITE_P(

@@ -250,10 +250,10 @@ def check_args(cmp, n):
     return wrapper
 
 
-def make_walk_nary(n, primop):
+def make_walk_nary(n, kind):
     @check_args(operator.eq, n)
     def walk_op(self, _formula, args, **_kwargs):
-        return self.make_term(primop, *args)
+        return self.make_term(kind, *args)
 
     return walk_op
 
@@ -262,10 +262,10 @@ make_walk_unary = ft.partial(make_walk_nary, 1)
 make_walk_binary = ft.partial(make_walk_nary, 2)
 
 
-def make_walk_variadic(n, primop):
+def make_walk_variadic(n, kind):
     @check_args(operator.ge, n)
     def walk_op(self, _formula, args, **_kwargs):
-        builder = ft.partial(self.make_term, primop)
+        builder = ft.partial(self.make_term, kind)
         return ft.reduce(builder, args)
 
     return walk_op
@@ -354,176 +354,176 @@ class SwitchConverter(Converter, DagWalker):
     walk_real_constant = _walk_constant
 
     # Bool operators
-    walk_and = make_walk_variadic(2, ss.primops.And)
-    walk_or = make_walk_variadic(2, ss.primops.Or)
-    walk_not = make_walk_unary(ss.primops.Not)
-    walk_iff = make_walk_variadic(2, ss.primops.Equal)
-    walk_implies = make_walk_binary(ss.primops.Implies)
+    walk_and = make_walk_variadic(2, ss.opkinds.And)
+    walk_or = make_walk_variadic(2, ss.opkinds.Or)
+    walk_not = make_walk_unary(ss.opkinds.Not)
+    walk_iff = make_walk_variadic(2, ss.opkinds.Equal)
+    walk_implies = make_walk_binary(ss.opkinds.Implies)
 
     # Polymorphic Operators
-    walk_ite = make_walk_nary(3, ss.primops.Ite)
+    walk_ite = make_walk_nary(3, ss.opkinds.Ite)
 
     def walk_function(self, formula, args, **_kwargs):
         name = formula.function_name()
         f = self.walk_symbol(name, name.args())
-        return self.make_term(ss.primops.Apply, [f, *args])
+        return self.make_term(ss.opkinds.Apply, [f, *args])
 
     # Int / real operators
-    walk_lt = make_walk_binary(ss.primops.Lt)
-    walk_le = make_walk_binary(ss.primops.Le)
-    walk_equals = make_walk_binary(ss.primops.Equal)
-    walk_ge = make_walk_binary(ss.primops.Ge)
-    walk_gt = make_walk_binary(ss.primops.Gt)
+    walk_lt = make_walk_binary(ss.opkinds.Lt)
+    walk_le = make_walk_binary(ss.opkinds.Le)
+    walk_equals = make_walk_binary(ss.opkinds.Equal)
+    walk_ge = make_walk_binary(ss.opkinds.Ge)
+    walk_gt = make_walk_binary(ss.opkinds.Gt)
 
-    walk_plus = make_walk_variadic(2, ss.primops.Plus)
-    walk_times = make_walk_variadic(2, ss.primops.Mult)
+    walk_plus = make_walk_variadic(2, ss.opkinds.Plus)
+    walk_times = make_walk_variadic(2, ss.opkinds.Mult)
 
-    walk_minus = make_walk_binary(ss.primops.Minus)
-    walk_div = make_walk_binary(ss.primops.Div)
-    walk_pow = make_walk_binary(ss.primops.Pow)
+    walk_minus = make_walk_binary(ss.opkinds.Minus)
+    walk_div = make_walk_binary(ss.opkinds.Div)
+    walk_pow = make_walk_binary(ss.opkinds.Pow)
 
-    walk_toreal = make_walk_unary(ss.primops.To_Real)
+    walk_toreal = make_walk_unary(ss.opkinds.To_Real)
 
     # BV Operators
-    walk_bv_add = make_walk_binary(ss.primops.BVAdd)
-    walk_bv_and = make_walk_binary(ss.primops.BVAnd)
-    walk_bv_ashr = make_walk_binary(ss.primops.BVAshr)
-    walk_bv_comp = make_walk_binary(ss.primops.BVComp)
-    walk_bv_concat = make_walk_binary(ss.primops.Concat)
+    walk_bv_add = make_walk_binary(ss.opkinds.BVAdd)
+    walk_bv_and = make_walk_binary(ss.opkinds.BVAnd)
+    walk_bv_ashr = make_walk_binary(ss.opkinds.BVAshr)
+    walk_bv_comp = make_walk_binary(ss.opkinds.BVComp)
+    walk_bv_concat = make_walk_binary(ss.opkinds.Concat)
 
     @check_args(operator.eq, 1)
     def walk_bv_extract(self, formula, args, **_kwargs):
         return self.make_term(
             ss.Op(
-                ss.primops.Extract,
+                ss.opkinds.Extract,
                 formula.bv_extract_end(),
                 formula.bv_extract_start(),
             ),
             *args,
         )
 
-    walk_bv_lshl = make_walk_binary(ss.primops.BVShl)
-    walk_bv_lshr = make_walk_binary(ss.primops.BVLshr)
-    walk_bv_mul = make_walk_binary(ss.primops.BVMul)
-    walk_bv_neg = make_walk_unary(ss.primops.BVNeg)
-    walk_bv_not = make_walk_unary(ss.primops.BVNot)
-    walk_bv_or = make_walk_binary(ss.primops.BVOr)
+    walk_bv_lshl = make_walk_binary(ss.opkinds.BVShl)
+    walk_bv_lshr = make_walk_binary(ss.opkinds.BVLshr)
+    walk_bv_mul = make_walk_binary(ss.opkinds.BVMul)
+    walk_bv_neg = make_walk_unary(ss.opkinds.BVNeg)
+    walk_bv_not = make_walk_unary(ss.opkinds.BVNot)
+    walk_bv_or = make_walk_binary(ss.opkinds.BVOr)
 
     @check_args(operator.eq, 1)
     def walk_bv_rol(self, formula, args, **_kwargs):
         return self.make_term(
-            ss.Op(ss.primops.Rotate_Left, formula.bv_rotation_step()), *args
+            ss.Op(ss.opkinds.Rotate_Left, formula.bv_rotation_step()), *args
         )
 
     @check_args(operator.eq, 1)
     def walk_bv_ror(self, formula, args, **_kwargs):
         return self.make_term(
-            ss.Op(ss.primops.Rotate_Right, formula.bv_rotation_step()), *args
+            ss.Op(ss.opkinds.Rotate_Right, formula.bv_rotation_step()), *args
         )
 
-    walk_bv_sdiv = make_walk_binary(ss.primops.BVSdiv)
+    walk_bv_sdiv = make_walk_binary(ss.opkinds.BVSdiv)
 
     @check_args(operator.eq, 1)
     def walk_bv_sext(self, formula, args, **_kwargs):
         return self.make_term(
-            ss.Op(ss.primops.Sign_Extend, formula.bv_extend_step()), *args
+            ss.Op(ss.opkinds.Sign_Extend, formula.bv_extend_step()), *args
         )
 
-    walk_bv_sle = make_walk_binary(ss.primops.BVSle)
-    walk_bv_slt = make_walk_binary(ss.primops.BVSlt)
-    walk_bv_srem = make_walk_binary(ss.primops.BVSrem)
-    walk_bv_sub = make_walk_binary(ss.primops.BVSub)
-    walk_bv_tonatural = make_walk_unary(ss.primops.BV_To_Nat)
-    walk_ubv_to_int = make_walk_unary(ss.primops.UBV_To_Int)
-    walk_sbv_to_int = make_walk_unary(ss.primops.SBV_To_Int)
-    walk_bv_udiv = make_walk_binary(ss.primops.BVUdiv)
-    walk_bv_ule = make_walk_binary(ss.primops.BVUle)
-    walk_bv_ult = make_walk_binary(ss.primops.BVUlt)
-    walk_bv_urem = make_walk_binary(ss.primops.BVUrem)
-    walk_bv_xor = make_walk_binary(ss.primops.BVXor)
+    walk_bv_sle = make_walk_binary(ss.opkinds.BVSle)
+    walk_bv_slt = make_walk_binary(ss.opkinds.BVSlt)
+    walk_bv_srem = make_walk_binary(ss.opkinds.BVSrem)
+    walk_bv_sub = make_walk_binary(ss.opkinds.BVSub)
+    walk_bv_tonatural = make_walk_unary(ss.opkinds.BV_To_Nat)
+    walk_ubv_to_int = make_walk_unary(ss.opkinds.UBV_To_Int)
+    walk_sbv_to_int = make_walk_unary(ss.opkinds.SBV_To_Int)
+    walk_bv_udiv = make_walk_binary(ss.opkinds.BVUdiv)
+    walk_bv_ule = make_walk_binary(ss.opkinds.BVUle)
+    walk_bv_ult = make_walk_binary(ss.opkinds.BVUlt)
+    walk_bv_urem = make_walk_binary(ss.opkinds.BVUrem)
+    walk_bv_xor = make_walk_binary(ss.opkinds.BVXor)
 
     @check_args(operator.eq, 1)
     def walk_bv_zext(self, formula, args, **_kwargs):
         return self.make_term(
-            ss.Op(ss.primops.Zero_Extend, formula.bv_extend_step()), *args
+            ss.Op(ss.opkinds.Zero_Extend, formula.bv_extend_step()), *args
         )
 
     # array operators
-    walk_array_select = make_walk_binary(ss.primops.Select)
-    walk_array_store = make_walk_nary(3, ss.primops.Store)
+    walk_array_select = make_walk_binary(ss.opkinds.Select)
+    walk_array_store = make_walk_nary(3, ss.opkinds.Store)
 
 
 class BackVisitor(ss.TermDagVisitor):
     def __init__(self, mgr):
         self.mgr = mgr
         self.convertion_table = {
-            ss.primops.Abs: self._convert_abs,
-            ss.primops.And: mgr.And,
-            ss.primops.Apply: self._convert_apply,
-            ss.primops.BVAdd: mgr.BVAdd,
-            ss.primops.BVAnd: mgr.BVAnd,
-            ss.primops.BVAshr: mgr.BVAShr,
-            ss.primops.BVComp: mgr.BVComp,
-            ss.primops.BVLshr: mgr.BVLShr,
-            ss.primops.BVMul: mgr.BVMul,
-            ss.primops.BVNand: mgr.BVNand,
-            ss.primops.BVNeg: mgr.BVNeg,
-            ss.primops.BVNor: mgr.BVNor,
-            ss.primops.BVNot: mgr.BVNot,
-            ss.primops.BVOr: mgr.BVOr,
-            ss.primops.BVSdiv: mgr.BVSDiv,
-            ss.primops.BVSge: mgr.BVSGE,
-            ss.primops.BVSgt: mgr.BVSGT,
-            ss.primops.BVShl: mgr.BVLShl,
-            ss.primops.BVSle: mgr.BVSLE,
-            ss.primops.BVSlt: mgr.BVSLT,
-            ss.primops.BVSmod: mgr.BVSMod,
-            ss.primops.BVSrem: mgr.BVSRem,
-            ss.primops.BVSub: mgr.BVSub,
-            ss.primops.BVUdiv: mgr.BVUDiv,
-            ss.primops.BVUge: mgr.BVUGE,
-            ss.primops.BVUgt: mgr.BVUGT,
-            ss.primops.BVUle: mgr.BVULE,
-            ss.primops.BVUlt: mgr.BVULT,
-            ss.primops.BVUrem: mgr.BVURem,
-            ss.primops.BVXnor: mgr.BVXnor,
-            ss.primops.BVXor: mgr.BVXor,
-            ss.primops.BV_To_Nat: mgr.BVToNatural,
-            ss.primops.UBV_To_Int: mgr.BVToNatural,
-            # ss.primops.SBV_To_Int: NOT SUPPORTED BY PYSMT
-            ss.primops.Concat: mgr.BVConcat,
-            ss.primops.Distinct: mgr.AllDifferent,
-            ss.primops.Div: mgr.Div,
-            ss.primops.Equal: mgr.EqualsOrIff,
-            # ss.primops.Exists:
-            ss.primops.Extract: self._convert_extract,
-            # ss.primops.Forall:
-            ss.primops.Ge: mgr.GE,
-            ss.primops.Gt: mgr.GT,
-            ss.primops.Implies: mgr.Implies,
-            # ss.primops.Int_To_BV: NOT SUPPORTED BY PYSMT
-            # ss.primops.Is_Int: NOT SUPPORTED BY PYSMT
-            ss.primops.Ite: mgr.Ite,
-            ss.primops.Le: mgr.LE,
-            ss.primops.Lt: mgr.LT,
-            ss.primops.Minus: mgr.Minus,
-            # ss.primops.Mod: NOT SUPPORTED BY PYSMT
-            ss.primops.Mult: mgr.Times,
-            ss.primops.Negate: self._convert_negate,
-            ss.primops.Not: mgr.Not,
-            ss.primops.Or: mgr.Or,
-            ss.primops.Plus: mgr.Plus,
-            ss.primops.Pow: mgr.Pow,
-            ss.primops.Repeat: mgr.BVRepeat,
-            ss.primops.Rotate_Left: mgr.BVRol,
-            ss.primops.Rotate_Right: mgr.BVRor,
-            ss.primops.Select: mgr.Select,
-            ss.primops.Sign_Extend: mgr.BVSExt,
-            ss.primops.Store: mgr.Store,
-            # ss.primops.To_Int: NOT SUPPORTED BY PYSMT
-            ss.primops.To_Real: mgr.ToReal,
-            ss.primops.Xor: mgr.Xor,
-            ss.primops.Zero_Extend: mgr.BVZExt,
+            ss.opkinds.Abs: self._convert_abs,
+            ss.opkinds.And: mgr.And,
+            ss.opkinds.Apply: self._convert_apply,
+            ss.opkinds.BVAdd: mgr.BVAdd,
+            ss.opkinds.BVAnd: mgr.BVAnd,
+            ss.opkinds.BVAshr: mgr.BVAShr,
+            ss.opkinds.BVComp: mgr.BVComp,
+            ss.opkinds.BVLshr: mgr.BVLShr,
+            ss.opkinds.BVMul: mgr.BVMul,
+            ss.opkinds.BVNand: mgr.BVNand,
+            ss.opkinds.BVNeg: mgr.BVNeg,
+            ss.opkinds.BVNor: mgr.BVNor,
+            ss.opkinds.BVNot: mgr.BVNot,
+            ss.opkinds.BVOr: mgr.BVOr,
+            ss.opkinds.BVSdiv: mgr.BVSDiv,
+            ss.opkinds.BVSge: mgr.BVSGE,
+            ss.opkinds.BVSgt: mgr.BVSGT,
+            ss.opkinds.BVShl: mgr.BVLShl,
+            ss.opkinds.BVSle: mgr.BVSLE,
+            ss.opkinds.BVSlt: mgr.BVSLT,
+            ss.opkinds.BVSmod: mgr.BVSMod,
+            ss.opkinds.BVSrem: mgr.BVSRem,
+            ss.opkinds.BVSub: mgr.BVSub,
+            ss.opkinds.BVUdiv: mgr.BVUDiv,
+            ss.opkinds.BVUge: mgr.BVUGE,
+            ss.opkinds.BVUgt: mgr.BVUGT,
+            ss.opkinds.BVUle: mgr.BVULE,
+            ss.opkinds.BVUlt: mgr.BVULT,
+            ss.opkinds.BVUrem: mgr.BVURem,
+            ss.opkinds.BVXnor: mgr.BVXnor,
+            ss.opkinds.BVXor: mgr.BVXor,
+            ss.opkinds.BV_To_Nat: mgr.BVToNatural,
+            ss.opkinds.UBV_To_Int: mgr.BVToNatural,
+            # ss.opkinds.SBV_To_Int: NOT SUPPORTED BY PYSMT
+            ss.opkinds.Concat: mgr.BVConcat,
+            ss.opkinds.Distinct: mgr.AllDifferent,
+            ss.opkinds.Div: mgr.Div,
+            ss.opkinds.Equal: mgr.EqualsOrIff,
+            # ss.opkinds.Exists:
+            ss.opkinds.Extract: self._convert_extract,
+            # ss.opkinds.Forall:
+            ss.opkinds.Ge: mgr.GE,
+            ss.opkinds.Gt: mgr.GT,
+            ss.opkinds.Implies: mgr.Implies,
+            # ss.opkinds.Int_To_BV: NOT SUPPORTED BY PYSMT
+            # ss.opkinds.Is_Int: NOT SUPPORTED BY PYSMT
+            ss.opkinds.Ite: mgr.Ite,
+            ss.opkinds.Le: mgr.LE,
+            ss.opkinds.Lt: mgr.LT,
+            ss.opkinds.Minus: mgr.Minus,
+            # ss.opkinds.Mod: NOT SUPPORTED BY PYSMT
+            ss.opkinds.Mult: mgr.Times,
+            ss.opkinds.Negate: self._convert_negate,
+            ss.opkinds.Not: mgr.Not,
+            ss.opkinds.Or: mgr.Or,
+            ss.opkinds.Plus: mgr.Plus,
+            ss.opkinds.Pow: mgr.Pow,
+            ss.opkinds.Repeat: mgr.BVRepeat,
+            ss.opkinds.Rotate_Left: mgr.BVRol,
+            ss.opkinds.Rotate_Right: mgr.BVRor,
+            ss.opkinds.Select: mgr.Select,
+            ss.opkinds.Sign_Extend: mgr.BVSExt,
+            ss.opkinds.Store: mgr.Store,
+            # ss.opkinds.To_Int: NOT SUPPORTED BY PYSMT
+            ss.opkinds.To_Real: mgr.ToReal,
+            ss.opkinds.Xor: mgr.Xor,
+            ss.opkinds.Zero_Extend: mgr.BVZExt,
         }
 
     def visit_term(self, term, new_children):
@@ -534,10 +534,10 @@ class BackVisitor(ss.TermDagVisitor):
                 indices = [op.idx0]
                 if op.num_idx > 1:
                     indices.append(op.idx1)
-            primop = op.primop
-            if primop not in self.convertion_table:
-                raise NotImplementedError(f"Unsupported operator: {primop}")
-            return self.convertion_table[primop](*new_children, *indices)
+            kind = op.kind
+            if kind not in self.convertion_table:
+                raise NotImplementedError(f"Unsupported operator: {kind}")
+            return self.convertion_table[kind](*new_children, *indices)
 
         sort = term.get_sort()
         if new_children:

@@ -52,10 +52,10 @@ def test_simple_itp(itp_name, theory):
     # them unsatisfiable
     if theory == "int":
         sort = itp.make_sort(ss.sortkinds.INT)
-        lt, gt = ss.primops.Lt, ss.primops.Gt
+        lt, gt = ss.opkinds.Lt, ss.opkinds.Gt
     else:
         sort = itp.make_sort(ss.sortkinds.BV, 8)
-        lt, gt = ss.primops.BVUlt, ss.primops.BVUgt
+        lt, gt = ss.opkinds.BVUlt, ss.opkinds.BVUgt
     x = itp.make_symbol("x", sort)
     y = itp.make_symbol("y", sort)
     z = itp.make_symbol("z", sort)
@@ -65,13 +65,13 @@ def test_simple_itp(itp_name, theory):
     a = itp.make_term(lt, x, y)
 
     # y < w
-    a = itp.make_term(ss.primops.And, a, itp.make_term(lt, y, w))
+    a = itp.make_term(ss.opkinds.And, a, itp.make_term(lt, y, w))
 
     # z > w
     b = itp.make_term(gt, z, w)
 
     # z < x
-    b = itp.make_term(ss.primops.And, b, itp.make_term(lt, z, x))
+    b = itp.make_term(ss.opkinds.And, b, itp.make_term(lt, z, x))
 
     interpolant = itp.get_interpolant(a, b)
     assert interpolant is not None

@@ -300,23 +300,23 @@ int reached_deadline(void * deadline)
   return d->reached;
 }
 
-/** Refuses po applied to num_args arguments, which MathSAT has no operator
+/** Refuses kind applied to num_args arguments, which MathSAT has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
+[[noreturn]] void throw_unsupported(Op::Kind kind, size_t num_args)
 {
-  const std::pair<size_t, size_t> arity = get_arity(po);
+  const std::pair<size_t, size_t> arity = get_arity(kind);
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("MathSAT does not support the operator "
-                                + to_string(po));
+                                + to_string(kind));
 }
 
 /** The term of op applied to one argument
@@ -324,31 +324,31 @@ int reached_deadline(void * deadline)
  */
 msat_term unary_term(msat_env e, const Op & op, msat_term a)
 {
-  switch (op.prim_op)
+  switch (op.kind())
   {
-    case Not: return msat_make_not(e, a);
-    case Negate: return ext_msat_make_negate(e, a);
-    case Abs:
+    case Op::Not: return msat_make_not(e, a);
+    case Op::Negate: return ext_msat_make_negate(e, a);
+    case Op::Abs:
       return msat_make_term_ite(e,
                                 msat_make_leq(e, a, msat_make_number(e, "-1")),
                                 ext_msat_make_negate(e, a),
                                 a);
-    case To_Real: return a;
-    case To_Int: return msat_make_floor(e, a);
-    case Is_Int: return msat_make_eq(e, a, msat_make_floor(e, a));
-    case Divisible:
+    case Op::To_Real: return a;
+    case Op::To_Int: return msat_make_floor(e, a);
+    case Op::Is_Int: return msat_make_eq(e, a, msat_make_floor(e, a));
+    case Op::Divisible:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
       }
       return ext_msat_make_divisible(e, op.indices[0], a);
-    case Extract:
+    case Op::Extract:
       return msat_make_bv_extract(e, op.indices[0], op.indices[1], a);
-    case BVNot: return msat_make_bv_not(e, a);
-    case BVNeg: return msat_make_bv_neg(e, a);
-    case Zero_Extend: return msat_make_bv_zext(e, op.indices[0], a);
-    case Sign_Extend: return msat_make_bv_sext(e, op.indices[0], a);
-    case Repeat: {
+    case Op::BVNot: return msat_make_bv_not(e, a);
+    case Op::BVNeg: return msat_make_bv_neg(e, a);
+    case Op::Zero_Extend: return msat_make_bv_zext(e, op.indices[0], a);
+    case Op::Sign_Extend: return msat_make_bv_sext(e, op.indices[0], a);
+    case Op::Repeat: {
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
@@ -384,71 +384,70 @@ msat_term unary_term(msat_env e, const Op & op, msat_term a)
       }
       return res;
     }
-    case Rotate_Left: return msat_make_bv_rol(e, op.indices[0], a);
-    case Rotate_Right: return msat_make_bv_ror(e, op.indices[0], a);
-    case BV_To_Nat: return msat_make_int_from_ubv(e, a);
-    case UBV_To_Int: return msat_make_int_from_ubv(e, a);
-    case SBV_To_Int: return msat_make_int_from_sbv(e, a);
-    case Int_To_BV: return msat_make_int_to_bv(e, op.indices[0], a);
-    default: throw_unsupported(op.prim_op, 1);
+    case Op::Rotate_Left: return msat_make_bv_rol(e, op.indices[0], a);
+    case Op::Rotate_Right: return msat_make_bv_ror(e, op.indices[0], a);
+    case Op::UBV_To_Int: return msat_make_int_from_ubv(e, a);
+    case Op::SBV_To_Int: return msat_make_int_from_sbv(e, a);
+    case Op::Int_To_BV: return msat_make_int_to_bv(e, op.indices[0], a);
+    default: throw_unsupported(op.kind(), 1);
   }
 }
 
-/** The term of po applied to two arguments
+/** The term of kind applied to two arguments
  *  @throws as throw_unsupported where MathSAT has no such op
  */
-msat_term binary_term(msat_env e, PrimOp po, msat_term a, msat_term b)
+msat_term binary_term(msat_env e, Op::Kind kind, msat_term a, msat_term b)
 {
-  switch (po)
+  switch (kind)
   {
-    case And: return msat_make_and(e, a, b);
-    case Or: return msat_make_or(e, a, b);
-    case Xor:
+    case Op::And: return msat_make_and(e, a, b);
+    case Op::Or: return msat_make_or(e, a, b);
+    case Op::Xor:
       return msat_make_and(
           e, msat_make_or(e, a, b), msat_make_not(e, msat_make_and(e, a, b)));
-    case Implies: return msat_make_or(e, msat_make_not(e, a), b);
-    case Equal: return msat_make_eq(e, a, b);
-    case Distinct: return msat_make_not(e, msat_make_eq(e, a, b));
-    case Plus: return msat_make_plus(e, a, b);
-    case Minus: return msat_make_plus(e, a, ext_msat_make_negate(e, b));
-    case Mult: return msat_make_times(e, a, b);
-    case Div: return msat_make_divide(e, a, b);
-    case IntDiv: return ext_msat_make_intdiv(e, a, b);
-    case Lt: return msat_make_not(e, msat_make_leq(e, b, a));
-    case Le: return msat_make_leq(e, a, b);
-    case Gt: return msat_make_not(e, msat_make_leq(e, a, b));
-    case Ge: return msat_make_leq(e, b, a);
-    case Mod: return ext_msat_make_mod(e, a, b);
-    case Pow: return ext_msat_make_pow(e, a, b);
-    case Concat: return msat_make_bv_concat(e, a, b);
-    case BVAnd: return msat_make_bv_and(e, a, b);
-    case BVOr: return msat_make_bv_or(e, a, b);
-    case BVXor: return msat_make_bv_xor(e, a, b);
-    case BVNand: return msat_make_bv_not(e, msat_make_bv_and(e, a, b));
-    case BVNor: return msat_make_bv_not(e, msat_make_bv_or(e, a, b));
-    case BVXnor: return msat_make_bv_not(e, msat_make_bv_xor(e, a, b));
-    case BVComp: return msat_make_bv_comp(e, a, b);
-    case BVAdd: return msat_make_bv_plus(e, a, b);
-    case BVSub: return msat_make_bv_minus(e, a, b);
-    case BVMul: return msat_make_bv_times(e, a, b);
-    case BVUdiv: return msat_make_bv_udiv(e, a, b);
-    case BVSdiv: return msat_make_bv_sdiv(e, a, b);
-    case BVUrem: return msat_make_bv_urem(e, a, b);
-    case BVSrem: return msat_make_bv_srem(e, a, b);
-    case BVSmod: return ext_msat_make_bv_smod(e, a, b);
-    case BVShl: return msat_make_bv_lshl(e, a, b);
-    case BVAshr: return msat_make_bv_ashr(e, a, b);
-    case BVLshr: return msat_make_bv_lshr(e, a, b);
-    case BVUlt: return msat_make_bv_ult(e, a, b);
-    case BVUle: return msat_make_bv_uleq(e, a, b);
-    case BVUgt: return msat_make_not(e, msat_make_bv_uleq(e, a, b));
-    case BVUge: return msat_make_not(e, msat_make_bv_ult(e, a, b));
-    case BVSlt: return msat_make_bv_slt(e, a, b);
-    case BVSle: return msat_make_bv_sleq(e, a, b);
-    case BVSgt: return msat_make_not(e, msat_make_bv_sleq(e, a, b));
-    case BVSge: return msat_make_not(e, msat_make_bv_slt(e, a, b));
-    case Select: return msat_make_array_read(e, a, b);
-    default: throw_unsupported(po, 2);
+    case Op::Implies: return msat_make_or(e, msat_make_not(e, a), b);
+    case Op::Equal: return msat_make_eq(e, a, b);
+    case Op::Distinct: return msat_make_not(e, msat_make_eq(e, a, b));
+    case Op::Plus: return msat_make_plus(e, a, b);
+    case Op::Minus: return msat_make_plus(e, a, ext_msat_make_negate(e, b));
+    case Op::Mult: return msat_make_times(e, a, b);
+    case Op::Div: return msat_make_divide(e, a, b);
+    case Op::IntDiv: return ext_msat_make_intdiv(e, a, b);
+    case Op::Lt: return msat_make_not(e, msat_make_leq(e, b, a));
+    case Op::Le: return msat_make_leq(e, a, b);
+    case Op::Gt: return msat_make_not(e, msat_make_leq(e, a, b));
+    case Op::Ge: return msat_make_leq(e, b, a);
+    case Op::Mod: return ext_msat_make_mod(e, a, b);
+    case Op::Pow: return ext_msat_make_pow(e, a, b);
+    case Op::Concat: return msat_make_bv_concat(e, a, b);
+    case Op::BVAnd: return msat_make_bv_and(e, a, b);
+    case Op::BVOr: return msat_make_bv_or(e, a, b);
+    case Op::BVXor: return msat_make_bv_xor(e, a, b);
+    case Op::BVNand: return msat_make_bv_not(e, msat_make_bv_and(e, a, b));
+    case Op::BVNor: return msat_make_bv_not(e, msat_make_bv_or(e, a, b));
+    case Op::BVXnor: return msat_make_bv_not(e, msat_make_bv_xor(e, a, b));
+    case Op::BVComp: return msat_make_bv_comp(e, a, b);
+    case Op::BVAdd: return msat_make_bv_plus(e, a, b);
+    case Op::BVSub: return msat_make_bv_minus(e, a, b);
+    case Op::BVMul: return msat_make_bv_times(e, a, b);
+    case Op::BVUdiv: return msat_make_bv_udiv(e, a, b);
+    case Op::BVSdiv: return msat_make_bv_sdiv(e, a, b);
+    case Op::BVUrem: return msat_make_bv_urem(e, a, b);
+    case Op::BVSrem: return msat_make_bv_srem(e, a, b);
+    case Op::BVSmod: return ext_msat_make_bv_smod(e, a, b);
+    case Op::BVShl: return msat_make_bv_lshl(e, a, b);
+    case Op::BVAshr: return msat_make_bv_ashr(e, a, b);
+    case Op::BVLshr: return msat_make_bv_lshr(e, a, b);
+    case Op::BVUlt: return msat_make_bv_ult(e, a, b);
+    case Op::BVUle: return msat_make_bv_uleq(e, a, b);
+    case Op::BVUgt: return msat_make_not(e, msat_make_bv_uleq(e, a, b));
+    case Op::BVUge: return msat_make_not(e, msat_make_bv_ult(e, a, b));
+    case Op::BVSlt: return msat_make_bv_slt(e, a, b);
+    case Op::BVSle: return msat_make_bv_sleq(e, a, b);
+    case Op::BVSgt: return msat_make_not(e, msat_make_bv_sleq(e, a, b));
+    case Op::BVSge: return msat_make_not(e, msat_make_bv_slt(e, a, b));
+    case Op::Select: return msat_make_array_read(e, a, b);
+    default: throw_unsupported(kind, 2);
   }
 }
 
@@ -1081,13 +1080,13 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string()
                                   + " to zero terms");
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     // MathSAT builds quantified terms but cannot solve them: it refuses one
     // left at the top level, and treats one left nested as a free Boolean,
     // answering sat to unsat formulas
     throw NotImplementedException("MathSAT does not support "
-                                  + to_string(op.prim_op));
+                                  + to_string(op.kind()));
   }
 
   std::vector<msat_term> mterms;
@@ -1102,7 +1101,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   {
     res = unary_term(*env, op, mterms[0]);
   }
-  else if (op.prim_op == Apply)
+  else if (op.kind() == Op::Apply)
   {
     std::shared_ptr<MsatTerm> mterm = backend::pointer_cast<MsatTerm>(terms[0]);
     if (!mterm->is_uf)
@@ -1118,13 +1117,13 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    res = binary_term(*env, op.prim_op, mterms[0], mterms[1]);
+    res = binary_term(*env, op.kind(), mterms[0], mterms[1]);
   }
-  else if (size == 3 && op.prim_op == Ite)
+  else if (size == 3 && op.kind() == Op::Ite)
   {
     res = ext_msat_make_ite(*env, mterms[0], mterms[1], mterms[2]);
   }
-  else if (size == 3 && op.prim_op == Store)
+  else if (size == 3 && op.kind() == Op::Store)
   {
     res = msat_make_array_write(*env, mterms[0], mterms[1], mterms[2]);
   }

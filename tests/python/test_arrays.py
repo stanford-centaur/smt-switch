@@ -5,7 +5,7 @@
 import pytest
 
 import smt_switch as ss
-from smt_switch.primops import Distinct, Equal, Select, Store
+from smt_switch.opkinds import Distinct, Equal, Select, Store
 
 from .available_solvers import int_support_solvers
 

@@ -38,7 +38,7 @@ def test_sorting_network(create_solver, num_vars):
         if num_true < num_vars:
             # ensure there aren't more than num_true set to true
             solver.assert_formula(
-                solver.make_term(ss.primops.Not, sortedlist[num_true])
+                solver.make_term(ss.opkinds.Not, sortedlist[num_true])
             )
         res = solver.check_sat()
         assert res.is_sat()

@@ -57,14 +57,16 @@ TEST_F(MsatPrintingTest, Interpolation)
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
 
-  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
-  Term B = s->make_term(Gt, x, z);
+  Term A = s->make_term(
+      Op::And, s->make_term(Op::Lt, x, y), s->make_term(Op::Lt, y, z));
+  Term B = s->make_term(Op::Gt, x, z);
   Term I;
   Result r = s->get_interpolant(A, B, I);
   ASSERT_TRUE(r.is_unsat());
 
-  Term A1 = s->make_term(And, s->make_term(Lt, z, y), s->make_term(Lt, y, x));
-  Term B1 = s->make_term(Gt, z, x);
+  Term A1 = s->make_term(
+      Op::And, s->make_term(Op::Lt, z, y), s->make_term(Op::Lt, y, x));
+  Term B1 = s->make_term(Op::Gt, z, x);
   Term I1;
   Result r1 = s->get_interpolant(A1, B1, I1);
   ASSERT_TRUE(r1.is_unsat());
@@ -90,9 +92,9 @@ TEST_F(MsatPrintingTest, SequenceInterpolation)
   Term z = s->make_symbol("z", intsort);
 
   // x < y, y < z and z < x cannot all hold
-  TermVec formulae = { s->make_term(Lt, x, y),
-                       s->make_term(Lt, y, z),
-                       s->make_term(Lt, z, x) };
+  TermVec formulae = { s->make_term(Op::Lt, x, y),
+                       s->make_term(Op::Lt, y, z),
+                       s->make_term(Op::Lt, z, x) };
   TermVec interpolants;
   ASSERT_TRUE(s->get_sequence_interpolants(formulae, interpolants).is_unsat());
   EXPECT_EQ(interpolants.size(), 2);
@@ -118,10 +120,10 @@ TEST_F(MsatPrintingTest, ReusedSequenceInterpolation)
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
-  Term xy = s->make_term(Lt, x, y);
-  Term yz = s->make_term(Lt, y, z);
-  Term zx = s->make_term(Lt, z, x);
-  Term xz = s->make_term(Lt, x, z);
+  Term xy = s->make_term(Op::Lt, x, y);
+  Term yz = s->make_term(Op::Lt, y, z);
+  Term zx = s->make_term(Op::Lt, z, x);
+  Term xz = s->make_term(Op::Lt, x, z);
   for (const TermVec & formulae : { TermVec{ xy, yz, zx },
                                     TermVec{ xy, yz, zx, xz },
                                     TermVec{ xy, zx, yz },

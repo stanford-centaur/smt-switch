@@ -63,18 +63,20 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
   Term z = solver->make_symbol("z", bvsort);
 
   // x<y /\ y<z
-  Term A = solver->make_term(
-      And, solver->make_term(BVUlt, x, y), solver->make_term(BVUlt, y, z));
+  Term A = solver->make_term(Op::And,
+                             solver->make_term(Op::BVUlt, x, y),
+                             solver->make_term(Op::BVUlt, y, z));
   // x<z
-  Term B = solver->make_term(BVUgt, x, z);
+  Term B = solver->make_term(Op::BVUgt, x, z);
   Term I;
   solver->get_interpolant(A, B, I);
 
   // z<y /\ y<x
-  Term A1 = solver->make_term(
-      And, solver->make_term(BVUlt, z, y), solver->make_term(BVUlt, y, x));
+  Term A1 = solver->make_term(Op::And,
+                              solver->make_term(Op::BVUlt, z, y),
+                              solver->make_term(Op::BVUlt, y, x));
   // z<x
-  Term B1 = solver->make_term(BVUgt, z, x);
+  Term B1 = solver->make_term(Op::BVUgt, z, x);
   Term I1;
   solver->get_interpolant(A1, B1, I1);
 
@@ -102,9 +104,9 @@ TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
   Term z = solver->make_symbol("z", bvsort);
 
   // x < y, y < z and z < x cannot all hold
-  TermVec formulae = { solver->make_term(BVUlt, x, y),
-                       solver->make_term(BVUlt, y, z),
-                       solver->make_term(BVUlt, z, x) };
+  TermVec formulae = { solver->make_term(Op::BVUlt, x, y),
+                       solver->make_term(Op::BVUlt, y, z),
+                       solver->make_term(Op::BVUlt, z, x) };
   TermVec interpolants;
   ASSERT_TRUE(
       solver->get_sequence_interpolants(formulae, interpolants).is_unsat());
@@ -132,10 +134,10 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
   Term x = solver->make_symbol("x", bvsort);
   Term y = solver->make_symbol("y", bvsort);
   Term z = solver->make_symbol("z", bvsort);
-  Term xy = solver->make_term(BVUlt, x, y);
-  Term yz = solver->make_term(BVUlt, y, z);
-  Term zx = solver->make_term(BVUlt, z, x);
-  Term xz = solver->make_term(BVUlt, x, z);
+  Term xy = solver->make_term(Op::BVUlt, x, y);
+  Term yz = solver->make_term(Op::BVUlt, y, z);
+  Term zx = solver->make_term(Op::BVUlt, z, x);
+  Term xz = solver->make_term(Op::BVUlt, x, z);
   for (const TermVec & formulae : { TermVec{ xy, yz, zx },
                                     TermVec{ xy, yz, zx, xz },
                                     TermVec{ xy, zx, yz },
@@ -200,9 +202,9 @@ TEST_F(BitwuzlaPrintingTest, CopiesShareWhatIsAsserted)
   Term x = solver->make_symbol("x", bvsort);
   Term y = solver->make_symbol("y", bvsort);
   Term z = solver->make_symbol("z", bvsort);
-  Term xy = solver->make_term(BVUlt, x, y);
-  Term yz = solver->make_term(BVUlt, y, z);
-  Term zx = solver->make_term(BVUlt, z, x);
+  Term xy = solver->make_term(Op::BVUlt, x, y);
+  Term yz = solver->make_term(Op::BVUlt, y, z);
+  Term zx = solver->make_term(Op::BVUlt, z, x);
 
   TermVec first;
   ASSERT_TRUE(

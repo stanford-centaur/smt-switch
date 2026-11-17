@@ -13,9 +13,9 @@ from .cppapi cimport (
     c_UnorderedTermSet,
 )
 from .cppenums cimport (
-    c_PrimOp,
+    c_OpKind,
     c_SolverEnum,
     c_SortKind,
 )
-from .enums cimport PrimOp, SolverEnum, SortKind
+from .enums cimport OpKind, SolverEnum, SortKind
 from .smt_solvers cimport *

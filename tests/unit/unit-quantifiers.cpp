@@ -31,7 +31,7 @@ Term recover_quant(const Term & quant_term, TermVec & out_vars)
   Term body = quant_term;
   Op op = body->get_op();
   TermVec children;
-  while (op == Forall || op == Exists)
+  while (op == Op::Forall || op == Op::Exists)
   {
     children.clear();
     children.insert(children.end(), body->begin(), body->end());
@@ -91,8 +91,8 @@ TEST_P(UnitQuantifierIterTests, BoolTrivialUnsat)
   ASSERT_FALSE(b->is_symbolic_const());
   ASSERT_FALSE(b->is_value());
   // forall b . b
-  Term forallb = s->make_term(Forall, b, b);
-  ASSERT_EQ(forallb->get_op(), Forall);
+  Term forallb = s->make_term(Op::Forall, b, b);
+  ASSERT_EQ(forallb->get_op(), Op::Forall);
   s->assert_formula(forallb);
   Result r = s->check_sat();
   ASSERT_TRUE(!r.is_sat());
@@ -103,11 +103,11 @@ TEST_P(UnitQuantifierIterTests, OpAndSort)
   // a param apiece, as Boolector binds a param in one quantifier only
   Term b = s->make_param("b", boolsort);
   Term c = s->make_param("c", boolsort);
-  Term forallb = s->make_term(Forall, b, b);
-  Term existsc = s->make_term(Exists, c, c);
-  EXPECT_EQ(forallb->get_op(), Forall);
+  Term forallb = s->make_term(Op::Forall, b, b);
+  Term existsc = s->make_term(Op::Exists, c, c);
+  EXPECT_EQ(forallb->get_op(), Op::Forall);
   EXPECT_EQ(forallb->get_sort(), boolsort);
-  EXPECT_EQ(existsc->get_op(), Exists);
+  EXPECT_EQ(existsc->get_op(), Op::Exists);
   EXPECT_EQ(existsc->get_sort(), boolsort);
 }
 
@@ -117,10 +117,10 @@ TEST_P(UnitQuantifierIterTests, QuantifierTraversal)
   Term x = s->make_param("x", bvsort);
   Term f = s->make_symbol("f", funsort);
 
-  Term fx = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
   Term bimpfxeq0 = s->make_term(
-      Implies, b, s->make_term(Equal, fx, s->make_term(0, bvsort)));
-  Term forallbx = s->make_term(Forall, { b, x, bimpfxeq0 });
+      Op::Implies, b, s->make_term(Op::Equal, fx, s->make_term(0, bvsort)));
+  Term forallbx = s->make_term(Op::Forall, { b, x, bimpfxeq0 });
   ASSERT_EQ(forallbx->get_sort(), boolsort);
   TermVec vars;
   Term body = recover_quant(forallbx, vars);
@@ -134,7 +134,7 @@ TEST_P(UnitQuantifierIterTests, BoundParamName)
 {
   Term x = s->make_param("x y", bvsort);
   Term y = s->make_symbol("y", bvsort);
-  Term forall = s->make_term(Forall, x, s->make_term(BVUlt, x, y));
+  Term forall = s->make_term(Op::Forall, x, s->make_term(Op::BVUlt, x, y));
   TermVec children(forall->begin(), forall->end());
   ASSERT_FALSE(children.empty());
   EXPECT_EQ(children.front()->get_param_name(), "x y");
@@ -144,7 +144,7 @@ TEST_P(UnitQuantifierIterTests, ParamAsChild)
 {
   Term x = s->make_param("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
-  Term ult = s->make_term(BVUlt, x, y);
+  Term ult = s->make_term(Op::BVUlt, x, y);
   TermVec children(ult->begin(), ult->end());
   ASSERT_EQ(children.size(), 2);
   EXPECT_EQ(children[0], x);
@@ -160,9 +160,9 @@ TEST_P(UnitQuantifierIterTests, QuantifierFunCheck)
   Term x = s->make_param("x", bvsort);
   Term f = s->make_symbol("f", funsort);
 
-  Term fx = s->make_term(Apply, f, x);
-  Term fx_eq_0 = s->make_term(Equal, fx, s->make_term(0, bvsort));
-  Term existsx = s->make_term(Exists, x, fx_eq_0);
+  Term fx = s->make_term(Op::Apply, f, x);
+  Term fx_eq_0 = s->make_term(Op::Equal, fx, s->make_term(0, bvsort));
+  Term existsx = s->make_term(Op::Exists, x, fx_eq_0);
   Result r = s->check_sat();
   ASSERT_TRUE(r.is_sat());
 }
@@ -178,8 +178,8 @@ class Binders : public UnitQuantifierTests
   // assert forall param . param = symbol and check it is not sat
   void expect_symbol_not_captured(const Term & param, const Term & symbol)
   {
-    s->assert_formula(
-        s->make_term(Forall, param, s->make_term(Equal, param, symbol)));
+    s->assert_formula(s->make_term(
+        Op::Forall, param, s->make_term(Op::Equal, param, symbol)));
     EXPECT_FALSE(s->check_sat().is_sat());
   }
 };
@@ -226,15 +226,16 @@ TEST_P(Binders, NonParamHasNoParamName)
   EXPECT_THROW(x->get_param_name(), IncorrectUsageException);
   EXPECT_THROW(s->make_term(1, bvsort)->get_param_name(),
                IncorrectUsageException);
-  EXPECT_THROW(s->make_term(BVNot, x)->get_param_name(),
+  EXPECT_THROW(s->make_term(Op::BVNot, x)->get_param_name(),
                IncorrectUsageException);
 }
 
 TEST_P(Binders, NoParam)
 {
   Term body = s->make_symbol("b", boolsort);
-  EXPECT_THROW(s->make_term(Forall, body), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Exists, TermVec{ body }), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Forall, body), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Exists, TermVec{ body }),
+               IncorrectUsageException);
 }
 
 // binding a symbol would capture it, changing what the formula means
@@ -243,10 +244,11 @@ TEST_P(Binders, SymbolAsBinder)
   Term p = s->make_param("p", bvsort);
   Term q = s->make_param("q", bvsort);
   Term symbol = s->make_symbol("x", bvsort);
-  Term body = s->make_term(Equal, p, symbol);
-  EXPECT_THROW(s->make_term(Forall, symbol, body), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Exists, p, symbol, body), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Forall, TermVec{ p, q, symbol, body }),
+  Term body = s->make_term(Op::Equal, p, symbol);
+  EXPECT_THROW(s->make_term(Op::Forall, symbol, body), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Exists, p, symbol, body),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Forall, TermVec{ p, q, symbol, body }),
                IncorrectUsageException);
 }
 

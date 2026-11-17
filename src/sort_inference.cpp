@@ -585,138 +585,137 @@ enum class SortComputation
 };
 
 /** The sort rules of an operator */
-struct PrimOpSortInfo
+struct KindSortInfo
 {
-  PrimOp op;
+  Op::Kind kind;
   SortCheck check;
   SortComputation computation;
 };
 
-// one row per PrimOp, in the order of the enum
-constexpr PrimOpSortInfo primop_sort_info[] = {
-  { And, SortCheck::BOOL, SortComputation::BOOL },
-  { Or, SortCheck::BOOL, SortComputation::BOOL },
-  { Xor, SortCheck::BOOL, SortComputation::BOOL },
-  { Not, SortCheck::BOOL, SortComputation::BOOL },
-  { Implies, SortCheck::BOOL, SortComputation::BOOL },
-  { Ite, SortCheck::ITE, SortComputation::ITE },
-  { Equal, SortCheck::ARITH_EQUAL, SortComputation::BOOL },
-  { Distinct, SortCheck::ARITH_EQUAL, SortComputation::BOOL },
-  { Apply, SortCheck::APPLY, SortComputation::APPLY },
-  { Plus, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
-  { Minus, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
-  { Negate, SortCheck::ARITHMETIC, SortComputation::SAME },
-  { Mult, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
-  { Div, SortCheck::ARITHMETIC, SortComputation::REAL },
-  { Lt, SortCheck::ARITHMETIC, SortComputation::BOOL },
-  { Le, SortCheck::ARITHMETIC, SortComputation::BOOL },
-  { Gt, SortCheck::ARITHMETIC, SortComputation::BOOL },
-  { Ge, SortCheck::ARITHMETIC, SortComputation::BOOL },
-  { Mod, SortCheck::INT, SortComputation::INT },
+// one row per kind but Op::NONE, in the order of the enum
+constexpr KindSortInfo kind_sort_info[] = {
+  { Op::And, SortCheck::BOOL, SortComputation::BOOL },
+  { Op::Or, SortCheck::BOOL, SortComputation::BOOL },
+  { Op::Xor, SortCheck::BOOL, SortComputation::BOOL },
+  { Op::Not, SortCheck::BOOL, SortComputation::BOOL },
+  { Op::Implies, SortCheck::BOOL, SortComputation::BOOL },
+  { Op::Ite, SortCheck::ITE, SortComputation::ITE },
+  { Op::Equal, SortCheck::ARITH_EQUAL, SortComputation::BOOL },
+  { Op::Distinct, SortCheck::ARITH_EQUAL, SortComputation::BOOL },
+  { Op::Apply, SortCheck::APPLY, SortComputation::APPLY },
+  { Op::Plus, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
+  { Op::Minus, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
+  { Op::Negate, SortCheck::ARITHMETIC, SortComputation::SAME },
+  { Op::Mult, SortCheck::ARITHMETIC, SortComputation::ARITHMETIC },
+  { Op::Div, SortCheck::ARITHMETIC, SortComputation::REAL },
+  { Op::Lt, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Op::Le, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Op::Gt, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Op::Ge, SortCheck::ARITHMETIC, SortComputation::BOOL },
+  { Op::Mod, SortCheck::INT, SortComputation::INT },
   // technically Abs/Pow only defined for integers in
   // SMT-LIB but not sure if that's true for all solvers
   // might also be good to be forward looking
-  { Abs, SortCheck::INT, SortComputation::SAME },
-  { Pow, SortCheck::INT, SortComputation::SAME },
-  { IntDiv, SortCheck::INT, SortComputation::INT },
-  { Divisible, SortCheck::INT, SortComputation::BOOL },
-  { To_Real, SortCheck::INT, SortComputation::REAL },
-  { To_Int, SortCheck::REAL, SortComputation::INT },
-  { Is_Int, SortCheck::REAL, SortComputation::BOOL },
-  { Concat, SortCheck::BV, SortComputation::CONCAT },
-  { Extract, SortCheck::BV, SortComputation::EXTRACT },
-  { BVNot, SortCheck::BV, SortComputation::SAME },
-  { BVNeg, SortCheck::BV, SortComputation::SAME },
-  { BVAnd, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVOr, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVXor, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVNand, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVNor, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVXnor, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVAdd, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVSub, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVMul, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVUdiv, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVSdiv, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVUrem, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVSrem, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVSmod, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVShl, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVAshr, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVLshr, SortCheck::EQ_BV, SortComputation::SAME },
-  { BVComp, SortCheck::EQ_BV, SortComputation::SINGLE_BIT },
-  { BVUlt, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVUle, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVUgt, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVUge, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVSlt, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVSle, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVSgt, SortCheck::EQ_BV, SortComputation::BOOL },
-  { BVSge, SortCheck::EQ_BV, SortComputation::BOOL },
-  { Zero_Extend, SortCheck::BV, SortComputation::EXTEND },
-  { Sign_Extend, SortCheck::BV, SortComputation::EXTEND },
-  { Repeat, SortCheck::BV, SortComputation::REPEAT },
-  { Rotate_Left, SortCheck::BV, SortComputation::SAME },
-  { Rotate_Right, SortCheck::BV, SortComputation::SAME },
-  { BV_To_Nat, SortCheck::BV, SortComputation::INT },
-  { UBV_To_Int, SortCheck::BV, SortComputation::INT },
-  { SBV_To_Int, SortCheck::BV, SortComputation::INT },
-  { Int_To_BV, SortCheck::INT, SortComputation::INT_TO_BV },
-  { StrLt, SortCheck::STRING, SortComputation::BOOL },
-  { StrLeq, SortCheck::STRING, SortComputation::BOOL },
-  { StrLen, SortCheck::STRING, SortComputation::INT },
-  { StrConcat, SortCheck::STRING, SortComputation::STRING },
-  { StrSubstr, SortCheck::SUBSTR, SortComputation::STRING },
-  { StrAt, SortCheck::CHARAT, SortComputation::STRING },
-  { StrContains, SortCheck::STRING, SortComputation::BOOL },
-  { StrIndexof, SortCheck::INDEXOF, SortComputation::INT },
-  { StrReplace, SortCheck::STRING, SortComputation::STRING },
-  { StrReplaceAll, SortCheck::STRING, SortComputation::STRING },
-  { StrPrefixof, SortCheck::STRING, SortComputation::BOOL },
-  { StrSuffixof, SortCheck::STRING, SortComputation::BOOL },
-  { StrIsDigit, SortCheck::STRING, SortComputation::BOOL },
-  { Select, SortCheck::SELECT, SortComputation::SELECT },
-  { Store, SortCheck::STORE, SortComputation::STORE },
-  { Forall, SortCheck::QUANTIFIER, SortComputation::BOOL },
-  { Exists, SortCheck::QUANTIFIER, SortComputation::BOOL },
-  { Apply_Selector, SortCheck::SELECTOR, SortComputation::SELECTOR },
-  { Apply_Tester, SortCheck::TESTER, SortComputation::BOOL },
-  { Apply_Constructor, SortCheck::CONSTRUCTOR, SortComputation::CONSTRUCTOR },
+  { Op::Abs, SortCheck::INT, SortComputation::SAME },
+  { Op::Pow, SortCheck::INT, SortComputation::SAME },
+  { Op::IntDiv, SortCheck::INT, SortComputation::INT },
+  { Op::Divisible, SortCheck::INT, SortComputation::BOOL },
+  { Op::To_Real, SortCheck::INT, SortComputation::REAL },
+  { Op::To_Int, SortCheck::REAL, SortComputation::INT },
+  { Op::Is_Int, SortCheck::REAL, SortComputation::BOOL },
+  { Op::Concat, SortCheck::BV, SortComputation::CONCAT },
+  { Op::Extract, SortCheck::BV, SortComputation::EXTRACT },
+  { Op::BVNot, SortCheck::BV, SortComputation::SAME },
+  { Op::BVNeg, SortCheck::BV, SortComputation::SAME },
+  { Op::BVAnd, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVOr, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVXor, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVNand, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVNor, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVXnor, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVAdd, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVSub, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVMul, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVUdiv, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVSdiv, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVUrem, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVSrem, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVSmod, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVShl, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVAshr, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVLshr, SortCheck::EQ_BV, SortComputation::SAME },
+  { Op::BVComp, SortCheck::EQ_BV, SortComputation::SINGLE_BIT },
+  { Op::BVUlt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVUle, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVUgt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVUge, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVSlt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVSle, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVSgt, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::BVSge, SortCheck::EQ_BV, SortComputation::BOOL },
+  { Op::Zero_Extend, SortCheck::BV, SortComputation::EXTEND },
+  { Op::Sign_Extend, SortCheck::BV, SortComputation::EXTEND },
+  { Op::Repeat, SortCheck::BV, SortComputation::REPEAT },
+  { Op::Rotate_Left, SortCheck::BV, SortComputation::SAME },
+  { Op::Rotate_Right, SortCheck::BV, SortComputation::SAME },
+  { Op::UBV_To_Int, SortCheck::BV, SortComputation::INT },
+  { Op::SBV_To_Int, SortCheck::BV, SortComputation::INT },
+  { Op::Int_To_BV, SortCheck::INT, SortComputation::INT_TO_BV },
+  { Op::StrLt, SortCheck::STRING, SortComputation::BOOL },
+  { Op::StrLeq, SortCheck::STRING, SortComputation::BOOL },
+  { Op::StrLen, SortCheck::STRING, SortComputation::INT },
+  { Op::StrConcat, SortCheck::STRING, SortComputation::STRING },
+  { Op::StrSubstr, SortCheck::SUBSTR, SortComputation::STRING },
+  { Op::StrAt, SortCheck::CHARAT, SortComputation::STRING },
+  { Op::StrContains, SortCheck::STRING, SortComputation::BOOL },
+  { Op::StrIndexof, SortCheck::INDEXOF, SortComputation::INT },
+  { Op::StrReplace, SortCheck::STRING, SortComputation::STRING },
+  { Op::StrReplaceAll, SortCheck::STRING, SortComputation::STRING },
+  { Op::StrPrefixof, SortCheck::STRING, SortComputation::BOOL },
+  { Op::StrSuffixof, SortCheck::STRING, SortComputation::BOOL },
+  { Op::StrIsDigit, SortCheck::STRING, SortComputation::BOOL },
+  { Op::Select, SortCheck::SELECT, SortComputation::SELECT },
+  { Op::Store, SortCheck::STORE, SortComputation::STORE },
+  { Op::Forall, SortCheck::QUANTIFIER, SortComputation::BOOL },
+  { Op::Exists, SortCheck::QUANTIFIER, SortComputation::BOOL },
+  { Op::Apply_Selector, SortCheck::SELECTOR, SortComputation::SELECTOR },
+  { Op::Apply_Tester, SortCheck::TESTER, SortComputation::BOOL },
+  { Op::Apply_Constructor,
+    SortCheck::CONSTRUCTOR,
+    SortComputation::CONSTRUCTOR },
 };
 
-static_assert(std::size(primop_sort_info) == NUM_OPS_AND_NULL,
-              "primop_sort_info needs one row per PrimOp");
+static_assert(std::size(kind_sort_info) == Op::num_kinds - 1,
+              "kind_sort_info needs one row per kind but Op::NONE");
 
 constexpr bool rows_follow_enum()
 {
-  for (std::size_t i = 0; i < std::size(primop_sort_info); ++i)
+  for (std::size_t i = 0; i < std::size(kind_sort_info); ++i)
   {
-    if (primop_sort_info[i].op != static_cast<PrimOp>(i))
+    if (kind_sort_info[i].kind != static_cast<Op::Kind>(i + 1))
     {
       return false;
     }
   }
   return true;
 }
-static_assert(
-    rows_follow_enum(),
-    "primop_sort_info's rows must be in the order of the PrimOp enum");
+static_assert(rows_follow_enum(),
+              "kind_sort_info's rows must be in the order of Op::Kind");
 
-/** The sort rules of po
+/** The sort rules of kind
  *  @param caller the public function asking, for the message
- *  @throws IncorrectUsageException for NUM_OPS_AND_NULL or an out-of-range
- *          value
+ *  @throws IncorrectUsageException for Op::NONE or an out-of-range value
  */
-const PrimOpSortInfo & sort_info(PrimOp po, const char * caller)
+const KindSortInfo & sort_info(Op::Kind kind, const char * caller)
 {
-  auto i = static_cast<std::size_t>(po);
-  if (i >= std::size(primop_sort_info))
+  auto i = static_cast<std::size_t>(kind);
+  if (kind == Op::NONE || i >= Op::num_kinds)
   {
     throw IncorrectUsageException(std::string(caller)
-                                  + " got a PrimOp that is not an operator: "
-                                  + std::to_string(static_cast<int>(po)));
+                                  + " got a kind that is not an operator: "
+                                  + std::to_string(static_cast<int>(kind)));
   }
-  return primop_sort_info[i];
+  return kind_sort_info[i - 1];
 }
 
 bool check_sorts(SortCheck check, const SortVec & sorts)
@@ -780,8 +779,7 @@ Sort compute(SortComputation computation,
 
 bool Op::check_sortedness(const TermVec & terms) const
 {
-  PrimOp po = prim_op;
-  if (po == Forall || po == Exists)
+  if (kind_ == Op::Forall || kind_ == Op::Exists)
   {
     // special-case check terms for quantified ops
     // will check that first term is a parameter
@@ -800,7 +798,7 @@ bool Op::check_sortedness(const TermVec & terms) const
 
 bool Op::check_sortedness(const SortVec & sorts) const
 {
-  auto min_max_arity = get_arity(prim_op);
+  auto min_max_arity = get_arity(kind_);
   std::size_t num_args = sorts.size();
   if (num_args < min_max_arity.first || num_args > min_max_arity.second)
   {
@@ -808,7 +806,7 @@ bool Op::check_sortedness(const SortVec & sorts) const
     return false;
   }
 
-  return check_sorts(sort_info(prim_op, "check_sortedness").check, sorts);
+  return check_sorts(sort_info(kind_, "check_sortedness").check, sorts);
 }
 
 Sort Op::compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
@@ -827,7 +825,7 @@ Sort Op::compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
 {
   // Only too few arguments are refused, since a backend may take more than
   // SMT-LIB defines, such as a quantifier binding several params.
-  std::size_t min_arity = get_arity(prim_op).first;
+  std::size_t min_arity = get_arity(kind_).first;
   if (sorts.size() < min_arity)
   {
     throw IncorrectUsageException(
@@ -835,7 +833,7 @@ Sort Op::compute_sort(const std::shared_ptr<const AbsSmtSolver> & solver,
         + " arguments, but got " + std::to_string(sorts.size()));
   }
   return compute(
-      sort_info(prim_op, "compute_sort").computation, *this, solver, sorts);
+      sort_info(kind_, "compute_sort").computation, *this, solver, sorts);
 }
 
 }  // namespace smt

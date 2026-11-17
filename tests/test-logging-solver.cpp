@@ -60,8 +60,8 @@ TEST_P(Logging, Children)
   EXPECT_TRUE(y->is_symbolic_const());
   EXPECT_FALSE(y->is_value());
 
-  Term xp1 = s->make_term(BVAdd, x, one);
-  EXPECT_EQ(xp1->get_op(), BVAdd);
+  Term xp1 = s->make_term(Op::BVAdd, x, one);
+  EXPECT_EQ(xp1->get_op(), Op::BVAdd);
   TermVec children;
   for (auto tt : xp1)
   {
@@ -74,7 +74,7 @@ TEST_P(Logging, Children)
 TEST_P(Logging, PrintsApplicationAsSmtlib)
 {
   Term f = s->make_symbol("f", funsort);
-  EXPECT_EQ(s->make_term(Apply, f, x)->to_string(), "(f x)");
+  EXPECT_EQ(s->make_term(Op::Apply, f, x)->to_string(), "(f x)");
 }
 
 TEST_P(Logging, PrintsQuotedSymbolName)
@@ -86,25 +86,25 @@ TEST_P(Logging, PrintsQuotedSymbolName)
 
 TEST_P(Logging, PrintsIndexedOpAsSmtlib)
 {
-  EXPECT_EQ(s->make_term(Op(Rotate_Right, 2), x)->to_string(),
+  EXPECT_EQ(s->make_term(Op(Op::Rotate_Right, 2), x)->to_string(),
             "((_ rotate_right 2) x)");
-  EXPECT_EQ(s->make_term(Op(Rotate_Left, 2), x)->to_string(),
+  EXPECT_EQ(s->make_term(Op(Op::Rotate_Left, 2), x)->to_string(),
             "((_ rotate_left 2) x)");
 }
 
 TEST_P(Logging, HashConsing)
 {
-  Term xp1 = s->make_term(BVAdd, x, one);
+  Term xp1 = s->make_term(Op::BVAdd, x, one);
   // Check hash-consing using comparison of underlying pointers
-  Term xp1_2 = s->make_term(BVAdd, x, one);
+  Term xp1_2 = s->make_term(Op::BVAdd, x, one);
   EXPECT_EQ(xp1.get(), xp1_2.get());
 }
 
 TEST_P(Logging, Sorts)
 {
-  Term cond = s->make_term(BVUge, x, zero);
+  Term cond = s->make_term(Op::BVUge, x, zero);
   EXPECT_EQ(cond->get_sort()->get_kind(), SortKind::BOOL);
-  Term relu = s->make_term(Ite, cond, x, zero);
+  Term relu = s->make_term(Op::Ite, cond, x, zero);
   EXPECT_EQ(relu->get_sort(), x->get_sort());
 }
 
@@ -134,20 +134,20 @@ TEST_P(Logging, ConstantSorts)
 TEST_P(Logging, Compare)
 {
   Term f = s->make_symbol("f", funsort);
-  Term fx = s->make_term(Apply, f, x);
-  Term fx2 = s->make_term(Apply, f, x);
+  Term fx = s->make_term(Op::Apply, f, x);
+  Term fx2 = s->make_term(Op::Apply, f, x);
   EXPECT_EQ(fx, fx2);
 
-  Term fy = s->make_term(Apply, f, y);
+  Term fy = s->make_term(Op::Apply, f, y);
   EXPECT_NE(fx, fy);
 
-  Term x_eq_y = s->make_term(Equal, x, y);
-  Term x_eq_y2 = s->make_term(Equal, x, y);
+  Term x_eq_y = s->make_term(Op::Equal, x, y);
+  Term x_eq_y2 = s->make_term(Op::Equal, x, y);
   EXPECT_EQ(x_eq_y, x_eq_y2);
 
   // LoggingTerms do no rewriting or normalization
   // you always get exactly what you created
-  Term y_eq_x = s->make_term(Equal, y, x);
+  Term y_eq_x = s->make_term(Op::Equal, y, x);
   EXPECT_NE(x_eq_y, y_eq_x);
 
   s->assert_formula(x_eq_y);
@@ -195,12 +195,12 @@ TEST_P(Logging, TermFromAnotherSolver)
   }
   SmtSolver s2 = std::make_shared<LoggingSolver>(create_solver(GetParam()));
   Term x2 = s2->make_symbol("x", s2->make_sort(SortKind::BV, 4));
-  EXPECT_THROW(s->make_term(BVAdd, x, x2), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVAdd, x, x2), IncorrectUsageException);
 }
 
 TEST_P(Logging, NullTerm)
 {
-  EXPECT_THROW(s->make_term(BVAdd, x, Term()), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::BVAdd, x, Term()), IncorrectUsageException);
   EXPECT_THROW(s->make_term(Term(), arraysort), IncorrectUsageException);
   EXPECT_THROW(s->get_value(Term()), IncorrectUsageException);
   Term out_const_base;
@@ -265,7 +265,8 @@ TEST_P(LoggingUninterpretedArrays, ValuesHoldAssertedEntry)
       s->make_symbol("arr", s->make_sort(SortKind::ARRAY, usort, bvsort8));
   Term u = s->make_symbol("u", usort);
   Term one8 = s->make_term(1, bvsort8);
-  s->assert_formula(s->make_term(Equal, s->make_term(Select, arr, u), one8));
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Select, arr, u), one8));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   Term base;

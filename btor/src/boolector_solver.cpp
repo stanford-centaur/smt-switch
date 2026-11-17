@@ -38,23 +38,23 @@ namespace smt {
 
 namespace {
 
-/** Refuses po applied to num_args arguments, which Boolector has no operator
+/** Refuses kind applied to num_args arguments, which Boolector has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(PrimOp po, std::size_t num_args)
+[[noreturn]] void throw_unsupported(Op::Kind kind, std::size_t num_args)
 {
-  const std::pair<std::size_t, std::size_t> arity = get_arity(po);
+  const std::pair<std::size_t, std::size_t> arity = get_arity(kind);
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("Boolector does not support the operator "
-                                + to_string(po));
+                                + to_string(kind));
 }
 
 /** The node of op applied to one argument in a single Boolector call
@@ -62,80 +62,80 @@ namespace {
  */
 BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
 {
-  switch (op.prim_op)
+  switch (op.kind())
   {
-    case Not: return boolector_not(btor, a);
-    case Extract:
+    case Op::Not: return boolector_not(btor, a);
+    case Op::Extract:
       return boolector_slice(btor,
                              a,
                              backend::narrow_index(op, op.indices[0]),
                              backend::narrow_index(op, op.indices[1]));
-    case BVNot: return boolector_not(btor, a);
-    case BVNeg: return boolector_neg(btor, a);
-    case Zero_Extend:
+    case Op::BVNot: return boolector_not(btor, a);
+    case Op::BVNeg: return boolector_neg(btor, a);
+    case Op::Zero_Extend:
       return boolector_uext(btor, a, backend::narrow_index(op, op.indices[0]));
-    case Sign_Extend:
+    case Op::Sign_Extend:
       return boolector_sext(btor, a, backend::narrow_index(op, op.indices[0]));
-    case Repeat:
+    case Op::Repeat:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
       return boolector_repeat(
           btor, a, backend::narrow_index(op, op.indices[0]));
-    case Rotate_Left:
+    case Op::Rotate_Left:
       return boolector_roli(btor, a, backend::narrow_index(op, op.indices[0]));
-    case Rotate_Right:
+    case Op::Rotate_Right:
       return boolector_rori(btor, a, backend::narrow_index(op, op.indices[0]));
-    default: throw_unsupported(op.prim_op, 1);
+    default: throw_unsupported(op.kind(), 1);
   }
 }
 
-/** The node of po applied to two arguments in a single Boolector call
+/** The node of kind applied to two arguments in a single Boolector call
  *  @throws as throw_unsupported where Boolector has none
  */
 BoolectorNode * binary_op(Btor * btor,
-                          PrimOp po,
+                          Op::Kind kind,
                           BoolectorNode * a,
                           BoolectorNode * b)
 {
-  switch (po)
+  switch (kind)
   {
-    case And: return boolector_and(btor, a, b);
-    case Or: return boolector_or(btor, a, b);
-    case Xor: return boolector_xor(btor, a, b);
-    case Implies: return boolector_implies(btor, a, b);
-    case Equal: return boolector_eq(btor, a, b);
-    case Distinct: return boolector_ne(btor, a, b);
-    case Concat: return boolector_concat(btor, a, b);
-    case BVAnd: return boolector_and(btor, a, b);
-    case BVOr: return boolector_or(btor, a, b);
-    case BVXor: return boolector_xor(btor, a, b);
-    case BVNand: return boolector_nand(btor, a, b);
-    case BVNor: return boolector_nor(btor, a, b);
-    case BVXnor: return boolector_xnor(btor, a, b);
-    case BVAdd: return boolector_add(btor, a, b);
-    case BVSub: return boolector_sub(btor, a, b);
-    case BVMul: return boolector_mul(btor, a, b);
-    case BVUdiv: return boolector_udiv(btor, a, b);
-    case BVSdiv: return boolector_sdiv(btor, a, b);
-    case BVUrem: return boolector_urem(btor, a, b);
-    case BVSrem: return boolector_srem(btor, a, b);
-    case BVSmod: return boolector_smod(btor, a, b);
-    case BVShl: return boolector_sll(btor, a, b);
-    case BVAshr: return boolector_sra(btor, a, b);
-    case BVLshr: return boolector_srl(btor, a, b);
-    case BVComp: return boolector_eq(btor, a, b);
-    case BVUlt: return boolector_ult(btor, a, b);
-    case BVUle: return boolector_ulte(btor, a, b);
-    case BVUgt: return boolector_ugt(btor, a, b);
-    case BVUge: return boolector_ugte(btor, a, b);
-    case BVSlt: return boolector_slt(btor, a, b);
-    case BVSle: return boolector_slte(btor, a, b);
-    case BVSgt: return boolector_sgt(btor, a, b);
-    case BVSge: return boolector_sgte(btor, a, b);
-    case Select: return boolector_read(btor, a, b);
-    default: throw_unsupported(po, 2);
+    case Op::And: return boolector_and(btor, a, b);
+    case Op::Or: return boolector_or(btor, a, b);
+    case Op::Xor: return boolector_xor(btor, a, b);
+    case Op::Implies: return boolector_implies(btor, a, b);
+    case Op::Equal: return boolector_eq(btor, a, b);
+    case Op::Distinct: return boolector_ne(btor, a, b);
+    case Op::Concat: return boolector_concat(btor, a, b);
+    case Op::BVAnd: return boolector_and(btor, a, b);
+    case Op::BVOr: return boolector_or(btor, a, b);
+    case Op::BVXor: return boolector_xor(btor, a, b);
+    case Op::BVNand: return boolector_nand(btor, a, b);
+    case Op::BVNor: return boolector_nor(btor, a, b);
+    case Op::BVXnor: return boolector_xnor(btor, a, b);
+    case Op::BVAdd: return boolector_add(btor, a, b);
+    case Op::BVSub: return boolector_sub(btor, a, b);
+    case Op::BVMul: return boolector_mul(btor, a, b);
+    case Op::BVUdiv: return boolector_udiv(btor, a, b);
+    case Op::BVSdiv: return boolector_sdiv(btor, a, b);
+    case Op::BVUrem: return boolector_urem(btor, a, b);
+    case Op::BVSrem: return boolector_srem(btor, a, b);
+    case Op::BVSmod: return boolector_smod(btor, a, b);
+    case Op::BVShl: return boolector_sll(btor, a, b);
+    case Op::BVAshr: return boolector_sra(btor, a, b);
+    case Op::BVLshr: return boolector_srl(btor, a, b);
+    case Op::BVComp: return boolector_eq(btor, a, b);
+    case Op::BVUlt: return boolector_ult(btor, a, b);
+    case Op::BVUle: return boolector_ulte(btor, a, b);
+    case Op::BVUgt: return boolector_ugt(btor, a, b);
+    case Op::BVUge: return boolector_ugte(btor, a, b);
+    case Op::BVSlt: return boolector_slt(btor, a, b);
+    case Op::BVSle: return boolector_slte(btor, a, b);
+    case Op::BVSgt: return boolector_sgt(btor, a, b);
+    case Op::BVSge: return boolector_sgte(btor, a, b);
+    case Op::Select: return boolector_read(btor, a, b);
+    default: throw_unsupported(kind, 2);
   }
 }
 
@@ -376,7 +376,7 @@ Term BoolectorSolver::make_term(bool b) const
 Term BoolectorSolver::make_term(int64_t i, const Sort & sort) const
 {
   BoolectorSort bs = btor_sort(sort);
-  // note: give the constant value a null PrimOp
+  // note: give the constant value a null Op
   if (backend::fits_in<int32_t>(i))
   {
     return std::make_shared<BoolectorTerm>(
@@ -535,7 +535,7 @@ Term BoolectorSolver::get_value(const Term & t) const
       throw;
     }
     boolector_free_bv_assignment(btor.get(), assignment);
-    // note: give the constant value a null PrimOp
+    // note: give the constant value a null Op
     result = std::make_shared<BoolectorTerm>(btor, bc);
   }
   else if (sk == SortKind::ARRAY)
@@ -545,7 +545,7 @@ Term BoolectorSolver::get_value(const Term & t) const
     result = make_term(base, sort);
     for (const auto & [index, element] : entries)
     {
-      result = make_term(Store, result, index, element);
+      result = make_term(Op::Store, result, index, element);
     }
   }
   else if (sk == SortKind::FUNCTION)
@@ -776,7 +776,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
     throw IncorrectUsageException("Can't apply " + op.to_string()
                                   + " to zero terms");
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     check_quantifier_binders(op, terms);
   }
@@ -793,7 +793,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   {
     btor_res = unary_op(btor.get(), op, nodes[0]);
   }
-  else if (op.prim_op == Apply)
+  else if (op.kind() == Op::Apply)
   {
     // the first term is the function, applied to the rest
     btor_res = boolector_apply(btor.get(),
@@ -801,14 +801,14 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
                                backend::narrow_num_args(size - 1),
                                nodes[0]);
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     // The last term is the body, bound by the rest, the innermost last.
     // Boolector refuses a param a quantifier already binds, so innermost
     // params already bound by a quantifier of this kind over this body are
     // taken as that quantifier, and only the params outside it are bound.
     const BtorNodeKind kind =
-        op.prim_op == Forall ? BTOR_FORALL_NODE : BTOR_EXISTS_NODE;
+        op.kind() == Op::Forall ? BTOR_FORALL_NODE : BTOR_EXISTS_NODE;
     uint32_t num_params =
         backend::narrow<uint32_t>(size - 1, "a number of params");
     BtorNode * body = BTOR_IMPORT_BOOLECTOR_NODE(nodes.back());
@@ -832,7 +832,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
 
     if (num_params == size - 1)
     {
-      btor_res = op.prim_op == Forall
+      btor_res = op.kind() == Op::Forall
                      ? boolector_forall(
                            btor.get(), nodes.data(), num_params, nodes.back())
                      : boolector_exists(
@@ -852,7 +852,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
         return quantifier;
       }
       BoolectorNode * btor_body = BTOR_EXPORT_BOOLECTOR_NODE(body);
-      btor_res = op.prim_op == Forall
+      btor_res = op.kind() == Op::Forall
                      ? boolector_forall(
                            btor.get(), nodes.data(), num_params, btor_body)
                      : boolector_exists(
@@ -861,13 +861,13 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    btor_res = binary_op(btor.get(), op.prim_op, nodes[0], nodes[1]);
+    btor_res = binary_op(btor.get(), op.kind(), nodes[0], nodes[1]);
   }
-  else if (size == 3 && op.prim_op == Ite)
+  else if (size == 3 && op.kind() == Op::Ite)
   {
     btor_res = boolector_cond(btor.get(), nodes[0], nodes[1], nodes[2]);
   }
-  else if (size == 3 && op.prim_op == Store)
+  else if (size == 3 && op.kind() == Op::Store)
   {
     btor_res = boolector_write(btor.get(), nodes[0], nodes[1], nodes[2]);
   }

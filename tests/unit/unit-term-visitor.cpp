@@ -69,9 +69,9 @@ class TermVisitor : public testing::TestWithParam<SolverEnum>
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
     z = s->make_symbol("z", bvsort);
-    a = s->make_term(BVAdd, x, y);
-    b = s->make_term(BVAdd, y, z);
-    f = s->make_term(BVMul, a, b);
+    a = s->make_term(Op::BVAdd, x, y);
+    b = s->make_term(Op::BVAdd, y, z);
+    f = s->make_term(Op::BVMul, a, b);
   }
   SmtSolver s;
   Term x, y, z, a, b, f;

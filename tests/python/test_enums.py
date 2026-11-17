@@ -2,7 +2,7 @@
 # SPDX-FileContributor: Makai Mann
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Test getters for enums (SortKind and PrimOp)."""
+"""Test getters for enums (SortKind and OpKind)."""
 
 import pytest
 
@@ -59,17 +59,27 @@ def test_uninterpreted_sort_kind(create_solver):
 @pytest.mark.parametrize(
     "create_solver", [f for name, f in int_support_solvers.items()]
 )
-def test_primop(create_solver):
+def test_op_kind(create_solver):
     solver = create_solver(logging=False)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     x = solver.make_symbol("x", bvsort)
     y = solver.make_symbol("y", bvsort)
-    xpy = solver.make_term(ss.primops.BVAdd, x, y)
+    xpy = solver.make_term(ss.opkinds.BVAdd, x, y)
     op = xpy.get_op()
 
-    assert hash(ss.primops.BVAdd) == hash(op.prim_op)
-    assert op.prim_op == ss.primops.BVAdd
-    assert op.prim_op is ss.primops.BVAdd
+    assert hash(ss.opkinds.BVAdd) == hash(op.kind)
+    assert op.kind == ss.opkinds.BVAdd
+    assert op.kind is ss.opkinds.BVAdd
+
+
+# only cvc5 has strings
+@pytest.mark.parametrize(
+    "create_solver", [f for name, f in ss.solvers.items() if name == "cvc5"]
+)
+def test_string_op_kind(create_solver):
+    solver = create_solver(logging=False)
+    x = solver.make_symbol("x", solver.make_sort(ss.sortkinds.STRING))
+    assert solver.make_term(ss.opkinds.StrLen, x).get_op().kind is ss.opkinds.StrLen
 
 
 @pytest.mark.parametrize(

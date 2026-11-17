@@ -29,7 +29,7 @@ TEST(Z3Exceptions, MissingOperatorsAreNotImplemented)
   SmtSolver s = Z3SolverFactory::create(false);
   Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
 
-  EXPECT_THROW(s->make_term(StrLen, x), NotImplementedException);
+  EXPECT_THROW(s->make_term(Op::StrLen, x), NotImplementedException);
 }
 
 TEST(Z3Exceptions, LambdaModelValueHasNoOp)
@@ -41,8 +41,10 @@ TEST(Z3Exceptions, LambdaModelValueHasNoOp)
   Term i = s->make_param("i", intsort);
   // an array that maps every index to itself, which Z3 can only give as a
   // lambda
-  s->assert_formula(s->make_term(
-      Forall, i, s->make_term(Equal, s->make_term(Select, a, i), i)));
+  s->assert_formula(
+      s->make_term(Op::Forall,
+                   i,
+                   s->make_term(Op::Equal, s->make_term(Op::Select, a, i), i)));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   EXPECT_THROW(s->get_value(a)->get_op(), NotImplementedException);
@@ -55,10 +57,11 @@ TEST(Z3Exceptions, MisappliedOperatorsAreIncorrectUsage)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
-  EXPECT_THROW(s->make_term(Op(Not, 3), x), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Rotate_Left, x, y), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Op(Extract, 3, 0), x, y), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(Concat, x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Not, 3), x), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Rotate_Left, x, y), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op(Op::Extract, 3, 0), x, y),
+               IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::Concat, x), IncorrectUsageException);
 }
 
 TEST(Z3Exceptions, IllSortedBVCompAndAbsThrow)
@@ -68,9 +71,9 @@ TEST(Z3Exceptions, IllSortedBVCompAndAbsThrow)
   Term x8 = s->make_symbol("x8", s->make_sort(SortKind::BV, 8));
   Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
 
-  EXPECT_ANY_THROW(s->make_term(BVComp, x4, x8));
-  EXPECT_ANY_THROW(s->make_term(Abs, b));
-  EXPECT_ANY_THROW(s->make_term(Abs, x4));
+  EXPECT_ANY_THROW(s->make_term(Op::BVComp, x4, x8));
+  EXPECT_ANY_THROW(s->make_term(Op::Abs, b));
+  EXPECT_ANY_THROW(s->make_term(Op::Abs, x4));
 }
 
 TEST(Z3Exceptions, FunctionHasNoChildToDereference)

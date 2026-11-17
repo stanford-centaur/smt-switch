@@ -52,7 +52,7 @@ class TheoryAtomsVisitor : public TermVisitor
       bool has_ite = false;
       for (const Term & c : term)
       {
-        if (c->get_op() == Ite)
+        if (c->get_op() == Op::Ite)
         {
           has_ite = true;
           TermVec ite(c->begin(), c->end());
@@ -124,7 +124,7 @@ class JustificationVisitor : public TermVisitor
       return VisitResult::Skip;
     }
     TermVec children(term->begin(), term->end());
-    if (op == Ite)
+    if (op == Op::Ite)
     {
       visit(children[0]);
       visit(solver_->get_value(children[0])->to_bool() ? children[1]
@@ -132,10 +132,10 @@ class JustificationVisitor : public TermVisitor
       return VisitResult::Skip;
     }
     Term decider;
-    if (op == And || op == Or)
+    if (op == Op::And || op == Op::Or)
     {
       // a false conjunct or a true disjunct
-      bool deciding_value = op == Or;
+      bool deciding_value = op == Op::Or;
       for (const Term & c : children)
       {
         if (solver_->get_value(c)->to_bool() == deciding_value)
@@ -145,7 +145,7 @@ class JustificationVisitor : public TermVisitor
         }
       }
     }
-    else if (op == Implies)
+    else if (op == Op::Implies)
     {
       // a false premise, else a true conclusion
       for (std::size_t i = 0; i + 1 < children.size() && !decider; ++i)
@@ -160,7 +160,7 @@ class JustificationVisitor : public TermVisitor
         decider = children.back();
       }
     }
-    else if (op == BVAnd || op == BVNand || op == BVMul)
+    else if (op == Op::BVAnd || op == Op::BVNand || op == Op::BVMul)
     {
       for (const Term & c : children)
       {
@@ -171,7 +171,7 @@ class JustificationVisitor : public TermVisitor
         }
       }
     }
-    else if (op == BVOr || op == BVNor)
+    else if (op == Op::BVOr || op == Op::BVNor)
     {
       for (const Term & c : children)
       {

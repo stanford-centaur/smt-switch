@@ -59,22 +59,24 @@ TEST_F(Cvc5PrintingTest, Interpolation)
   Term z = s->make_symbol("z", intsort);
 
   // x<y /\ y<z
-  Term A = s->make_term(And, s->make_term(Lt, x, y), s->make_term(Lt, y, z));
+  Term A = s->make_term(
+      Op::And, s->make_term(Op::Lt, x, y), s->make_term(Op::Lt, y, z));
   // x<z
-  Term B = s->make_term(Gt, x, z);
+  Term B = s->make_term(Op::Gt, x, z);
   Term I;
   s->get_interpolant(A, B, I);
 
   // z<y /\ y<x
-  Term A1 = s->make_term(And, s->make_term(Lt, z, y), s->make_term(Lt, y, x));
+  Term A1 = s->make_term(
+      Op::And, s->make_term(Op::Lt, z, y), s->make_term(Op::Lt, y, x));
   // z<x
-  Term B1 = s->make_term(Gt, z, x);
+  Term B1 = s->make_term(Op::Gt, z, x);
   Term I1;
   s->get_interpolant(A1, B1, I1);
 
   // x=0
   EXPECT_THROW(
-      s->assert_formula(s->make_term(Equal, x, s->make_term(0, intsort))),
+      s->assert_formula(s->make_term(Op::Equal, x, s->make_term(0, intsort))),
       IncorrectUsageException);
 
   check_result(
@@ -96,9 +98,9 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolation)
   Term z = s->make_symbol("z", intsort);
 
   // x < y, y < z and z < x cannot all hold
-  TermVec formulae = { s->make_term(Lt, x, y),
-                       s->make_term(Lt, y, z),
-                       s->make_term(Lt, z, x) };
+  TermVec formulae = { s->make_term(Op::Lt, x, y),
+                       s->make_term(Op::Lt, y, z),
+                       s->make_term(Op::Lt, z, x) };
   TermVec interpolants;
   ASSERT_TRUE(s->get_sequence_interpolants(formulae, interpolants).is_unsat());
   EXPECT_EQ(interpolants.size(), 2);
@@ -119,10 +121,10 @@ TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
-  Term xy = s->make_term(Lt, x, y);
-  Term yz = s->make_term(Lt, y, z);
-  Term zx = s->make_term(Lt, z, x);
-  Term xz = s->make_term(Lt, x, z);
+  Term xy = s->make_term(Op::Lt, x, y);
+  Term yz = s->make_term(Op::Lt, y, z);
+  Term zx = s->make_term(Op::Lt, z, x);
+  Term xz = s->make_term(Op::Lt, x, z);
   for (const TermVec & formulae : { TermVec{ xy, yz, zx },
                                     TermVec{ xy, yz, zx, xz },
                                     TermVec{ xy, zx, yz },
@@ -155,13 +157,14 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
-  Term xy = s->make_term(Lt, x, y);
-  Term yzx = s->make_term(And, s->make_term(Lt, y, z), s->make_term(Lt, z, x));
+  Term xy = s->make_term(Op::Lt, x, y);
+  Term yzx = s->make_term(
+      Op::And, s->make_term(Op::Lt, y, z), s->make_term(Op::Lt, z, x));
   Term I;
   ASSERT_TRUE(s->get_interpolant(xy, yzx, I).is_unsat());
   TermVec interpolants;
-  ASSERT_TRUE(s->get_sequence_interpolants({ xy, yzx, s->make_term(Lt, x, z) },
-                                           interpolants)
+  ASSERT_TRUE(s->get_sequence_interpolants(
+                   { xy, yzx, s->make_term(Op::Lt, x, z) }, interpolants)
                   .is_unsat());
 
   // the rest after the first split is unsat on its own

@@ -352,7 +352,7 @@ Term TermTranslator::transfer_term(const Term & term)
       // a datatype value and a store chain are rebuilt below, from their
       // operator and children
       else if (t->is_value() && sk != SortKind::DATATYPE
-               && t->get_op().prim_op != Store)
+               && t->get_op().kind() != Op::Store)
       {
         s = transfer_sort(t->get_sort());
         if (s->get_kind() == SortKind::ARRAY)
@@ -413,7 +413,7 @@ Term TermTranslator::transfer_term(const Term & term)
           // MathSAT and Yices2 make an integer-valued Real an Int, so an
           // equation over Reals can have an Int side, which solvers such as
           // cvc5 do not equate with a Real
-          if (op.prim_op == Equal || op.prim_op == Distinct)
+          if (op.kind() == Op::Equal || op.kind() == Op::Distinct)
           {
             widen_ints(cached_children);
           }
@@ -599,7 +599,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
       std::string posval = val.substr(3, val.length() - 4);
       posval = infixize_rational(posval);
       Term posterm = solver->make_term(posval, sort);
-      return solver->make_term(Negate, posterm);
+      return solver->make_term(Op::Negate, posterm);
     }
     else
     {
@@ -608,7 +608,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
       {
         std::string posval = mval.substr(2, mval.length() - 2);
         Term posterm = solver->make_term(posval, sort);
-        return solver->make_term(Negate, posterm);
+        return solver->make_term(Op::Negate, posterm);
       }
       return solver->make_term(mval, sort);
     }

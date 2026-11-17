@@ -55,7 +55,7 @@ TEST_P(ForeignHandle, ForeignTermRefused)
   Term a = s->make_symbol("a", boolsort);
   Term b = other->make_symbol("b", other_boolsort);
   EXPECT_THROW(s->assert_formula(b), IncorrectUsageException);
-  EXPECT_THROW(s->make_term(And, a, b), IncorrectUsageException);
+  EXPECT_THROW(s->make_term(Op::And, a, b), IncorrectUsageException);
 }
 
 TEST_P(ForeignHandle, ForeignSortRefused)

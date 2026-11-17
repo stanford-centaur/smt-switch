@@ -42,8 +42,9 @@ class MsatArrayValues : public testing::Test
 
 TEST_F(MsatArrayValues, NonArrayRefused)
 {
-  s->assert_formula(s->make_term(
-      Equal, s->make_term(Select, arr, x), s->make_term(1, x->get_sort())));
+  s->assert_formula(s->make_term(Op::Equal,
+                                 s->make_term(Op::Select, arr, x),
+                                 s->make_term(1, x->get_sort())));
   ASSERT_TRUE(s->check_sat().is_sat());
   Term const_base;
   EXPECT_THROW(s->get_array_values(x, const_base), IncorrectUsageException);

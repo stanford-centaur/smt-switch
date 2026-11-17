@@ -72,10 +72,10 @@ TEST_P(UnitPrintTests, Result)
 
 TEST_P(UnitPrintTests, Op)
 {
-  ASSERT_EQ(smt::to_string(BVAdd), "bvadd");
-  ASSERT_EQ(smt::to_string(Implies), "=>");
-  ASSERT_EQ(smt::to_string(Plus), "+");
-  ASSERT_EQ(Op(Extract, 4, 0).to_string(), "(_ extract 4 0)");
+  ASSERT_EQ(smt::to_string(Op::BVAdd), "bvadd");
+  ASSERT_EQ(smt::to_string(Op::Implies), "=>");
+  ASSERT_EQ(smt::to_string(Op::Plus), "+");
+  ASSERT_EQ(Op(Op::Extract, 4, 0).to_string(), "(_ extract 4 0)");
 }
 
 TEST_P(UnitPrintTests, PrintValueAs)

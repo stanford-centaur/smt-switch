@@ -56,7 +56,7 @@ TEST_P(UnitArrayTests, ConstArr)
   Term val = *(constarr0->begin());
   EXPECT_EQ(val, zero);
 
-  s->assert_formula(s->make_term(Equal, a, constarr0));
+  s->assert_formula(s->make_term(Op::Equal, a, constarr0));
   Result r = s->check_sat();
 
   EXPECT_TRUE(r.is_sat());
@@ -84,8 +84,8 @@ TEST_P(UnitArrayTests, StoreOfValuesIsValue)
   Term zero = s->make_term(0, bvsort);
   Term one = s->make_term(1, bvsort);
   Term constarr0 = s->make_term(zero, arrsort);
-  EXPECT_TRUE(s->make_term(Store, constarr0, zero, one)->is_value());
-  EXPECT_FALSE(s->make_term(Store, constarr0, x, one)->is_value());
+  EXPECT_TRUE(s->make_term(Op::Store, constarr0, zero, one)->is_value());
+  EXPECT_FALSE(s->make_term(Op::Store, constarr0, x, one)->is_value());
 }
 
 // two different entries, so that the value is not a constant array
@@ -94,8 +94,10 @@ TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
   Term a = s->make_symbol("a", arrsort);
   Term zero = s->make_term(0, bvsort);
   Term one = s->make_term(1, bvsort);
-  s->assert_formula(s->make_term(Equal, s->make_term(Select, a, zero), one));
-  s->assert_formula(s->make_term(Equal, s->make_term(Select, a, one), zero));
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Select, a, zero), one));
+  s->assert_formula(
+      s->make_term(Op::Equal, s->make_term(Op::Select, a, one), zero));
   ASSERT_TRUE(s->check_sat().is_sat());
 
   Term value = s->get_value(a);
@@ -105,7 +107,7 @@ TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
   // the constant array that holds every other index
   UnorderedTermMap entries;
   Term t = value;
-  while (t->get_op() == Op(Store))
+  while (t->get_op() == Op(Op::Store))
   {
     TermVec children(t->begin(), t->end());
     entries.emplace(children[1], children[2]);

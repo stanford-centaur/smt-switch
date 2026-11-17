@@ -256,22 +256,22 @@ uint32_t pow_exponent(term_t term)
   return res;
 }
 
-/** Refuses po applied to num_args arguments, which Yices2 has no operator for
+/** Refuses kind applied to num_args arguments, which Yices2 has no operator for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(PrimOp po, size_t num_args)
+[[noreturn]] void throw_unsupported(Op::Kind kind, size_t num_args)
 {
-  const std::pair<size_t, size_t> arity = get_arity(po);
+  const std::pair<size_t, size_t> arity = get_arity(kind);
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(po) + " to "
+    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("Yices2 does not support the operator "
-                                + to_string(po));
+                                + to_string(kind));
 }
 
 /** The term of op applied to one argument
@@ -279,12 +279,12 @@ uint32_t pow_exponent(term_t term)
  */
 term_t unary_term(const Op & op, term_t a)
 {
-  switch (op.prim_op)
+  switch (op.kind())
   {
-    case Not: return yices_not(a);
-    case Negate: return yices_neg(a);
-    case Abs: return yices_abs(a);
-    case To_Real:
+    case Op::Not: return yices_not(a);
+    case Op::Negate: return yices_neg(a);
+    case Op::Abs: return yices_abs(a);
+    case Op::To_Real:
       if (!yices_term_is_arithmetic(a))
       {
         throw IncorrectUsageException(
@@ -292,33 +292,33 @@ term_t unary_term(const Op & op, term_t a)
       }
       // Int is a subtype of Real in Yices2, which has no conversion
       return a;
-    case To_Int: return yices_floor(a);
-    case Is_Int: return yices_is_int_atom(a);
-    case Divisible:
+    case Op::To_Int: return yices_floor(a);
+    case Op::Is_Int: return yices_is_int_atom(a);
+    case Op::Divisible:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create divisible with index < 1");
       }
       return yices_divides_atom(
           yices_parse_rational(std::to_string(op.indices[0]).c_str()), a);
-    case Extract:
+    case Op::Extract:
       return yices_bvextract(a,
                              backend::narrow_index(op, op.indices[1]),
                              backend::narrow_index(op, op.indices[0]));
-    case BVNot: return yices_bvnot(a);
-    case BVNeg: return yices_bvneg(a);
-    case Zero_Extend:
+    case Op::BVNot: return yices_bvnot(a);
+    case Op::BVNeg: return yices_bvneg(a);
+    case Op::Zero_Extend:
       return yices_zero_extend(a, backend::narrow_index(op, op.indices[0]));
-    case Sign_Extend:
+    case Op::Sign_Extend:
       return yices_sign_extend(a, backend::narrow_index(op, op.indices[0]));
-    case Repeat:
+    case Op::Repeat:
       if (op.indices[0] < 1)
       {
         throw IncorrectUsageException("Can't create repeat with index < 1");
       }
       return yices_bvrepeat(a, backend::narrow_index(op, op.indices[0]));
-    case Rotate_Left:
-    case Rotate_Right: {
+    case Op::Rotate_Left:
+    case Op::Rotate_Right: {
       if (!yices_term_is_bitvector(a))
       {
         throw IncorrectUsageException("Can't apply " + op.to_string()
@@ -327,12 +327,11 @@ term_t unary_term(const Op & op, term_t a)
       // Yices2 rotates by at most the width, SMT-LIB by any amount
       std::uint32_t n =
           backend::narrow_index(op, op.indices[0] % yices_term_bitsize(a));
-      return op.prim_op == Rotate_Left ? yices_rotate_left(a, n)
-                                       : yices_rotate_right(a, n);
+      return op.kind() == Op::Rotate_Left ? yices_rotate_left(a, n)
+                                          : yices_rotate_right(a, n);
     }
-    case BV_To_Nat:
-    case UBV_To_Int:
-    case SBV_To_Int:
+    case Op::UBV_To_Int:
+    case Op::SBV_To_Int:
       if (!yices_term_is_bitvector(a))
       {
         throw IncorrectUsageException("Can't apply " + op.to_string()
@@ -345,8 +344,8 @@ term_t unary_term(const Op & op, term_t a)
                                       + ", so it can only apply it to a "
                                         "bit-vector value");
       }
-      return bv_value_to_int(a, op.prim_op == SBV_To_Int);
-    case Int_To_BV: {
+      return bv_value_to_int(a, op.kind() == Op::SBV_To_Int);
+    case Op::Int_To_BV: {
       if (!yices_term_is_int(a))
       {
         throw IncorrectUsageException(
@@ -368,64 +367,64 @@ term_t unary_term(const Op & op, term_t a)
       mpq_clear(value);
       return res;
     }
-    default: throw_unsupported(op.prim_op, 1);
+    default: throw_unsupported(op.kind(), 1);
   }
 }
 
-/** The term of po applied to two arguments
+/** The term of kind applied to two arguments
  *  @throws as throw_unsupported where Yices2 has no such op
  */
-term_t binary_term(PrimOp po, term_t a, term_t b)
+term_t binary_term(Op::Kind kind, term_t a, term_t b)
 {
-  switch (po)
+  switch (kind)
   {
-    case And: return yices_and2(a, b);
-    case Or: return yices_or2(a, b);
-    case Xor: return yices_xor2(a, b);
-    case Implies: return yices_implies(a, b);
-    case Equal: return yices_eq(a, b);
-    case Distinct:
+    case Op::And: return yices_and2(a, b);
+    case Op::Or: return yices_or2(a, b);
+    case Op::Xor: return yices_xor2(a, b);
+    case Op::Implies: return yices_implies(a, b);
+    case Op::Equal: return yices_eq(a, b);
+    case Op::Distinct:
       return yices_distinct(2, std::array<term_t, 2>{ { a, b } }.data());
-    case Plus: return yices_add(a, b);
-    case Minus: return yices_sub(a, b);
-    case Mult: return yices_mul(a, b);
-    case Div: return yices_division(a, b);
-    case Lt: return yices_arith_lt_atom(a, b);
-    case Le: return yices_arith_leq_atom(a, b);
-    case Gt: return yices_arith_gt_atom(a, b);
-    case Ge: return yices_arith_geq_atom(a, b);
-    case Mod: return yices_imod(a, b);
-    case Pow: return yices_power(a, pow_exponent(b));
-    case IntDiv: return yices_idiv(a, b);
-    case Concat: return yices_bvconcat2(a, b);
-    case BVAnd: return yices_bvand2(a, b);
-    case BVOr: return yices_bvor2(a, b);
-    case BVXor: return yices_bvxor2(a, b);
-    case BVNand: return yices_bvnand(a, b);
-    case BVNor: return yices_bvnor(a, b);
-    case BVXnor: return yices_bvxnor(a, b);
-    case BVAdd: return yices_bvadd(a, b);
-    case BVSub: return yices_bvsub(a, b);
-    case BVMul: return yices_bvmul(a, b);
-    case BVUdiv: return yices_bvdiv(a, b);
-    case BVSdiv: return yices_bvsdiv(a, b);
-    case BVUrem: return yices_bvrem(a, b);
-    case BVSrem: return yices_bvsrem(a, b);
-    case BVSmod: return yices_bvsmod(a, b);
-    case BVShl: return yices_bvshl(a, b);
-    case BVAshr: return yices_bvashr(a, b);
-    case BVLshr: return yices_bvlshr(a, b);
-    case BVComp: return ext_yices_bvcomp(a, b);
-    case BVUlt: return yices_bvlt_atom(a, b);
-    case BVUle: return yices_bvle_atom(a, b);
-    case BVUgt: return yices_bvgt_atom(a, b);
-    case BVUge: return yices_bvge_atom(a, b);
-    case BVSlt: return yices_bvslt_atom(a, b);
-    case BVSle: return yices_bvsle_atom(a, b);
-    case BVSgt: return yices_bvsgt_atom(a, b);
-    case BVSge: return yices_bvsge_atom(a, b);
-    case Select: return ext_yices_select(a, b);
-    default: throw_unsupported(po, 2);
+    case Op::Plus: return yices_add(a, b);
+    case Op::Minus: return yices_sub(a, b);
+    case Op::Mult: return yices_mul(a, b);
+    case Op::Div: return yices_division(a, b);
+    case Op::Lt: return yices_arith_lt_atom(a, b);
+    case Op::Le: return yices_arith_leq_atom(a, b);
+    case Op::Gt: return yices_arith_gt_atom(a, b);
+    case Op::Ge: return yices_arith_geq_atom(a, b);
+    case Op::Mod: return yices_imod(a, b);
+    case Op::Pow: return yices_power(a, pow_exponent(b));
+    case Op::IntDiv: return yices_idiv(a, b);
+    case Op::Concat: return yices_bvconcat2(a, b);
+    case Op::BVAnd: return yices_bvand2(a, b);
+    case Op::BVOr: return yices_bvor2(a, b);
+    case Op::BVXor: return yices_bvxor2(a, b);
+    case Op::BVNand: return yices_bvnand(a, b);
+    case Op::BVNor: return yices_bvnor(a, b);
+    case Op::BVXnor: return yices_bvxnor(a, b);
+    case Op::BVAdd: return yices_bvadd(a, b);
+    case Op::BVSub: return yices_bvsub(a, b);
+    case Op::BVMul: return yices_bvmul(a, b);
+    case Op::BVUdiv: return yices_bvdiv(a, b);
+    case Op::BVSdiv: return yices_bvsdiv(a, b);
+    case Op::BVUrem: return yices_bvrem(a, b);
+    case Op::BVSrem: return yices_bvsrem(a, b);
+    case Op::BVSmod: return yices_bvsmod(a, b);
+    case Op::BVShl: return yices_bvshl(a, b);
+    case Op::BVAshr: return yices_bvashr(a, b);
+    case Op::BVLshr: return yices_bvlshr(a, b);
+    case Op::BVComp: return ext_yices_bvcomp(a, b);
+    case Op::BVUlt: return yices_bvlt_atom(a, b);
+    case Op::BVUle: return yices_bvle_atom(a, b);
+    case Op::BVUgt: return yices_bvgt_atom(a, b);
+    case Op::BVUge: return yices_bvge_atom(a, b);
+    case Op::BVSlt: return yices_bvslt_atom(a, b);
+    case Op::BVSle: return yices_bvsle_atom(a, b);
+    case Op::BVSgt: return yices_bvsgt_atom(a, b);
+    case Op::BVSge: return yices_bvsge_atom(a, b);
+    case Op::Select: return ext_yices_select(a, b);
+    default: throw_unsupported(kind, 2);
   }
 }
 
@@ -439,29 +438,31 @@ Term variadic_term(const Op & op, std::vector<term_t> & args)
   const uint32_t n = backend::narrow_num_args(args.size());
   term_t * a = args.data();
   term_t res;
-  switch (op.prim_op)
+  switch (op.kind())
   {
-    case And:
+    case Op::And:
       res = n == 3 ? yices_and3(a[0], a[1], a[2]) : yices_and(n, a);
       break;
-    case Or: res = n == 3 ? yices_or3(a[0], a[1], a[2]) : yices_or(n, a); break;
-    case Xor:
+    case Op::Or:
+      res = n == 3 ? yices_or3(a[0], a[1], a[2]) : yices_or(n, a);
+      break;
+    case Op::Xor:
       res = n == 3 ? yices_xor3(a[0], a[1], a[2]) : yices_xor(n, a);
       break;
-    case Distinct: res = yices_distinct(n, a); break;
-    case Plus: res = yices_sum(n, a); break;
-    case Mult: res = yices_product(n, a); break;
-    case BVAnd:
+    case Op::Distinct: res = yices_distinct(n, a); break;
+    case Op::Plus: res = yices_sum(n, a); break;
+    case Op::Mult: res = yices_product(n, a); break;
+    case Op::BVAnd:
       res = n == 3 ? yices_bvand3(a[0], a[1], a[2]) : yices_bvand(n, a);
       break;
-    case BVOr:
+    case Op::BVOr:
       res = n == 3 ? yices_bvor3(a[0], a[1], a[2]) : yices_bvor(n, a);
       break;
-    case BVXor:
+    case Op::BVXor:
       res = n == 3 ? ext_yices_bvxor3(a[0], a[1], a[2]) : yices_bvxor(n, a);
       break;
-    case BVAdd: res = yices_bvsum(n, a); break;
-    case BVMul: res = yices_bvproduct(n, a); break;
+    case Op::BVAdd: res = yices_bvsum(n, a); break;
+    case Op::BVMul: res = yices_bvproduct(n, a); break;
     default: return nullptr;
   }
   return checked_term(res);
@@ -871,7 +872,7 @@ Term Yices2Solver::get_value(const Term & t) const
   Term res = make_term(base, sort);
   for (const auto & [index, element] : entries)
   {
-    res = make_term(Store, res, index, element);
+    res = make_term(Op::Store, res, index, element);
   }
   return res;
 }
@@ -1213,13 +1214,13 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   {
     res = unary_term(op, yterms[0]);
   }
-  else if (op.prim_op == Forall || op.prim_op == Exists)
+  else if (op.kind() == Op::Forall || op.kind() == Op::Exists)
   {
     // Yices2 has quantifiers, but this backend does not build them yet
-    throw NotImplementedException(to_string(op.prim_op)
+    throw NotImplementedException(to_string(op.kind())
                                   + " is not implemented for Yices2");
   }
-  else if (op.prim_op == Apply)
+  else if (op.kind() == Op::Apply)
   {
     if (!yices_term_is_function(yterms[0]))
     {
@@ -1234,13 +1235,13 @@ Term Yices2Solver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    res = binary_term(op.prim_op, yterms[0], yterms[1]);
+    res = binary_term(op.kind(), yterms[0], yterms[1]);
   }
-  else if (size == 3 && op.prim_op == Ite)
+  else if (size == 3 && op.kind() == Op::Ite)
   {
     res = yices_ite(yterms[0], yterms[1], yterms[2]);
   }
-  else if (size == 3 && op.prim_op == Store)
+  else if (size == 3 && op.kind() == Op::Store)
   {
     res = ext_yices_store(yterms[0], yterms[1], yterms[2]);
   }

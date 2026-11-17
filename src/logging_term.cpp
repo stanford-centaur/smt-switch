@@ -207,7 +207,7 @@ std::size_t LoggingTerm::hash() const { return wrapped_term->hash(); }
 // may have been simplified to a value by the underlying solver
 bool LoggingTerm::is_value() const
 {
-  if (op.prim_op == Apply_Constructor)
+  if (op.kind() == Op::Apply_Constructor)
   {
     // The first child is the constructor itself.
     for (std::size_t i = 1; i < children->size(); ++i)
@@ -219,7 +219,7 @@ bool LoggingTerm::is_value() const
     }
     return true;
   }
-  if (op.prim_op == Store)
+  if (op.kind() == Op::Store)
   {
     // SMT-LIB's ArraysEx makes a store of a value into an array value a value
     for (const Term & c : *children)

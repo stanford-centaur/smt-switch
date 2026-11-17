@@ -291,8 +291,8 @@ TEST_P(Dump, KeepsTheLogicAndTheAssertions)
 {
   s->set_logic("QF_BV");
   make_symbols();
-  s->assert_formula(s->make_term(Equal, x, y));
-  s->assert_formula(s->make_term(Distinct, x, y));
+  s->assert_formula(s->make_term(Op::Equal, x, y));
+  s->assert_formula(s->make_term(Op::Distinct, x, y));
   EXPECT_TRUE(reread("assertions").is_unsat());
 }
 
@@ -300,17 +300,17 @@ TEST_P(Dump, KeepsAssertionsMadeInAPush)
 {
   make_symbols();
   s->push();
-  s->assert_formula(s->make_term(Equal, x, y));
-  s->assert_formula(s->make_term(Distinct, x, y));
+  s->assert_formula(s->make_term(Op::Equal, x, y));
+  s->assert_formula(s->make_term(Op::Distinct, x, y));
   EXPECT_TRUE(reread("pushed").is_unsat());
 }
 
 TEST_P(Dump, LeavesOutPoppedAssertions)
 {
   make_symbols();
-  s->assert_formula(s->make_term(Equal, x, y));
+  s->assert_formula(s->make_term(Op::Equal, x, y));
   s->push();
-  s->assert_formula(s->make_term(Distinct, x, y));
+  s->assert_formula(s->make_term(Op::Distinct, x, y));
   s->pop();
   EXPECT_TRUE(reread("popped").is_sat());
 }
@@ -323,9 +323,9 @@ TEST_P(Dump, LeavesOutResetAssertions)
     s->set_opt("base-context-1", "true");
   }
   make_symbols();
-  s->assert_formula(s->make_term(Distinct, x, y));
+  s->assert_formula(s->make_term(Op::Distinct, x, y));
   s->reset_assertions();
-  s->assert_formula(s->make_term(Equal, x, y));
+  s->assert_formula(s->make_term(Op::Equal, x, y));
   EXPECT_TRUE(reread("reset").is_sat());
 }
 
@@ -375,20 +375,25 @@ class DumpRenamedSorts : public Dump
     Term q = s->make_symbol("q", s->make_sort(SortKind::BOOL));
     Term r = s->make_symbol("r", s->make_sort(SortKind::BOOL));
 
-    s->assert_formula(s->make_term(Distinct, b, b2));
-    s->assert_formula(s->make_term(Equal, s->make_term(BVMul, x, x), y));
-    s->assert_formula(s->make_term(Equal,
-                                   s->make_term(Op(Extract, 1, 0), x),
-                                   s->make_term(Op(Extract, 3, 2), y)));
+    s->assert_formula(s->make_term(Op::Distinct, b, b2));
+    s->assert_formula(
+        s->make_term(Op::Equal, s->make_term(Op::BVMul, x, x), y));
+    s->assert_formula(s->make_term(Op::Equal,
+                                   s->make_term(Op(Op::Extract, 1, 0), x),
+                                   s->make_term(Op(Op::Extract, 3, 2), y)));
+    s->assert_formula(s->make_term(Op::Distinct,
+                                   s->make_term(Op::BVAnd, x, y),
+                                   s->make_term(Op::BVOr, x, y)));
     s->assert_formula(s->make_term(
-        Distinct, s->make_term(BVAnd, x, y), s->make_term(BVOr, x, y)));
+        Op::Equal,
+        s->make_term(Op::Select, s->make_term(Op::Store, arr, b, x), b2),
+        y));
+    s->assert_formula(s->make_term(Op::Distinct,
+                                   s->make_term(Op::Apply, f, b),
+                                   s->make_term(Op::Apply, f, b2)));
+    s->assert_formula(s->make_term(Op::Or, s->make_term(Op::And, p, q, r), q));
     s->assert_formula(s->make_term(
-        Equal, s->make_term(Select, s->make_term(Store, arr, b, x), b2), y));
-    s->assert_formula(s->make_term(
-        Distinct, s->make_term(Apply, f, b), s->make_term(Apply, f, b2)));
-    s->assert_formula(s->make_term(Or, s->make_term(And, p, q, r), q));
-    s->assert_formula(s->make_term(
-        Distinct, s->make_symbol("a", first), s->make_symbol("a2", first)));
+        Op::Distinct, s->make_symbol("a", first), s->make_symbol("a2", first)));
   }
 
   Term b, b2, arr;
@@ -405,8 +410,10 @@ TEST_P(DumpRenamedSorts, KeepsASatisfiableQuery)
 TEST_P(DumpRenamedSorts, KeepsAnUnsatisfiableQuery)
 {
   s->assert_formula(s->make_term(
-      Equal, s->make_term(Select, s->make_term(Store, arr, b, x), b), y));
-  s->assert_formula(s->make_term(Distinct, x, y));
+      Op::Equal,
+      s->make_term(Op::Select, s->make_term(Op::Store, arr, b, x), b),
+      y));
+  s->assert_formula(s->make_term(Op::Distinct, x, y));
   EXPECT_TRUE(reread("renamed-unsat").is_unsat());
   EXPECT_TRUE(s->check_sat().is_unsat());
 }
@@ -431,9 +438,9 @@ TEST_P(DumpUninterpretedSort, DeclaresTheSort)
   Term a = s->make_symbol("a", sort);
   Term f = s->make_symbol(
       "f", s->make_sort(SortKind::FUNCTION, SortVec{ sort, x->get_sort() }));
-  Term fa = s->make_term(Apply, f, a);
-  s->assert_formula(s->make_term(Equal, fa, x));
-  s->assert_formula(s->make_term(Distinct, fa, x));
+  Term fa = s->make_term(Op::Apply, f, a);
+  s->assert_formula(s->make_term(Op::Equal, fa, x));
+  s->assert_formula(s->make_term(Op::Distinct, fa, x));
   EXPECT_TRUE(reread("uninterpreted").is_unsat());
 }
 
@@ -688,19 +695,19 @@ TEST_P(Logics, StandardSpellings)
   SmtLibReader strict_reader(fresh, true);
   strict_reader.set_logic("ALL");
   reader->set_logic("ALL");
-  EXPECT_EQ(strict_reader.lookup_primop("ubv_to_int"), UBV_To_Int);
-  EXPECT_EQ(strict_reader.lookup_primop("sbv_to_int"), SBV_To_Int);
-  EXPECT_EQ(strict_reader.lookup_primop("int_to_bv"), Int_To_BV);
-  EXPECT_EQ(strict_reader.lookup_primop("**"), Pow);
-  EXPECT_EQ(strict_reader.lookup_primop("bv2nat"), NUM_OPS_AND_NULL);
-  EXPECT_EQ(strict_reader.lookup_primop("int2bv"), NUM_OPS_AND_NULL);
-  EXPECT_EQ(strict_reader.lookup_primop("pow"), NUM_OPS_AND_NULL);
-  EXPECT_EQ(strict_reader.lookup_primop("^"), NUM_OPS_AND_NULL);
-  EXPECT_EQ(reader->lookup_primop("**"), Pow);
-  EXPECT_EQ(reader->lookup_primop("bv2nat"), UBV_To_Int);
-  EXPECT_EQ(reader->lookup_primop("int2bv"), Int_To_BV);
-  EXPECT_EQ(reader->lookup_primop("pow"), Pow);
-  EXPECT_EQ(reader->lookup_primop("^"), Pow);
+  EXPECT_EQ(strict_reader.lookup_op_kind("ubv_to_int"), Op::UBV_To_Int);
+  EXPECT_EQ(strict_reader.lookup_op_kind("sbv_to_int"), Op::SBV_To_Int);
+  EXPECT_EQ(strict_reader.lookup_op_kind("int_to_bv"), Op::Int_To_BV);
+  EXPECT_EQ(strict_reader.lookup_op_kind("**"), Op::Pow);
+  EXPECT_EQ(strict_reader.lookup_op_kind("bv2nat"), Op::NONE);
+  EXPECT_EQ(strict_reader.lookup_op_kind("int2bv"), Op::NONE);
+  EXPECT_EQ(strict_reader.lookup_op_kind("pow"), Op::NONE);
+  EXPECT_EQ(strict_reader.lookup_op_kind("^"), Op::NONE);
+  EXPECT_EQ(reader->lookup_op_kind("**"), Op::Pow);
+  EXPECT_EQ(reader->lookup_op_kind("bv2nat"), Op::UBV_To_Int);
+  EXPECT_EQ(reader->lookup_op_kind("int2bv"), Op::Int_To_BV);
+  EXPECT_EQ(reader->lookup_op_kind("pow"), Op::Pow);
+  EXPECT_EQ(reader->lookup_op_kind("^"), Op::Pow);
 }
 
 INSTANTIATE_TEST_SUITE_P(
