@@ -55,6 +55,8 @@ enum class SolverAttribute
   UNINTERP_SORT,
   // supports non-zero arity uninterpreted sorts
   PARAM_UNINTERP_SORT,
+  // supports equality and disequality between terms of an uninterpreted sort
+  UNINTERP_SORT_EQ,
   // aliases booleans and bit-vectors of size one
   BOOL_BV1_ALIASING,
   // supports setting a time limit, in seconds (fractions allowed)

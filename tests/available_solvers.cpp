@@ -73,9 +73,8 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
         SolverAttribute::UNSAT_CORE,        SolverAttribute::QUANTIFIERS,
         SolverAttribute::BOOL_BV1_ALIASING, SolverAttribute::TIMELIMIT
       };
-    // Bitwuzla reasons over terms of uninterpreted sorts in functions,
-    // arrays and ite, but answers unknown to an equality between two of
-    // them that its preprocessing cannot remove.
+    // Bitwuzla answers unknown to an equality between terms of an
+    // uninterpreted sort that its preprocessing cannot remove.
     case BZLA:
     case BZLA_INTERPOLATOR:
       return {
@@ -88,43 +87,48 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
     case CVC5:
     case CVC5_INTERPOLATOR:
       return {
-        SolverAttribute::TERMITER,        SolverAttribute::THEORY_INT,
-        SolverAttribute::THEORY_STR,      SolverAttribute::THEORY_BV,
-        SolverAttribute::THEORY_REAL,     SolverAttribute::ARRAY_MODELS,
-        SolverAttribute::ARRAY_FUN_BOOLS, SolverAttribute::CONSTARR,
-        SolverAttribute::FULL_TRANSFER,   SolverAttribute::UNSAT_CORE,
-        SolverAttribute::THEORY_DATATYPE, SolverAttribute::QUANTIFIERS,
-        SolverAttribute::UNINTERP_SORT,   SolverAttribute::PARAM_UNINTERP_SORT,
-        SolverAttribute::TIMELIMIT
+        SolverAttribute::TERMITER,         SolverAttribute::THEORY_INT,
+        SolverAttribute::THEORY_STR,       SolverAttribute::THEORY_BV,
+        SolverAttribute::THEORY_REAL,      SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::ARRAY_FUN_BOOLS,  SolverAttribute::CONSTARR,
+        SolverAttribute::FULL_TRANSFER,    SolverAttribute::UNSAT_CORE,
+        SolverAttribute::THEORY_DATATYPE,  SolverAttribute::QUANTIFIERS,
+        SolverAttribute::UNINTERP_SORT,    SolverAttribute::PARAM_UNINTERP_SORT,
+        SolverAttribute::UNINTERP_SORT_EQ, SolverAttribute::TIMELIMIT
       };
     case GENERIC_SOLVER:
-      return {
-        SolverAttribute::TERMITER,           SolverAttribute::ARRAY_MODELS,
-        SolverAttribute::THEORY_INT,         SolverAttribute::THEORY_BV,
-        SolverAttribute::THEORY_REAL,        SolverAttribute::ARRAY_FUN_BOOLS,
-        SolverAttribute::UNSAT_CORE,         SolverAttribute::THEORY_DATATYPE,
-        SolverAttribute::QUANTIFIERS,        SolverAttribute::UNINTERP_SORT,
-        SolverAttribute::PARAM_UNINTERP_SORT
-      };
+      return { SolverAttribute::TERMITER,
+               SolverAttribute::ARRAY_MODELS,
+               SolverAttribute::THEORY_INT,
+               SolverAttribute::THEORY_BV,
+               SolverAttribute::THEORY_REAL,
+               SolverAttribute::ARRAY_FUN_BOOLS,
+               SolverAttribute::UNSAT_CORE,
+               SolverAttribute::THEORY_DATATYPE,
+               SolverAttribute::QUANTIFIERS,
+               SolverAttribute::UNINTERP_SORT,
+               SolverAttribute::PARAM_UNINTERP_SORT,
+               SolverAttribute::UNINTERP_SORT_EQ };
     case MSAT:
     case MSAT_INTERPOLATOR:
       return {
-        SolverAttribute::TERMITER,      SolverAttribute::THEORY_INT,
-        SolverAttribute::THEORY_BV,     SolverAttribute::THEORY_REAL,
-        SolverAttribute::ARRAY_MODELS,  SolverAttribute::CONSTARR,
-        SolverAttribute::FULL_TRANSFER, SolverAttribute::UNSAT_CORE,
-        SolverAttribute::UNINTERP_SORT, SolverAttribute::PARAM_UNINTERP_SORT,
-        SolverAttribute::TIMELIMIT
+        SolverAttribute::TERMITER,         SolverAttribute::THEORY_INT,
+        SolverAttribute::THEORY_BV,        SolverAttribute::THEORY_REAL,
+        SolverAttribute::ARRAY_MODELS,     SolverAttribute::CONSTARR,
+        SolverAttribute::FULL_TRANSFER,    SolverAttribute::UNSAT_CORE,
+        SolverAttribute::UNINTERP_SORT,    SolverAttribute::PARAM_UNINTERP_SORT,
+        SolverAttribute::UNINTERP_SORT_EQ, SolverAttribute::TIMELIMIT
       };
     case YICES2:
     case YICES2_INTERPOLATOR:
       return {
-        SolverAttribute::CONSTARR,        SolverAttribute::FULL_TRANSFER,
-        SolverAttribute::TERMITER,        SolverAttribute::THEORY_INT,
-        SolverAttribute::THEORY_BV,       SolverAttribute::THEORY_REAL,
-        SolverAttribute::ARRAY_FUN_BOOLS, SolverAttribute::ARRAY_MODELS,
-        SolverAttribute::UNINTERP_SORT,   SolverAttribute::PARAM_UNINTERP_SORT,
-        SolverAttribute::TIMELIMIT,       SolverAttribute::UNSAT_CORE
+        SolverAttribute::CONSTARR,         SolverAttribute::FULL_TRANSFER,
+        SolverAttribute::TERMITER,         SolverAttribute::THEORY_INT,
+        SolverAttribute::THEORY_BV,        SolverAttribute::THEORY_REAL,
+        SolverAttribute::ARRAY_FUN_BOOLS,  SolverAttribute::ARRAY_MODELS,
+        SolverAttribute::UNINTERP_SORT,    SolverAttribute::PARAM_UNINTERP_SORT,
+        SolverAttribute::UNINTERP_SORT_EQ, SolverAttribute::TIMELIMIT,
+        SolverAttribute::UNSAT_CORE
       };
     case Z3:
       return { SolverAttribute::TERMITER,
@@ -140,6 +144,7 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
                SolverAttribute::QUANTIFIERS,
                SolverAttribute::UNINTERP_SORT,
                SolverAttribute::PARAM_UNINTERP_SORT,
+               SolverAttribute::UNINTERP_SORT_EQ,
                SolverAttribute::TIMELIMIT };
   }
   throw InternalException("Unknown SolverEnum: " + std::to_string(se));

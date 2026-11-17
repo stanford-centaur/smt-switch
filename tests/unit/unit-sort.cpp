@@ -472,6 +472,28 @@ TEST_P(UninterpretedSorts, NameAsMadePrintedInBars)
   EXPECT_EQ(sort->to_string(), "|my sort|");
 }
 
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UninterpretedSortEquality);
+class UninterpretedSortEquality : public UninterpretedSorts
+{
+};
+
+TEST_P(UninterpretedSortEquality, DisequalityIsSat)
+{
+  s->assert_formula(s->make_term(Op::Distinct, a, b));
+  EXPECT_TRUE(s->check_sat().is_sat());
+}
+
+TEST_P(UninterpretedSortEquality, EqualityInDisjunction)
+{
+  Term c = s->make_symbol("c", usort);
+  s->assert_formula(s->make_term(
+      Op::Or, s->make_term(Op::Equal, a, b), s->make_term(Op::Equal, a, c)));
+  s->assert_formula(s->make_term(Op::Distinct, a, b));
+  EXPECT_TRUE(s->check_sat().is_sat());
+  s->assert_formula(s->make_term(Op::Distinct, a, c));
+  EXPECT_TRUE(s->check_sat().is_unsat());
+}
+
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SortConstructors);
 class SortConstructors : public UnitSortTests
 {
@@ -646,6 +668,13 @@ INSTANTIATE_TEST_SUITE_P(
     UninterpretedSorts,
     testing::ValuesIn(filter_solver_configurations_with_generic(
         { SolverAttribute::UNINTERP_SORT })),
+    ConfigName());
+
+INSTANTIATE_TEST_SUITE_P(
+    UnitSort,
+    UninterpretedSortEquality,
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::UNINTERP_SORT, SolverAttribute::UNINTERP_SORT_EQ })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
