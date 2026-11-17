@@ -205,7 +205,7 @@ const KindInfo & info(Op::Kind kind, const char * caller)
 void check_num_indices(Op::Kind kind, std::uint64_t given)
 {
   const std::uint64_t expected =
-      (kind == Op::NONE && given == 0) ? 0 : get_num_indices(kind);
+      (kind == Op::NONE && given == 0) ? 0 : info(kind, "Op").num_indices;
   if (given != expected)
   {
     throw IncorrectUsageException(to_string(kind) + " takes "
@@ -282,6 +282,47 @@ Op::Op(Kind kind, std::uint64_t index0, std::uint64_t index1)
 
 Op::Kind Op::kind() const { return kind_; }
 
+std::pair<std::size_t, std::size_t> Op::arity() const
+{
+  const KindInfo & row = info(kind_, "Op::arity");
+  return { row.min_arity, row.max_arity };
+}
+
+Theory Op::theory() const { return info(kind_, "Op::theory").theory; }
+
+bool Op::is_null() const { return kind_ == NONE; }
+
+bool Op::is_apply() const
+{
+  return kind_ == Apply || kind_ == Apply_Constructor || kind_ == Apply_Selector
+         || kind_ == Apply_Tester;
+}
+
+bool Op::is_left_assoc() const
+{
+  return info(kind_, "Op::is_left_assoc").assoc == Assoc::LEFT;
+}
+
+bool Op::is_right_assoc() const
+{
+  return info(kind_, "Op::is_right_assoc").assoc == Assoc::RIGHT;
+}
+
+bool Op::is_chainable() const
+{
+  return info(kind_, "Op::is_chainable").assoc == Assoc::CHAINABLE;
+}
+
+bool Op::is_pairwise() const
+{
+  return info(kind_, "Op::is_pairwise").assoc == Assoc::PAIRWISE;
+}
+
+bool Op::is_variadic() const
+{
+  return info(kind_, "Op::is_variadic").assoc != Assoc::NONE;
+}
+
 std::string Op::to_string() const
 {
   if (indices.empty())
@@ -290,33 +331,12 @@ std::string Op::to_string() const
   }
 
   std::string res = "(_ " + smt::to_string(kind_);
-  for (std::uint64_t index : indices)
+  for (const auto index : indices)
   {
     res += " " + std::to_string(index);
   }
   res += ")";
   return res;
-}
-
-bool Op::is_null() const { return kind_ == NONE; }
-
-std::pair<std::size_t, std::size_t> get_arity(Op::Kind kind)
-{
-  const KindInfo & row = info(kind, "get_arity");
-  return { row.min_arity, row.max_arity };
-}
-
-Theory get_theory(Op::Kind kind) { return info(kind, "get_theory").theory; }
-
-std::uint64_t get_num_indices(Op::Kind kind)
-{
-  return info(kind, "get_num_indices").num_indices;
-}
-
-bool is_apply(Op::Kind kind)
-{
-  return kind == Op::Apply || kind == Op::Apply_Constructor
-         || kind == Op::Apply_Selector || kind == Op::Apply_Tester;
 }
 
 bool operator==(Op o1, Op o2)
@@ -332,38 +352,13 @@ std::ostream & operator<<(std::ostream & output, const Op o)
   return output;
 }
 
-bool is_left_assoc(Op::Kind kind)
-{
-  return info(kind, "is_left_assoc").assoc == Assoc::LEFT;
-}
-
-bool is_right_assoc(Op::Kind kind)
-{
-  return info(kind, "is_right_assoc").assoc == Assoc::RIGHT;
-}
-
-bool is_chainable(Op::Kind kind)
-{
-  return info(kind, "is_chainable").assoc == Assoc::CHAINABLE;
-}
-
-bool is_pairwise(Op::Kind kind)
-{
-  return info(kind, "is_pairwise").assoc == Assoc::PAIRWISE;
-}
-
-bool is_variadic(Op::Kind kind)
-{
-  return info(kind, "is_variadic").assoc != Assoc::NONE;
-}
-
 }  // namespace smt
 
 namespace std {
 
 size_t hash<smt::Op>::operator()(const smt::Op o) const
 {
-  // the primitive op and the indices, which == compares
+  // the kind and the indices, which == compares
   size_t h = hash<smt::Op::Kind>{}(o.kind());
   for (uint64_t index : o.indices)
   {

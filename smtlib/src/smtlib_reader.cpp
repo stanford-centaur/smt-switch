@@ -267,7 +267,7 @@ void SmtLibReader::add_theory(LogicTheory theory)
       break;
     case LogicTheory::IA:
       sort = SortKind::INT;
-      // - with one argument is Negate, which apply_op_kind picks
+      // - with one argument is Negate, which apply_op picks
       ops = { Op::Plus, Op::Minus,  Op::Lt,  Op::Le,        Op::Gt,  Op::Ge,
               Op::Mult, Op::IntDiv, Op::Mod, Op::Divisible, Op::Abs, Op::Pow };
       if (!strict_)
@@ -279,7 +279,7 @@ void SmtLibReader::add_theory(LogicTheory theory)
       break;
     case LogicTheory::RA:
       sort = SortKind::REAL;
-      // - with one argument is Negate, which apply_op_kind picks
+      // - with one argument is Negate, which apply_op picks
       ops = { Op::Plus, Op::Minus, Op::Lt,   Op::Le,
               Op::Gt,   Op::Ge,    Op::Mult, Op::Div };
       break;
@@ -526,9 +526,9 @@ Op::Kind SmtLibReader::lookup_op_kind(const std::string & str) const
   }
 }
 
-Term SmtLibReader::apply_op_kind(Op::Kind kind, TermVec args) const
+Term SmtLibReader::apply_op(const Op & op, TermVec args) const
 {
-  if (kind == Op::Minus && args.size() == 1)
+  if (op.kind() == Op::Minus && args.size() == 1)
   {
     return solver_->make_term(Op::Negate, args[0]);
   }
@@ -538,9 +538,10 @@ Term SmtLibReader::apply_op_kind(Op::Kind kind, TermVec args) const
   // argument of /, syntactic sugar for its conversion with to_real.
   if (lookup_sortkind(to_string(SortKind::INT)) == SortKind::INT
       && lookup_sortkind(to_string(SortKind::REAL)) == SortKind::REAL
-      && (get_theory(kind) == Theory::ARITH || get_theory(kind) == Theory::REALS
-          || (!strict_ && (kind == Op::Equal || kind == Op::Distinct)))
-      && (kind == Op::Div
+      && (op.theory() == Theory::ARITH || op.theory() == Theory::REALS
+          || (!strict_
+              && (op.kind() == Op::Equal || op.kind() == Op::Distinct)))
+      && (op.kind() == Op::Div
           || std::any_of(
               args.begin(), args.end(), has_sort_kind(SortKind::REAL))))
   {
@@ -552,7 +553,7 @@ Term SmtLibReader::apply_op_kind(Op::Kind kind, TermVec args) const
       }
     }
   }
-  return solver_->make_term(kind, args);
+  return solver_->make_term(op, args);
 }
 
 Term SmtLibReader::apply_symbol(const std::string & name, TermVec args)
@@ -560,7 +561,7 @@ Term SmtLibReader::apply_symbol(const std::string & name, TermVec args)
   Op::Kind kind = lookup_op_kind(name);
   if (kind != Op::NONE)
   {
-    return apply_op_kind(kind, std::move(args));
+    return apply_op(kind, std::move(args));
   }
   Term uf = lookup_symbol(name);
   if (uf)

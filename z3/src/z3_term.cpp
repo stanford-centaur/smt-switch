@@ -442,20 +442,22 @@ std::size_t Z3Term::get_num_children() const
     return 0;
   }
 
-  const Op::Kind kind = get_op().kind();
+  const Op op = get_op();
+  const Op::Kind kind = op.kind();
   if (kind == Op::Forall || kind == Op::Exists || kind == Op::Pow)
   {
     return 2;
   }
   std::size_t num_args = term.num_args();
-  return is_apply(kind) ? num_args + 1 : num_args;
+  return op.is_apply() ? num_args + 1 : num_args;
 }
 
 Term Z3Term::get_child(std::size_t i) const
 {
   // the index as Z3 takes an argument index
   const unsigned pos = backend::narrow<unsigned>(i, "a child position");
-  const Op::Kind kind = get_op().kind();
+  const Op op = get_op();
+  const Op::Kind kind = op.kind();
   // smt-switch lists the first bound variable and then the body, which
   // binds the rest; Z3 binds them all in one quantifier, as de Bruijn
   // indices, and keeps their names
@@ -513,7 +515,7 @@ Term Z3Term::get_child(std::size_t i) const
   }
   // smt-switch lists the function, constructor, selector or tester applied
   // as the first child, which Z3 keeps as the decl
-  if (is_apply(kind))
+  if (op.is_apply())
   {
     return pos == 0 ? std::make_shared<Z3Term>(ctx, term.decl())
                     : std::make_shared<Z3Term>(ctx, term.arg(pos - 1));

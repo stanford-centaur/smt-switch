@@ -38,23 +38,23 @@ namespace smt {
 
 namespace {
 
-/** Refuses kind applied to num_args arguments, which Boolector has no operator
+/** Refuses op applied to num_args arguments, which Boolector has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(Op::Kind kind, std::size_t num_args)
+[[noreturn]] void throw_unsupported(const Op & op, std::size_t num_args)
 {
-  const std::pair<std::size_t, std::size_t> arity = get_arity(kind);
+  const auto arity = op.arity();
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("Boolector does not support the operator "
-                                + to_string(kind));
+                                + op.to_string());
 }
 
 /** The node of op applied to one argument in a single Boolector call
@@ -87,19 +87,19 @@ BoolectorNode * unary_op(Btor * btor, const Op & op, BoolectorNode * a)
       return boolector_roli(btor, a, backend::narrow_index(op, op.indices[0]));
     case Op::Rotate_Right:
       return boolector_rori(btor, a, backend::narrow_index(op, op.indices[0]));
-    default: throw_unsupported(op.kind(), 1);
+    default: throw_unsupported(op, 1);
   }
 }
 
-/** The node of kind applied to two arguments in a single Boolector call
+/** The node of op applied to two arguments in a single Boolector call
  *  @throws as throw_unsupported where Boolector has none
  */
 BoolectorNode * binary_op(Btor * btor,
-                          Op::Kind kind,
+                          const Op & op,
                           BoolectorNode * a,
                           BoolectorNode * b)
 {
-  switch (kind)
+  switch (op.kind())
   {
     case Op::And: return boolector_and(btor, a, b);
     case Op::Or: return boolector_or(btor, a, b);
@@ -135,7 +135,7 @@ BoolectorNode * binary_op(Btor * btor,
     case Op::BVSgt: return boolector_sgt(btor, a, b);
     case Op::BVSge: return boolector_sgte(btor, a, b);
     case Op::Select: return boolector_read(btor, a, b);
-    default: throw_unsupported(kind, 2);
+    default: throw_unsupported(op, 2);
   }
 }
 
@@ -861,7 +861,7 @@ Term BoolectorSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    btor_res = binary_op(btor.get(), op.kind(), nodes[0], nodes[1]);
+    btor_res = binary_op(btor.get(), op, nodes[0], nodes[1]);
   }
   else if (size == 3 && op.kind() == Op::Ite)
   {

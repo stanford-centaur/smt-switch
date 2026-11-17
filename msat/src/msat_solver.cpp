@@ -300,23 +300,23 @@ int reached_deadline(void * deadline)
   return d->reached;
 }
 
-/** Refuses kind applied to num_args arguments, which MathSAT has no operator
+/** Refuses op applied to num_args arguments, which MathSAT has no operator
  *  for
  *  @throws IncorrectUsageException where SMT-LIB does not allow that many
  *          arguments
  *  @throws NotImplementedException otherwise
  */
-[[noreturn]] void throw_unsupported(Op::Kind kind, size_t num_args)
+[[noreturn]] void throw_unsupported(const Op & op, size_t num_args)
 {
-  const std::pair<size_t, size_t> arity = get_arity(kind);
+  const auto arity = op.arity();
   if (num_args < arity.first || num_args > arity.second)
   {
-    throw IncorrectUsageException("Can't apply " + to_string(kind) + " to "
+    throw IncorrectUsageException("Can't apply " + op.to_string() + " to "
                                   + std::to_string(num_args)
                                   + (num_args == 1 ? " term" : " terms"));
   }
   throw NotImplementedException("MathSAT does not support the operator "
-                                + to_string(kind));
+                                + op.to_string());
 }
 
 /** The term of op applied to one argument
@@ -389,16 +389,16 @@ msat_term unary_term(msat_env e, const Op & op, msat_term a)
     case Op::UBV_To_Int: return msat_make_int_from_ubv(e, a);
     case Op::SBV_To_Int: return msat_make_int_from_sbv(e, a);
     case Op::Int_To_BV: return msat_make_int_to_bv(e, op.indices[0], a);
-    default: throw_unsupported(op.kind(), 1);
+    default: throw_unsupported(op, 1);
   }
 }
 
-/** The term of kind applied to two arguments
+/** The term of op applied to two arguments
  *  @throws as throw_unsupported where MathSAT has no such op
  */
-msat_term binary_term(msat_env e, Op::Kind kind, msat_term a, msat_term b)
+msat_term binary_term(msat_env e, const Op & op, msat_term a, msat_term b)
 {
-  switch (kind)
+  switch (op.kind())
   {
     case Op::And: return msat_make_and(e, a, b);
     case Op::Or: return msat_make_or(e, a, b);
@@ -447,7 +447,7 @@ msat_term binary_term(msat_env e, Op::Kind kind, msat_term a, msat_term b)
     case Op::BVSgt: return msat_make_not(e, msat_make_bv_sleq(e, a, b));
     case Op::BVSge: return msat_make_not(e, msat_make_bv_slt(e, a, b));
     case Op::Select: return msat_make_array_read(e, a, b);
-    default: throw_unsupported(kind, 2);
+    default: throw_unsupported(op, 2);
   }
 }
 
@@ -1117,7 +1117,7 @@ Term MsatSolver::make_term(Op op, const TermVec & terms) const
   }
   else if (size == 2)
   {
-    res = binary_term(*env, op.kind(), mterms[0], mterms[1]);
+    res = binary_term(*env, op, mterms[0], mterms[1]);
   }
   else if (size == 3 && op.kind() == Op::Ite)
   {

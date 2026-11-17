@@ -321,31 +321,31 @@ Op Cvc5Term::get_op() const
     return Op();
   }
 
-  const Op::Kind op_kind = to_op_kind(cvc5_kind);
-
-  // Create an smt-switch Op and return it.
-  if (cvc5_op.isIndexed())
+  const auto op_kind = to_op_kind(cvc5_kind);
+  const auto num_indices = cvc5_op.getNumIndices();
+  // Op refuses a number of indices its kind does not take
+  try
   {
-    const std::uint64_t num_indices = get_num_indices(op_kind);
-    if (num_indices == 0)
+    if (!cvc5_op.isIndexed())
     {
-      throw NotImplementedException(
-          "get_op is not implemented for the cvc5 Kind "
-          + std::to_string(cvc5_kind));
+      return Op(op_kind);
     }
     if (num_indices == 1)
     {
       return Op(op_kind, op_index(cvc5_op, 0));
     }
-    else
+    if (num_indices == 2)
     {
       return Op(op_kind, op_index(cvc5_op, 0), op_index(cvc5_op, 1));
     }
   }
-  else
+  catch (const IncorrectUsageException &)
   {
-    return Op(op_kind);
   }
+  throw NotImplementedException("smt-switch has no operator for the cvc5 Kind "
+                                + std::to_string(cvc5_kind) + " with "
+                                + std::to_string(num_indices)
+                                + (num_indices == 1 ? " index" : " indices"));
 }
 
 Sort Cvc5Term::get_sort() const

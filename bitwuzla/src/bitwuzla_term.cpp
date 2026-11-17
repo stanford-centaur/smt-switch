@@ -207,24 +207,30 @@ Op BzlaTerm::get_op() const
   }
 
   Op::Kind op_kind = to_op_kind(bkind);
-
-  if (get_num_indices(op_kind) > 0)
+  const auto indices = term.indices();
+  // Op refuses a number of indices its kind does not take
+  try
   {
-    std::size_t num_indices = term.num_indices();
-    std::vector<std::uint64_t> indices = term.indices();
-    std::uint64_t idx0 = indices[0];
-    if (num_indices == 1)
+    if (indices.empty())
     {
-      return Op(op_kind, idx0);
+      return Op(op_kind);
     }
-    else
+    if (indices.size() == 1)
     {
-      std::uint64_t idx1 = indices[1];
-      return Op(op_kind, idx0, idx1);
+      return Op(op_kind, indices[0]);
+    }
+    if (indices.size() == 2)
+    {
+      return Op(op_kind, indices[0], indices[1]);
     }
   }
-
-  return Op(op_kind);
+  catch (const IncorrectUsageException &)
+  {
+  }
+  throw NotImplementedException(
+      "smt-switch has no operator for the Bitwuzla kind "
+      + std::to_string(bkind) + " with " + std::to_string(indices.size())
+      + (indices.size() == 1 ? " index" : " indices"));
 }
 
 Sort BzlaTerm::get_sort() const
