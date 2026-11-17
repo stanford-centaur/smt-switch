@@ -30,7 +30,7 @@ TEST(MsatInterpolatorOptions, RefusesOnlyTheOptionsInterpolationNeeds)
   // any other option reaches MathSAT while it can still take options
   EXPECT_NO_THROW(s->set_opt("dpll.ghost_filtering", "true"));
 
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);

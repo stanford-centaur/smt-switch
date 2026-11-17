@@ -175,7 +175,7 @@ class BoolNaryTests : public NaryTests
   void SetUp() override
   {
     NaryTests::SetUp();
-    sort = s->make_sort(BOOL);
+    sort = s->make_sort(SortKind::BOOL);
   }
 };
 
@@ -186,7 +186,7 @@ class IntNaryTests : public NaryTests
   void SetUp() override
   {
     NaryTests::SetUp();
-    sort = s->make_sort(INT);
+    sort = s->make_sort(SortKind::INT);
   }
 };
 
@@ -197,7 +197,7 @@ class RealNaryTests : public NaryTests
   void SetUp() override
   {
     NaryTests::SetUp();
-    sort = s->make_sort(REAL);
+    sort = s->make_sort(SortKind::REAL);
   }
 };
 
@@ -208,7 +208,7 @@ class BVNaryTests : public NaryTests
   void SetUp() override
   {
     NaryTests::SetUp();
-    sort = s->make_sort(BV, 8);
+    sort = s->make_sort(SortKind::BV, 8);
   }
 };
 
@@ -219,7 +219,7 @@ class StrNaryTests : public NaryTests
   void SetUp() override
   {
     NaryTests::SetUp();
-    sort = s->make_sort(STRING);
+    sort = s->make_sort(SortKind::STRING);
   }
 };
 

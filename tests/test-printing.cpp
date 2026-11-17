@@ -130,8 +130,8 @@ class PrintingBitVectorTests : public PrintingTests
   void make_symbols()
   {
     s->set_logic("QF_AUFBV");
-    bvsort = s->make_sort(BV, 8);
-    b = s->make_symbol("b", s->make_sort(BOOL));
+    bvsort = s->make_sort(SortKind::BV, 8);
+    b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
   }
@@ -144,8 +144,8 @@ class PrintingBitVectorTests : public PrintingTests
 
 TEST_P(PrintingBitVectorTests, Solving)
 {
-  Sort funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
-  Sort arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+  Sort funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
+  Sort arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
   Term f = s->make_symbol("f", funsort);
   Term arr = s->make_symbol("arr", arrsort);
 
@@ -206,7 +206,7 @@ class PrintingUninterpretedSortTests : public PrintingBitVectorTests
 TEST_P(PrintingUninterpretedSortTests, DeclaresSorts)
 {
   Sort us = s->make_sort("S", 0);
-  Sort funsort = s->make_sort(FUNCTION, SortVec{ bvsort, us });
+  Sort funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, us });
   Term g = s->make_symbol("g", funsort);
   Term u = s->make_symbol("u", us);
   s->assert_formula(s->make_term(Equal, s->make_term(Apply, g, x), u));
@@ -246,7 +246,7 @@ class PrintingRealTests : public PrintingTests
   {
     PrintingTests::SetUp();
     s->set_logic("QF_LRA");
-    realsort = s->make_sort(REAL);
+    realsort = s->make_sort(SortKind::REAL);
     x = s->make_symbol("x", realsort);
     y = s->make_symbol("y", realsort);
   }
@@ -280,7 +280,7 @@ class PrintingDatatypeTests : public PrintingTests
 
 TEST_P(PrintingDatatypeTests, DeclaresDatatypes)
 {
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   DatatypeDecl listdecl = s->make_datatype_decl("list");
   DatatypeConstructorDecl nildecl = s->make_datatype_constructor_decl("nil");
   DatatypeConstructorDecl consdecl = s->make_datatype_constructor_decl("cons");

@@ -42,7 +42,7 @@ class UnitUtilTests : public testing::Test,
   {
     s = create_solver(GetParam());
 
-    boolsort = s->make_sort(BOOL);
+    boolsort = s->make_sort(SortKind::BOOL);
     for (size_t i = 0; i < 30; ++i)
     {
       symbols.push_back(s->make_symbol("x" + std::to_string(i), boolsort));
@@ -67,7 +67,7 @@ class UnitUtilDimacsTests : public testing::Test,
 
     s = create_solver(sc);
 
-    boolsort = s->make_sort(BOOL);
+    boolsort = s->make_sort(SortKind::BOOL);
   }
   SmtSolver s;
   Sort boolsort;
@@ -80,7 +80,7 @@ class UnitUtilIntTests : public UnitUtilTests
   void SetUp() override
   {
     UnitUtilTests::SetUp();
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
   Sort intsort;
 };
@@ -190,8 +190,8 @@ TEST_P(UnitUtilIntTests, Oracles)
   // the operators and symbols might change due to internal rewrites.
   if (c.is_logging_solver)
   {
-    Sort int_sort = s->make_sort(INT);
-    Sort bv_sort = s->make_sort(BV, 4);
+    Sort int_sort = s->make_sort(SortKind::INT);
+    Sort bv_sort = s->make_sort(SortKind::BV, 4);
     Term int1 = s->make_symbol("int1", int_sort);
     Term bv1 = s->make_symbol("bv1", bv_sort);
 
@@ -284,7 +284,7 @@ TEST_P(UnitUtilDimacsTests, CnfToDimacsRefusesOtherFormulas)
   Term a = s->make_symbol("a", boolsort);
   Term b = s->make_symbol("b", boolsort);
   Term c = s->make_symbol("c", boolsort);
-  Term x = s->make_symbol("x", s->make_sort(BV, 4));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 4));
   std::ostringstream y;
   EXPECT_THROW(cnf::to_dimacs(x, y), IncorrectUsageException);
   EXPECT_THROW(cnf::to_dimacs(s->make_term(Implies, a, b), y),
@@ -543,8 +543,8 @@ class ToCnf : public testing::Test,
   {
     s = create_solver(GetParam());
     s->set_opt("incremental", "true");
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
     p = s->make_symbol("p", boolsort);
     q = s->make_symbol("q", boolsort);
     r = s->make_symbol("r", boolsort);
@@ -680,8 +680,8 @@ class CastTerm : public testing::TestWithParam<SolverConfiguration>
   void SetUp() override
   {
     s = create_solver(GetParam());
-    boolsort = s->make_sort(BOOL);
-    bv1sort = s->make_sort(BV, 1);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bv1sort = s->make_sort(SortKind::BV, 1);
     x = s->make_symbol("x", boolsort);
   }
   SmtSolver s;
@@ -713,8 +713,8 @@ TEST_P(CastTerm, Values)
 
 TEST_P(CastTerm, RefusesOtherSorts)
 {
-  Sort bv8sort = s->make_sort(BV, 8);
-  Term a = s->make_symbol("a", s->make_sort(ARRAY, bv8sort, bv8sort));
+  Sort bv8sort = s->make_sort(SortKind::BV, 8);
+  Term a = s->make_symbol("a", s->make_sort(SortKind::ARRAY, bv8sort, bv8sort));
   EXPECT_THROW(s->cast_term(a, boolsort), NotImplementedException);
 }
 
@@ -726,8 +726,8 @@ class CastTermArithmetic : public testing::TestWithParam<SolverConfiguration>
 TEST_P(CastTermArithmetic, IntToReal)
 {
   SmtSolver s = create_solver(GetParam());
-  Sort realsort = s->make_sort(REAL);
-  Term n = s->make_symbol("n", s->make_sort(INT));
+  Sort realsort = s->make_sort(SortKind::REAL);
+  Term n = s->make_symbol("n", s->make_sort(SortKind::INT));
   Term r = s->cast_term(n, realsort);
   // only a logging solver keeps the sort it built: MathSAT and Yices2 give
   // an integer-valued Real the sort Int
@@ -828,8 +828,8 @@ class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
   {
     // a logging solver keeps the terms as built
     s = smt::solvers::create(GetParam(), /* logging */ true);
-    boolsort = s->make_sort(BOOL);
-    Sort bvsort = s->make_sort(BV, 8);
+    boolsort = s->make_sort(SortKind::BOOL);
+    Sort bvsort = s->make_sort(SortKind::BV, 8);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
     z = s->make_symbol("z", bvsort);
@@ -909,8 +909,8 @@ class GetJustifyingSymbols : public testing::TestWithParam<SolverEnum>
     // a logging solver keeps the terms as built
     s = smt::solvers::create(GetParam(), /* logging */ true);
     s->set_opt("produce-models", "true");
-    Sort boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 8);
+    Sort boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 8);
     a = s->make_symbol("a", boolsort);
     b = s->make_symbol("b", boolsort);
     c = s->make_symbol("c", boolsort);
@@ -1041,34 +1041,34 @@ TEST(SmtLibUnquoteSymbol, OtherTextStaysAsIs)
 
 TEST(SmtLibArithValue, IntegerStaysANumeral)
 {
-  EXPECT_EQ(smtlib::arith_value(INT, "5"), "5");
-  EXPECT_EQ(smtlib::arith_value(INT, "-5"), "(- 5)");
-  EXPECT_EQ(smtlib::arith_value(INT, "+5"), "5");
-  EXPECT_EQ(smtlib::arith_value(INT, "007"), "7");
-  EXPECT_EQ(smtlib::arith_value(INT, "0"), "0");
-  EXPECT_EQ(smtlib::arith_value(INT, "-00"), "(- 0)");
+  EXPECT_EQ(smtlib::arith_value(SortKind::INT, "5"), "5");
+  EXPECT_EQ(smtlib::arith_value(SortKind::INT, "-5"), "(- 5)");
+  EXPECT_EQ(smtlib::arith_value(SortKind::INT, "+5"), "5");
+  EXPECT_EQ(smtlib::arith_value(SortKind::INT, "007"), "7");
+  EXPECT_EQ(smtlib::arith_value(SortKind::INT, "0"), "0");
+  EXPECT_EQ(smtlib::arith_value(SortKind::INT, "-00"), "(- 0)");
 }
 
 TEST(SmtLibArithValue, RealGetsADecimalPoint)
 {
-  EXPECT_EQ(smtlib::arith_value(REAL, "5"), "5.0");
-  EXPECT_EQ(smtlib::arith_value(REAL, "0.5"), "0.5");
-  EXPECT_EQ(smtlib::arith_value(REAL, "-0.5"), "(- 0.5)");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "5"), "5.0");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "0.5"), "0.5");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "-0.5"), "(- 0.5)");
 }
 
 TEST(SmtLibArithValue, DecimalGetsDigitsAroundItsPoint)
 {
-  EXPECT_EQ(smtlib::arith_value(REAL, ".1"), "0.1");
-  EXPECT_EQ(smtlib::arith_value(REAL, "-.1"), "(- 0.1)");
-  EXPECT_EQ(smtlib::arith_value(REAL, "1."), "1.0");
-  EXPECT_EQ(smtlib::arith_value(REAL, "00.50"), "0.50");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, ".1"), "0.1");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "-.1"), "(- 0.1)");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "1."), "1.0");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "00.50"), "0.50");
 }
 
 TEST(SmtLibArithValue, FractionIsADivision)
 {
-  EXPECT_EQ(smtlib::arith_value(REAL, "1/2"), "(/ 1.0 2.0)");
-  EXPECT_EQ(smtlib::arith_value(REAL, "-1/2"), "(- (/ 1.0 2.0))");
-  EXPECT_EQ(smtlib::arith_value(REAL, "01/02"), "(/ 1.0 2.0)");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "1/2"), "(/ 1.0 2.0)");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "-1/2"), "(- (/ 1.0 2.0))");
+  EXPECT_EQ(smtlib::arith_value(SortKind::REAL, "01/02"), "(/ 1.0 2.0)");
 }
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SmtLibApplication);
@@ -1080,7 +1080,7 @@ class SmtLibApplication
   void SetUp() override
   {
     s = create_solver(GetParam());
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
     x = s->make_symbol("x", intsort);
     y = s->make_symbol("y", intsort);
   }
@@ -1097,7 +1097,8 @@ TEST_P(SmtLibApplication, OpThenChildren)
 
 TEST_P(SmtLibApplication, AppliedFunctionStandsForTheOp)
 {
-  Term f = s->make_symbol("f", s->make_sort(FUNCTION, { intsort, intsort }));
+  Term f = s->make_symbol(
+      "f", s->make_sort(SortKind::FUNCTION, { intsort, intsort }));
   EXPECT_EQ(smtlib::application(Op(Apply), { f, x }), "(f x)");
 }
 
@@ -1141,7 +1142,7 @@ class SmtLibDeclareFun : public testing::Test,
   void SetUp() override
   {
     s = create_solver(GetParam());
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
 
   SmtSolver s;
@@ -1156,7 +1157,7 @@ TEST_P(SmtLibDeclareFun, ConstantHasAnEmptyDomain)
 
 TEST_P(SmtLibDeclareFun, FunctionListsItsDomain)
 {
-  Sort fsort = s->make_sort(FUNCTION, { intsort, intsort, intsort });
+  Sort fsort = s->make_sort(SortKind::FUNCTION, { intsort, intsort, intsort });
   EXPECT_EQ(smtlib::declare_fun(s->make_symbol("f", fsort)),
             "(declare-fun f (Int Int) Int)");
 }
@@ -1189,7 +1190,7 @@ class SmtLibDeclareDatatypes
     DatatypeDecl listdecl = s->make_datatype_decl("list");
     DatatypeConstructorDecl consdecl =
         s->make_datatype_constructor_decl("cons");
-    s->add_selector(consdecl, "head", s->make_sort(INT));
+    s->add_selector(consdecl, "head", s->make_sort(SortKind::INT));
     s->add_selector_self(consdecl, "tail");
     s->add_constructor(listdecl, s->make_datatype_constructor_decl("nil"));
     s->add_constructor(listdecl, consdecl);
@@ -1216,7 +1217,7 @@ TEST_P(SmtLibDeclareDatatypes, DeclaresSeveralTogether)
 
 TEST_P(SmtLibDeclareDatatypes, NonDatatypeIsRefused)
 {
-  EXPECT_THROW(smtlib::declare_datatypes({ list, s->make_sort(INT) }),
+  EXPECT_THROW(smtlib::declare_datatypes({ list, s->make_sort(SortKind::INT) }),
                IncorrectUsageException);
 }
 
@@ -1243,7 +1244,7 @@ class SmtLibBenchmarkDeclarations
   void SetUp() override
   {
     s = create_solver(GetParam());
-    intsort = s->make_sort(INT);
+    intsort = s->make_sort(SortKind::INT);
   }
 
   SmtSolver s;
@@ -1253,8 +1254,9 @@ class SmtLibBenchmarkDeclarations
 TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
 {
   Sort usort = s->make_sort("U", 0);
-  Sort boolsort = s->make_sort(BOOL);
-  Term p = s->make_symbol("p", s->make_sort(FUNCTION, { usort, boolsort }));
+  Sort boolsort = s->make_sort(SortKind::BOOL);
+  Term p = s->make_symbol(
+      "p", s->make_sort(SortKind::FUNCTION, { usort, boolsort }));
   Term u = s->make_symbol("u", usort);
   Term x = s->make_symbol("x", intsort);
   Term a = s->make_term(Apply, p, u);
@@ -1366,7 +1368,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
 {
   Sort f = s->make_sort("F", 1);
   Sort fint = s->make_sort(f, { intsort });
-  Sort fbool = s->make_sort(f, { s->make_sort(BOOL) });
+  Sort fbool = s->make_sort(f, { s->make_sort(SortKind::BOOL) });
   Term ab =
       s->make_term(Equal, s->make_symbol("a", fint), s->make_symbol("b", fint));
   Term cd = s->make_term(

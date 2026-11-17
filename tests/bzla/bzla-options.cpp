@@ -51,7 +51,7 @@ TEST(BzlaOptions, AcceptedAfterDump)
 TEST(BzlaOptions, AcceptedAfterRefusedQuery)
 {
   SmtSolver s = BitwuzlaSolverFactory::create(false);
-  Term x = s->make_symbol("x", s->make_sort(BV, 8));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BV, 8));
   ASSERT_THROW(s->get_value(x), IncorrectUsageException);
   EXPECT_NO_THROW(s->set_opt("produce-models", "true"));
 }
@@ -64,7 +64,7 @@ TEST(BzlaOptions, TakenAgainAfterReset)
   ASSERT_NO_THROW(s->set_opt("produce-models", "true"));
 
   // the option takes effect: without it, get_value throws
-  Sort bv8 = s->make_sort(BV, 8);
+  Sort bv8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bv8);
   Term one = s->make_term(1, bv8);
   s->assert_formula(s->make_term(Equal, x, one));

@@ -37,12 +37,12 @@ namespace {
 bool uses_uninterp_sort(const Sort & sort)
 {
   bool res = false;
-  SortKind sk = sort->get_sort_kind();
-  if (sk == UNINTERPRETED)
+  SortKind sk = sort->get_kind();
+  if (sk == SortKind::UNINTERPRETED)
   {
     res = true;
   }
-  else if (sk == FUNCTION)
+  else if (sk == SortKind::FUNCTION)
   {
     for (auto s : sort->get_domain_sorts())
     {
@@ -50,7 +50,7 @@ bool uses_uninterp_sort(const Sort & sort)
     }
     res |= uses_uninterp_sort(sort->get_codomain_sort());
   }
-  else if (sk == ARRAY)
+  else if (sk == SortKind::ARRAY)
   {
     res |= uses_uninterp_sort(sort->get_indexsort());
     res |= uses_uninterp_sort(sort->get_elemsort());
@@ -72,16 +72,17 @@ TermTranslator::TermTranslator(const SmtSolver & s) : solver(s)
 
 Sort TermTranslator::transfer_sort(const Sort & sort)
 {
-  SortKind sk = sort->get_sort_kind();
-  if ((sk == INT) || (sk == REAL) || (sk == BOOL) || (sk == STRING))
+  SortKind sk = sort->get_kind();
+  if ((sk == SortKind::INT) || (sk == SortKind::REAL) || (sk == SortKind::BOOL)
+      || (sk == SortKind::STRING))
   {
     return solver->make_sort(sk);
   }
-  else if (sk == BV)
+  else if (sk == SortKind::BV)
   {
     return solver->make_sort(sk, sort->get_width());
   }
-  else if (sk == ARRAY)
+  else if (sk == SortKind::ARRAY)
   {
     // recursive call, but it should be okay because we don't expect deep
     // nesting of arrays
@@ -89,7 +90,7 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
                              transfer_sort(sort->get_indexsort()),
                              transfer_sort(sort->get_elemsort()));
   }
-  else if (sk == FUNCTION)
+  else if (sk == SortKind::FUNCTION)
   {
     // recursive call, but it should be okay because we don't expect deep
     // nesting of functions either
@@ -101,7 +102,7 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
     sorts.push_back(transfer_sort(sort->get_codomain_sort()));
     return solver->make_sort(sk, sorts);
   }
-  else if (sk == UNINTERPRETED)
+  else if (sk == SortKind::UNINTERPRETED)
   {
     // an applied sort constructor has parameters, a declared sort has none
     SortVec param_sorts = sort->get_uninterpreted_param_sorts();
@@ -118,12 +119,12 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
     return solver->make_sort(uninterpreted_sort(name, param_sorts.size()),
                              transferred);
   }
-  else if (sk == UNINTERPRETED_CONS)
+  else if (sk == SortKind::UNINTERPRETED_CONS)
   {
     return uninterpreted_sort(sort->get_uninterpreted_name(),
                               sort->get_arity());
   }
-  else if (sk == DATATYPE)
+  else if (sk == SortKind::DATATYPE)
   {
     return transfer_datatype_sort(sort);
   }
@@ -189,16 +190,16 @@ Sort TermTranslator::transfer_datatype_sort(const Sort & sort)
 Term TermTranslator::transfer_datatype_component(const Term & term)
 {
   Sort sort = term->get_sort();
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   // a constructor makes its datatype, a selector or tester takes it
-  Sort dt_sort = sk == CONSTRUCTOR ? sort->get_codomain_sort()
-                                   : sort->get_domain_sorts().at(0);
+  Sort dt_sort = sk == SortKind::CONSTRUCTOR ? sort->get_codomain_sort()
+                                             : sort->get_domain_sorts().at(0);
   Sort transferred = transfer_sort(dt_sort);
-  if (sk == CONSTRUCTOR)
+  if (sk == SortKind::CONSTRUCTOR)
   {
     return solver->get_constructor(transferred, term->get_constructor_name());
   }
-  if (sk == TESTER)
+  if (sk == SortKind::TESTER)
   {
     return solver->get_tester(transferred, term->get_constructor_name());
   }
@@ -287,8 +288,9 @@ Term TermTranslator::transfer_term(const Term & term)
     }
     else
     {
-      SortKind sk = t->get_sort()->get_sort_kind();
-      if (sk == CONSTRUCTOR || sk == SELECTOR || sk == TESTER)
+      SortKind sk = t->get_sort()->get_kind();
+      if (sk == SortKind::CONSTRUCTOR || sk == SortKind::SELECTOR
+          || sk == SortKind::TESTER)
       {
         cache[t] = transfer_datatype_component(t);
       }
@@ -349,10 +351,11 @@ Term TermTranslator::transfer_term(const Term & term)
       }
       // a datatype value and a store chain are rebuilt below, from their
       // operator and children
-      else if (t->is_value() && sk != DATATYPE && t->get_op().prim_op != Store)
+      else if (t->is_value() && sk != SortKind::DATATYPE
+               && t->get_op().prim_op != Store)
       {
         s = transfer_sort(t->get_sort());
-        if (s->get_sort_kind() == ARRAY)
+        if (s->get_kind() == SortKind::ARRAY)
         {
           // special case for const-array
           Term val = cache.at(*(t->begin()));
@@ -363,7 +366,7 @@ Term TermTranslator::transfer_term(const Term & term)
                                           + val->get_sort()->to_string()
                                           + " and " + s->to_string());
           }
-          else if (valsort->get_sort_kind() == ARRAY)
+          else if (valsort->get_kind() == SortKind::ARRAY)
           {
             throw NotImplementedException(
                 "Transferring terms with multi-dimensional constant arrays is "
@@ -371,7 +374,7 @@ Term TermTranslator::transfer_term(const Term & term)
           }
           cache[t] = solver->make_term(val, s);
         }
-        else if (sk == BV)
+        else if (sk == SortKind::BV)
         {
           cache[t] = solver->make_term(t->to_bits(), s, 2);
         }
@@ -382,7 +385,7 @@ Term TermTranslator::transfer_term(const Term & term)
           // to one that does alias sorts
           // the sort will be transferred again in value_from_smt2
           cache[t] = value_from_smt2(
-              t->print_value_as(t->get_sort()->get_sort_kind()), t->get_sort());
+              t->print_value_as(t->get_sort()->get_kind()), t->get_sort());
         }
       }
       else
@@ -430,7 +433,7 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
 {
   Term transferred_term = transfer_term(term);
   Sort transferred_sort = transferred_term->get_sort();
-  SortKind transferred_sk = transferred_sort->get_sort_kind();
+  SortKind transferred_sk = transferred_sort->get_kind();
   if (transferred_sk == sk)
   {
     return transferred_term;
@@ -440,29 +443,30 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   // otherwise throws an exception
 
   // expect this to be the most common case
-  if (transferred_sk == BV && transferred_sort->get_width() == 1 && sk == BOOL)
+  if (transferred_sk == SortKind::BV && transferred_sort->get_width() == 1
+      && sk == SortKind::BOOL)
   {
-    Sort sort = solver->make_sort(BOOL);
+    Sort sort = solver->make_sort(SortKind::BOOL);
     return solver->cast_term(transferred_term, sort);
   }
-  else if (transferred_sk == BOOL && sk == BV)
+  else if (transferred_sk == SortKind::BOOL && sk == SortKind::BV)
   {
-    Sort sort = solver->make_sort(BV, 1);
+    Sort sort = solver->make_sort(SortKind::BV, 1);
     return solver->cast_term(transferred_term, sort);
   }
-  else if (transferred_sk == INT && sk == REAL)
+  else if (transferred_sk == SortKind::INT && sk == SortKind::REAL)
   {
-    Sort sort = solver->make_sort(REAL);
+    Sort sort = solver->make_sort(SortKind::REAL);
     return solver->cast_term(transferred_term, sort);
   }
-  else if (transferred_sk == REAL && sk == INT)
+  else if (transferred_sk == SortKind::REAL && sk == SortKind::INT)
   {
-    Sort sort = solver->make_sort(INT);
+    Sort sort = solver->make_sort(SortKind::INT);
     return solver->cast_term(transferred_term, sort);
   }
-  else if (transferred_sk == STRING)
+  else if (transferred_sk == SortKind::STRING)
   {
-    Sort sort = solver->make_sort(STRING);
+    Sort sort = solver->make_sort(SortKind::STRING);
     return solver->cast_term(transferred_term, sort);
   }
   else
@@ -544,9 +548,9 @@ std::string TermTranslator::infixize_rational(const std::string smtlib) const
 Term TermTranslator::value_from_smt2(const std::string val,
                                      const Sort orig_sort)
 {
-  SortKind sk = orig_sort->get_sort_kind();
+  SortKind sk = orig_sort->get_kind();
   Sort sort = transfer_sort(orig_sort);
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     // TODO: Only put checks in debug mode
     if (val.length() < 2)
@@ -588,7 +592,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
                                     + " as a bit-vector sort.");
     }
   }
-  else if ((sk == INT) || (sk == REAL))
+  else if ((sk == SortKind::INT) || (sk == SortKind::REAL))
   {
     if (val.substr(0, 2) == "(-")
     {
@@ -611,7 +615,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
   }
   // this check HAS to come after bit-vector check
   // because boolector aliases those two sorts
-  else if (sk == BOOL)
+  else if (sk == SortKind::BOOL)
   {
     if (val != "true" && val != "false")
     {
@@ -622,7 +626,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
       return solver->make_term(val == "true");
     }
   }
-  else if (sk == STRING)
+  else if (sk == SortKind::STRING)
   {
     // The SMT-LIB representation of a string will be wrapped in double quotes.
     // These need to be stripped.
@@ -651,13 +655,13 @@ Term TermTranslator::value_from_smt2(const std::string val,
 void TermTranslator::widen_ints(TermVec & terms) const
 {
   if (std::any_of(terms.begin(), terms.end(), [](const Term & t) {
-        return t->get_sort()->get_sort_kind() == REAL;
+        return t->get_sort()->get_kind() == SortKind::REAL;
       }))
   {
-    Sort realsort = solver->make_sort(REAL);
+    Sort realsort = solver->make_sort(SortKind::REAL);
     for (Term & t : terms)
     {
-      if (t->get_sort()->get_sort_kind() == INT)
+      if (t->get_sort()->get_kind() == SortKind::INT)
       {
         t = solver->cast_term(t, realsort);
       }

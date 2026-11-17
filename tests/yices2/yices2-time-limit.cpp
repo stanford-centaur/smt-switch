@@ -37,7 +37,7 @@ void count_program_alarm(int /* signum */)
 // asserts a pigeonhole problem too hard to finish inside a short limit
 void assert_pigeonhole(const SmtSolver & s)
 {
-  Sort bvsort = s->make_sort(BV, 6);
+  Sort bvsort = s->make_sort(SortKind::BV, 6);
   TermVec vars;
   for (size_t i = 0; i < 65; ++i)
   {
@@ -86,7 +86,7 @@ TEST_F(Yices2TimeLimit, KeepsTheProgramsHandler)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
   s->set_opt("time-limit", "10");
-  Term x = s->make_symbol("x", s->make_sort(BOOL));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BOOL));
   s->assert_formula(x);
 
   EXPECT_TRUE(s->check_sat().is_sat());

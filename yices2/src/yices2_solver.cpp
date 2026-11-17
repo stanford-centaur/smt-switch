@@ -598,13 +598,13 @@ Term Yices2Solver::make_term(bool b) const
 
 Term Yices2Solver::make_term(int64_t i, const Sort & sort) const
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   term_t y_term;
-  if (sk == INT || sk == REAL)
+  if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     y_term = yices_int64(i);
   }
-  else if (sk == BV)
+  else if (sk == SortKind::BV)
   {
     y_term = yices_bvconst_int64(backend::narrow_width(sort->get_width()), i);
   }
@@ -626,8 +626,8 @@ Term Yices2Solver::make_term(const std::string val,
 {
   term_t y_term;
 
-  SortKind sk = sort->get_sort_kind();
-  if (sk == BV)
+  SortKind sk = sort->get_kind();
+  if (sk == SortKind::BV)
   {
     std::uint64_t width = sort->get_width();
     y_term = width <= 64
@@ -635,7 +635,7 @@ Term Yices2Solver::make_term(const std::string val,
                                         bv_value_to_uint64(val, base, width))
                  : yices_parse_bvbin(bv_value_to_bits(val, base, sort).c_str());
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
@@ -652,7 +652,7 @@ Term Yices2Solver::make_term(const std::string val,
       throw IncorrectUsageException(msg);
     }
   }
-  else if (sk == INT)
+  else if (sk == SortKind::INT)
   {
     std::string decimal = arith_value_to_decimal(sk, val, base);
     std::string msg =
@@ -684,7 +684,7 @@ Term Yices2Solver::make_term(const Term & val, const Sort & sort) const
   // application of one, so reading and storing work. What its context will
   // not hold is such a lambda equated with an uninterpreted array, and its
   // model cannot evaluate the array itself; get_array_values says so.
-  if (sort->get_sort_kind() != ARRAY)
+  if (sort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException("Can't make a constant array of sort "
                                   + sort->to_string()
@@ -853,7 +853,7 @@ Term Yices2Solver::get_value(const Term & t) const
     return std::make_shared<Yices2Term>(value);
   }
   Sort sort = t->get_sort();
-  if (sort->get_sort_kind() != ARRAY)
+  if (sort->get_kind() != SortKind::ARRAY)
   {
     throw NotImplementedException(
         "Yices2 can't turn the value of a function into a term, as "
@@ -1019,7 +1019,7 @@ Sort Yices2Solver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
   std::shared_ptr<Yices2Sort> ycon =
       backend::pointer_cast<Yices2Sort>(sort_con);
-  if (ycon->get_sort_kind() != UNINTERPRETED_CONS)
+  if (ycon->get_kind() != SortKind::UNINTERPRETED_CONS)
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
                                   + " is not a sort constructor");
@@ -1051,15 +1051,15 @@ Sort Yices2Solver::make_sort(SortKind sk) const
 {
   type_t y_sort;
 
-  if (sk == BOOL)
+  if (sk == SortKind::BOOL)
   {
     y_sort = yices_bool_type();
   }
-  else if (sk == INT)
+  else if (sk == SortKind::INT)
   {
     y_sort = yices_int_type();
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     y_sort = yices_real_type();
   }
@@ -1081,7 +1081,7 @@ Sort Yices2Solver::make_sort(SortKind sk, uint64_t size) const
 {
   type_t y_sort;
 
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     y_sort = yices_bv_type(backend::narrow_width(size));
   }
@@ -1103,7 +1103,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   type_t y_sort;
 
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     if (sorts.size() < 2)
     {
@@ -1129,7 +1129,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
 
     y_sort = yices_function_type(arity, ysorts.data(), ys);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     std::shared_ptr<Yices2Sort> s1 =
         backend::pointer_cast<Yices2Sort>(sorts[0]);
@@ -1149,7 +1149,7 @@ Sort Yices2Solver::make_sort(SortKind sk, const SortVec & sorts) const
     Yices2InstanceRef::throw_error();
   }
 
-  return std::make_shared<Yices2Sort>(y_sort, sk == FUNCTION);
+  return std::make_shared<Yices2Sort>(y_sort, sk == SortKind::FUNCTION);
 }
 
 Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
@@ -1163,7 +1163,7 @@ Term Yices2Solver::make_symbol(const std::string name, const Sort & sort)
   term_t y_term = yices_new_uninterpreted_term(ysort->get_ytype());
   yices_set_term_name(y_term, name.c_str());
 
-  if (ysort->get_sort_kind() == FUNCTION)
+  if (ysort->get_kind() == SortKind::FUNCTION)
   {
     Yices2InstanceRef::mark_function(y_term);
   }

@@ -30,7 +30,7 @@ class BtorBvValues : public testing::Test
   void SetUp() override
   {
     s = BoolectorSolverFactory::create(false);
-    bv8 = s->make_sort(BV, 8);
+    bv8 = s->make_sort(SortKind::BV, 8);
   }
   SmtSolver s;
   Sort bv8;

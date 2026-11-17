@@ -541,7 +541,7 @@ class BackVisitor(ss.TermDagVisitor):
 
         sort = term.get_sort()
         if new_children:
-            if sort.get_sort_kind() is not ss.sortkinds.ARRAY:
+            if sort.get_kind() is not ss.sortkinds.ARRAY:
                 raise ConvertExpressionError(
                     f"Only an array term can have children without an operator: {term}"
                 )
@@ -550,12 +550,12 @@ class BackVisitor(ss.TermDagVisitor):
         if term.is_value():
             return self._convert_value(term)
         # A symbolic constant, or an uninterpreted function symbol.
-        if term.is_symbolic_const() or sort.get_sort_kind() is ss.sortkinds.FUNCTION:
+        if term.is_symbolic_const() or sort.get_kind() is ss.sortkinds.FUNCTION:
             return self.mgr.Symbol(term.get_symbol_name(), self._convert_sort(sort))
         raise ConvertExpressionError(f"Cannot convert term: {term}")
 
     def _convert_sort(self, sort):
-        kind = sort.get_sort_kind()
+        kind = sort.get_kind()
         if kind is ss.sortkinds.ARRAY:
             index_type = self._convert_sort(sort.get_indexsort())
             elem_type = self._convert_sort(sort.get_elemsort())

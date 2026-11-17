@@ -663,7 +663,7 @@ UnorderedTermMap MsatSolver::get_array_values(const Term & arr,
   UnorderedTermMap assignments;
   out_const_base = nullptr;
 
-  if (arr->get_sort()->get_sort_kind() != ARRAY)
+  if (arr->get_sort()->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException("Can't get the array values of "
                                   + arr->to_string()
@@ -758,7 +758,7 @@ Sort MsatSolver::make_sort(const std::string name, uint64_t arity) const
 Sort MsatSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 {
   std::shared_ptr<MsatSort> mcon = get_msat_sort(sort_con);
-  if (mcon->get_sort_kind() != UNINTERPRETED_CONS)
+  if (mcon->get_kind() != SortKind::UNINTERPRETED_CONS)
   {
     throw IncorrectUsageException("Sort " + sort_con->to_string()
                                   + " is not a sort constructor");
@@ -784,15 +784,15 @@ Sort MsatSolver::make_sort(const Sort & sort_con, const SortVec & sorts) const
 Sort MsatSolver::make_sort(SortKind sk) const
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  if (sk == BOOL)
+  if (sk == SortKind::BOOL)
   {
     return std::make_shared<MsatSort>(env, msat_get_bool_type(*env));
   }
-  else if (sk == INT)
+  else if (sk == SortKind::INT)
   {
     return std::make_shared<MsatSort>(env, msat_get_integer_type(*env));
   }
-  else if (sk == REAL)
+  else if (sk == SortKind::REAL)
   {
     return std::make_shared<MsatSort>(env, msat_get_rational_type(*env));
   }
@@ -806,7 +806,7 @@ Sort MsatSolver::make_sort(SortKind sk) const
 Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     return std::make_shared<MsatSort>(env, msat_get_bv_type(*env, size));
   }
@@ -820,7 +820,7 @@ Sort MsatSolver::make_sort(SortKind sk, uint64_t size) const
 Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     if (sorts.size() < 2)
     {
@@ -849,7 +849,7 @@ Sort MsatSolver::make_sort(SortKind sk, const SortVec & sorts) const
         msat_get_function_type(*env, msorts.data(), arity, msort);
     return std::make_shared<MsatSort>(env, mfunsort);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     std::shared_ptr<MsatSort> midxsort = get_msat_sort(sorts[0]);
     std::shared_ptr<MsatSort> melemsort = get_msat_sort(sorts[1]);
@@ -884,8 +884,8 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   try
   {
-    SortKind sk = sort->get_sort_kind();
-    if (sk == BV)
+    SortKind sk = sort->get_kind();
+    if (sk == SortKind::BV)
     {
       msat_term mval = make_bv_value(
           *env,
@@ -897,7 +897,7 @@ Term MsatSolver::make_term(int64_t i, const Sort & sort) const
       }
       return std::make_shared<MsatTerm>(env, mval);
     }
-    else if (sk == REAL || sk == INT)
+    else if (sk == SortKind::REAL || sk == SortKind::INT)
     {
       // msat_make_int_number takes an int, which would truncate i
       std::string sval = std::to_string(i);
@@ -930,8 +930,8 @@ Term MsatSolver::make_term(const std::string val,
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
   try
   {
-    SortKind sk = sort->get_sort_kind();
-    if (sk == BV)
+    SortKind sk = sort->get_kind();
+    if (sk == SortKind::BV)
     {
       msat_term mval =
           make_bv_value(*env,
@@ -943,7 +943,7 @@ Term MsatSolver::make_term(const std::string val,
       }
       return std::make_shared<MsatTerm>(env, mval);
     }
-    else if (sk == REAL || sk == INT)
+    else if (sk == SortKind::REAL || sk == SortKind::INT)
     {
       std::string decimal = arith_value_to_decimal(sk, val, base);
       msat_term mval = msat_make_number(*env, decimal.c_str());
@@ -971,7 +971,7 @@ Term MsatSolver::make_term(const std::string val,
 Term MsatSolver::make_term(const Term & val, const Sort & sort) const
 {
   const std::shared_ptr<MsatEnv> & env = env_wrapper_.get_env();
-  if (sort->get_sort_kind() != ARRAY)
+  if (sort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException("Can't make a constant array of sort "
                                   + sort->to_string()
@@ -1025,7 +1025,7 @@ Term MsatSolver::make_symbol(const std::string name, const Sort & sort)
                                   + " of sort " + sort->to_string());
   }
 
-  if (sort->get_sort_kind() == FUNCTION)
+  if (sort->get_kind() == SortKind::FUNCTION)
   {
     return std::make_shared<MsatTerm>(env, decl);
   }

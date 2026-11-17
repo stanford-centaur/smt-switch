@@ -27,9 +27,9 @@ TEST(BtorExceptions, UnsupportedTheories)
 
   EXPECT_THROW(s->set_logic("QF_NIA"), NotImplementedException);
 
-  EXPECT_THROW(s->make_sort(INT), NotImplementedException);
+  EXPECT_THROW(s->make_sort(SortKind::INT), NotImplementedException);
 
-  Sort bvsort4 = s->make_sort(BV, 4);
+  Sort bvsort4 = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
 

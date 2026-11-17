@@ -49,7 +49,7 @@ class RealArithmeticTests
     {
       GTEST_SKIP() << e.what();
     }
-    realsort = s->make_sort(REAL);
+    realsort = s->make_sort(SortKind::REAL);
     x = s->make_symbol("x", realsort);
     y = s->make_symbol("y", realsort);
   }

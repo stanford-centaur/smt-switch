@@ -49,7 +49,7 @@ class UnitResetAssertionsTests
       s->set_opt("base-context-1", "true");
     }
 
-    bvsort = s->make_sort(BV, 8);
+    bvsort = s->make_sort(SortKind::BV, 8);
   }
   SmtSolver s;
   Sort bvsort;
@@ -116,8 +116,8 @@ TEST_P(UnitResetAssertionsTests, ResetAssertionsDropsContexts)
 TEST_P(UnitResetAssertionsTests, ResetAssertionsKeepsDeclarations)
 {
   Term x = s->make_symbol("x", bvsort);
-  Term f =
-      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort }));
+  Term f = s->make_symbol(
+      "f", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort }));
   s->assert_formula(s->make_term(Equal, s->make_term(Apply, f, x), x));
   ASSERT_TRUE(s->check_sat().is_sat());
 
@@ -144,7 +144,7 @@ TEST(UnitBtorResetAssertionsTests, ResetAssertionsException)
   SmtSolver s = create_solver(sc);
   s->set_opt("produce-models", "true");
   s->set_opt("incremental", "true");
-  Sort bvsort = s->make_sort(BV, 8);
+  Sort bvsort = s->make_sort(SortKind::BV, 8);
 
   Term f = s->make_term(false);
   s->assert_formula(f);

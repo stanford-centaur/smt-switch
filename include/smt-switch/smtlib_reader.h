@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -251,14 +252,12 @@ class SmtLibReader
    */
   Term apply_symbol(const std::string & name, TermVec args);
 
-  /** Look up a sort by string
+  /** Look up a sort kind by string
    *  The available sorts are based on the logic
    *  @param str the string to look up
-   *  @return a sort
-   *  Returns NUM_SORT_KINDS (a null element) if there's
-   *  no match
+   *  @return the sort kind, or none if the logic has no sort of that name
    */
-  SortKind lookup_sortkind(const std::string & str) const;
+  std::optional<SortKind> lookup_sortkind(const std::string & str) const;
 
   /** Apply a define fun
    *  @param defname the name of the define-fun

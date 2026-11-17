@@ -38,7 +38,7 @@ namespace {
 
 bool has_sort_kind(SortKind sk, const Term & t)
 {
-  return t->get_sort()->get_sort_kind() == sk;
+  return t->get_sort()->get_kind() == sk;
 }
 // Curried form of has_sort_kind(sk, t): returns a predicate on terms.
 auto has_sort_kind(SortKind sk)
@@ -237,13 +237,13 @@ void SmtLibReader::set_logic(const std::string & logic)
   }
 
   // the conversions between the theories that a logic combines
-  if (lookup_sortkind(to_string(INT)) == INT
-      && lookup_sortkind(to_string(REAL)) == REAL)
+  if (lookup_sortkind(to_string(SortKind::INT)) == SortKind::INT
+      && lookup_sortkind(to_string(SortKind::REAL)) == SortKind::REAL)
   {
     add_theory(LogicTheory::IRA);
   }
-  if (lookup_sortkind(to_string(INT)) == INT
-      && lookup_sortkind(to_string(BV)) == BV)
+  if (lookup_sortkind(to_string(SortKind::INT)) == SortKind::INT
+      && lookup_sortkind(to_string(SortKind::BV)) == SortKind::BV)
   {
     add_theory(LogicTheory::BVIA);
   }
@@ -256,7 +256,7 @@ void SmtLibReader::add_theory(LogicTheory theory)
   switch (theory)
   {
     case LogicTheory::CORE:
-      sort = BOOL;
+      sort = SortKind::BOOL;
       ops = {
         And, Or, Xor, Not, Implies, Ite, Equal, Distinct, Forall, Exists
       };
@@ -267,7 +267,7 @@ void SmtLibReader::add_theory(LogicTheory theory)
       allow_ufs_ = true;
       break;
     case LogicTheory::IA:
-      sort = INT;
+      sort = SortKind::INT;
       // - with one argument is Negate, which apply_primop picks
       ops = { Plus, Minus,  Lt,  Le,        Gt,  Ge,
               Mult, IntDiv, Mod, Divisible, Abs, Pow };
@@ -279,13 +279,13 @@ void SmtLibReader::add_theory(LogicTheory theory)
       }
       break;
     case LogicTheory::RA:
-      sort = REAL;
+      sort = SortKind::REAL;
       // - with one argument is Negate, which apply_primop picks
       ops = { Plus, Minus, Lt, Le, Gt, Ge, Mult, Div };
       break;
     case LogicTheory::IRA: ops = { To_Real, To_Int, Is_Int }; break;
     case LogicTheory::BV:
-      sort = BV;
+      sort = SortKind::BV;
       ops = { Concat,      Extract,     BVNot,  BVNeg,       BVAnd,
               BVOr,        BVXor,       BVNand, BVNor,       BVXnor,
               BVComp,      BVAdd,       BVSub,  BVMul,       BVUdiv,
@@ -304,13 +304,13 @@ void SmtLibReader::add_theory(LogicTheory theory)
       }
       break;
     case LogicTheory::S:
-      sort = STRING;
+      sort = SortKind::STRING;
       ops = { StrLt,       StrLeq,      StrLen,     StrConcat,  StrSubstr,
               StrAt,       StrContains, StrIndexof, StrReplace, StrReplaceAll,
               StrPrefixof, StrSuffixof, StrIsDigit };
       break;
     case LogicTheory::A:
-      sort = ARRAY;
+      sort = SortKind::ARRAY;
       ops = { Select, Store };
       break;
     case LogicTheory::NUM_THEORIES: break;
@@ -347,7 +347,7 @@ void SmtLibReader::declare_fun(const std::string & name,
     return;
   }
   domain.push_back(sort);
-  new_symbol(name, solver_->make_sort(FUNCTION, domain));
+  new_symbol(name, solver_->make_sort(SortKind::FUNCTION, domain));
 }
 
 void SmtLibReader::declare_sort(const std::string & name, std::uint64_t arity)
@@ -496,7 +496,7 @@ void SmtLibReader::new_symbol(const std::string & name, const Sort & sort)
     return;
   }
 
-  if (strict_ && !allow_ufs_ && sort->get_sort_kind() == FUNCTION)
+  if (strict_ && !allow_ufs_ && sort->get_kind() == SortKind::FUNCTION)
   {
     throw IncorrectUsageException("Tried to declare UF, but current logic "
                                   + logic_ + " does not support UFs");
@@ -532,16 +532,17 @@ Term SmtLibReader::apply_primop(PrimOp po, TermVec args) const
   // SMT-LIB declares the arithmetic operators as (op Real Real s), for which
   // the logic AUFLIRA makes an Int argument next to a Real one, and every Int
   // argument of /, syntactic sugar for its conversion with to_real.
-  if (lookup_sortkind(to_string(INT)) == INT
-      && lookup_sortkind(to_string(REAL)) == REAL
+  if (lookup_sortkind(to_string(SortKind::INT)) == SortKind::INT
+      && lookup_sortkind(to_string(SortKind::REAL)) == SortKind::REAL
       && (get_theory(po) == Theory::ARITH || get_theory(po) == Theory::REALS
           || (!strict_ && (po == Equal || po == Distinct)))
       && (po == Div
-          || std::any_of(args.begin(), args.end(), has_sort_kind(REAL))))
+          || std::any_of(
+              args.begin(), args.end(), has_sort_kind(SortKind::REAL))))
   {
     for (Term & arg : args)
     {
-      if (has_sort_kind(INT, arg))
+      if (has_sort_kind(SortKind::INT, arg))
       {
         arg = solver_->make_term(To_Real, arg);
       }
@@ -566,15 +567,15 @@ Term SmtLibReader::apply_symbol(const std::string & name, TermVec args)
   return apply_define_fun(name, args);
 }
 
-SortKind SmtLibReader::lookup_sortkind(const std::string & str) const
+std::optional<SortKind> SmtLibReader::lookup_sortkind(
+    const std::string & str) const
 {
-  SortKind sk = NUM_SORT_KINDS;
   auto it = sortkinds_.find(str);
-  if (it != sortkinds_.end())
+  if (it == sortkinds_.end())
   {
-    sk = it->second;
+    return std::nullopt;
   }
-  return sk;
+  return it->second;
 }
 
 void SmtLibReader::define_fun(const std::string & name,
@@ -691,35 +692,35 @@ Sort SmtLibReader::lookup_sort(const std::string & name) const
 
 Sort SmtLibReader::make_sort(const std::string & name) const
 {
-  SortKind sk = lookup_sortkind(name);
-  if (sk == NUM_SORT_KINDS || sk == UNINTERPRETED)
+  std::optional<SortKind> sk = lookup_sortkind(name);
+  if (!sk || sk == SortKind::UNINTERPRETED)
   {
     return lookup_sort(name);
   }
-  return solver_->make_sort(sk);
+  return solver_->make_sort(*sk);
 }
 
 Sort SmtLibReader::make_sort(const std::string & name,
                              std::uint64_t index) const
 {
-  SortKind sk = lookup_sortkind(name);
-  if (sk == NUM_SORT_KINDS)
+  std::optional<SortKind> sk = lookup_sortkind(name);
+  if (!sk)
   {
     return Sort();
   }
-  return solver_->make_sort(sk, index);
+  return solver_->make_sort(*sk, index);
 }
 
 Sort SmtLibReader::make_sort(const std::string & name,
                              const SortVec & sorts) const
 {
-  if (lookup_sortkind(name) == ARRAY)
+  if (lookup_sortkind(name) == SortKind::ARRAY)
   {
     if (sorts.size() != 2)
     {
       return Sort();
     }
-    return solver_->make_sort(ARRAY, sorts[0], sorts[1]);
+    return solver_->make_sort(SortKind::ARRAY, sorts[0], sorts[1]);
   }
   return solver_->make_sort(lookup_sort(name), sorts);
 }
@@ -732,22 +733,25 @@ Term SmtLibReader::make_bv_literal(const std::string & name,
   {
     return Term();
   }
-  return solver_->make_term(name.substr(2), solver_->make_sort(BV, width), 10);
+  return solver_->make_term(
+      name.substr(2), solver_->make_sort(SortKind::BV, width), 10);
 }
 
 Term SmtLibReader::make_bv_value(const std::string & digits,
                                  std::uint64_t base) const
 {
   std::uint64_t width = digits.size() * (base == 16 ? 4 : 1);
-  return solver_->make_term(digits, solver_->make_sort(BV, width), base);
+  return solver_->make_term(
+      digits, solver_->make_sort(SortKind::BV, width), base);
 }
 
 Term SmtLibReader::make_numeral(const std::string & n) const
 {
-  SortKind sk = lookup_sortkind(to_string(INT)) == NUM_SORT_KINDS
-                        && lookup_sortkind(to_string(REAL)) == REAL
-                    ? REAL
-                    : INT;
+  SortKind sk =
+      !lookup_sortkind(to_string(SortKind::INT))
+              && lookup_sortkind(to_string(SortKind::REAL)) == SortKind::REAL
+          ? SortKind::REAL
+          : SortKind::INT;
   return solver_->make_term(n, solver_->make_sort(sk));
 }
 

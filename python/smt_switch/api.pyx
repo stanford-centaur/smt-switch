@@ -154,9 +154,9 @@ cdef class Sort:
         s.cs = dref(self.cs).get_codomain_sort()
         return s
 
-    def get_sort_kind(self):
+    def get_kind(self):
         # look up canonical SortKind object
-        return int2sortkind[(<int> dref(self.cs).get_sort_kind())]
+        return int2sortkind[(<int> dref(self.cs).get_kind())]
 
     def __eq__(self, Sort other):
         return self.cs == other.cs
@@ -267,7 +267,7 @@ cdef class Term:
 
         Note: bit-vectors are always treated as unsigned integers.
         '''
-        sk = self.get_sort().get_sort_kind()
+        sk = self.get_sort().get_kind()
         if sk == BV or sk == INT:
             value = _parse_number(str(self))
             if isinstance(value, int):

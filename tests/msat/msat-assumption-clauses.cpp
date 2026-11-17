@@ -35,7 +35,7 @@ TEST(MsatAssumptionClauses, ClearedOnEveryCall)
   // NOTE this is only for testing / advanced usage
   std::static_pointer_cast<MsatSolver>(s)->set_max_assump_clauses(0);
 
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
   Term y = s->make_symbol("y", bvsort8);
   Term z = s->make_symbol("z", bvsort8);
@@ -50,7 +50,7 @@ TEST(MsatAssumptionClauses, ClearedOnEveryCall)
                    s->make_term(Distinct, x, s->make_term(0, bvsort8)),
                    s->make_term(Distinct, y, s->make_term(0, bvsort8)));
 
-  Sort boolsort = s->make_sort(BOOL);
+  Sort boolsort = s->make_sort(SortKind::BOOL);
   Term il0 = s->make_symbol("il0", boolsort);
   s->assert_formula(s->make_term(Implies, il0, assumption0));
   r = s->check_sat_assuming(TermVec{ il0 });

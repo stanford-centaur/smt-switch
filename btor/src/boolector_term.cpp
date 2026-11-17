@@ -502,7 +502,7 @@ std::string BoolectorTerm::print_value_as(SortKind sk) const
   if (boolector_is_bitvec_sort(btor.get(), s))
   {
     uint64_t width = boolector_get_width(btor.get(), node);
-    if (width == 1 && sk == BOOL)
+    if (width == 1 && sk == SortKind::BOOL)
     {
       if (const_to_bits(btor.get(), simplified_node()) == "1")
       {

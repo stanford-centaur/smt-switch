@@ -26,14 +26,14 @@ namespace {
 TEST(Yices2Queries, GetValueBeforeCheckThrows)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Term x = s->make_symbol("x", s->make_sort(BOOL));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BOOL));
   EXPECT_THROW(s->get_value(x), IncorrectUsageException);
 }
 
 TEST(Yices2Queries, GetValueAfterUncheckedAssertionThrows)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Term x = s->make_symbol("x", s->make_sort(BOOL));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BOOL));
   s->assert_formula(x);
   EXPECT_THROW(s->get_value(x), IncorrectUsageException);
 }

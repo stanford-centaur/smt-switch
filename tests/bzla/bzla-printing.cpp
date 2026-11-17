@@ -56,7 +56,7 @@ TEST_F(BitwuzlaPrintingTest, Interpolation)
       interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
-  Sort bvsort = solver->make_sort(BV, 2);
+  Sort bvsort = solver->make_sort(SortKind::BV, 2);
 
   Term x = solver->make_symbol("x", bvsort);
   Term y = solver->make_symbol("y", bvsort);
@@ -96,7 +96,7 @@ TEST_F(BitwuzlaPrintingTest, SequenceInterpolation)
       interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
-  Sort bvsort = solver->make_sort(BV, 2);
+  Sort bvsort = solver->make_sort(SortKind::BV, 2);
   Term x = solver->make_symbol("x", bvsort);
   Term y = solver->make_symbol("y", bvsort);
   Term z = solver->make_symbol("z", bvsort);
@@ -128,7 +128,7 @@ TEST_F(BitwuzlaPrintingTest, ReusedSequenceInterpolation)
       interpolators::printing(BitwuzlaSolverFactory::create_interpolator(), os);
   solver->set_logic("QF_BV");
   solver->set_opt("interpolants-subst", "true");
-  Sort bvsort = solver->make_sort(BV, 2);
+  Sort bvsort = solver->make_sort(SortKind::BV, 2);
   Term x = solver->make_symbol("x", bvsort);
   Term y = solver->make_symbol("y", bvsort);
   Term z = solver->make_symbol("z", bvsort);
@@ -196,7 +196,7 @@ TEST_F(BitwuzlaPrintingTest, CopiesShareWhatIsAsserted)
   auto copy = std::make_shared<PrintingInterpolator>(
       *std::static_pointer_cast<PrintingInterpolator>(solver));
   solver->set_logic("QF_BV");
-  Sort bvsort = solver->make_sort(BV, 2);
+  Sort bvsort = solver->make_sort(SortKind::BV, 2);
   Term x = solver->make_symbol("x", bvsort);
   Term y = solver->make_symbol("y", bvsort);
   Term z = solver->make_symbol("z", bvsort);

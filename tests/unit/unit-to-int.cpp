@@ -84,7 +84,7 @@ class ToIntIntTests : public ToIntTests
   TermVec big_int_values(const std::string & n,
                          std::initializer_list<int64_t> addends)
   {
-    Sort intsort = s->make_sort(INT);
+    Sort intsort = s->make_sort(SortKind::INT);
     TermVec res = { s->make_term(n, intsort) };
     Term sum;
     for (int64_t a : addends)
@@ -113,14 +113,15 @@ class ToBits : public ToIntTests
                    std::uint64_t base,
                    std::uint64_t width)
   {
-    return s->make_term(val, s->make_sort(BV, width), base)->to_bits();
+    return s->make_term(val, s->make_sort(SortKind::BV, width), base)
+        ->to_bits();
   }
 };
 
 TEST_P(ToIntBVTests, Unsigned)
 {
-  Sort bv32 = s->make_sort(BV, 32);
-  Sort bv64 = s->make_sort(BV, 64);
+  Sort bv32 = s->make_sort(SortKind::BV, 32);
+  Sort bv64 = s->make_sort(SortKind::BV, 64);
   const std::pair<Term, uint64_t> cases[] = {
     { s->make_term(0, bv64), 0 },
     { s->make_term("2147483648", bv32, 10), uint64_t(1) << 31 },
@@ -143,8 +144,8 @@ TEST_P(ToIntBVTests, Unsigned)
 
 TEST_P(ToIntBVTests, Signed)
 {
-  Sort bv4 = s->make_sort(BV, 4);
-  Sort bv64 = s->make_sort(BV, 64);
+  Sort bv4 = s->make_sort(SortKind::BV, 4);
+  Sort bv64 = s->make_sort(SortKind::BV, 64);
   const std::pair<Term, int64_t> cases[] = {
     { s->make_term("0000", bv4, 2), 0 },
     { s->make_term("1111", bv4, 2), -1 },
@@ -175,7 +176,7 @@ TEST_P(ToIntBVTests, Signed)
 TEST_P(ToIntBVTests, MadeFromInt64)
 {
   // values that need more than 32 bits
-  Sort bv64 = s->make_sort(BV, 64);
+  Sort bv64 = s->make_sort(SortKind::BV, 64);
   for (int64_t i : { int64_min, int64_t(1) << 40, -(int64_t(1) << 40) })
   {
     Term v = model_value(s->make_term(i, bv64));
@@ -188,7 +189,7 @@ TEST_P(ToIntBVTests, WideValueThatFits)
 {
   for (uint64_t width : { 65, 128, 1024 })
   {
-    Sort sort = s->make_sort(BV, width);
+    Sort sort = s->make_sort(SortKind::BV, width);
     for (const Term & v : with_model_value(s->make_term("2", sort, 10)))
     {
       SCOPED_TRACE(v->to_string());
@@ -222,7 +223,7 @@ TEST_P(ToIntBVTests, WideValueThatDoesNotFit)
 {
   for (uint64_t width : { 65, 128, 1024 })
   {
-    Sort sort = s->make_sort(BV, width);
+    Sort sort = s->make_sort(SortKind::BV, width);
     const char * const values[] = { "18446744073709551616",
                                     "-9223372036854775809" };
     for (const char * value : values)
@@ -236,7 +237,7 @@ TEST_P(ToIntBVTests, WideValueThatDoesNotFit)
     }
   }
   // 2^63 is unsigned, but its top bit is not the sign bit of 65 bits
-  Sort bv65 = s->make_sort(BV, 65);
+  Sort bv65 = s->make_sort(SortKind::BV, 65);
   for (const Term & v :
        with_model_value(s->make_term("9223372036854775808", bv65, 10)))
   {
@@ -248,7 +249,7 @@ TEST_P(ToIntBVTests, WideValueThatDoesNotFit)
 
 TEST_P(ToIntBVTests, ConstantNeedsNoModel)
 {
-  Sort bv4 = s->make_sort(BV, 4);
+  Sort bv4 = s->make_sort(SortKind::BV, 4);
   Term five = s->make_term(5, bv4);
   Term minus_three = s->make_term(-3, bv4);
   EXPECT_EQ(five->to_int(), 5u);
@@ -262,14 +263,14 @@ TEST_P(ToIntBVTests, ConstantNeedsNoModel)
 
 TEST_P(ToIntBVTests, NotAValue)
 {
-  Term x = s->make_symbol("y", s->make_sort(BV, 8));
+  Term x = s->make_symbol("y", s->make_sort(SortKind::BV, 8));
   EXPECT_THROW(x->to_int(), IncorrectUsageException);
   EXPECT_THROW(x->to_signed_int(), IncorrectUsageException);
 }
 
 TEST_P(ToIntIntTests, InRange)
 {
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   for (int64_t i : { int64_t(0), int64_t(5), int64_t(1) << 40, int64_max })
   {
     for (const Term & v : with_model_value(s->make_term(i, intsort)))
@@ -283,7 +284,7 @@ TEST_P(ToIntIntTests, InRange)
 
 TEST_P(ToIntIntTests, Negative)
 {
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   for (int64_t i : { int64_t(-5), int64_min })
   {
     for (const Term & v : with_model_value(s->make_term(i, intsort)))
@@ -331,14 +332,14 @@ TEST_P(ToIntIntTests, OutOfRange)
 
 TEST_P(ToIntIntTests, NotAValue)
 {
-  Term x = s->make_symbol("y", s->make_sort(INT));
+  Term x = s->make_symbol("y", s->make_sort(SortKind::INT));
   EXPECT_THROW(x->to_int(), IncorrectUsageException);
   EXPECT_THROW(x->to_signed_int(), IncorrectUsageException);
 }
 
 TEST_P(ToIntRealTests, IntegralValue)
 {
-  Sort realsort = s->make_sort(REAL);
+  Sort realsort = s->make_sort(SortKind::REAL);
   for (const Term & v : with_model_value(s->make_term(2, realsort)))
   {
     SCOPED_TRACE(v->to_string());
@@ -355,7 +356,7 @@ TEST_P(ToIntRealTests, IntegralValue)
 
 TEST_P(ToIntRealTests, NonIntegralValue)
 {
-  Sort realsort = s->make_sort(REAL);
+  Sort realsort = s->make_sort(SortKind::REAL);
   Term half =
       s->make_term(Div, s->make_term(1, realsort), s->make_term(2, realsort));
   Term v = model_value(half);
@@ -367,12 +368,13 @@ TEST_P(ToIntRealTests, NonIntegralValue)
 TEST_P(ToBits, Values)
 {
   const std::pair<Term, std::string> cases[] = {
-    { s->make_term(1, s->make_sort(BV, 1)), "1" },
-    { s->make_term(5, s->make_sort(BV, 4)), "0101" },
-    { s->make_term(-2, s->make_sort(BV, 8)), "11111110" },
-    { s->make_term(0, s->make_sort(BV, 64)), std::string(64, '0') },
-    { s->make_term("-1", s->make_sort(BV, 65), 10), std::string(65, '1') },
-    { s->make_term("2", s->make_sort(BV, 1024), 10),
+    { s->make_term(1, s->make_sort(SortKind::BV, 1)), "1" },
+    { s->make_term(5, s->make_sort(SortKind::BV, 4)), "0101" },
+    { s->make_term(-2, s->make_sort(SortKind::BV, 8)), "11111110" },
+    { s->make_term(0, s->make_sort(SortKind::BV, 64)), std::string(64, '0') },
+    { s->make_term("-1", s->make_sort(SortKind::BV, 65), 10),
+      std::string(65, '1') },
+    { s->make_term("2", s->make_sort(SortKind::BV, 1024), 10),
       std::string(1022, '0') + "10" },
   };
   for (const auto & c : cases)
@@ -387,7 +389,7 @@ TEST_P(ToBits, Values)
 
 TEST_P(ToBits, NotAValue)
 {
-  Term x = s->make_symbol("y", s->make_sort(BV, 8));
+  Term x = s->make_symbol("y", s->make_sort(SortKind::BV, 8));
   EXPECT_THROW(x->to_bits(), IncorrectUsageException);
 }
 
@@ -524,7 +526,8 @@ TEST(ToIntParsing, WideBV)
 // smt-switch; call it on a GenericTerm, whose repr is exactly what it reads
 TEST(ToIntParsing, DefaultToSignedInt)
 {
-  GenericTerm neg(std::make_shared<GenericSort>(INT), Op(), {}, "(- 5)");
+  GenericTerm neg(
+      std::make_shared<GenericSort>(SortKind::INT), Op(), {}, "(- 5)");
   EXPECT_EQ(neg.AbsTerm::to_signed_int(), -5);
   EXPECT_EQ(neg.to_signed_int(), -5);
   EXPECT_THROW(neg.to_int(), IncorrectUsageException);
@@ -532,10 +535,12 @@ TEST(ToIntParsing, DefaultToSignedInt)
   GenericTerm bv(std::make_shared<BVGenericSort>(4), Op(), {}, "#b1111");
   EXPECT_EQ(bv.AbsTerm::to_signed_int(), -1);
 
-  GenericTerm x(std::make_shared<GenericSort>(INT), Op(), {}, "x", true);
+  GenericTerm x(
+      std::make_shared<GenericSort>(SortKind::INT), Op(), {}, "x", true);
   EXPECT_THROW(x.AbsTerm::to_signed_int(), IncorrectUsageException);
 
-  GenericTerm b(std::make_shared<GenericSort>(BOOL), Op(), {}, "true");
+  GenericTerm b(
+      std::make_shared<GenericSort>(SortKind::BOOL), Op(), {}, "true");
   EXPECT_THROW(b.AbsTerm::to_signed_int(), IncorrectUsageException);
 }
 

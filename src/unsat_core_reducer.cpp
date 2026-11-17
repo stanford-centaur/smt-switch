@@ -300,7 +300,7 @@ Term UnsatCoreReducer::label(const Term & t)
     {
       l = reducer_->make_symbol(
           "assump_" + std::to_string(t->hash()) + "_" + std::to_string(i),
-          reducer_->make_sort(BOOL));
+          reducer_->make_sort(SortKind::BOOL));
       break;
     }
     catch (IncorrectUsageException & e)

@@ -75,7 +75,7 @@ void write_all(int fd, const std::string & data)
   try
   {
     smt::TermTranslator to_solver(solver);
-    solver->assert_formula(to_solver.transfer_term(term, smt::BOOL));
+    solver->assert_formula(to_solver.transfer_term(term, smt::SortKind::BOOL));
     Result result = solver->check_sat();
     report = answer_tag;
     if (result.is_sat())

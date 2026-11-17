@@ -32,11 +32,11 @@ namespace {
 TEST(Yices2Exceptions, LaterCallsDoNotReportAnEarlierError)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  EXPECT_THROW(s->make_sort(BV, 0), IncorrectUsageException);
-  EXPECT_NO_THROW(s->make_sort(BV, 4));
+  EXPECT_THROW(s->make_sort(SortKind::BV, 0), IncorrectUsageException);
+  EXPECT_NO_THROW(s->make_sort(SortKind::BV, 4));
 
   SmtSolver fresh = Yices2SolverFactory::create(false);
-  EXPECT_NO_THROW(fresh->make_sort(BV, 4));
+  EXPECT_NO_THROW(fresh->make_sort(SortKind::BV, 4));
 }
 
 TEST(Yices2Exceptions, RefusedPushLeavesNoError)
@@ -45,13 +45,13 @@ TEST(Yices2Exceptions, RefusedPushLeavesNoError)
   s->set_opt("incremental", "false");
   EXPECT_THROW(s->push(), NotImplementedException);
   EXPECT_EQ(s->get_context_level(), 0u);
-  EXPECT_NO_THROW(s->make_sort(BV, 4));
+  EXPECT_NO_THROW(s->make_sort(SortKind::BV, 4));
 }
 
 TEST(Yices2Exceptions, MissingOperatorsAreNotImplemented)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort = s->make_sort(BV, 4);
+  Sort bvsort = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
@@ -65,7 +65,7 @@ TEST(Yices2Exceptions, MissingOperatorsAreNotImplemented)
 TEST(Yices2Exceptions, MisappliedOperatorsAreIncorrectUsage)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort = s->make_sort(BV, 4);
+  Sort bvsort = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
 
@@ -86,7 +86,7 @@ TEST(Yices2Exceptions, OneTimeLimitedCheckAtATime)
   // a pigeonhole problem too hard to finish inside its limit
   SmtSolver hard = Yices2SolverFactory::create(false);
   hard->set_opt("time-limit", "0.1");
-  Sort bvsort = hard->make_sort(BV, 6);
+  Sort bvsort = hard->make_sort(SortKind::BV, 6);
   TermVec vars;
   for (size_t i = 0; i < 65; ++i)
   {

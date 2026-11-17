@@ -31,7 +31,7 @@ class DisjointSetTests : public testing::Test,
   void SetUp() override
   {
     s = create_solver(GetParam());
-    bvsort = s->make_sort(BV, 8);
+    bvsort = s->make_sort(SortKind::BV, 8);
     x = s->make_symbol("x", bvsort);
     y = s->make_symbol("y", bvsort);
     z = s->make_symbol("z", bvsort);

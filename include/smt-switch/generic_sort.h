@@ -29,7 +29,7 @@ class GenericSort : public AbsSort
   // Only for placeholder sorts used for datatypes. name
   // should be the name of the datatype.
   explicit GenericSort(std::string name);
-  SortKind get_sort_kind() const override;
+  SortKind get_kind() const override;
   bool compare(const Sort & s) const override;
 
   /* The following functions are implemented by the sub-classes whose kind

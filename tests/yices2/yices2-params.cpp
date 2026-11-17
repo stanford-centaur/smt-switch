@@ -28,7 +28,7 @@ namespace {
 TEST(Yices2Params, MakeParam)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term p = s->make_param("p", bvsort8);
 
   EXPECT_TRUE(p->is_param());
@@ -43,7 +43,7 @@ TEST(Yices2Params, MakeParam)
 TEST(Yices2Params, ParamIsNotASymbolicConstant)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term p = s->make_param("p", bvsort8);
   Term x = s->make_symbol("x", bvsort8);
 

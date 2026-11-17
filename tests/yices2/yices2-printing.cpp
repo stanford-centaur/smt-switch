@@ -44,7 +44,7 @@ TEST(Yices2InterpolationPrinting, ReplaysEachCheckOfAQuery)
   std::ostream os(&strbuf);
   SmtInterpolator s = interpolators::printing(itp, os);
   s->set_logic("QF_LIA");
-  Term p = s->make_symbol("p", s->make_sort(BOOL));
+  Term p = s->make_symbol("p", s->make_sort(SortKind::BOOL));
   Term I;
   ASSERT_TRUE(s->get_interpolant(p, s->make_term(Not, p), I).is_unsat());
   if (yices2_binary.empty())

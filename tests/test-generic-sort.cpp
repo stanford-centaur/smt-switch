@@ -27,16 +27,16 @@ using testing::ThrowsMessage;
 
 TEST(GenericSort, SortProperties)
 {
-  GenericSort s1(INT);
-  GenericSort s2(INT);
+  GenericSort s1(SortKind::INT);
+  GenericSort s2(SortKind::INT);
   EXPECT_EQ(s1.hash(), s2.hash());
   EXPECT_EQ(s1.to_string(), s2.to_string());
   EXPECT_EQ(s2.to_string(), s1.to_string());
-  EXPECT_EQ(s1.get_sort_kind(), s2.get_sort_kind());
-  EXPECT_EQ(s1.get_sort_kind(), INT);
+  EXPECT_EQ(s1.get_kind(), s2.get_kind());
+  EXPECT_EQ(s1.get_kind(), SortKind::INT);
 
-  Sort int1 = std::make_shared<GenericSort>(INT);
-  Sort int2 = std::make_shared<GenericSort>(INT);
+  Sort int1 = std::make_shared<GenericSort>(SortKind::INT);
+  Sort int2 = std::make_shared<GenericSort>(SortKind::INT);
   EXPECT_EQ(int1, int2);
   Sort bv4 = std::make_shared<BVGenericSort>(4);
   Sort bv5 = std::make_shared<BVGenericSort>(5);
@@ -90,17 +90,17 @@ TEST(GenericSort, SortProperties)
   // Compares string names of the sorts
   EXPECT_NE(dt_sort->to_string(), dt_sort2->to_string());
   // Checks for valid sortKinds
-  EXPECT_EQ(dt_sort->get_sort_kind(), dt_sort2->get_sort_kind());
-  EXPECT_EQ(dt_sort->get_sort_kind(), DATATYPE);
-  EXPECT_EQ(dt_sort2->get_sort_kind(), DATATYPE);
+  EXPECT_EQ(dt_sort->get_kind(), dt_sort2->get_kind());
+  EXPECT_EQ(dt_sort->get_kind(), SortKind::DATATYPE);
+  EXPECT_EQ(dt_sort2->get_kind(), SortKind::DATATYPE);
 }
 
 TEST(GenericSort, FunctionSortString)
 {
   // the string is the sort's signature in a declare-fun, and the generic
   // solver also looks the sort up by it
-  Sort int_sort = std::make_shared<GenericSort>(INT);
-  Sort bool_sort = std::make_shared<GenericSort>(BOOL);
+  Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
+  Sort bool_sort = std::make_shared<GenericSort>(SortKind::BOOL);
   Sort int_int_to_bool = std::make_shared<FunctionGenericSort>(
       SortVec{ int_sort, int_sort }, bool_sort);
   EXPECT_EQ(int_int_to_bool->to_string(), "(Int Int) Bool");
@@ -123,7 +123,7 @@ auto incorrect_usage(const std::string & message)
 
 TEST(GenericSort, WrongKindAccessors)
 {
-  Sort int_sort = std::make_shared<GenericSort>(INT);
+  Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
   EXPECT_THAT([&] { int_sort->get_width(); },
               incorrect_usage("Sort of kind Int has no width"));
   EXPECT_THAT([&] { int_sort->get_arity(); },
@@ -151,8 +151,8 @@ TEST(GenericSort, WrongKindAccessors)
               incorrect_usage("The sort of datatype list is not made yet"));
 
   // a selector prints as its name, but that name is not an uninterpreted one
-  Sort selector =
-      std::make_shared<DatatypeComponentSort>(SELECTOR, "head", int_sort);
+  Sort selector = std::make_shared<DatatypeComponentSort>(
+      SortKind::SELECTOR, "head", int_sort);
   EXPECT_EQ(selector->to_string(), "head");
   EXPECT_THAT(
       [&] { selector->get_uninterpreted_name(); },
@@ -168,8 +168,8 @@ TEST(GenericSort, SortConstructors)
   EXPECT_NE(list, list2);
 
   // applications of one constructor differ by their parameters
-  Sort int_sort = std::make_shared<GenericSort>(INT);
-  Sort bool_sort = std::make_shared<GenericSort>(BOOL);
+  Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
+  Sort bool_sort = std::make_shared<GenericSort>(SortKind::BOOL);
   Sort list_int =
       std::make_shared<UninterpretedGenericSort>(list, SortVec{ int_sort });
   Sort list_int_again =
@@ -193,14 +193,16 @@ TEST(GenericSort, DatatypeComponents)
 {
   Sort list = datatype_sort("list", "cons");
   Sort pair = datatype_sort("pair", "cons");
-  Sort cons =
-      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
-  Sort cons_again =
-      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", list);
-  Sort nil = std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "nil", list);
-  Sort pair_cons =
-      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, "cons", pair);
-  Sort is_cons = std::make_shared<DatatypeComponentSort>(TESTER, "cons", list);
+  Sort cons = std::make_shared<DatatypeComponentSort>(
+      SortKind::CONSTRUCTOR, "cons", list);
+  Sort cons_again = std::make_shared<DatatypeComponentSort>(
+      SortKind::CONSTRUCTOR, "cons", list);
+  Sort nil = std::make_shared<DatatypeComponentSort>(
+      SortKind::CONSTRUCTOR, "nil", list);
+  Sort pair_cons = std::make_shared<DatatypeComponentSort>(
+      SortKind::CONSTRUCTOR, "cons", pair);
+  Sort is_cons =
+      std::make_shared<DatatypeComponentSort>(SortKind::TESTER, "cons", list);
   EXPECT_EQ(cons, cons_again);
   EXPECT_NE(cons, nil);
   // a constructor of the same name in another datatype is another one
@@ -216,7 +218,7 @@ TEST(GenericSort, DatatypeComponents)
 TEST(GenericSort, DatatypeSortDiffersFromOtherKinds)
 {
   Sort list = datatype_sort("list", "cons");
-  Sort int_sort = std::make_shared<GenericSort>(INT);
+  Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
   EXPECT_NE(list, int_sort);
 }
 

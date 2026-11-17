@@ -40,7 +40,7 @@ TermVec children_of(Term term)
 TEST(Yices2GetOp, ExtractReadsBackAsExtract)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
 
   Op extract = Op(Extract, 5, 2);
@@ -71,7 +71,7 @@ TEST(Yices2GetOp, ExtractReadsBackAsExtract)
 TEST(Yices2GetOp, WhatCanonicalisesIntoAnExtract)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
   Term extracted = s->make_term(Op(Extract, 5, 2), x);
 
@@ -101,11 +101,11 @@ TEST(Yices2GetOp, WhatCanonicalisesIntoAnExtract)
 TEST(Yices2GetOp, SymbolHasNoOp)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
-  Term f =
-      s->make_symbol("f", s->make_sort(FUNCTION, SortVec{ bvsort8, bvsort8 }));
-  Term a = s->make_symbol("a", s->make_sort(ARRAY, bvsort8, bvsort8));
+  Term f = s->make_symbol(
+      "f", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort8, bvsort8 }));
+  Term a = s->make_symbol("a", s->make_sort(SortKind::ARRAY, bvsort8, bvsort8));
 
   for (Term symbol : TermVec{ x, f, a })
   {
@@ -136,9 +136,9 @@ TEST(Yices2GetOp, SymbolHasNoOp)
 TEST(Yices2GetOp, IterationKeepsAnArrayAnArray)
 {
   SmtSolver s = Yices2SolverFactory::create(false);
-  Sort bvsort8 = s->make_sort(BV, 8);
-  Sort arrsort = s->make_sort(ARRAY, bvsort8, bvsort8);
-  Sort funsort = s->make_sort(FUNCTION, SortVec{ bvsort8, bvsort8 });
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
+  Sort arrsort = s->make_sort(SortKind::ARRAY, bvsort8, bvsort8);
+  Sort funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort8, bvsort8 });
   Term x = s->make_symbol("x", bvsort8);
   Term a = s->make_symbol("a", arrsort);
   Term f = s->make_symbol("f", funsort);

@@ -421,7 +421,7 @@ bool is_arith_number(SortKind sk, const std::string & val)
     return true;
   }
   std::string::size_type separator = magnitude.find_first_of("./");
-  if (sk != REAL || separator == std::string::npos)
+  if (sk != SortKind::REAL || separator == std::string::npos)
   {
     return false;
   }
@@ -503,7 +503,7 @@ std::string AbsSmtSolver::arith_value_to_decimal(SortKind sk,
   }
   unsigned b = static_cast<unsigned>(base);
   std::string::size_type separator =
-      sk == REAL ? magnitude.find_first_of("./") : std::string::npos;
+      sk == SortKind::REAL ? magnitude.find_first_of("./") : std::string::npos;
   std::string whole = magnitude.substr(0, separator);
   std::string decimal;
   if (separator == std::string::npos)
@@ -545,7 +545,7 @@ std::string AbsSmtSolver::bv_value_to_bits(const std::string & val,
                                            std::uint64_t base,
                                            const Sort & sort)
 {
-  if (sort->get_sort_kind() != BV)
+  if (sort->get_kind() != SortKind::BV)
   {
     throw IncorrectUsageException("Sort " + sort->to_string()
                                   + " is not a bit-vector sort");

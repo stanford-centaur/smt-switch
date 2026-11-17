@@ -41,7 +41,7 @@ class BzlaSort : public AbsSort
   SortVec get_uninterpreted_param_sorts() const override;
   Datatype get_datatype() const override;
   bool compare(const Sort & s) const override;
-  SortKind get_sort_kind() const override;
+  SortKind get_kind() const override;
 
   // Getters for solver-specific objects
   // for interacting with third-party Bitwuzla-specific software

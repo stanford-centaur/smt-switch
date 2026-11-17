@@ -38,7 +38,7 @@ TEST_P(Misuse, GetValueWithoutProduceModels)
   {
     GTEST_SKIP() << "the backend gives a model without produce-models";
   }
-  Term x = s->make_symbol("x", s->make_sort(BOOL));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BOOL));
   s->assert_formula(x);
   s->check_sat();
   EXPECT_THROW(s->get_value(x), IncorrectUsageException);
@@ -56,9 +56,10 @@ TEST_P(Misuse, GetValueWithProduceModelsOff)
     // and fails the test
     return;
   }
-  Sort bvsort = s->make_sort(BV, 8);
+  Sort bvsort = s->make_sort(SortKind::BV, 8);
   Term v = s->make_symbol("v", bvsort);
-  Term arr = s->make_symbol("arr", s->make_sort(ARRAY, bvsort, bvsort));
+  Term arr =
+      s->make_symbol("arr", s->make_sort(SortKind::ARRAY, bvsort, bvsort));
   s->assert_formula(s->make_term(Equal, v, s->make_term(37, bvsort)));
   s->assert_formula(s->make_term(
       Equal, s->make_term(Select, arr, v), s->make_term(9, bvsort)));
@@ -71,7 +72,7 @@ TEST_P(Misuse, GetValueWithProduceModelsOff)
 TEST_P(Misuse, GetValueAfterUnsat)
 {
   s->set_opt("produce-models", "true");
-  Term x = s->make_symbol("x", s->make_sort(BOOL));
+  Term x = s->make_symbol("x", s->make_sort(SortKind::BOOL));
   s->assert_formula(s->make_term(false));
   s->check_sat();
   EXPECT_THROW(s->get_value(x), IncorrectUsageException);
@@ -106,8 +107,8 @@ TEST_P(Misuse, SecondCheckSatIsHonouredOrNotImplemented)
 
 TEST_P(Misuse, IllSortedApplication)
 {
-  Term b = s->make_symbol("b", s->make_sort(BOOL));
-  Term v = s->make_symbol("v", s->make_sort(BV, 4));
+  Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
+  Term v = s->make_symbol("v", s->make_sort(SortKind::BV, 4));
   EXPECT_THROW(s->make_term(And, b, v), IncorrectUsageException);
 }
 
@@ -115,7 +116,7 @@ TEST_P(Misuse, UnsatAssumptionsAfterSatCheck)
 {
   s->set_opt("incremental", "true");
   s->set_opt("produce-unsat-assumptions", "true");
-  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
   UnorderedTermSet core;
   ASSERT_TRUE(s->check_sat().is_sat());
   EXPECT_THROW(s->get_unsat_assumptions(core), IncorrectUsageException);
@@ -130,7 +131,7 @@ TEST_P(Misuse, ZeroWidthBitVector)
   {
     GTEST_SKIP() << "the backend makes a bit-vector sort of width 0";
   }
-  EXPECT_THROW(s->make_sort(BV, 0), IncorrectUsageException);
+  EXPECT_THROW(s->make_sort(SortKind::BV, 0), IncorrectUsageException);
 }
 
 INSTANTIATE_TEST_SUITE_P(

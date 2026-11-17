@@ -28,7 +28,7 @@ Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::sort z3sort)
 }
 
 Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc)
-    : ctx(c), type(*c), function_kind(FUNCTION), range(zfunc.range())
+    : ctx(c), type(*c), function_kind(SortKind::FUNCTION), range(zfunc.range())
 {
   domain.reserve(zfunc.arity());
   for (unsigned i = 0; i < zfunc.arity(); i++)
@@ -38,15 +38,15 @@ Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c, z3::func_decl zfunc)
   Z3_decl_kind kind = zfunc.decl_kind();
   if (kind == Z3_OP_DT_CONSTRUCTOR)
   {
-    function_kind = CONSTRUCTOR;
+    function_kind = SortKind::CONSTRUCTOR;
   }
   else if (kind == Z3_OP_DT_ACCESSOR)
   {
-    function_kind = SELECTOR;
+    function_kind = SortKind::SELECTOR;
   }
   else if (kind == Z3_OP_DT_IS)
   {
-    function_kind = TESTER;
+    function_kind = SortKind::TESTER;
   }
 }
 
@@ -55,7 +55,7 @@ Z3Sort::Z3Sort(const std::shared_ptr<Z3Context> & c,
                z3::sort codomain)
     : ctx(c),
       type(*c),
-      function_kind(FUNCTION),
+      function_kind(SortKind::FUNCTION),
       domain(std::move(domain_sorts)),
       range(std::move(codomain))
 {
@@ -104,8 +104,8 @@ std::uint64_t Z3Sort::get_width() const
 {
   if (!type.is_bv())
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                  + " has no width");
   }
   return type.bv_size();
 }
@@ -114,8 +114,7 @@ Sort Z3Sort::get_indexsort() const
 {
   if (!type.is_array())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no index sort");
   }
   return std::make_shared<Z3Sort>(ctx, type.array_domain());
@@ -125,8 +124,7 @@ Sort Z3Sort::get_elemsort() const
 {
   if (!type.is_array())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no element sort");
   }
   return std::make_shared<Z3Sort>(ctx, type.array_range());
@@ -136,8 +134,7 @@ SortVec Z3Sort::get_domain_sorts() const
 {
   if (!function_kind.has_value())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no domain sorts");
   }
   SortVec sorts;
@@ -153,8 +150,7 @@ Sort Z3Sort::get_codomain_sort() const
 {
   if (!function_kind.has_value())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no codomain sort");
   }
   return std::make_shared<Z3Sort>(ctx, range);
@@ -162,12 +158,12 @@ Sort Z3Sort::get_codomain_sort() const
 
 std::string Z3Sort::get_uninterpreted_name() const
 {
-  SortKind sk = get_sort_kind();
-  if (sk == UNINTERPRETED_CONS)
+  SortKind sk = get_kind();
+  if (sk == SortKind::UNINTERPRETED_CONS)
   {
     return constructor_name;
   }
-  if (sk == UNINTERPRETED)
+  if (sk == SortKind::UNINTERPRETED)
   {
     // an applied sort is named after its constructor, not its Z3 sort
     return ctx->get_instance_name(type);
@@ -178,12 +174,12 @@ std::string Z3Sort::get_uninterpreted_name() const
 
 std::size_t Z3Sort::get_arity() const
 {
-  SortKind sk = get_sort_kind();
-  if (sk == UNINTERPRETED_CONS)
+  SortKind sk = get_kind();
+  if (sk == SortKind::UNINTERPRETED_CONS)
   {
     return constructor_arity;
   }
-  if (sk == UNINTERPRETED)
+  if (sk == SortKind::UNINTERPRETED)
   {
     return 0;
   }
@@ -193,7 +189,7 @@ std::size_t Z3Sort::get_arity() const
 
 Sort Z3Sort::get_uninterpreted_constructor() const
 {
-  if (get_sort_kind() != UNINTERPRETED || !ctx->is_instance(type))
+  if (get_kind() != SortKind::UNINTERPRETED || !ctx->is_instance(type))
   {
     throw IncorrectUsageException("Sort " + to_string()
                                   + " was not made by applying a sort "
@@ -207,10 +203,9 @@ Sort Z3Sort::get_uninterpreted_constructor() const
 
 SortVec Z3Sort::get_uninterpreted_param_sorts() const
 {
-  if (get_sort_kind() != UNINTERPRETED)
+  if (get_kind() != SortKind::UNINTERPRETED)
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no uninterpreted param sorts");
   }
   auto z3_params = ctx->get_instance_params(type);
@@ -232,8 +227,8 @@ z3::sort Z3Sort::get_z3_datatype() const
 {
   if (!type.is_datatype())
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                  + " has no datatype");
   }
   return type;
 }
@@ -273,39 +268,39 @@ bool Z3Sort::compare(const Sort & s) const
   return true;
 }
 
-SortKind Z3Sort::get_sort_kind() const
+SortKind Z3Sort::get_kind() const
 {
   if (is_constructor)
   {
-    return UNINTERPRETED_CONS;
+    return SortKind::UNINTERPRETED_CONS;
   }
   if (type.is_int())
   {
-    return INT;
+    return SortKind::INT;
   }
   else if (type.is_real())
   {
-    return REAL;
+    return SortKind::REAL;
   }
   else if (type.is_bool())
   {
-    return BOOL;
+    return SortKind::BOOL;
   }
   else if (type.is_bv())
   {
-    return BV;
+    return SortKind::BV;
   }
   else if (type.is_array())
   {
-    return ARRAY;
+    return SortKind::ARRAY;
   }
   else if (type.is_datatype())
   {
-    return DATATYPE;
+    return SortKind::DATATYPE;
   }
   else if (type.sort_kind() == Z3_UNINTERPRETED_SORT)
   {
-    return UNINTERPRETED;
+    return SortKind::UNINTERPRETED;
   }
   else if (function_kind.has_value())
   {

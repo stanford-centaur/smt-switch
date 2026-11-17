@@ -63,13 +63,13 @@ class ItpTests : public testing::Test,
     // keep them unsatisfiable
     if (GetParam().theory == SolverAttribute::THEORY_INT)
     {
-      sort = itp->make_sort(INT);
+      sort = itp->make_sort(SortKind::INT);
       lt = Lt;
       gt = Gt;
     }
     else
     {
-      sort = itp->make_sort(BV, 8);
+      sort = itp->make_sort(SortKind::BV, 8);
       lt = BVUlt;
       gt = BVUgt;
     }
@@ -190,8 +190,8 @@ TEST_P(ItpTests, SequenceInterpolantsOfAnUnrolling)
   {
     SmtInterpolator s = interpolators::create(GetParam().config.solver_enum);
     Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
-                   ? s->make_sort(INT)
-                   : s->make_sort(BV, 8);
+                   ? s->make_sort(SortKind::INT)
+                   : s->make_sort(SortKind::BV, 8);
     Term one = s->make_term(1, srt);
     TermVec a, b;
     for (int i = 0; i <= k; ++i)
@@ -280,8 +280,8 @@ TEST_P(ItpTests, InterpolatesAfterReset)
   for (int round = 0; round < 2; ++round)
   {
     Sort s = GetParam().theory == SolverAttribute::THEORY_INT
-                 ? itp->make_sort(INT)
-                 : itp->make_sort(BV, 8);
+                 ? itp->make_sort(SortKind::INT)
+                 : itp->make_sort(SortKind::BV, 8);
     Term a = itp->make_symbol("a", s);
     Term b = itp->make_symbol("b", s);
     Term c = itp->make_symbol("c", s);
@@ -305,8 +305,8 @@ TEST_P(ItpTests, ReuseKeepsResults)
     SmtInterpolator s = interpolators::create(GetParam().config.solver_enum);
     s->set_opt("incremental", incremental);
     Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
-                   ? s->make_sort(INT)
-                   : s->make_sort(BV, 8);
+                   ? s->make_sort(SortKind::INT)
+                   : s->make_sort(SortKind::BV, 8);
     Term a = s->make_symbol("a", srt);
     Term b = s->make_symbol("b", srt);
     Term c = s->make_symbol("c", srt);
@@ -387,8 +387,8 @@ TEST_P(ItpTests, ResetTurnsIncrementalBackOn)
     std::size_t start = out.str().size();
     // the terms made before the reset are gone, so these come after it
     Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
-                   ? s->make_sort(INT)
-                   : s->make_sort(BV, 8);
+                   ? s->make_sort(SortKind::INT)
+                   : s->make_sort(SortKind::BV, 8);
     Term a = s->make_symbol("a", srt);
     Term b = s->make_symbol("b", srt);
     Term c = s->make_symbol("c", srt);
@@ -475,8 +475,8 @@ TEST_P(ItpTests, PrintingWritesNoRefusedQuery)
   SmtInterpolator s = interpolators::printing(
       interpolators::create(GetParam().config.solver_enum), out);
   Sort srt = GetParam().theory == SolverAttribute::THEORY_INT
-                 ? s->make_sort(INT)
-                 : s->make_sort(BV, 8);
+                 ? s->make_sort(SortKind::INT)
+                 : s->make_sort(SortKind::BV, 8);
   Term a = s->make_symbol("a", srt);
   Term b = s->make_symbol("b", srt);
   Term a_lt_b = s->make_term(lt, a, b);
@@ -549,7 +549,7 @@ TEST_P(ItpTests, InterpolatesWithAnArrayOnOneSide)
 {
   // a[z] = x and a[z] > y on one side, x < y on the other: a and z are not
   // shared, so the interpolant mentions only x and y
-  Term a = itp->make_symbol("a", itp->make_sort(ARRAY, sort, sort));
+  Term a = itp->make_symbol("a", itp->make_sort(SortKind::ARRAY, sort, sort));
   Term read = itp->make_term(Select, a, z);
   Term with_array = itp->make_term(
       And, itp->make_term(Equal, read, x), itp->make_term(gt, read, y));
@@ -578,7 +578,7 @@ TEST_P(ItpTests, InterpolatesOverASharedArray)
                     "value in a model, which MCSAT cannot do for an array";
   }
   // a[z] = x on one side and a[z] < x on the other, which share all three
-  Term a = itp->make_symbol("a", itp->make_sort(ARRAY, sort, sort));
+  Term a = itp->make_symbol("a", itp->make_sort(SortKind::ARRAY, sort, sort));
   Term read = itp->make_term(Select, a, z);
   Term A = itp->make_term(Equal, read, x);
   Term B = itp->make_term(lt, read, x);

@@ -650,8 +650,7 @@ std::string Yices2Term::to_string() const
   if (tc == YICES_ARITH_CONSTANT)
   {
     // Yices prints a number as -5 or -1/2
-    return smtlib::arith_value(get_sort()->get_sort_kind(),
-                               yices2_to_string(term));
+    return smtlib::arith_value(get_sort()->get_kind(), yices2_to_string(term));
   }
   if (tc == YICES_BV_CONSTANT)
   {

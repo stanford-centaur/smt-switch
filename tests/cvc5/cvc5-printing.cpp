@@ -52,7 +52,7 @@ TEST_F(Cvc5PrintingTest, Interpolation)
       interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
   s->set_opt("bv-print-consts-as-indexed-symbols", "true");
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
 
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
@@ -90,7 +90,7 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolation)
   SmtInterpolator s =
       interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
@@ -115,7 +115,7 @@ TEST_F(Cvc5PrintingTest, ReusedSequenceInterpolation)
   SmtInterpolator s =
       interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);
@@ -151,7 +151,7 @@ TEST_F(Cvc5PrintingTest, SequenceInterpolationAfterInterpolant)
   SmtInterpolator s =
       interpolators::printing(Cvc5SolverFactory::create_interpolator(), os);
   s->set_logic("QF_LIA");
-  Sort intsort = s->make_sort(INT);
+  Sort intsort = s->make_sort(SortKind::INT);
   Term x = s->make_symbol("x", intsort);
   Term y = s->make_symbol("y", intsort);
   Term z = s->make_symbol("z", intsort);

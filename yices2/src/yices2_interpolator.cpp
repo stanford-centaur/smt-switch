@@ -133,8 +133,8 @@ Result Yices2Interpolator::refute_model(const Term & A,
                                         TermsPairVec & model,
                                         Term & model_interpolant) const
 {
-  if (A->get_sort()->get_sort_kind() != BOOL
-      || B->get_sort()->get_sort_kind() != BOOL)
+  if (A->get_sort()->get_kind() != SortKind::BOOL
+      || B->get_sort()->get_kind() != SortKind::BOOL)
   {
     throw IncorrectUsageException("get_interpolant requires boolean terms");
   }
@@ -153,8 +153,9 @@ Result Yices2Interpolator::refute_model(const Term & A,
     {
       continue;
     }
-    SortKind sk = symbol->get_sort()->get_sort_kind();
-    if (sk != BOOL && sk != BV && sk != INT && sk != REAL)
+    SortKind sk = symbol->get_sort()->get_kind();
+    if (sk != SortKind::BOOL && sk != SortKind::BV && sk != SortKind::INT
+        && sk != SortKind::REAL)
     {
       throw NotImplementedException(
           "Yices2 interpolator cannot interpolate over " + symbol->to_string()

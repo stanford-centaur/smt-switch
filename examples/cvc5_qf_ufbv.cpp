@@ -21,8 +21,8 @@ int main()
   s->set_opt("incremental", "true");
   s->set_opt("produce-models", "true");
   s->set_opt("produce-unsat-assumptions", "true");
-  smt::Sort bvs = s->make_sort(smt::BV, 32);
-  smt::Sort funs = s->make_sort(smt::FUNCTION, { bvs, bvs });
+  smt::Sort bvs = s->make_sort(smt::SortKind::BV, 32);
+  smt::Sort funs = s->make_sort(smt::SortKind::FUNCTION, { bvs, bvs });
 
   smt::Term x = s->make_symbol("x", bvs);
   smt::Term y = s->make_symbol("y", bvs);

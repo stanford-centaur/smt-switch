@@ -98,7 +98,7 @@ bool check_sortkind_matches(SortKind sk, const SortVec & sorts)
 {
   for (auto sort : sorts)
   {
-    if (sk != sort->get_sort_kind())
+    if (sk != sort->get_kind())
     {
       return false;
     }
@@ -116,7 +116,7 @@ bool check_one_of_sortkinds(const std::unordered_set<SortKind> & sks,
 {
   for (auto sort : sorts)
   {
-    if (sks.find(sort->get_sort_kind()) == sks.end())
+    if (sks.find(sort->get_kind()) == sks.end())
     {
       return false;
     }
@@ -137,7 +137,7 @@ bool check_apply_sorts(const SortVec & sorts)
     return false;
   }
   Sort funsort = sorts[0];
-  if (funsort->get_sort_kind() != FUNCTION)
+  if (funsort->get_kind() != SortKind::FUNCTION)
   {
     return false;
   }
@@ -172,7 +172,7 @@ bool check_select_sorts(const SortVec & sorts)
   }
 
   Sort arrsort = sorts[0];
-  if (arrsort->get_sort_kind() != ARRAY)
+  if (arrsort->get_kind() != SortKind::ARRAY)
   {
     return false;
   }
@@ -188,21 +188,21 @@ bool check_select_sorts(const SortVec & sorts)
 // the selector, then the datatype term it reads
 bool check_selector_sorts(const SortVec & sorts)
 {
-  return sorts.size() == 2 && sorts[0]->get_sort_kind() == SELECTOR
-         && sorts[1]->get_sort_kind() == DATATYPE;
+  return sorts.size() == 2 && sorts[0]->get_kind() == SortKind::SELECTOR
+         && sorts[1]->get_kind() == SortKind::DATATYPE;
 }
 
 // the constructor, then its arguments, which only the backend checks
 bool check_constructor_sorts(const SortVec & sorts)
 {
-  return !sorts.empty() && sorts[0]->get_sort_kind() == CONSTRUCTOR;
+  return !sorts.empty() && sorts[0]->get_kind() == SortKind::CONSTRUCTOR;
 }
 
 // the tester, then the datatype term it tests
 bool check_tester_sorts(const SortVec & sorts)
 {
-  return sorts.size() == 2 && sorts[0]->get_sort_kind() == TESTER
-         && sorts[1]->get_sort_kind() == DATATYPE;
+  return sorts.size() == 2 && sorts[0]->get_kind() == SortKind::TESTER
+         && sorts[1]->get_kind() == SortKind::DATATYPE;
 }
 
 /** Checks if the sorts are well-sorted for a store operator
@@ -218,7 +218,7 @@ bool check_store_sorts(const SortVec & sorts)
   }
 
   Sort arrsort = sorts[0];
-  if (arrsort->get_sort_kind() != ARRAY)
+  if (arrsort->get_kind() != SortKind::ARRAY)
   {
     return false;
   }
@@ -248,16 +248,16 @@ bool check_substr_sorts(const SortVec & sorts)
   }
 
   Sort strsort = sorts[0];
-  if (strsort->get_sort_kind() != STRING)
+  if (strsort->get_kind() != SortKind::STRING)
   {
     return false;
   }
 
-  if (sorts[1]->get_sort_kind() != INT)
+  if (sorts[1]->get_kind() != SortKind::INT)
   {
     return false;
   }
-  else if (sorts[2]->get_sort_kind() != INT)
+  else if (sorts[2]->get_kind() != SortKind::INT)
   {
     return false;
   }
@@ -278,12 +278,12 @@ bool check_charat_sorts(const SortVec & sorts)
   }
 
   Sort strsort = sorts[0];
-  if (strsort->get_sort_kind() != STRING)
+  if (strsort->get_kind() != SortKind::STRING)
   {
     return false;
   }
 
-  if (sorts[1]->get_sort_kind() != INT)
+  if (sorts[1]->get_kind() != SortKind::INT)
   {
     return false;
   }
@@ -304,16 +304,16 @@ bool check_indexof_sorts(const SortVec & sorts)
   }
 
   Sort strsort = sorts[0];
-  if (strsort->get_sort_kind() != STRING)
+  if (strsort->get_kind() != SortKind::STRING)
   {
     return false;
   }
 
-  if (sorts[1]->get_sort_kind() != STRING)
+  if (sorts[1]->get_kind() != SortKind::STRING)
   {
     return false;
   }
-  else if (sorts[2]->get_sort_kind() != INT)
+  else if (sorts[2]->get_kind() != SortKind::INT)
   {
     return false;
   }
@@ -335,33 +335,33 @@ bool bool_sorts(const SortVec & sorts)
 
 bool bv_sorts(const SortVec & sorts)
 {
-  return check_sortkind_matches(BV, sorts);
+  return check_sortkind_matches(SortKind::BV, sorts);
 }
 
 bool eq_bv_sorts(const SortVec & sorts)
 {
-  return !sorts.empty() && sorts[0]->get_sort_kind() == BV
+  return !sorts.empty() && sorts[0]->get_kind() == SortKind::BV
          && equal_sorts(sorts);
 }
 
 bool real_sorts(const SortVec & sorts)
 {
-  return check_sortkind_matches(REAL, sorts);
+  return check_sortkind_matches(SortKind::REAL, sorts);
 }
 
 bool int_sorts(const SortVec & sorts)
 {
-  return check_sortkind_matches(INT, sorts);
+  return check_sortkind_matches(SortKind::INT, sorts);
 }
 
 bool string_sorts(const SortVec & sorts)
 {
-  return check_sortkind_matches(STRING, sorts);
+  return check_sortkind_matches(SortKind::STRING, sorts);
 }
 
 bool arithmetic_sorts(const SortVec & sorts)
 {
-  return check_one_of_sortkinds({ INT, REAL }, sorts);
+  return check_one_of_sortkinds({ SortKind::INT, SortKind::REAL }, sorts);
 }
 
 /** Weaker version of equal_sorts
@@ -388,7 +388,7 @@ Sort arithmetic_sort(Op, const SolverPtr &, const SortVec & sorts)
   // over an Int and a Real, every solver of both makes the term a Real
   for (const Sort & sort : sorts)
   {
-    if (sort->get_sort_kind() == REAL)
+    if (sort->get_kind() == SortKind::REAL)
     {
       return sort;
     }
@@ -398,27 +398,27 @@ Sort arithmetic_sort(Op, const SolverPtr &, const SortVec & sorts)
 
 Sort bool_sort(Op, const SolverPtr & solver, const SortVec &)
 {
-  return solver->make_sort(BOOL);
+  return solver->make_sort(SortKind::BOOL);
 }
 
 Sort single_bit_sort(Op, const SolverPtr & solver, const SortVec &)
 {
-  return solver->make_sort(BV, 1);
+  return solver->make_sort(SortKind::BV, 1);
 }
 
 Sort real_sort(Op, const SolverPtr & solver, const SortVec &)
 {
-  return solver->make_sort(REAL);
+  return solver->make_sort(SortKind::REAL);
 }
 
 Sort int_sort(Op, const SolverPtr & solver, const SortVec &)
 {
-  return solver->make_sort(INT);
+  return solver->make_sort(SortKind::INT);
 }
 
 Sort string_sort(Op, const SolverPtr & solver, const SortVec &)
 {
-  return solver->make_sort(STRING);
+  return solver->make_sort(SortKind::STRING);
 }
 
 Sort ite_sort(Op, const SolverPtr &, const SortVec & sorts)
@@ -443,7 +443,7 @@ Sort extract_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
         op.to_string() + " needs width > upper >= lower, but its argument has "
         + "width " + std::to_string(width));
   }
-  return solver->make_sort(BV, upper - lower + 1);
+  return solver->make_sort(SortKind::BV, upper - lower + 1);
 }
 
 Sort concat_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
@@ -456,7 +456,7 @@ Sort concat_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
     throw IncorrectUsageException(op.to_string() + " would be wider than "
                                   + std::to_string(max) + " bits");
   }
-  return solver->make_sort(BV, width0 + width1);
+  return solver->make_sort(SortKind::BV, width0 + width1);
 }
 
 Sort extend_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
@@ -468,7 +468,7 @@ Sort extend_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
     throw IncorrectUsageException(op.to_string() + " would be wider than "
                                   + std::to_string(max) + " bits");
   }
-  return solver->make_sort(BV, op.indices[0] + width);
+  return solver->make_sort(SortKind::BV, op.indices[0] + width);
 }
 
 Sort repeat_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
@@ -480,18 +480,18 @@ Sort repeat_sort(Op op, const SolverPtr & solver, const SortVec & sorts)
     throw IncorrectUsageException(op.to_string() + " would be wider than "
                                   + std::to_string(max) + " bits");
   }
-  return solver->make_sort(BV, op.indices[0] * width);
+  return solver->make_sort(SortKind::BV, op.indices[0] * width);
 }
 
 Sort int_to_bv_sort(Op op, const SolverPtr & solver, const SortVec &)
 {
-  return solver->make_sort(BV, op.indices[0]);
+  return solver->make_sort(SortKind::BV, op.indices[0]);
 }
 
 Sort apply_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   Sort funsort = sorts[0];
-  if (funsort->get_sort_kind() != FUNCTION)
+  if (funsort->get_kind() != SortKind::FUNCTION)
   {
     throw IncorrectUsageException(
         "Expecting first argument to Apply to be a function but got "
@@ -503,7 +503,7 @@ Sort apply_sort(Op, const SolverPtr &, const SortVec & sorts)
 Sort select_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   Sort arraysort = sorts[0];
-  if (arraysort->get_sort_kind() != ARRAY)
+  if (arraysort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException(
         "Expecting first argument of Select to be an array but got: "
@@ -515,7 +515,7 @@ Sort select_sort(Op, const SolverPtr &, const SortVec & sorts)
 Sort store_sort(Op, const SolverPtr &, const SortVec & sorts)
 {
   Sort arraysort = sorts[0];
-  if (arraysort->get_sort_kind() != ARRAY)
+  if (arraysort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException(
         "Expecting first argument of Store to be an array but got: "

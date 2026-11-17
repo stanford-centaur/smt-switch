@@ -34,9 +34,9 @@ class UnitTransferTests
   {
     s = create_solver(GetParam());
 
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
   }
   SmtSolver s;
   Sort boolsort, bvsort, funsort;

@@ -32,7 +32,7 @@ TEST(BtorNegation, LiteSolver)
   SmtSolver s = BoolectorSolverFactory::create(false);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
   Term five = s->make_term(5, bvsort8);
   Term ult5 = s->make_term(BVUlt, x, five);
@@ -54,7 +54,7 @@ TEST(BtorNegation, InversionFromSubstitution)
   // of y, and the xnor as y itself, which Boolector shows only by inverting
   // the node they simplify to.
   SmtSolver s = BoolectorSolverFactory::create(false);
-  Sort bvsort4 = s->make_sort(BV, 4);
+  Sort bvsort4 = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bvsort4);
   Term y = s->make_symbol("y", bvsort4);
   Term bvxor = s->make_term(BVXor, x, y);
@@ -77,7 +77,7 @@ TEST(BtorNegation, LoggingSolver)
   SmtSolver s = BoolectorSolverFactory::create(true);
   s->set_logic("QF_ABV");
   s->set_opt("produce-models", "true");
-  Sort bvsort8 = s->make_sort(BV, 8);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort8);
   Term five = s->make_term(5, bvsort8);
   Term ult5 = s->make_term(BVUlt, x, five);

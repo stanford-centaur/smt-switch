@@ -95,12 +95,12 @@ Sort LoggingSolver::make_sort(SortKind sk, const SortVec & sorts) const
             ->wrapped_sort);
   }
   Sort sort = wrapped_solver->make_sort(sk, sub_sorts);
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     SortVec domain(sorts.begin(), sorts.end() - 1);
     return std::make_shared<FunctionLoggingSort>(sort, domain, sorts.back());
   }
-  if (sk == ARRAY && sorts.size() == 2)
+  if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     return std::make_shared<ArrayLoggingSort>(sort, sorts[0], sorts[1]);
   }
@@ -205,7 +205,7 @@ Term LoggingSolver::get_constructor(const Sort & s, std::string name) const
     domain.push_back(sel.sort ? sel.sort : s);
   }
   return make_component(
-      wrapped, CONSTRUCTOR, domain, s, smtlib::quote_symbol(name));
+      wrapped, SortKind::CONSTRUCTOR, domain, s, smtlib::quote_symbol(name));
 }
 
 Term LoggingSolver::get_tester(const Sort & s, std::string name) const
@@ -215,9 +215,9 @@ Term LoggingSolver::get_tester(const Sort & s, std::string name) const
           ->wrapped_sort,
       name);
   return make_component(wrapped,
-                        TESTER,
+                        SortKind::TESTER,
                         SortVec{ s },
-                        make_sort(BOOL),
+                        make_sort(SortKind::BOOL),
                         "(_ is " + smtlib::quote_symbol(name) + ")");
 }
 
@@ -235,7 +235,7 @@ Term LoggingSolver::get_selector(const Sort & s,
     if (sel.name == name)
     {
       return make_component(wrapped,
-                            SELECTOR,
+                            SortKind::SELECTOR,
                             SortVec{ s },
                             sel.sort ? sel.sort : s,
                             smtlib::quote_symbol(name));
@@ -324,7 +324,8 @@ Term LoggingSolver::make_component(const Term & wrapped,
 Term LoggingSolver::make_term(bool b) const
 {
   Term wrapped_res = wrapped_solver->make_term(b);
-  Sort boolsort = std::make_shared<LoggingSort>(BOOL, wrapped_res->get_sort());
+  Sort boolsort =
+      std::make_shared<LoggingSort>(SortKind::BOOL, wrapped_res->get_sort());
   Term res = std::make_shared<LoggingTerm>(
       wrapped_res, boolsort, Op(), TermVec{}, next_term_id);
 
@@ -439,7 +440,7 @@ Term LoggingSolver::make_term(const Term & val, const Sort & sort) const
   Term wrapped_res =
       wrapped_solver->make_term(lval->wrapped_term, lsort->wrapped_sort);
   // this make_term is for constant arrays
-  if (sort->get_sort_kind() != ARRAY)
+  if (sort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException(
         "make_term(Term, Sort) is for creating constant arrays.\nExpecting "
@@ -563,7 +564,7 @@ Term LoggingSolver::get_value(const Term & t) const
   std::shared_ptr<LoggingTerm> lt =
       non_null_cast<LoggingTerm>(t, "Cannot get the value of a null term");
   Sort sort = t->get_sort();
-  if (sort->get_sort_kind() == ARRAY)
+  if (sort->get_kind() == SortKind::ARRAY)
   {
     Term out_const_base;
     UnorderedTermMap pairs = get_array_values(t, out_const_base);
@@ -609,7 +610,7 @@ Term LoggingSolver::wrap_value(const Term & wrapped_val,
   {
     throw NotImplementedException(
         "LoggingSolver does not support get_value for a "
-        + to_string(sort->get_sort_kind()) + " value that is not a leaf");
+        + to_string(sort->get_kind()) + " value that is not a leaf");
   }
   Term res = std::make_shared<LoggingTerm>(
       wrapped_val, sort, Op(), TermVec{}, next_term_id);
@@ -659,7 +660,7 @@ UnorderedTermMap LoggingSolver::get_array_values(const Term & arr,
       larr->wrapped_term, wrapped_out_const_base);
   if (wrapped_out_const_base)
   {
-    if (wrapped_out_const_base->get_sort()->get_sort_kind() == ARRAY)
+    if (wrapped_out_const_base->get_sort()->get_kind() == SortKind::ARRAY)
     {
       throw NotImplementedException(
           "const base for multidimensional array not implemented in "

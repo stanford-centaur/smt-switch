@@ -47,9 +47,9 @@ class UnitTests : public testing::Test,
   {
     s = create_solver(GetParam());
 
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
   }
   SmtSolver s;
   Sort boolsort, bvsort, funsort;
@@ -262,7 +262,8 @@ TEST_P(UnitTests, RotateOps)
 TEST_P(UnitTests, BoolFun)
 {
   Term b = s->make_symbol("b", boolsort);
-  Sort boolfunsort = s->make_sort(FUNCTION, SortVec{ boolsort, boolsort });
+  Sort boolfunsort =
+      s->make_sort(SortKind::FUNCTION, SortVec{ boolsort, boolsort });
   Term f = s->make_symbol("f", boolfunsort);
   Term fb = s->make_term(Apply, f, b);
 }
@@ -272,7 +273,7 @@ TEST_P(UnitTests, MultiArgFun)
   SortVec argsorts(7, bvsort);
   // return sort
   argsorts.push_back(boolsort);
-  Sort multiargsort = s->make_sort(FUNCTION, argsorts);
+  Sort multiargsort = s->make_sort(SortKind::FUNCTION, argsorts);
   Term f = s->make_symbol("f", multiargsort);
 
   TermVec args1{ f };

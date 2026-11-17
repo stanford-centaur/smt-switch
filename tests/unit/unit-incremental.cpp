@@ -37,8 +37,8 @@ class UnitIncrementalTests
     s = create_solver(GetParam());
     s->set_opt("incremental", "true");
     s->set_opt("produce-models", "true");
-    boolsort = s->make_sort(BOOL);
-    bvsort = s->make_sort(BV, 4);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort = s->make_sort(SortKind::BV, 4);
   }
   SmtSolver s;
   Sort boolsort, bvsort;

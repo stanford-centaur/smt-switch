@@ -409,7 +409,7 @@ Term BoolectorSolver::make_term(std::string val,
 
 Term BoolectorSolver::make_term(const Term & val, const Sort & sort) const
 {
-  if (sort->get_sort_kind() == ARRAY)
+  if (sort->get_kind() == SortKind::ARRAY)
   {
     std::shared_ptr<BoolectorTerm> bt =
         backend::pointer_cast<BoolectorTerm>(val);
@@ -520,8 +520,8 @@ Term BoolectorSolver::get_value(const Term & t) const
   Term result;
   std::shared_ptr<BoolectorTerm> bt = backend::pointer_cast<BoolectorTerm>(t);
   Sort sort = t->get_sort();
-  SortKind sk = sort->get_sort_kind();
-  if ((sk == BV) || (sk == BOOL))
+  SortKind sk = sort->get_kind();
+  if ((sk == SortKind::BV) || (sk == SortKind::BOOL))
   {
     const char * assignment = boolector_bv_assignment(btor.get(), bt->node);
     BoolectorNode * bc;
@@ -538,7 +538,7 @@ Term BoolectorSolver::get_value(const Term & t) const
     // note: give the constant value a null PrimOp
     result = std::make_shared<BoolectorTerm>(btor, bc);
   }
-  else if (sk == ARRAY)
+  else if (sk == SortKind::ARRAY)
   {
     Term base;
     UnorderedTermMap entries = get_array_values(t, base);
@@ -548,7 +548,7 @@ Term BoolectorSolver::get_value(const Term & t) const
       result = make_term(Store, result, index, element);
     }
   }
-  else if (sk == FUNCTION)
+  else if (sk == SortKind::FUNCTION)
   {
     throw NotImplementedException(
         "Getting the value of a function is not implemented for Boolector");
@@ -619,7 +619,7 @@ Sort BoolectorSolver::make_sort(const std::string /* name */,
 
 Sort BoolectorSolver::make_sort(SortKind sk) const
 {
-  if (sk == BOOL)
+  if (sk == SortKind::BOOL)
   {
     return std::make_shared<BoolectorBVSort>(
         btor, boolector_bool_sort(btor.get()), 1);
@@ -634,7 +634,7 @@ Sort BoolectorSolver::make_sort(SortKind sk) const
 
 Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
 {
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     return std::make_shared<BoolectorBVSort>(
         btor,
@@ -650,7 +650,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, uint64_t size) const
 
 Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     if (sorts.size() < 2)
     {
@@ -675,7 +675,7 @@ Sort BoolectorSolver::make_sort(SortKind sk, const SortVec & sorts) const
     return std::make_shared<BoolectorUFSort>(
         btor, btor_fun_sort, domain_sorts, returnsort);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     BoolectorSort bs = boolector_array_sort(
         btor.get(), btor_sort(sorts[0]), btor_sort(sorts[1]));
@@ -717,13 +717,13 @@ Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)
   // symbol made after its n-th push or pop BTOR_<n>@<name>, so that a name can
   // be declared again after a pop, but symbol_table keeps a name taken at
   // every context level.
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   BoolectorNode * n;
-  if (sk == ARRAY)
+  if (sk == SortKind::ARRAY)
   {
     n = boolector_array(btor.get(), bs, nullptr);
   }
-  else if (sk == FUNCTION)
+  else if (sk == SortKind::FUNCTION)
   {
     n = boolector_uf(btor.get(), bs, nullptr);
   }

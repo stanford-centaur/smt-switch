@@ -223,7 +223,8 @@ class TseitinTraversal : public IdentityWalker
   std::vector<Definition> reduced = {};
 
   explicit TseitinTraversal(const SmtSolver & solver)
-      : IdentityWalker{ solver, false }, boolsort_(solver->make_sort(BOOL))
+      : IdentityWalker{ solver, false },
+        boolsort_(solver->make_sort(SortKind::BOOL))
   {
   }
   VisitResult visit_term(Term & term) override

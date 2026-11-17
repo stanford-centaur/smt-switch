@@ -39,9 +39,9 @@ class UnitTests : public testing::Test,
   {
     s = create_solver(GetParam());
 
-    bvsort = s->make_sort(BV, 4);
-    funsort = s->make_sort(FUNCTION, SortVec{ bvsort, bvsort });
-    arrsort = s->make_sort(ARRAY, bvsort, bvsort);
+    bvsort = s->make_sort(SortKind::BV, 4);
+    funsort = s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort });
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort, bvsort);
   }
   SmtSolver s;
   Sort bvsort, funsort, arrsort;
@@ -82,7 +82,7 @@ TEST_P(UnitTests, NestedApplication)
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term g = s->make_symbol(
-      "g", s->make_sort(FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
+      "g", s->make_sort(SortKind::FUNCTION, SortVec{ bvsort, bvsort, bvsort }));
   Term gxy = s->make_term(Apply, g, x, y);
   Term eq = s->make_term(Equal, gxy, x);
   // the solver may order the children either way
@@ -91,7 +91,7 @@ TEST_P(UnitTests, NestedApplication)
   ASSERT_NE(it, children.end());
   EXPECT_EQ((*it)->get_op(), Apply);
   ASSERT_NE((*it)->begin(), (*it)->end());
-  EXPECT_EQ((*(*it)->begin())->get_sort()->get_sort_kind(), FUNCTION);
+  EXPECT_EQ((*(*it)->begin())->get_sort()->get_kind(), SortKind::FUNCTION);
 }
 
 TEST_P(ConstArrUnitTests, ConstArr)

@@ -294,7 +294,7 @@ void refuse_internal_name(const std::string & name, const std::string & what)
 /** Throws unless a value of sort kind sk can be made from a number */
 void check_value_sort_kind(SortKind sk)
 {
-  if (sk != BV && sk != INT && sk != REAL)
+  if (sk != SortKind::BV && sk != SortKind::INT && sk != SortKind::REAL)
   {
     throw IncorrectUsageException("Can't make a value of sort kind "
                                   + to_string(sk) + " from a number");
@@ -993,12 +993,12 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
   {
     return false;
   }
-  switch (sort->get_sort_kind())
+  switch (sort->get_kind())
   {
-    case ARRAY:
+    case SortKind::ARRAY:
       return uses_held_back_sort(sort->get_indexsort())
              || uses_held_back_sort(sort->get_elemsort());
-    case FUNCTION:
+    case SortKind::FUNCTION:
       for (const Sort & d : sort->get_domain_sorts())
       {
         if (uses_held_back_sort(d))
@@ -1007,8 +1007,8 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
         }
       }
       return uses_held_back_sort(sort->get_codomain_sort());
-    case UNINTERPRETED:
-    case UNINTERPRETED_CONS:
+    case SortKind::UNINTERPRETED:
+    case SortKind::UNINTERPRETED_CONS:
       // an applied constructor keeps the constructor's name
       if (pending_sort_names_.find(sort->get_uninterpreted_name())
           != pending_sort_names_.end())
@@ -1023,22 +1023,21 @@ bool GenericSolver::uses_held_back_sort(const Sort & sort) const
         }
       }
       return false;
-    case DATATYPE:
+    case SortKind::DATATYPE:
       // a datatype whose selectors use a held-back sort is declared after
       // it, so is held back itself
       return pending_sort_names_.find(sort->to_string())
              != pending_sort_names_.end();
     // an application of a datatype component has the datatype's sort, or
     // takes a term of it, so the term or its child is what is caught
-    case CONSTRUCTOR:
-    case SELECTOR:
-    case TESTER:
-    case BOOL:
-    case BV:
-    case INT:
-    case REAL:
-    case STRING: return false;
-    case NUM_SORT_KINDS: break;
+    case SortKind::CONSTRUCTOR:
+    case SortKind::SELECTOR:
+    case SortKind::TESTER:
+    case SortKind::BOOL:
+    case SortKind::BV:
+    case SortKind::INT:
+    case SortKind::REAL:
+    case SortKind::STRING: return false;
   }
   return false;
 }
@@ -1238,7 +1237,7 @@ Sort GenericSolver::make_sort(const std::string name, std::uint64_t arity) const
 
 Sort GenericSolver::make_sort(const SortKind sk) const
 {
-  if (sk != BOOL && sk != INT && sk != REAL)
+  if (sk != SortKind::BOOL && sk != SortKind::INT && sk != SortKind::REAL)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk));
   }
@@ -1264,7 +1263,7 @@ Sort GenericSolver::make_sort(const SortKind sk) const
 
 Sort GenericSolver::make_sort(const SortKind sk, std::uint64_t size) const
 {
-  if (sk != BV)
+  if (sk != SortKind::BV)
   {
     throw IncorrectUsageException("Can't create sort from " + to_string(sk)
                                   + " and " + std::to_string(size));
@@ -1293,14 +1292,14 @@ Sort GenericSolver::make_sort(SortKind sk, const SortVec & sorts) const
 {
   // create the sort
   Sort sort;
-  if (sk == FUNCTION)
+  if (sk == SortKind::FUNCTION)
   {
     SortVec domain(sorts);
     Sort codomain = domain.back();
     domain.pop_back();
     sort = std::make_shared<FunctionGenericSort>(domain, codomain);
   }
-  else if (sk == ARRAY && sorts.size() == 2)
+  else if (sk == SortKind::ARRAY && sorts.size() == 2)
   {
     sort = std::make_shared<ArrayGenericSort>(sorts[0], sorts[1]);
   }
@@ -1517,7 +1516,7 @@ Term GenericSolver::get_constructor(const Sort & s, std::string name) const
     throw IncorrectUsageException("Constructor not in datatype");
   }
   Sort cons_sort =
-      std::make_shared<DatatypeComponentSort>(CONSTRUCTOR, name, s);
+      std::make_shared<DatatypeComponentSort>(SortKind::CONSTRUCTOR, name, s);
   Term new_term =
       std::make_shared<GenericTerm>(cons_sort, Op(), TermVec{}, name);
   term_name_map[new_term] = name;
@@ -1545,7 +1544,8 @@ Term GenericSolver::get_tester(const Sort & s, std::string name) const
     throw IncorrectUsageException("Constructor not in datatype");
   }
 
-  Sort cons_sort = std::make_shared<DatatypeComponentSort>(TESTER, name, s);
+  Sort cons_sort =
+      std::make_shared<DatatypeComponentSort>(SortKind::TESTER, name, s);
   // SMT-LIB writes a tester as an indexed identifier
   std::string tester = "(_ is " + smtlib::quote_symbol(name) + ")";
   Term new_term =
@@ -1561,7 +1561,8 @@ Term GenericSolver::get_selector(const Sort & s,
   std::shared_ptr<GenericDatatype> dt =
       backend::pointer_cast<GenericSort>(s)->get_generic_datatype();
   bool found = false;
-  Sort cons_sort = std::make_shared<DatatypeComponentSort>(SELECTOR, name, s);
+  Sort cons_sort =
+      std::make_shared<DatatypeComponentSort>(SortKind::SELECTOR, name, s);
   for (int i = 0; i < dt->get_num_constructors(); ++i)
   {
     std::shared_ptr<GenericDatatypeConstructorDecl> curr_con =
@@ -1648,7 +1649,7 @@ Term GenericSolver::store_term(Term term) const
 Term GenericSolver::make_non_negative_bv_const(std::string abs_decimal,
                                                std::uint64_t width) const
 {
-  Sort bvsort = make_sort(BV, width);
+  Sort bvsort = make_sort(SortKind::BV, width);
   std::string repr = "#b" + bv_value_to_bits(abs_decimal, 10, bvsort);
   Term term = std::make_shared<GenericTerm>(bvsort, Op(), TermVec{}, repr);
   return store_term(term);
@@ -1675,7 +1676,7 @@ Term GenericSolver::make_term(bool b) const
 Term GenericSolver::make_value(bool b) const
 {
   // create a generic term that represents `b`.
-  Sort boolsort = make_sort(BOOL);
+  Sort boolsort = make_sort(SortKind::BOOL);
   Term term = std::make_shared<GenericTerm>(
       boolsort, Op(), TermVec{}, b ? "true" : "false");
   return term;
@@ -1689,9 +1690,9 @@ Term GenericSolver::make_term(std::int64_t i, const Sort & sort) const
 
 Term GenericSolver::make_value(std::int64_t i, const Sort & sort) const
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   check_value_sort_kind(sk);
-  if (sk == INT || sk == REAL)
+  if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     std::string repr = smtlib::arith_value(sk, std::to_string(i));
     Term term = std::make_shared<GenericTerm>(sort, Op(), TermVec{}, repr);
@@ -1718,10 +1719,10 @@ Term GenericSolver::make_value(const std::string val,
                                const Sort & sort,
                                std::uint64_t base) const
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   check_value_sort_kind(sk);
   std::string repr;
-  if (sk == INT || sk == REAL)
+  if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     std::string decimal = arith_value_to_decimal(sk, val, base);
     // no binary reads a number with spaces in it
@@ -1749,7 +1750,7 @@ Term GenericSolver::make_value(const std::string val,
 
 Term GenericSolver::make_term(const Term & val, const Sort & sort) const
 {
-  if (sort->get_sort_kind() != ARRAY)
+  if (sort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException("Can't make a constant array of sort "
                                   + sort->to_string()
@@ -1788,7 +1789,7 @@ Term GenericSolver::make_symbol(const std::string name, const Sort & sort)
   // communicate the creation of the symbol to the binary of the solver.
   // When the sort is not a function, we specify an empty domain.
   // Otherwise, the name of the sort includes the domain.
-  if (sort->get_sort_kind() == FUNCTION
+  if (sort->get_kind() == SortKind::FUNCTION
           ? send_or_hold(smtlib::DECLARE_FUN_STR, quoted_name, sort_str)
           : send_or_hold(smtlib::DECLARE_FUN_STR, quoted_name, "()", sort_str))
   {
@@ -1908,8 +1909,9 @@ Term GenericSolver::get_value(const Term & t) const
 {
   // only values of these sorts can be read back
   Sort sort = t->get_sort();
-  SortKind sk = sort->get_sort_kind();
-  if (sk != BOOL && sk != BV && sk != INT && sk != REAL)
+  SortKind sk = sort->get_kind();
+  if (sk != SortKind::BOOL && sk != SortKind::BV && sk != SortKind::INT
+      && sk != SortKind::REAL)
   {
     throw NotImplementedException(
         "The generic solver cannot get the value of a term of sort kind "
@@ -1941,9 +1943,9 @@ Term GenericSolver::get_value(const Term & t) const
 Term GenericSolver::value_from_string(const std::string & value,
                                       const Sort & sort) const
 {
-  const SortKind sk = sort->get_sort_kind();
+  const SortKind sk = sort->get_kind();
   Term resulting_term;
-  if (sk == BV)
+  if (sk == SortKind::BV)
   {
     std::string bits;
     try
@@ -1960,7 +1962,7 @@ Term GenericSolver::value_from_string(const std::string & value,
     }
     resulting_term = make_value(bits, sort, 2);
   }
-  else if (sk == BOOL)
+  else if (sk == SortKind::BOOL)
   {
     if (value != "true" && value != "false")
     {
@@ -1969,7 +1971,7 @@ Term GenericSolver::value_from_string(const std::string & value,
     bool b = (value == "true");
     resulting_term = make_value(b);
   }
-  else if (sk == INT || sk == REAL)
+  else if (sk == SortKind::INT || sk == SortKind::REAL)
   {
     // the binary's answer, such as (- 5), is already SMT-LIB, unlike the
     // number strings make_value takes
@@ -2091,7 +2093,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
   out_const_base = nullptr;
 
   const Sort sort = arr->get_sort();
-  if (sort->get_sort_kind() != ARRAY)
+  if (sort->get_kind() != SortKind::ARRAY)
   {
     throw IncorrectUsageException("Can't get the array values of "
                                   + arr->to_string()
@@ -2273,7 +2275,7 @@ Result GenericSolver::do_check_sat_assuming(const TermVec & assumptions)
   std::string names;
   for (Term t : assumptions)
   {
-    if (t->get_sort()->get_sort_kind() != BOOL)
+    if (t->get_sort()->get_kind() != SortKind::BOOL)
     {
       throw IncorrectUsageException("Expecting Boolean assumptions but got: "
                                     + t->to_string());

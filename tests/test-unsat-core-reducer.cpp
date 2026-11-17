@@ -38,8 +38,8 @@ class UnsatCoreReducerTests
   {
     s = create_solver(GetParam());
     s->set_opt("incremental", "true");
-    boolsort = s->make_sort(BOOL);
-    bvsort32 = s->make_sort(BV, 32);
+    boolsort = s->make_sort(SortKind::BOOL);
+    bvsort32 = s->make_sort(SortKind::BV, 32);
 
     r = create_solver(GetParam());
   }

@@ -43,7 +43,7 @@ TEST_P(TermLifetimeTests, TermsOutliveTheirSolver)
   std::string x_text;
   {
     SmtSolver s = create_solver(GetParam());
-    bv = s->make_sort(BV, 4);
+    bv = s->make_sort(SortKind::BV, 4);
     x = s->make_symbol("x", bv);
     y = s->make_symbol("y", bv);
     xpy = s->make_term(BVAdd, x, y);
@@ -62,7 +62,7 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
     GTEST_SKIP() << "reset() times out on the generic solver";
   }
   SmtSolver s = create_solver(GetParam());
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term y = s->make_symbol("y", bv);
   Term xpy = s->make_term(BVAdd, x, y);
@@ -70,7 +70,7 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
   s->reset();
 
   // the solver keeps working after the reset
-  Term b = s->make_symbol("b", s->make_sort(BOOL));
+  Term b = s->make_symbol("b", s->make_sort(SortKind::BOOL));
   s->assert_formula(b);
   EXPECT_TRUE(s->check_sat().is_sat());
   EXPECT_EQ(xpy->get_sort(), bv);
@@ -81,7 +81,7 @@ TEST_P(TermLifetimeTests, TermsOutliveReset)
 TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirTerm)
 {
   SmtSolver s = create_solver(GetParam());
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term y = s->make_symbol("y", bv);
   Term z = s->make_symbol("z", bv);
@@ -112,7 +112,7 @@ TEST_P(TermLifetimeTests, ChildIteratorsOutliveTheirSolver)
   TermIter it, end;
   {
     SmtSolver s = create_solver(GetParam());
-    Sort bv = s->make_sort(BV, 4);
+    Sort bv = s->make_sort(SortKind::BV, 4);
     Term x = s->make_symbol("x", bv);
     Term y = s->make_symbol("y", bv);
     Term z = s->make_symbol("z", bv);

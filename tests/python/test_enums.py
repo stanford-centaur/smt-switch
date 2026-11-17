@@ -19,10 +19,41 @@ def test_sortkind(create_solver):
     solver = create_solver(logging=False)
     bvsort = solver.make_sort(ss.sortkinds.BV, 8)
     x = solver.make_symbol("x", bvsort)
-    sk = x.get_sort().get_sort_kind()
+    sk = x.get_sort().get_kind()
     assert hash(ss.sortkinds.BV) == hash(sk)
     assert sk == ss.sortkinds.BV
     assert sk is ss.sortkinds.BV
+
+
+@pytest.mark.parametrize(
+    ("name", "printed"),
+    [
+        ("ARRAY", "Array"),
+        ("BOOL", "Bool"),
+        ("BV", "BitVec"),
+        ("INT", "Int"),
+        ("REAL", "Real"),
+        ("STRING", "String"),
+        ("FUNCTION", "Function"),
+        ("UNINTERPRETED", "Uninterpreted"),
+        ("UNINTERPRETED_CONS", "UninterpretedSortConstructor"),
+        ("DATATYPE", "Datatype"),
+        ("CONSTRUCTOR", "Constructor"),
+        ("SELECTOR", "Selector"),
+        ("TESTER", "Tester"),
+    ],
+)
+def test_sort_kind_name(name, printed):
+    assert str(getattr(ss.sortkinds, name)) == printed
+
+
+@pytest.mark.parametrize(
+    "create_solver", [f for name, f in ss.solvers.items() if name != "btor"]
+)
+def test_uninterpreted_sort_kind(create_solver):
+    solver = create_solver(logging=False)
+    assert solver.make_sort("T", 0).get_kind() is ss.sortkinds.UNINTERPRETED
+    assert solver.make_sort("F", 1).get_kind() is ss.sortkinds.UNINTERPRETED_CONS
 
 
 @pytest.mark.parametrize(

@@ -40,8 +40,8 @@ class ForeignHandle : public testing::TestWithParam<SolverConfiguration>
     s = create_solver(sc);
     other = create_solver(
         SolverConfiguration(sc.solver_enum, !sc.is_logging_solver));
-    boolsort = s->make_sort(BOOL);
-    other_boolsort = other->make_sort(BOOL);
+    boolsort = s->make_sort(SortKind::BOOL);
+    other_boolsort = other->make_sort(SortKind::BOOL);
   }
 
   SmtSolver s;

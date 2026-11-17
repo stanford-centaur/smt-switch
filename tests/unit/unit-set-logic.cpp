@@ -43,7 +43,7 @@ class SetLogic : public testing::Test,
 TEST_P(SetLogic, AcceptedFirst)
 {
   s->set_logic("QF_UFBV");
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   s->assert_formula(s->make_term(Equal, x, s->make_term(3, bv)));
   EXPECT_TRUE(s->check_sat().is_sat());
@@ -52,7 +52,7 @@ TEST_P(SetLogic, AcceptedFirst)
 TEST_P(SetLogic, AfterDeclaration)
 {
   s->set_logic("QF_UFBV");
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   try
   {
@@ -69,7 +69,7 @@ TEST_P(SetLogic, AfterDeclaration)
 TEST_P(SetLogic, AfterAssertion)
 {
   s->set_logic("QF_UFBV");
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term three = s->make_term(3, bv);
   s->assert_formula(s->make_term(Equal, x, three));
@@ -89,7 +89,7 @@ TEST_P(SetLogic, AfterOption)
 {
   s->set_opt("produce-models", "true");
   s->set_logic("QF_UFBV");
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term three = s->make_term(3, bv);
   s->assert_formula(s->make_term(Equal, x, three));
@@ -109,7 +109,7 @@ TEST_P(SetLogic, BeforeOption)
   {
     return;
   }
-  Sort bv = s->make_sort(BV, 4);
+  Sort bv = s->make_sort(SortKind::BV, 4);
   Term x = s->make_symbol("x", bv);
   Term three = s->make_term(3, bv);
   s->assert_formula(s->make_term(Equal, x, three));

@@ -40,11 +40,11 @@ Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
                 const Term & term,
                 const Sort & sort)
 {
-  SortKind sk = sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
   Sort cur_sort = term->get_sort();
-  SortKind cur_sk = cur_sort->get_sort_kind();
+  SortKind cur_sk = cur_sort->get_kind();
 
-  if (sk == BOOL && cur_sk == BV)
+  if (sk == SortKind::BOOL && cur_sk == SortKind::BV)
   {
     if (term->is_value() && cur_sort->get_width() == 1)
     {
@@ -53,7 +53,7 @@ Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
     throw NotImplementedException("Cannot interpret " + term->to_string()
                                   + " as a bool.");
   }
-  else if (sk == BV && cur_sk == BOOL)
+  else if (sk == SortKind::BV && cur_sk == SortKind::BOOL)
   {
     if (sort->get_width() != 1)
     {
@@ -68,11 +68,11 @@ Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
     throw NotImplementedException("Cannot interpret " + term->to_string()
                                   + " as " + sort->to_string());
   }
-  else if (sk == REAL && cur_sk == INT)
+  else if (sk == SortKind::REAL && cur_sk == SortKind::INT)
   {
     return solver->make_term(To_Real, term);
   }
-  else if (sk == ARRAY)
+  else if (sk == SortKind::ARRAY)
   {
     // this is a constant array
     // the only value that has SortKind ARRAY
@@ -103,22 +103,22 @@ Term AbsSmtSolver::cast_term(const Term & term, const Sort & sort) const
     return cast_value(shared_from_this(), term, sort);
   }
 
-  SortKind sk = sort->get_sort_kind();
-  SortKind cur_sk = cur_sort->get_sort_kind();
+  SortKind sk = sort->get_kind();
+  SortKind cur_sk = cur_sort->get_kind();
 
-  if (sk == BV && cur_sk == BOOL)
+  if (sk == SortKind::BV && cur_sk == SortKind::BOOL)
   {
     return make_term(Ite, term, make_term(1, sort), make_term(0, sort));
   }
-  else if (sk == BOOL && cur_sk == BV)
+  else if (sk == SortKind::BOOL && cur_sk == SortKind::BV)
   {
     return make_term(Equal, term, make_term(1, cur_sort));
   }
-  else if (sk == INT && cur_sk == REAL)
+  else if (sk == SortKind::INT && cur_sk == SortKind::REAL)
   {
     return make_term(To_Int, term);
   }
-  else if (sk == REAL && cur_sk == INT)
+  else if (sk == SortKind::REAL && cur_sk == SortKind::INT)
   {
     return make_term(To_Real, term);
   }
@@ -155,7 +155,7 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
-    Sort boolsort = make_sort(BOOL);
+    Sort boolsort = make_sort(SortKind::BOOL);
     for (auto t : terms)
     {
       casted_children.push_back(cast_term(t, boolsort));
@@ -167,7 +167,7 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
-    Sort bv1sort = make_sort(BV, 1);
+    Sort bv1sort = make_sort(SortKind::BV, 1);
     for (auto t : terms)
     {
       casted_children.push_back(cast_term(t, bv1sort));
@@ -181,7 +181,7 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
-    Sort boolsort = make_sort(BOOL);
+    Sort boolsort = make_sort(SortKind::BOOL);
     for (auto t : terms)
     {
       casted_children.push_back(cast_term(t, boolsort));
@@ -193,10 +193,10 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
   {
     TermVec casted_children;
     casted_children.reserve(terms.size());
-    Sort bv1sort = make_sort(BV, 1);
+    Sort bv1sort = make_sort(SortKind::BV, 1);
     for (auto t : terms)
     {
-      if (t->get_sort()->get_sort_kind() == BOOL)
+      if (t->get_sort()->get_kind() == SortKind::BOOL)
       {
         casted_children.push_back(cast_term(t, bv1sort));
       }
@@ -211,15 +211,15 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
   // case 5 -- special case for Ite
   else if (po == Ite)
   {
-    Sort boolsort = make_sort(BOOL);
+    Sort boolsort = make_sort(SortKind::BOOL);
     Term cond = cast_term(terms[0], boolsort);
 
     Term ifbranch = terms[1];
     Term elsebranch = terms[2];
 
-    SortKind ifsk = ifbranch->get_sort()->get_sort_kind();
-    SortKind elsesk = elsebranch->get_sort()->get_sort_kind();
-    if (ifsk == INT && elsesk == REAL)
+    SortKind ifsk = ifbranch->get_sort()->get_kind();
+    SortKind elsesk = elsebranch->get_sort()->get_kind();
+    if (ifsk == SortKind::INT && elsesk == SortKind::REAL)
     {
       // MathSAT and Yices2 make an integer-valued Real an Int, so an Ite
       // over Reals can have one branch of each; widen rather than truncate
@@ -283,7 +283,8 @@ Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
   else if (po == Forall || po == Exists)
   {
     TermVec casted_children(terms.begin(), terms.end() - 1);
-    casted_children.push_back(cast_term(terms.back(), make_sort(BOOL)));
+    casted_children.push_back(
+        cast_term(terms.back(), make_sort(SortKind::BOOL)));
     return make_term(op, casted_children);
   }
   // default case

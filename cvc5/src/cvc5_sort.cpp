@@ -35,8 +35,8 @@ std::uint64_t Cvc5Sort::get_width() const
 {
   if (!sort.isBitVector())
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no width");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                  + " has no width");
   }
   return sort.getBitVectorSize();
 }
@@ -45,8 +45,7 @@ Sort Cvc5Sort::get_indexsort() const
 {
   if (!sort.isArray())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no index sort");
   }
   return std::make_shared<Cvc5Sort>(sort.getArrayIndexSort());
@@ -56,8 +55,7 @@ Sort Cvc5Sort::get_elemsort() const
 {
   if (!sort.isArray())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no element sort");
   }
   return std::make_shared<Cvc5Sort>(sort.getArrayElementSort());
@@ -85,8 +83,7 @@ SortVec Cvc5Sort::get_domain_sorts() const
   }
   else
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no domain sorts");
   }
   SortVec domain_sorts;
@@ -119,8 +116,7 @@ Sort Cvc5Sort::get_codomain_sort() const
   {
     return std::make_shared<Cvc5Sort>(sort.getDatatypeTesterCodomainSort());
   }
-  throw IncorrectUsageException("Sort of kind "
-                                + smt::to_string(get_sort_kind())
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                 + " has no codomain sort");
 }
 
@@ -135,8 +131,7 @@ std::string Cvc5Sort::get_uninterpreted_name() const
   {
     return sort.getSymbol();
   }
-  throw IncorrectUsageException("Sort of kind "
-                                + smt::to_string(get_sort_kind())
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                 + " has no uninterpreted name");
 }
 
@@ -150,8 +145,8 @@ std::size_t Cvc5Sort::get_arity() const
   {
     return sort.getUninterpretedSortConstructorArity();
   }
-  throw IncorrectUsageException(
-      "Sort of kind " + smt::to_string(get_sort_kind()) + " has no arity");
+  throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                + " has no arity");
 }
 
 Sort Cvc5Sort::get_uninterpreted_constructor() const
@@ -169,8 +164,7 @@ SortVec Cvc5Sort::get_uninterpreted_param_sorts() const
 {
   if (!sort.isUninterpretedSort())
   {
-    throw IncorrectUsageException("Sort of kind "
-                                  + smt::to_string(get_sort_kind())
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
                                   + " has no uninterpreted param sorts");
   }
   // cvc5 refuses getInstantiatedParameters on a sort that was not applied
@@ -203,65 +197,65 @@ cvc5::Datatype Cvc5Sort::get_cvc5_datatype() const
 {
   if (!sort.isDatatype())
   {
-    throw IncorrectUsageException(
-        "Sort of kind " + smt::to_string(get_sort_kind()) + " has no datatype");
+    throw IncorrectUsageException("Sort of kind " + smt::to_string(get_kind())
+                                  + " has no datatype");
   }
   return sort.getDatatype();
 }
 
-SortKind Cvc5Sort::get_sort_kind() const
+SortKind Cvc5Sort::get_kind() const
 {
   if (sort.isBoolean())
   {
-    return BOOL;
+    return SortKind::BOOL;
   }
   else if (sort.isBitVector())
   {
-    return BV;
+    return SortKind::BV;
   }
   else if (sort.isInteger())
   {
-    return INT;
+    return SortKind::INT;
   }
   else if (sort.isReal())
   {
-    return REAL;
+    return SortKind::REAL;
   }
   else if (sort.isString())
   {
-    return STRING;
+    return SortKind::STRING;
   }
   else if (sort.isArray())
   {
-    return ARRAY;
+    return SortKind::ARRAY;
   }
   else if (sort.isFunction())
   {
-    return FUNCTION;
+    return SortKind::FUNCTION;
   }
   else if (sort.isUninterpretedSort())
   {
-    return UNINTERPRETED;
+    return SortKind::UNINTERPRETED;
   }
   else if (sort.isUninterpretedSortConstructor())
   {
-    return UNINTERPRETED_CONS;
+    return SortKind::UNINTERPRETED_CONS;
   }
   else if (sort.isDatatype())
   {
-    return DATATYPE;
+    return SortKind::DATATYPE;
   }
   else if (sort.isDatatypeConstructor())
   {
-    return CONSTRUCTOR;
+    return SortKind::CONSTRUCTOR;
   }
   else if (sort.isDatatypeSelector())
   {
-    return SELECTOR;
+    return SortKind::SELECTOR;
   }
   else if (sort.isDatatypeTester())
   {
-    return TESTER;
+    return SortKind::TESTER;
   }
   else
   {

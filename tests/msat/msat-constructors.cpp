@@ -30,7 +30,7 @@ TEST(MsatConstructors, GetMsatEnvCreatesTheEnv)
   std::shared_ptr<msat_env> env = s->get_msat_env();
   ASSERT_FALSE(MSAT_ERROR_ENV(*env));
   // the solver goes on using the env it handed out
-  s->make_symbol("x", s->make_sort(BOOL));
+  s->make_symbol("x", s->make_sort(SortKind::BOOL));
   EXPECT_EQ(s->get_msat_env(), env);
 }
 
@@ -41,7 +41,7 @@ TEST(MsatConstructors, InterpolatingKeepsBitBlastPreference)
   // bit-blasting mode the caller prefers
   SmtInterpolator s = std::make_shared<MsatInterpolator>();
   s->set_opt("theory.bv.bit_blast_mode", "1");
-  Sort bvsort = s->make_sort(BV, 8);
+  Sort bvsort = s->make_sort(SortKind::BV, 8);
   Term x = s->make_symbol("x", bvsort);
   Term y = s->make_symbol("y", bvsort);
   Term A = s->make_term(

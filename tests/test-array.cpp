@@ -36,9 +36,9 @@ class ArrayModelTests : public testing::Test,
     s = create_solver(GetParam());
     s->set_opt("produce-models", "true");
     // distinct index and element sorts, so a check cannot mix them up
-    idxsort = s->make_sort(BV, 4);
-    elemsort = s->make_sort(BV, 8);
-    arrsort = s->make_sort(ARRAY, idxsort, elemsort);
+    idxsort = s->make_sort(SortKind::BV, 4);
+    elemsort = s->make_sort(SortKind::BV, 8);
+    arrsort = s->make_sort(SortKind::ARRAY, idxsort, elemsort);
     arr = s->make_symbol("arr", arrsort);
     i = s->make_symbol("i", idxsort);
     j = s->make_symbol("j", idxsort);
@@ -111,8 +111,8 @@ class ArrayTests : public testing::Test,
 
 TEST_P(ArrayTests, EqualIndicesEqualReads)
 {
-  Sort bvsort32 = s->make_sort(BV, 32);
-  Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
+  Sort bvsort32 = s->make_sort(SortKind::BV, 32);
+  Sort array32_32 = s->make_sort(SortKind::ARRAY, bvsort32, bvsort32);
   Term x = s->make_symbol("x", bvsort32);
   Term y = s->make_symbol("y", bvsort32);
   Term arr = s->make_symbol("arr", array32_32);
@@ -129,9 +129,9 @@ TEST_P(ArrayTests, EqualIndicesEqualReads)
 
 TEST_P(ArrayTests, StoreOp)
 {
-  Sort bvsort4 = s->make_sort(BV, 4);
-  Sort bvsort8 = s->make_sort(BV, 8);
-  Sort array4_8 = s->make_sort(ARRAY, bvsort4, bvsort8);
+  Sort bvsort4 = s->make_sort(SortKind::BV, 4);
+  Sort bvsort8 = s->make_sort(SortKind::BV, 8);
+  Sort array4_8 = s->make_sort(SortKind::ARRAY, bvsort4, bvsort8);
   Term x = s->make_symbol("x", bvsort4);
   Term elem = s->make_symbol("elem", bvsort8);
   Term mem = s->make_symbol("mem", array4_8);
@@ -143,8 +143,8 @@ TEST_P(ArrayTests, StoreOp)
 TEST_P(ArrayTests, SelectsAgreeWithModel)
 {
   s->set_opt("produce-models", "true");
-  Sort bvsort32 = s->make_sort(BV, 32);
-  Sort array32_32 = s->make_sort(ARRAY, bvsort32, bvsort32);
+  Sort bvsort32 = s->make_sort(SortKind::BV, 32);
+  Sort array32_32 = s->make_sort(SortKind::ARRAY, bvsort32, bvsort32);
   Term x0 = s->make_symbol("x0", bvsort32);
   Term x1 = s->make_symbol("x1", bvsort32);
   Term y = s->make_symbol("y", bvsort32);
@@ -176,9 +176,9 @@ class ConstArrayTests : public testing::Test,
   void SetUp() override
   {
     s = create_solver(GetParam());
-    bvsort4 = s->make_sort(BV, 4);
-    bvsort8 = s->make_sort(BV, 8);
-    arrsort = s->make_sort(ARRAY, bvsort4, bvsort8);
+    bvsort4 = s->make_sort(SortKind::BV, 4);
+    bvsort8 = s->make_sort(SortKind::BV, 8);
+    arrsort = s->make_sort(SortKind::ARRAY, bvsort4, bvsort8);
     idx0 = s->make_symbol("idx0", bvsort4);
     idx1 = s->make_symbol("idx1", bvsort4);
     zero = s->make_term(0, bvsort8);
