@@ -129,16 +129,17 @@ std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se)
                SolverAttribute::PARAM_UNINTERP_SORT,
                SolverAttribute::UNINTERP_SORT_EQ,
                SolverAttribute::TIMELIMIT };
+    // Yices2 builds a constant array as a lambda, which its context refuses
+    // unless preprocessing removes it, as it does not for a store over one.
     case YICES2:
     case YICES2_INTERPOLATOR:
       return {
-        SolverAttribute::CONSTARR,         SolverAttribute::FULL_TRANSFER,
-        SolverAttribute::TERMITER,         SolverAttribute::THEORY_INT,
-        SolverAttribute::THEORY_BV,        SolverAttribute::THEORY_REAL,
-        SolverAttribute::ARRAY_FUN_BOOLS,  SolverAttribute::ARRAY_MODELS,
-        SolverAttribute::UNINTERP_SORT,    SolverAttribute::PARAM_UNINTERP_SORT,
-        SolverAttribute::UNINTERP_SORT_EQ, SolverAttribute::TIMELIMIT,
-        SolverAttribute::UNSAT_CORE
+        SolverAttribute::FULL_TRANSFER,       SolverAttribute::TERMITER,
+        SolverAttribute::THEORY_INT,          SolverAttribute::THEORY_BV,
+        SolverAttribute::THEORY_REAL,         SolverAttribute::ARRAY_FUN_BOOLS,
+        SolverAttribute::ARRAY_MODELS,        SolverAttribute::UNINTERP_SORT,
+        SolverAttribute::PARAM_UNINTERP_SORT, SolverAttribute::UNINTERP_SORT_EQ,
+        SolverAttribute::TIMELIMIT,           SolverAttribute::UNSAT_CORE
       };
     case Z3:
       return {

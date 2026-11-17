@@ -211,12 +211,6 @@ TEST_P(ConstArrayTests, SameBaseIsSameTerm)
 
 TEST_P(ConstArrayTests, StoreOverConstArray)
 {
-  if (GetParam().solver_enum == YICES2)
-  {
-    GTEST_SKIP() << "Yices2 cannot read a constant array through a store at "
-                    "a symbolic index";
-  }
-
   // a read at any index other than the stored one sees the base
   Term val = s->make_symbol("val", bvsort8);
   Term stored = s->make_term(Op::Store, const_arr, idx0, val);
@@ -228,12 +222,6 @@ TEST_P(ConstArrayTests, StoreOverConstArray)
 
 TEST_P(ConstArrayTests, TransfersToAnotherSolver)
 {
-  if (GetParam().solver_enum == YICES2)
-  {
-    GTEST_SKIP() << "Yices2 cannot read an array constrained to equal a "
-                    "constant array";
-  }
-
   SmtSolver s2 = create_solver(GetParam());
   s2->set_opt("incremental", "true");
   TermTranslator tt(s2);

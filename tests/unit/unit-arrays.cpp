@@ -61,13 +61,6 @@ TEST_P(UnitArrayTests, ConstArr)
 
   EXPECT_TRUE(r.is_sat());
 
-  if (GetParam().solver_enum == YICES2)
-  {
-    // Yices2 has no model value for a constant array, which it keeps as a
-    // lambda; the rest of this test asks for one
-    return;
-  }
-
   Term aval = s->get_value(a);
   EXPECT_EQ(aval->get_sort(), constarr0->get_sort());
   EXPECT_EQ(aval, constarr0);
