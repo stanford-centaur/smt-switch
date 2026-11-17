@@ -26,24 +26,6 @@
 
 namespace smt {
 
-/** Used to keep track of which command is currently being parsed */
-enum class SmtLibCommand
-{
-  SETLOGIC = 0,
-  SETOPT,
-  SETINFO,
-  DECLARECONST,
-  DECLAREFUN,
-  DEFINEFUN,
-  ASSERT,
-  CHECKSAT,
-  CHECKSATASSUMING,
-  PUSH,
-  POP,
-  NONE /** this must stay at the end --
-           can also be used for the number of SmtLibCommand enums */
-};
-
 /** Basic scoped symbol map
  *  Used for arguments and parameters that have limited scope
  *  A symbol in an inner scope shadows the same symbol in an outer one,

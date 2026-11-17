@@ -36,6 +36,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -815,35 +816,28 @@ void GenericSolver::restart_binary() const
     throw SolverException("Could not restart the solver binary at " + path
                           + ": " + e.what());
   }
-  if (mode_ == SmtLibMode::SAT || mode_ == SmtLibMode::UNSAT)
+  if (mode_ == Mode::SAT || mode_ == Mode::UNSAT)
   {
-    mode_ = SmtLibMode::ASSERT;
+    mode_ = Mode::ASSERT;
   }
 }
 
-std::string to_string(SmtLibMode mode)
-{
-  // no default, so that -Wswitch reports an enumerator without a case
-  switch (mode)
-  {
-    case SmtLibMode::START: return "start";
-    case SmtLibMode::ASSERT: return "assert";
-    case SmtLibMode::SAT: return "sat";
-    case SmtLibMode::UNSAT: return "unsat";
-  }
-  throw NotImplementedException("Unknown SmtLibMode: "
-                                + std::to_string(static_cast<int>(mode)));
-}
-
-void GenericSolver::require_mode(SmtLibMode needed,
+void GenericSolver::require_mode(Mode needed,
                                  const std::string & operation,
                                  const std::string & reason) const
 {
   if (mode_ != needed)
   {
+    // the names SMT-LIB gives the modes
+    const std::unordered_map<Mode, const char *> names = {
+      { Mode::START, "start" },
+      { Mode::ASSERT, "assert" },
+      { Mode::SAT, "sat" },
+      { Mode::UNSAT, "unsat" },
+    };
     throw IncorrectUsageException(
-        operation + " needs " + to_string(needed) + " mode (" + reason
-        + "), but the solver is in " + to_string(mode_) + " mode");
+        operation + " needs " + names.at(needed) + " mode (" + reason
+        + "), but the solver is in " + names.at(mode_) + " mode");
   }
 }
 
@@ -868,9 +862,9 @@ std::string GenericSolver::run_command(const std::string & cmd,
   // its refusals do not always say so. Whether or not the binary takes
   // ALL, it is past the start mode afterwards, so it is tried once.
   if ((kind == CommandKind::ASSERTION || kind == CommandKind::CHECK)
-      && mode_ == SmtLibMode::START && is_error_response(reply))
+      && mode_ == Mode::START && is_error_response(reply))
   {
-    mode_ = SmtLibMode::ASSERT;
+    mode_ = Mode::ASSERT;
     bool all_set = false;
     try
     {
@@ -924,19 +918,18 @@ std::string GenericSolver::run_command(const std::string & cmd,
   switch (kind)
   {
     case CommandKind::LOGIC:
-    case CommandKind::ASSERTION: mode_ = SmtLibMode::ASSERT; break;
-    case CommandKind::RESET: mode_ = SmtLibMode::START; break;
+    case CommandKind::ASSERTION: mode_ = Mode::ASSERT; break;
+    case CommandKind::RESET: mode_ = Mode::START; break;
     case CommandKind::RESET_ASSERTIONS:
-      if (mode_ != SmtLibMode::START)
+      if (mode_ != Mode::START)
       {
-        mode_ = SmtLibMode::ASSERT;
+        mode_ = Mode::ASSERT;
       }
       break;
     case CommandKind::CHECK:
       // sat and unknown both leave a model to read (SMT-LIB 2.6 Section
       // 4.2.5)
-      mode_ =
-          str_to_result(reply).is_unsat() ? SmtLibMode::UNSAT : SmtLibMode::SAT;
+      mode_ = str_to_result(reply).is_unsat() ? Mode::UNSAT : Mode::SAT;
       break;
     case CommandKind::OPTION:
     case CommandKind::GET: break;
@@ -978,7 +971,7 @@ void GenericSolver::send_pending_commands() const
 
 bool GenericSolver::send_or_hold(const std::string & cmd) const
 {
-  if (mode_ == SmtLibMode::SAT || mode_ == SmtLibMode::UNSAT)
+  if (mode_ == Mode::SAT || mode_ == Mode::UNSAT)
   {
     pending_commands_.push_back(cmd);
     return true;
@@ -1925,7 +1918,7 @@ Term GenericSolver::get_value(const Term & t) const
     throw IncorrectUsageException("Can't get the value of " + t->to_string()
                                   + ": it was not made by this solver");
   }
-  require_mode(SmtLibMode::SAT,
+  require_mode(Mode::SAT,
                "get_value",
                "the last check must have answered sat or unknown");
 
@@ -2027,7 +2020,7 @@ std::string GenericSolver::strip_value_from_result(std::string result) const
 
 void GenericSolver::get_unsat_assumptions(UnorderedTermSet & out) const
 {
-  require_mode(SmtLibMode::UNSAT,
+  require_mode(Mode::UNSAT,
                "get_unsat_assumptions",
                "the last check must have answered unsat");
   std::string result =
@@ -2107,7 +2100,7 @@ UnorderedTermMap GenericSolver::get_array_values(const Term & arr,
                                   + ": it was not made by this solver");
   }
 
-  require_mode(SmtLibMode::SAT,
+  require_mode(Mode::SAT,
                "get_array_values",
                "the last check must have answered sat or unknown");
 
@@ -2171,7 +2164,7 @@ void GenericSolver::set_opt(const std::string option, const std::string value)
   {
     if (option == start_only)
     {
-      require_mode(SmtLibMode::START,
+      require_mode(Mode::START,
                    "set_opt(\"" + option + "\")",
                    "only options may precede it");
     }
