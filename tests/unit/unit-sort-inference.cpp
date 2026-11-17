@@ -353,11 +353,11 @@ TEST_P(DatatypeSortedness, ComponentApplications)
   EXPECT_TRUE(Op(Apply_Tester).check_sortedness({ is_just, m }));
   EXPECT_TRUE(Op(Apply_Selector).check_sortedness({ value, m }));
 
-  // a head that is no datatype component
+  // a head that is not a datatype component
   EXPECT_FALSE(Op(Apply_Constructor).check_sortedness({ p }));
   EXPECT_FALSE(Op(Apply_Tester).check_sortedness({ p, m }));
   EXPECT_FALSE(Op(Apply_Selector).check_sortedness({ arr, m }));
-  // an argument that is no datatype term
+  // an argument that is not a datatype term
   EXPECT_FALSE(Op(Apply_Tester).check_sortedness({ is_just, p }));
   EXPECT_FALSE(Op(Apply_Selector).check_sortedness({ value, p }));
   // a missing argument

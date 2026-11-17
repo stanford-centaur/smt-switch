@@ -20,8 +20,7 @@ namespace smt {
 
 SmtSolver MsatSolverFactory::create(bool logging)
 {
-  MsatSolver * ms = new MsatSolver();
-  SmtSolver solver(ms);
+  SmtSolver solver = std::make_shared<MsatSolver>();
   if (logging)
   {
     solver = std::make_shared<LoggingSolver>(solver);
@@ -31,9 +30,7 @@ SmtSolver MsatSolverFactory::create(bool logging)
 
 SmtInterpolator MsatSolverFactory::create_interpolator()
 {
-  MsatInterpolator * ps = new MsatInterpolator();
-  std::shared_ptr<MsatInterpolator> s(ps);
-  return s;
+  return std::make_shared<MsatInterpolator>();
 }
 
 SmtInterpolator MsatSolverFactory::create_interpolating_solver()

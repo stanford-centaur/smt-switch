@@ -150,7 +150,7 @@ class MsatSolver : public AbsSmtSolver
    *  @param timed_out set to whether the limit stopped the query
    *  @return MathSAT's result
    */
-  msat_result solve(std::vector<msat_term> * labels, bool & timed_out);
+  msat_result solve(const std::vector<msat_term> & labels, bool & timed_out);
 
   friend class MsatInterpolator;
 

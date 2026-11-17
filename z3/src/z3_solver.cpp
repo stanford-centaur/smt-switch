@@ -393,7 +393,7 @@ Term Z3Solver::make_term(bool b) const
   return std::make_shared<Z3Term>(ctx, z_term);
 }
 void Z3Solver::add_constructor(z3::sort dtsort,
-                               z3::constructors * cs,
+                               z3::constructors & cs,
                                const DatatypeConstructorDecl & cons) const
 {
   auto z3cons = std::static_pointer_cast<Z3DatatypeConstructorDecl>(cons);
@@ -408,11 +408,11 @@ void Z3Solver::add_constructor(z3::sort dtsort,
     fieldnames.push_back(ctx->str_symbol(name.c_str()));
     sorts.push_back(static_cast<Z3_sort>(sort) == nullptr ? dtsort : sort);
   }
-  cs->add(ctx->str_symbol(cname.c_str()),
-          ctx->str_symbol(recognizer.c_str()),
-          backend::narrow<unsigned>(fieldnames.size(), "a number of fields"),
-          fieldnames.data(),
-          sorts.data());
+  cs.add(ctx->str_symbol(cname.c_str()),
+         ctx->str_symbol(recognizer.c_str()),
+         backend::narrow<unsigned>(fieldnames.size(), "a number of fields"),
+         fieldnames.data(),
+         sorts.data());
 }
 
 Sort Z3Solver::make_sort(const DatatypeDecl & d) const
@@ -434,7 +434,7 @@ try
   z3::constructors cs{ *ctx };
   for (auto cons : cd->consvec)
   {
-    add_constructor(dtsort, &cs, cons);
+    add_constructor(dtsort, cs, cons);
   }
   auto sort = ctx->datatype(ctx->str_symbol(cd->name.data()), cs);
   cd->used = true;
@@ -477,7 +477,7 @@ SortVec Z3Solver::make_datatype_sorts(
     auto dt_sort = ctx->datatype_sort(dt_symbol);
     syms.push_back(dt_symbol);
     auto cs = std::make_unique<z3::constructors>(*ctx);
-    for (auto cons : decl->consvec) add_constructor(dt_sort, cs.get(), cons);
+    for (auto cons : decl->consvec) add_constructor(dt_sort, *cs, cons);
     clvec.emplace_back(*cs);
     clpvec.push_back(&clvec.back());
     consvec.push_back(std::move(cs));

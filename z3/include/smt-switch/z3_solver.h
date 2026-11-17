@@ -147,7 +147,7 @@ class Z3Solver : public AbsSmtSolver
 
   // helper function
   void add_constructor(z3::sort,
-                       z3::constructors *,
+                       z3::constructors &,
                        const DatatypeConstructorDecl &) const;
 };
 }  // namespace smt

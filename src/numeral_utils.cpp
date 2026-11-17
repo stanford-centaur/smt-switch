@@ -206,7 +206,7 @@ IncorrectUsageException not_a_numeral(const std::string & val,
 /* The value of c as a digit of a numeral in a base up to 36: 0 to 9,
  *  then a to z in either case
  *  @param c the character
- *  @return its value, or 36 if c is no such digit
+ *  @return its value, or 36 if c is not such a digit
  */
 unsigned numeral_digit(char c)
 {

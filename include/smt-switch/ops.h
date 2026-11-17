@@ -270,18 +270,26 @@ std::uint64_t get_num_indices(PrimOp po);
  * arguments, and builds the applications to two itself where its solver
  * takes no more.
  */
-/** Whether po is :left-assoc, e.g. (- a b c) is (- (- a b) c) */
+/** Whether po is :left-assoc, e.g. (- a b c) is (- (- a b) c)
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ */
 bool is_left_assoc(PrimOp po);
-/** Whether po is :right-assoc, e.g. (=> a b c) is (=> a (=> b c)) */
+/** Whether po is :right-assoc, e.g. (=> a b c) is (=> a (=> b c))
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ */
 bool is_right_assoc(PrimOp po);
-/** Whether po is :chainable, e.g. (< a b c) is (and (< a b) (< b c)) */
+/** Whether po is :chainable, e.g. (< a b c) is (and (< a b) (< b c))
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
+ */
 bool is_chainable(PrimOp po);
 /** Whether po is :pairwise, e.g. (distinct a b c) is
  *  (and (distinct a b) (distinct a c) (distinct b c))
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
  */
 bool is_pairwise(PrimOp po);
 /** Whether po can be applied to more than two arguments: whether it is
  *  :left-assoc, :right-assoc, :chainable or :pairwise
+ *  @throws IncorrectUsageException for NUM_OPS_AND_NULL
  */
 bool is_variadic(PrimOp po);
 
