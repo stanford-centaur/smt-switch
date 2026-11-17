@@ -103,7 +103,7 @@ SmtSolver term_maker(const std::unordered_set<SolverAttribute> & attributes)
 // x > 0 over the integers, which not every backend supports.
 Term make_int_term()
 {
-  SmtSolver s = term_maker({ THEORY_INT });
+  SmtSolver s = term_maker({ SolverAttribute::THEORY_INT });
   Sort int_sort = s->make_sort(INT);
   Term x = s->make_symbol("x", int_sort);
   return s->make_term(Gt, x, s->make_term(0, int_sort));
@@ -111,11 +111,11 @@ Term make_int_term()
 
 TEST(PortfolioSolver, TwoPortfoliosFindSat)
 {
-  if (backends_with({ THEORY_BV }).empty())
+  if (backends_with({ SolverAttribute::THEORY_BV }).empty())
   {
     GTEST_SKIP() << "no backend with bit-vectors";
   }
-  SmtSolver s = term_maker({ THEORY_BV });
+  SmtSolver s = term_maker({ SolverAttribute::THEORY_BV });
   s->set_opt("produce-models", "true");
   Sort bvsort = s->make_sort(BV, 10);
 
@@ -150,10 +150,12 @@ TEST(PortfolioSolver, TwoPortfoliosFindSat)
     test_term = s->make_term(And, t, test_term);
   }
 
-  PortfolioSolver p(two_members_each_with({ THEORY_BV }), test_term);
+  PortfolioSolver p(two_members_each_with({ SolverAttribute::THEORY_BV }),
+                    test_term);
   EXPECT_TRUE(p.portfolio_solve().is_sat());
 
-  PortfolioSolver p2(two_members_each_with({ THEORY_BV }), test_term);
+  PortfolioSolver p2(two_members_each_with({ SolverAttribute::THEORY_BV }),
+                     test_term);
   EXPECT_TRUE(p2.portfolio_solve().is_sat());
 }
 
@@ -173,8 +175,9 @@ TEST(PortfolioSolver, AnswersATrivialTerm)
 
 TEST(PortfolioSolver, FailingSolverDropsOut)
 {
-  std::vector<SmtSolver> members = members_without(THEORY_INT);
-  std::vector<SmtSolver> answering = members_with({ THEORY_INT });
+  std::vector<SmtSolver> members = members_without(SolverAttribute::THEORY_INT);
+  std::vector<SmtSolver> answering =
+      members_with({ SolverAttribute::THEORY_INT });
   if (members.empty() || answering.empty())
   {
     GTEST_SKIP() << "needs backends both with and without integers";
@@ -186,8 +189,8 @@ TEST(PortfolioSolver, FailingSolverDropsOut)
 
 TEST(PortfolioSolver, ThrowsWhenNoSolverAnswers)
 {
-  std::vector<SmtSolver> members = members_without(THEORY_INT);
-  if (members.empty() || backends_with({ THEORY_INT }).empty())
+  std::vector<SmtSolver> members = members_without(SolverAttribute::THEORY_INT);
+  if (members.empty() || backends_with({ SolverAttribute::THEORY_INT }).empty())
   {
     GTEST_SKIP() << "needs backends both with and without integers";
   }
@@ -197,11 +200,12 @@ TEST(PortfolioSolver, ThrowsWhenNoSolverAnswers)
 
 TEST(PortfolioSolver, CanBeUsedAgain)
 {
-  if (backends_with({ THEORY_INT }).empty())
+  if (backends_with({ SolverAttribute::THEORY_INT }).empty())
   {
     GTEST_SKIP() << "no backend with integers";
   }
-  PortfolioSolver p(members_with({ THEORY_INT }), make_int_term());
+  PortfolioSolver p(members_with({ SolverAttribute::THEORY_INT }),
+                    make_int_term());
   EXPECT_TRUE(p.portfolio_solve().is_sat());
   EXPECT_TRUE(p.portfolio_solve().is_sat());
 }

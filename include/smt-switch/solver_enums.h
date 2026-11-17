@@ -14,7 +14,6 @@
 
 #include <ostream>
 #include <string>
-#include <unordered_set>
 
 namespace smt {
 enum SolverEnum
@@ -39,65 +38,15 @@ enum SolverEnum
   // python/smt_switch/cppenums.pxd and python/smt_switch/solverenums.pyx
 };
 
-enum SolverAttribute
-{
-  LOGGING = 0,
-  // supports traversing terms with iteration
-  TERMITER,
-  // supports bit-vector theory
-  THEORY_BV,
-  // supports integer theory
-  THEORY_INT,
-  // supports real theory
-  THEORY_REAL,
-  // supports STR theory
-  THEORY_STR,
-  // supports array models
-  ARRAY_MODELS,
-  // supports constant arrays
-  CONSTARR,
-  // terms can be traversed with iteration, and a term's Op and children
-  // can be used to rebuild an equivalent term in another solver
-  FULL_TRANSFER,
-  // supports functions with boolean arguments
-  // and arrays with boolean elements
-  ARRAY_FUN_BOOLS,
-  // unsat core support
-  UNSAT_CORE,
-  // supports datatype theory
-  THEORY_DATATYPE,
-  // supports quantifiers
-  QUANTIFIERS,
-  // supports zero arity uninterpreted sorts
-  UNINTERP_SORT,
-  // supports non-zero arity uninterpreted sorts
-  PARAM_UNINTERP_SORT,
-  // aliases booleans and bit-vectors of size one
-  BOOL_BV1_ALIASING,
-  // supports setting a time limit, in seconds (fractions allowed)
-  TIMELIMIT
-
-  // NOTE: when adding a new enum, also add it to the python interface, in
-  // python/smt_switch/cppenums.pxd and python/smt_switch/solverattr.pyx
-};
-
 /** Returns true iff the SolverEnum corresponds to an Interpolator
  *  @param se the solver enum to check
  *  @return true iff the se is a *_INTERPOLATOR enum
  */
 bool is_interpolator_solver_enum(SolverEnum se);
 
-bool solver_has_attribute(SolverEnum se, SolverAttribute sa);
-
-std::unordered_set<SolverAttribute> get_solver_attributes(SolverEnum se);
-
 std::ostream & operator<<(std::ostream & o, SolverEnum e);
 
 std::string to_string(SolverEnum e);
-
-std::ostream & operator<<(std::ostream & o, SolverAttribute sa);
-
-std::string to_string(SolverAttribute a);
 
 }  // namespace smt
 

@@ -36,28 +36,6 @@ cdef extern from "smt-switch/solver_enums.h" namespace "smt":
 
     string to_string(c_SolverEnum se) except +
 
-    cdef cppclass c_SolverAttribute "smt::SolverAttribute":
-        pass
-
-    cdef c_SolverAttribute c_LOGGING "smt::LOGGING"
-    cdef c_SolverAttribute c_TERMITER "smt::TERMITER"
-    cdef c_SolverAttribute c_THEORY_BV "smt::THEORY_BV"
-    cdef c_SolverAttribute c_THEORY_INT "smt::THEORY_INT"
-    cdef c_SolverAttribute c_THEORY_REAL "smt::THEORY_REAL"
-    cdef c_SolverAttribute c_THEORY_STR "smt::THEORY_STR"
-    cdef c_SolverAttribute c_ARRAY_MODELS "smt::ARRAY_MODELS"
-    cdef c_SolverAttribute c_CONSTARR "smt::CONSTARR"
-    cdef c_SolverAttribute c_FULL_TRANSFER "smt::FULL_TRANSFER"
-    cdef c_SolverAttribute c_ARRAY_FUN_BOOLS "smt::ARRAY_FUN_BOOLS"
-    cdef c_SolverAttribute c_UNSAT_CORE "smt::UNSAT_CORE"
-    cdef c_SolverAttribute c_THEORY_DATATYPE "smt::THEORY_DATATYPE"
-    cdef c_SolverAttribute c_QUANTIFIERS "smt::QUANTIFIERS"
-    cdef c_SolverAttribute c_UNINTERP_SORT "smt::UNINTERP_SORT"
-    cdef c_SolverAttribute c_PARAM_UNINTERP_SORT "smt::PARAM_UNINTERP_SORT"
-    cdef c_SolverAttribute c_BOOL_BV1_ALIASING "smt::BOOL_BV1_ALIASING"
-    cdef c_SolverAttribute c_TIMELIMIT "smt::TIMELIMIT"
-
-    string to_string(c_SolverAttribute sa) except +
 
 cdef extern from "smt-switch/ops.h" namespace "smt":
     cdef c_PrimOp c_And "smt::And"

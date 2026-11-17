@@ -22,6 +22,51 @@
 
 namespace smt::tests {
 
+/** What a backend supports, for choosing the solvers a test runs on */
+enum class SolverAttribute
+{
+  // supports traversing terms with iteration
+  TERMITER,
+  // supports bit-vector theory
+  THEORY_BV,
+  // supports integer theory
+  THEORY_INT,
+  // supports real theory
+  THEORY_REAL,
+  // supports STR theory
+  THEORY_STR,
+  // supports array models
+  ARRAY_MODELS,
+  // supports constant arrays
+  CONSTARR,
+  // terms can be traversed with iteration, and a term's Op and children
+  // can be used to rebuild an equivalent term in another solver
+  FULL_TRANSFER,
+  // supports functions with boolean arguments
+  // and arrays with boolean elements
+  ARRAY_FUN_BOOLS,
+  // unsat core support
+  UNSAT_CORE,
+  // supports datatype theory
+  THEORY_DATATYPE,
+  // supports quantifiers
+  QUANTIFIERS,
+  // supports zero arity uninterpreted sorts
+  UNINTERP_SORT,
+  // supports non-zero arity uninterpreted sorts
+  PARAM_UNINTERP_SORT,
+  // aliases booleans and bit-vectors of size one
+  BOOL_BV1_ALIASING,
+  // supports setting a time limit, in seconds (fractions allowed)
+  TIMELIMIT
+};
+
+/** The attributes of the backend se, an interpolator sharing its solver's */
+std::unordered_set<SolverAttribute> get_solver_attributes(smt::SolverEnum se);
+
+/** Whether the backend se has the attribute sa */
+bool solver_has_attribute(smt::SolverEnum se, SolverAttribute sa);
+
 struct SolverConfiguration
 {
   // fields
@@ -60,25 +105,25 @@ std::vector<SolverConfiguration> available_interpolator_configurations();
  * @return all available interpolating solvers that have *all* the attributes
  */
 std::vector<SolverConfiguration> filter_interpolator_configurations(
-    const std::unordered_set<smt::SolverAttribute> attributes);
+    const std::unordered_set<SolverAttribute> attributes);
 
 /** Filter the available solvers by a set of attributes
  * @return the available solvers, GENERIC_SOLVER included, that have *all*
  *         the attributes
  */
 std::vector<smt::SolverEnum> filter_solver_enums_with_generic(
-    const std::unordered_set<smt::SolverAttribute> attributes);
+    const std::unordered_set<SolverAttribute> attributes);
 
 /** Filter the available solvers by a set of attributes
  * @return the available solver configurations, GENERIC_SOLVER included,
  *         that have *all* the attributes
  */
 std::vector<SolverConfiguration> filter_solver_configurations_with_generic(
-    const std::unordered_set<smt::SolverAttribute> attributes);
+    const std::unordered_set<SolverAttribute> attributes);
 
 /** As filter_solver_configurations_with_generic, without GENERIC_SOLVER */
 std::vector<SolverConfiguration> filter_solver_configurations(
-    const std::unordered_set<smt::SolverAttribute> attributes);
+    const std::unordered_set<SolverAttribute> attributes);
 
 std::ostream & operator<<(std::ostream & o, SolverConfiguration sc);
 

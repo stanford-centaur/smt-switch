@@ -97,8 +97,8 @@ TEST_P(ArrayModelTests, UnconstrainedArray)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedArrayModelTests,
     ArrayModelTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ ARRAY_MODELS })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::ARRAY_MODELS })));
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ArrayTests);
 class ArrayTests : public testing::Test,
@@ -262,7 +262,8 @@ TEST_P(ConstArrayTests, TransfersToAnotherSolver)
 INSTANTIATE_TEST_SUITE_P(
     ,
     ConstArrayTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ CONSTARR })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::CONSTARR })),
     ConfigName());
 
 }  // namespace

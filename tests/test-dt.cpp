@@ -840,8 +840,8 @@ TEST_P(Datatypes, OrderAgreesWithEquality)
 INSTANTIATE_TEST_SUITE_P(
     ,
     Datatypes,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_DATATYPE })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_DATATYPE })),
     ConfigName());
 
 }  // namespace

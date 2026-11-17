@@ -313,32 +313,37 @@ INSTANTIATE_TEST_SUITE_P(,
                          testing::ValuesIn(replayable({})),
                          ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         PrintingBitVectorTests,
-                         testing::ValuesIn(replayable({ THEORY_BV })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    PrintingBitVectorTests,
+    testing::ValuesIn(replayable({ SolverAttribute::THEORY_BV })),
+    ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         PrintingUninterpretedSortTests,
-                         testing::ValuesIn(replayable({ THEORY_BV,
-                                                        UNINTERP_SORT })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    PrintingUninterpretedSortTests,
+    testing::ValuesIn(replayable({ SolverAttribute::THEORY_BV,
+                                   SolverAttribute::UNINTERP_SORT })),
+    ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         PrintingUnsatCoreTests,
-                         testing::ValuesIn(replayable({ THEORY_BV,
-                                                        UNSAT_CORE })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    PrintingUnsatCoreTests,
+    testing::ValuesIn(replayable({ SolverAttribute::THEORY_BV,
+                                   SolverAttribute::UNSAT_CORE })),
+    ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         PrintingRealTests,
-                         testing::ValuesIn(replayable({ THEORY_REAL })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    PrintingRealTests,
+    testing::ValuesIn(replayable({ SolverAttribute::THEORY_REAL })),
+    ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(,
-                         PrintingDatatypeTests,
-                         testing::ValuesIn(replayable({ THEORY_DATATYPE })),
-                         ConfigName());
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    PrintingDatatypeTests,
+    testing::ValuesIn(replayable({ SolverAttribute::THEORY_DATATYPE })),
+    ConfigName());
 
 }  // namespace
 

@@ -135,8 +135,8 @@ TEST_P(ForeignDatatypeHandle, ForeignDatatypeNotEqual)
 INSTANTIATE_TEST_SUITE_P(
     ,
     ForeignDatatypeHandle,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_DATATYPE })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_DATATYPE })),
     ConfigName());
 
 }  // namespace

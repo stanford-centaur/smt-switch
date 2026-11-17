@@ -16,7 +16,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
@@ -274,8 +273,8 @@ TEST_P(StrTests, StringOperators)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverStrTests,
     StrTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT, THEORY_STR })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_STR })));
 
 }  // namespace
 

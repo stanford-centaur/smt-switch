@@ -14,9 +14,8 @@ from .cppapi cimport (
 )
 from .cppenums cimport (
     c_PrimOp,
-    c_SolverAttribute,
     c_SolverEnum,
     c_SortKind,
 )
-from .enums cimport PrimOp, SolverAttribute, SolverEnum, SortKind
+from .enums cimport PrimOp, SolverEnum, SortKind
 from .smt_solvers cimport *

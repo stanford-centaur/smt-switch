@@ -104,7 +104,8 @@ class AbsTerm : public internal::SharedBase<AbsTerm>
    */
   virtual std::string to_bits() const;
   /** Returns the value of a Boolean value.
-   *  On a solver with BOOL_BV1_ALIASING, a 1-bit bit-vector value is a
+   *  On a solver that aliases Booleans with 1-bit bit-vectors, a 1-bit
+   *  bit-vector value is a
    *  Boolean value too, and #b1 is true.
    *  Throws an IncorrectUsageException for anything else.
    *  The default implementation parses to_string().

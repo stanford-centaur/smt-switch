@@ -21,7 +21,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
 namespace smt::tests {
@@ -280,29 +279,29 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
                          testing::ValuesIn(available_solver_configurations()),
                          ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverVariadicOpsTests,
-    IntNaryTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_INT })),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
+                         IntNaryTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { SolverAttribute::THEORY_INT })),
+                         ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverVariadicOpsTests,
-    RealNaryTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_REAL })),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
+                         RealNaryTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { SolverAttribute::THEORY_REAL })),
+                         ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverVariadicOpsTests,
-    BVNaryTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_BV })),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
+                         BVNaryTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { SolverAttribute::THEORY_BV })),
+                         ConfigName());
 
-INSTANTIATE_TEST_SUITE_P(
-    ParameterizedSolverVariadicOpsTests,
-    StrNaryTests,
-    testing::ValuesIn(filter_solver_configurations({ THEORY_STR })),
-    ConfigName());
+INSTANTIATE_TEST_SUITE_P(ParameterizedSolverVariadicOpsTests,
+                         StrNaryTests,
+                         testing::ValuesIn(filter_solver_configurations(
+                             { SolverAttribute::THEORY_STR })),
+                         ConfigName());
 
 }  // namespace
 

@@ -120,8 +120,8 @@ TEST_P(UnitArrayTests, ValueHoldsTheAssertedEntries)
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitArray,
     UnitArrayTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ CONSTARR, ARRAY_MODELS })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::CONSTARR, SolverAttribute::ARRAY_MODELS })));
 
 }  // namespace
 

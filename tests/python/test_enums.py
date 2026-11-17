@@ -7,7 +7,7 @@
 import pytest
 
 import smt_switch as ss
-from smt_switch import solverattr, solverenums
+from smt_switch import solverenums
 
 from .available_solvers import int_support_solvers
 
@@ -59,29 +59,3 @@ def test_primop(create_solver):
 )
 def test_solver_enum(name):
     assert str(getattr(solverenums, name)) == name
-
-
-@pytest.mark.parametrize(
-    "name",
-    [
-        "ARRAY_FUN_BOOLS",
-        "ARRAY_MODELS",
-        "BOOL_BV1_ALIASING",
-        "CONSTARR",
-        "FULL_TRANSFER",
-        "LOGGING",
-        "PARAM_UNINTERP_SORT",
-        "QUANTIFIERS",
-        "TERMITER",
-        "THEORY_BV",
-        "THEORY_DATATYPE",
-        "THEORY_INT",
-        "THEORY_REAL",
-        "THEORY_STR",
-        "TIMELIMIT",
-        "UNINTERP_SORT",
-        "UNSAT_CORE",
-    ],
-)
-def test_solver_attribute(name):
-    assert str(getattr(solverattr, name)) == name

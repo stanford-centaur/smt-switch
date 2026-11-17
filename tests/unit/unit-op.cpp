@@ -23,7 +23,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
@@ -300,7 +299,8 @@ INSTANTIATE_TEST_SUITE_P(ParameterizedPrimOp,
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverUnit,
     UnitTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TERMITER })));
 
 }  // namespace
 

@@ -16,7 +16,6 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
@@ -91,7 +90,8 @@ TEST_P(UnitTransferTests, MonotonicUF)
 INSTANTIATE_TEST_SUITE_P(ParameterizedTransferUnit,
                          UnitTransferTests,
                          testing::ValuesIn(filter_solver_configurations(
-                             { FULL_TRANSFER, QUANTIFIERS })));
+                             { SolverAttribute::FULL_TRANSFER,
+                               SolverAttribute::QUANTIFIERS })));
 
 }  // namespace
 

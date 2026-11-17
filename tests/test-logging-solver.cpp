@@ -284,7 +284,7 @@ INSTANTIATE_TEST_SUITE_P(
     ,
     LoggingUninterpretedArrays,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { UNINTERP_SORT, ARRAY_MODELS })),
+        { SolverAttribute::UNINTERP_SORT, SolverAttribute::ARRAY_MODELS })),
     ConfigName());
 
 }  // namespace

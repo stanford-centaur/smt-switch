@@ -130,7 +130,8 @@ TEST_P(UnitSortTests, SortSet)
   };
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
   // solver keeps apart
-  bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+  bool aliased = solver_has_attribute(GetParam().solver_enum,
+                                      SolverAttribute::BOOL_BV1_ALIASING)
                  && !GetParam().is_logging_solver;
   EXPECT_EQ(sset.size(), aliased ? 3 : 4);
 }
@@ -255,7 +256,8 @@ TEST_P(UnitSortTests, SortKinds)
 {
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
   // solver keeps apart
-  bool aliased = solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+  bool aliased = solver_has_attribute(GetParam().solver_enum,
+                                      SolverAttribute::BOOL_BV1_ALIASING)
                  && !GetParam().is_logging_solver;
   EXPECT_EQ(boolsort->get_sort_kind(), aliased ? BV : BOOL);
   EXPECT_EQ(bvsort->get_sort_kind(), BV);
@@ -624,27 +626,28 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitSortArithTests,
     UnitSortArithTests,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { THEORY_INT, THEORY_REAL })));
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_REAL })));
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSort,
     UninterpretedSorts,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ UNINTERP_SORT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::UNINTERP_SORT })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSort,
     SortConstructors,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ PARAM_UNINTERP_SORT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::PARAM_UNINTERP_SORT })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     UnitSort,
     QuantifiedSortConstructors,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { PARAM_UNINTERP_SORT, QUANTIFIERS })),
+        { SolverAttribute::PARAM_UNINTERP_SORT,
+          SolverAttribute::QUANTIFIERS })),
     ConfigName());
 
 }  // namespace

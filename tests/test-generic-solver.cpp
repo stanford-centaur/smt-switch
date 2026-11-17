@@ -87,13 +87,13 @@ bool has_attribute(SolverEnum b, SolverAttribute a)
   // The Yices2 API writes a constant array as a lambda, but its SMT-LIB
   // frontend has no such term: the binary answers
   // (error "undefined term: const") to ((as const (Array ...)) ...).
-  if (b == YICES2 && a == CONSTARR)
+  if (b == YICES2 && a == SolverAttribute::CONSTARR)
   {
     return false;
   }
   // The boolector binary answers get-value for a select, then dies of
   // SIGSEGV on get-value for the array itself.
-  if (b == BTOR && a == ARRAY_MODELS)
+  if (b == BTOR && a == SolverAttribute::ARRAY_MODELS)
   {
     return false;
   }
@@ -1514,20 +1514,23 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn(params_where(answers_unsupported_logics)),
     param_name);
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverUfTests,
-                         GenericSolverUfTests,
-                         testing::ValuesIn(params_with(UNINTERP_SORT)),
-                         param_name);
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedGenericSolverUfTests,
+    GenericSolverUfTests,
+    testing::ValuesIn(params_with(SolverAttribute::UNINTERP_SORT)),
+    param_name);
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntTests,
-                         GenericSolverIntTests,
-                         testing::ValuesIn(params_with(THEORY_INT)),
-                         param_name);
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedGenericSolverIntTests,
+    GenericSolverIntTests,
+    testing::ValuesIn(params_with(SolverAttribute::THEORY_INT)),
+    param_name);
 
-INSTANTIATE_TEST_SUITE_P(,
-                         GenericSolverRealTests,
-                         testing::ValuesIn(params_with(THEORY_REAL)),
-                         param_name);
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    GenericSolverRealTests,
+    testing::ValuesIn(params_with(SolverAttribute::THEORY_REAL)),
+    param_name);
 
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedGenericSolverArrayFunTests,
@@ -1538,25 +1541,29 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverIntQuantifierTests,
                          GenericSolverIntQuantifierTests,
                          testing::ValuesIn(params_where([](SolverEnum b) {
-                           return has_attribute(b, THEORY_INT)
-                                  && has_attribute(b, QUANTIFIERS);
+                           return has_attribute(b, SolverAttribute::THEORY_INT)
+                                  && has_attribute(
+                                      b, SolverAttribute::QUANTIFIERS);
                          })),
                          param_name);
 
-INSTANTIATE_TEST_SUITE_P(ParameterizedGenericSolverConstArrayTests,
-                         GenericSolverConstArrayTests,
-                         testing::ValuesIn(params_with(CONSTARR)),
-                         param_name);
+INSTANTIATE_TEST_SUITE_P(
+    ParameterizedGenericSolverConstArrayTests,
+    GenericSolverConstArrayTests,
+    testing::ValuesIn(params_with(SolverAttribute::CONSTARR)),
+    param_name);
 
-INSTANTIATE_TEST_SUITE_P(,
-                         GenericSolverArrayModelTests,
-                         testing::ValuesIn(params_with(ARRAY_MODELS)),
-                         param_name);
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    GenericSolverArrayModelTests,
+    testing::ValuesIn(params_with(SolverAttribute::ARRAY_MODELS)),
+    param_name);
 
-INSTANTIATE_TEST_SUITE_P(,
-                         GenericSolverDatatypeTests,
-                         testing::ValuesIn(params_with(THEORY_DATATYPE)),
-                         param_name);
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    GenericSolverDatatypeTests,
+    testing::ValuesIn(params_with(SolverAttribute::THEORY_DATATYPE)),
+    param_name);
 
 INSTANTIATE_TEST_SUITE_P(,
                          GenericSolverTimeoutTests,

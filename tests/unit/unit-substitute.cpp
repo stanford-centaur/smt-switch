@@ -17,7 +17,6 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/substitution_walker.h"
 #include "smt-switch/term.h"
@@ -194,7 +193,8 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     ParametrizedUnitSubstitute,
     UnitSubstituteIterTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ TERMITER })));
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::TERMITER })));
 
 }  // namespace
 

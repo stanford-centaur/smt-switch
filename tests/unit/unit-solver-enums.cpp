@@ -66,46 +66,21 @@ TEST(UnitSolverEnumNames, EverySolverEnumPrints)
   }
 }
 
-TEST(UnitSolverEnumNames, EverySolverAttributePrints)
-{
-  const std::vector<std::pair<SolverAttribute, std::string>> names({
-      { LOGGING, "LOGGING" },
-      { TERMITER, "TERMITER" },
-      { THEORY_BV, "THEORY_BV" },
-      { THEORY_INT, "THEORY_INT" },
-      { THEORY_REAL, "THEORY_REAL" },
-      { THEORY_STR, "THEORY_STR" },
-      { ARRAY_MODELS, "ARRAY_MODELS" },
-      { CONSTARR, "CONSTARR" },
-      { FULL_TRANSFER, "FULL_TRANSFER" },
-      { ARRAY_FUN_BOOLS, "ARRAY_FUN_BOOLS" },
-      { UNSAT_CORE, "UNSAT_CORE" },
-      { THEORY_DATATYPE, "THEORY_DATATYPE" },
-      { QUANTIFIERS, "QUANTIFIERS" },
-      { UNINTERP_SORT, "UNINTERP_SORT" },
-      { PARAM_UNINTERP_SORT, "PARAM_UNINTERP_SORT" },
-      { BOOL_BV1_ALIASING, "BOOL_BV1_ALIASING" },
-      { TIMELIMIT, "TIMELIMIT" },
-  });
-  for (const auto & [sa, name] : names)
-  {
-    EXPECT_EQ(to_string(sa), name);
-  }
-}
-
 TEST(UnitSolverAttributes, FullTransferIsTermIterWithoutAliasing)
 {
   // a backend that breaks this has to say so here, rather than let the
   // attributes drift apart
   for (SolverEnum se : solvers::available())
   {
-    EXPECT_EQ(solver_has_attribute(se, FULL_TRANSFER),
-              solver_has_attribute(se, TERMITER)
-                  && !solver_has_attribute(se, BOOL_BV1_ALIASING))
+    EXPECT_EQ(
+        solver_has_attribute(se, SolverAttribute::FULL_TRANSFER),
+        solver_has_attribute(se, SolverAttribute::TERMITER)
+            && !solver_has_attribute(se, SolverAttribute::BOOL_BV1_ALIASING))
         << to_string(se);
   }
   // TermTranslator refuses the generic solver whatever it iterates
-  EXPECT_FALSE(solver_has_attribute(GENERIC_SOLVER, FULL_TRANSFER));
+  EXPECT_FALSE(
+      solver_has_attribute(GENERIC_SOLVER, SolverAttribute::FULL_TRANSFER));
 }
 
 TEST(UnitSolverAttributes, InterpolatorsShareTheirSolversAttributes)

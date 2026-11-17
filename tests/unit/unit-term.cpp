@@ -132,7 +132,8 @@ TEST_P(UnitTermTests, ToBoolOfOneBitValue)
   Term zero = s->make_term(0, bvsort1);
   // Boolector gives Bool and (_ BitVec 1) one sort, which the logging
   // solver keeps apart
-  if (solver_has_attribute(GetParam().solver_enum, BOOL_BV1_ALIASING)
+  if (solver_has_attribute(GetParam().solver_enum,
+                           SolverAttribute::BOOL_BV1_ALIASING)
       && !GetParam().is_logging_solver)
   {
     EXPECT_TRUE(one->to_bool());
@@ -434,7 +435,7 @@ INSTANTIATE_TEST_SUITE_P(
     ParameterizedSolverUnitTermArith,
     UnitTermArithTests,
     testing::ValuesIn(filter_solver_configurations_with_generic(
-        { THEORY_INT, THEORY_REAL })));
+        { SolverAttribute::THEORY_INT, SolverAttribute::THEORY_REAL })));
 
 class NegativeValueTests
     : public testing::Test,
@@ -534,14 +535,15 @@ TEST_P(NegativeIntTests, CancelsItsPositive)
 INSTANTIATE_TEST_SUITE_P(
     ,
     NegativeBVTests,
-    testing::ValuesIn(filter_solver_configurations_with_generic({ THEORY_BV })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_BV })),
     ConfigName());
 
 INSTANTIATE_TEST_SUITE_P(
     ,
     NegativeIntTests,
-    testing::ValuesIn(
-        filter_solver_configurations_with_generic({ THEORY_INT })),
+    testing::ValuesIn(filter_solver_configurations_with_generic(
+        { SolverAttribute::THEORY_INT })),
     ConfigName());
 
 }  // namespace

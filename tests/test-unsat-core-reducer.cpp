@@ -160,7 +160,8 @@ TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
 INSTANTIATE_TEST_SUITE_P(ParameterizedSolverUnsatCoreReducerTests,
                          UnsatCoreReducerTests,
                          testing::ValuesIn(filter_solver_configurations(
-                             { UNSAT_CORE, FULL_TRANSFER })));
+                             { SolverAttribute::UNSAT_CORE,
+                               SolverAttribute::FULL_TRANSFER })));
 
 }  // namespace
 
