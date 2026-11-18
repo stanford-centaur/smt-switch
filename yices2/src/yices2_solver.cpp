@@ -472,7 +472,8 @@ Term variadic_term(const Op & op, std::vector<term_t> & args)
 
 /* Yices2Solver implementation */
 
-Yices2Solver::Yices2Solver() : AbsSmtSolver(YICES2), config(yices_new_config())
+Yices2Solver::Yices2Solver()
+    : AbsSmtSolver(solvers::YICES2), config(yices_new_config())
 {
 }
 
@@ -482,7 +483,7 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
 {
   if (option == "produce-models" || option == "produce-unsat-assumptions")
   {
-    if (!parse_bool_opt(option, value))
+    if (!backend::parse_bool_opt(option, value))
     {
       throw NotImplementedException("Yices2 cannot turn off " + option);
     }
@@ -495,13 +496,14 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "Yices2 can only set incremental before the first assertion, "
           "check or push");
     }
-    yices_set_config(config,
-                     "mode",
-                     parse_bool_opt(option, value) ? "push-pop" : "one-shot");
+    yices_set_config(
+        config,
+        "mode",
+        backend::parse_bool_opt(option, value) ? "push-pop" : "one-shot");
   }
   else if (option == "time-limit")
   {
-    time_limit = parse_time_limit(value);
+    time_limit = backend::parse_time_limit(value);
   }
   else if (option == "produce-unsat-model-interpolants")
   {
@@ -511,7 +513,8 @@ void Yices2Solver::set_opt(const std::string option, const std::string value)
           "Yices2 can only set produce-unsat-model-interpolants before the "
           "first assertion, check or push");
     }
-    const char * yices_value = parse_bool_opt(option, value) ? "true" : "false";
+    const char * yices_value =
+        backend::parse_bool_opt(option, value) ? "true" : "false";
     if (yices_set_config(config, "model-interpolation", yices_value) < 0)
     {
       Yices2InstanceRef::throw_error();

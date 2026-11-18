@@ -203,10 +203,10 @@ TEST_P(UnitSolveTests, RefusesNonBooleanAndNullAssertions)
 
 TEST_P(UnitSolveTests, WrappersDumpAsWrappedSolver)
 {
-  SolverEnum se = GetParam().solver_enum;
-  std::string prefix = testing::TempDir() + to_string(se);
+  solvers::Kind kind = GetParam().solver_kind;
+  std::string prefix = testing::TempDir() + to_string(kind);
   std::string plain = dump_equality(
-      create_solver(SolverConfiguration(se, false)), prefix + "-plain.smt2");
+      create_solver(SolverConfiguration(kind, false)), prefix + "-plain.smt2");
   // a logging configuration wraps the plain solver in a LoggingSolver
   EXPECT_EQ(dump_equality(create_solver(GetParam()), prefix + "-param.smt2"),
             plain);

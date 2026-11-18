@@ -31,15 +31,15 @@ namespace {
  *  portfolio. The generic solver cannot: a portfolio hands each member its
  *  term through a TermTranslator, which refuses the generic solver.
  */
-std::vector<SolverEnum> backends_with(
+std::vector<solvers::Kind> backends_with(
     const std::unordered_set<SolverAttribute> & attributes)
 {
-  std::vector<SolverEnum> backends;
-  for (SolverEnum se : filter_solver_enums_with_generic(attributes))
+  std::vector<solvers::Kind> backends;
+  for (solvers::Kind kind : filter_solver_kinds_with_generic(attributes))
   {
-    if (se != GENERIC_SOLVER)
+    if (kind != solvers::GENERIC)
     {
-      backends.push_back(se);
+      backends.push_back(kind);
     }
   }
   return backends;
@@ -50,9 +50,9 @@ std::vector<SmtSolver> members_with(
     const std::unordered_set<SolverAttribute> & attributes)
 {
   std::vector<SmtSolver> members;
-  for (SolverEnum se : backends_with(attributes))
+  for (solvers::Kind kind : backends_with(attributes))
   {
-    members.push_back(create_solver(SolverConfiguration(se, false)));
+    members.push_back(create_solver(SolverConfiguration(kind, false)));
   }
   return members;
 }
@@ -64,7 +64,7 @@ std::vector<SmtSolver> members_with(
 std::vector<SmtSolver> two_members_each_with(
     const std::unordered_set<SolverAttribute> & attributes)
 {
-  std::vector<SolverEnum> backends = backends_with(attributes);
+  std::vector<solvers::Kind> backends = backends_with(attributes);
   std::vector<SmtSolver> members;
   for (auto it = backends.begin(); it != backends.end(); ++it)
   {
@@ -81,11 +81,11 @@ std::vector<SmtSolver> two_members_each_with(
 std::vector<SmtSolver> members_without(SolverAttribute attribute)
 {
   std::vector<SmtSolver> members;
-  for (SolverEnum se : backends_with({}))
+  for (solvers::Kind kind : backends_with({}))
   {
-    if (!solver_has_attribute(se, attribute))
+    if (!solver_has_attribute(kind, attribute))
     {
-      members.push_back(create_solver(SolverConfiguration(se, false)));
+      members.push_back(create_solver(SolverConfiguration(kind, false)));
     }
   }
   return members;

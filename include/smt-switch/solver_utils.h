@@ -9,6 +9,7 @@
 #ifndef SMT_SWITCH_SOLVER_UTILS_H
 #define SMT_SWITCH_SOLVER_UTILS_H
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -128,6 +129,23 @@ T narrow(U value, const char * what)
   }
   return static_cast<T>(value);
 }
+
+/** The value of a Boolean option that smt-switch interprets itself, such as
+ *  produce-models or incremental
+ *  @param option the option, used in the error message
+ *  @param value the value given for it
+ *  @return whether value is true
+ *  @throws IncorrectUsageException for a value other than true or false
+ */
+bool parse_bool_opt(const std::string & option, const std::string & value);
+
+/** The value of the time-limit option
+ *  @param value the value given for it, in seconds
+ *  @return the limit
+ *  @throws IncorrectUsageException for a value that is not a nonnegative
+ *  number
+ */
+std::chrono::duration<double> parse_time_limit(const std::string & value);
 
 /** Opens a pipe whose ends any later exec closes, so that no program
  *  another child runs holds them

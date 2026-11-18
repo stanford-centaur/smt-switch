@@ -1,6 +1,6 @@
 /*!
  * \file solver_enums.h
- * \brief Enums for identifying SmtSolver objects
+ * \brief Enums identifying the backend of a solver or interpolator
  * \author Makai Mann
  * \date 2020
  * \copyright See the LICENSE file in the top-level source directory.
@@ -16,37 +16,54 @@
 #include <string>
 
 namespace smt {
-enum SolverEnum
+
+namespace solvers {
+
+/** The backend of a solver
+ *  When adding one, also add it to the Python bindings, in
+ *  python/smt_switch/cppenums.pxd and python/smt_switch/solverkinds.pyx.
+ */
+enum Kind
 {
-  BTOR = 0,        // boolector
-  BZLA,            // bitwuzla
-  CVC5,            // cvc5
-  GENERIC_SOLVER,  // generic solver (binary)
-  MSAT,            // mathsat
-  YICES2,          // yices2
-  Z3,              // z3
-
-  // interpolating solvers -- note these cannot be logging solvers
-  // because the solver takes the initiative in creating the interpolant
-  // so there's no way to keep a DAG at the smt-switch level
-  BZLA_INTERPOLATOR,
-  CVC5_INTERPOLATOR,
-  MSAT_INTERPOLATOR,
-  YICES2_INTERPOLATOR,
-
-  // NOTE: when adding a new enum, also add it to the python interface, in
-  // python/smt_switch/cppenums.pxd and python/smt_switch/solverenums.pyx
+  BTOR,
+  BZLA,
+  CVC5,
+  GENERIC,
+  MSAT,
+  YICES2,
+  Z3
 };
 
-/** Returns true iff the SolverEnum corresponds to an Interpolator
- *  @param se the solver enum to check
- *  @return true iff the se is a *_INTERPOLATOR enum
+std::ostream & operator<<(std::ostream & o, Kind kind);
+
+std::string to_string(Kind kind);
+
+}  // namespace solvers
+
+namespace interpolators {
+
+/** The backend of an interpolator
+ *  When adding one, also add it to the Python bindings, in
+ *  python/smt_switch/cppenums.pxd and python/smt_switch/interpolatorkinds.pyx.
  */
-bool is_interpolator_solver_enum(SolverEnum se);
+enum Kind
+{
+  BZLA,
+  CVC5,
+  MSAT,
+  YICES2
+};
 
-std::ostream & operator<<(std::ostream & o, SolverEnum e);
+/** @return the kind of the solver that builds the terms of an interpolator
+ *          of the given kind
+ */
+solvers::Kind solver_kind(Kind kind);
 
-std::string to_string(SolverEnum e);
+std::ostream & operator<<(std::ostream & o, Kind kind);
+
+std::string to_string(Kind kind);
+
+}  // namespace interpolators
 
 }  // namespace smt
 

@@ -139,7 +139,7 @@ class UnknownAssumingSolver : public LoggingSolver
 
 TEST_P(UnsatCoreReducerTests, ReducersRefuseUnknown)
 {
-  SolverConfiguration sc(GetParam().solver_enum, false);
+  SolverConfiguration sc(GetParam().solver_kind, false);
   UnsatCoreReducer uscr(
       std::make_shared<UnknownAssumingSolver>(create_solver(sc)));
 

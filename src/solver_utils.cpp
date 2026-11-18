@@ -11,9 +11,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cerrno>
+#include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 
 #include "smt-switch/datatype.h"
@@ -49,6 +53,43 @@ std::uint32_t narrow_levels(std::uint64_t levels)
 std::uint32_t narrow_num_args(std::size_t num_args)
 {
   return narrow<std::uint32_t>(num_args, "a number of arguments");
+}
+
+bool parse_bool_opt(const std::string & option, const std::string & value)
+{
+  if (value != "true" && value != "false")
+  {
+    throw IncorrectUsageException("The option " + option
+                                  + " takes true or false, not " + value);
+  }
+  return value == "true";
+}
+
+std::chrono::duration<double> parse_time_limit(const std::string & value)
+{
+  double seconds = 0;
+  std::size_t end = 0;
+  try
+  {
+    seconds = std::stod(value, &end);
+  }
+  catch (const std::logic_error &)
+  {
+    // std::stod failed, so end is still zero
+  }
+  if (end == 0 || end != value.size() || !std::isfinite(seconds) || seconds < 0)
+  {
+    throw IncorrectUsageException(
+        "The option time-limit takes a nonnegative number of seconds, not "
+        + value);
+  }
+  // Half of what a clock counting nanoseconds in 64 bits holds, so that a
+  // solver adding the limit to the time now cannot overflow; a longer limit
+  // is as good as none.
+  constexpr double longest =
+      std::chrono::duration<double>(std::chrono::nanoseconds::max()).count()
+      / 2;
+  return std::chrono::duration<double>(std::min(seconds, longest));
 }
 
 int make_cloexec_pipe(int (&fds)[2])

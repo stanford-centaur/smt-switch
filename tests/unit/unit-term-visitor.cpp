@@ -51,14 +51,15 @@ class RecordingVisitor : public smt::TermVisitor
 /** Names a case after its solver, e.g. CVC5 */
 struct SolverName
 {
-  std::string operator()(const testing::TestParamInfo<SolverEnum> & info) const
+  std::string operator()(
+      const testing::TestParamInfo<solvers::Kind> & info) const
   {
     return to_string(info.param);
   }
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TermVisitor);
-class TermVisitor : public testing::TestWithParam<SolverEnum>
+class TermVisitor : public testing::TestWithParam<solvers::Kind>
 {
  protected:
   void SetUp() override

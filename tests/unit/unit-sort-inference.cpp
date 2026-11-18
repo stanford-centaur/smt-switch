@@ -134,8 +134,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_TRUE(Op(Op::And).check_sortedness({ b1, b2 }));
   EXPECT_TRUE(Op(Op::Xor).check_sortedness({ b1, b2 }));
   // wrong operator, except where Booleans are bit-vectors of width one
-  if (!solver_has_attribute(s->get_solver_enum(),
-                            SolverAttribute::BOOL_BV1_ALIASING))
+  if (!solver_has_attribute(s->get_kind(), SolverAttribute::BOOL_BV1_ALIASING))
   {
     EXPECT_FALSE(Op(Op::BVAnd).check_sortedness({ b1, b2 }));
   }
@@ -168,7 +167,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   EXPECT_FALSE(Op(Op::Store).check_sortedness({ arr, w, p }));
 
   // BTOR doesn't support getting the sort of a function yet
-  if (s->get_solver_enum() != BTOR)
+  if (s->get_kind() != solvers::BTOR)
   {
     /********* Functions ********/
     EXPECT_TRUE(Op(Op::Apply).check_sortedness({ f, p, q }));
@@ -182,7 +181,7 @@ TEST_P(UnitSortInferenceTests, SortednessTests)
   }
 
   /************** Quantifiers (if supported) ******************/
-  if (solver_has_attribute(s->get_solver_enum(), SolverAttribute::QUANTIFIERS))
+  if (solver_has_attribute(s->get_kind(), SolverAttribute::QUANTIFIERS))
   {
     Term param = s->make_param("param", bvsort4);
     EXPECT_TRUE(param->is_param());
@@ -220,7 +219,7 @@ TEST_P(UnitSortInferenceTests, SortComputationWidthOverflow)
                IncorrectUsageException);
   EXPECT_THROW(Op(Op::Repeat, max / 4 + 1).compute_sort(s, { bvsort4 }),
                IncorrectUsageException);
-  if (GetParam().solver_enum == GENERIC_SOLVER)
+  if (GetParam().solver_kind == solvers::GENERIC)
   {
     // its sorts are smt-switch's own, so they can be this wide
     Sort wide = s->make_sort(SortKind::BV, max - 3);
@@ -264,7 +263,7 @@ TEST_P(UnitSortInferenceTests, SortComputation)
   EXPECT_EQ(arrsort, Op(Op::Store).compute_sort(s, { arr, p, q }));
 
   // BTOR doesn't support getting the sort of a function yet
-  if (s->get_solver_enum() != BTOR)
+  if (s->get_kind() != solvers::BTOR)
   {
     /********* Functions ********/
     EXPECT_EQ(boolsort, Op(Op::Apply).compute_sort(s, { f, p, q }));

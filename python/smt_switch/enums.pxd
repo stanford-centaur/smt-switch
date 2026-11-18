@@ -1,11 +1,15 @@
-from .cppenums cimport c_OpKind, c_SolverEnum, c_SortKind
+from .cppenums cimport c_InterpolatorKind, c_OpKind, c_SolverKind, c_SortKind
 
 cdef class OpKind:
     cdef c_OpKind ck
 
 
-cdef class SolverEnum:
-    cdef c_SolverEnum se
+cdef class SolverKind:
+    cdef c_SolverKind ck
+
+
+cdef class InterpolatorKind:
+    cdef c_InterpolatorKind ck
 
 
 cdef class SortKind:

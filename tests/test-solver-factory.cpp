@@ -1,6 +1,6 @@
 /*!
  * \file test-solver-factory.cpp
- * \brief Tests creating solvers and interpolators from their solver enum
+ * \brief Tests creating solvers and interpolators from their kind
  * \author Áron Ricardo Perez-Lopez
  * \date 2026
  * \copyright See the LICENSE file in the top-level source directory.
@@ -28,89 +28,80 @@ namespace smt::tests {
 
 namespace {
 
-std::vector<SolverEnum> sorted(std::vector<SolverEnum> enums)
+std::vector<solvers::Kind> sorted(std::vector<solvers::Kind> kinds)
 {
-  std::sort(enums.begin(), enums.end());
-  return enums;
+  std::sort(kinds.begin(), kinds.end());
+  return kinds;
 }
 
-bool contains(const std::vector<SolverEnum> & enums, SolverEnum se)
+bool contains(const std::vector<interpolators::Kind> & kinds,
+              interpolators::Kind kind)
 {
-  return std::find(enums.begin(), enums.end(), se) != enums.end();
+  return std::find(kinds.begin(), kinds.end(), kind) != kinds.end();
 }
 
-TEST(AvailableSolverEnums, ListsTheConfiguredBackends)
+TEST(AvailableSolverKinds, ListsTheConfiguredBackends)
 {
-  std::vector<SolverEnum> expected;
+  std::vector<solvers::Kind> expected;
 #ifdef BUILD_BTOR
-  expected.push_back(BTOR);
+  expected.push_back(solvers::BTOR);
 #endif
 #ifdef BUILD_BITWUZLA
-  expected.push_back(BZLA);
+  expected.push_back(solvers::BZLA);
 #endif
 #ifdef BUILD_CVC5
-  expected.push_back(CVC5);
+  expected.push_back(solvers::CVC5);
 #endif
 #ifdef BUILD_MSAT
-  expected.push_back(MSAT);
+  expected.push_back(solvers::MSAT);
 #endif
 #ifdef BUILD_YICES2
-  expected.push_back(YICES2);
+  expected.push_back(solvers::YICES2);
 #endif
 #ifdef BUILD_Z3
-  expected.push_back(Z3);
+  expected.push_back(solvers::Z3);
 #endif
   EXPECT_EQ(sorted(solvers::available()), sorted(expected));
 }
 
-TEST(AvailableInterpolatorEnums, ListsTheConfiguredInterpolators)
+TEST(AvailableInterpolatorKinds, ListsTheConfiguredInterpolators)
 {
-  std::vector<SolverEnum> available = interpolators::available();
+  std::vector<interpolators::Kind> available = interpolators::available();
 #ifdef SMT_SWITCH_BITWUZLA_HAS_INTERPOLANTS
-  EXPECT_TRUE(contains(available, BZLA_INTERPOLATOR));
+  EXPECT_TRUE(contains(available, interpolators::BZLA));
 #else
-  EXPECT_FALSE(contains(available, BZLA_INTERPOLATOR));
+  EXPECT_FALSE(contains(available, interpolators::BZLA));
 #endif
 #ifdef BUILD_CVC5
-  EXPECT_TRUE(contains(available, CVC5_INTERPOLATOR));
+  EXPECT_TRUE(contains(available, interpolators::CVC5));
 #else
-  EXPECT_FALSE(contains(available, CVC5_INTERPOLATOR));
+  EXPECT_FALSE(contains(available, interpolators::CVC5));
 #endif
 #ifdef BUILD_MSAT
-  EXPECT_TRUE(contains(available, MSAT_INTERPOLATOR));
+  EXPECT_TRUE(contains(available, interpolators::MSAT));
 #else
-  EXPECT_FALSE(contains(available, MSAT_INTERPOLATOR));
+  EXPECT_FALSE(contains(available, interpolators::MSAT));
 #endif
   // only a Yices2 built with MCSAT interpolates, which only Yices2 can say
   bool yices2_interpolates = true;
   try
   {
-    interpolators::create(YICES2_INTERPOLATOR);
+    interpolators::create(interpolators::YICES2);
   }
   catch (const NotImplementedException &)
   {
     yices2_interpolates = false;
   }
-  EXPECT_EQ(contains(available, YICES2_INTERPOLATOR), yices2_interpolates);
+  EXPECT_EQ(contains(available, interpolators::YICES2), yices2_interpolates);
 }
 
 TEST(CreateSolverRefusals, GenericSolver)
 {
-  EXPECT_THROW(solvers::create(GENERIC_SOLVER, false), IncorrectUsageException);
-}
-
-TEST(CreateSolverRefusals, Interpolator)
-{
-  EXPECT_THROW(solvers::create(CVC5_INTERPOLATOR, false),
+  EXPECT_THROW(solvers::create(solvers::GENERIC, false),
                IncorrectUsageException);
 }
 
-TEST(CreateInterpolatorRefusals, Solver)
-{
-  EXPECT_THROW(interpolators::create(CVC5), IncorrectUsageException);
-}
-
-using SolverAndLogging = std::tuple<SolverEnum, bool>;
+using SolverAndLogging = std::tuple<solvers::Kind, bool>;
 
 /** Names a case after its solver and whether it logs, e.g. CVC5_LOGGING */
 struct SolverAndLoggingName
@@ -134,30 +125,31 @@ class CreateSolver : public testing::TestWithParam<SolverAndLogging>
 
 TEST_P(CreateSolver, MakesTheRequestedSolver)
 {
-  const auto & [se, logging] = GetParam();
-  SmtSolver s = solvers::create(se, logging);
-  EXPECT_EQ(s->get_solver_enum(), se);
+  const auto & [kind, logging] = GetParam();
+  SmtSolver s = solvers::create(kind, logging);
+  EXPECT_EQ(s->get_kind(), kind);
   EXPECT_EQ(std::dynamic_pointer_cast<LoggingSolver>(s) != nullptr, logging);
 }
 
-/** Names a case after its interpolator, e.g. CVC5_INTERPOLATOR */
+/** Names a case after its interpolator, e.g. CVC5 */
 struct InterpolatorName
 {
-  std::string operator()(const testing::TestParamInfo<SolverEnum> & info) const
+  std::string operator()(
+      const testing::TestParamInfo<interpolators::Kind> & info) const
   {
     return to_string(info.param);
   }
 };
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CreateInterpolator);
-class CreateInterpolator : public testing::TestWithParam<SolverEnum>
+class CreateInterpolator : public testing::TestWithParam<interpolators::Kind>
 {
 };
 
 TEST_P(CreateInterpolator, MakesTheRequestedInterpolator)
 {
   SmtInterpolator itp = interpolators::create(GetParam());
-  EXPECT_EQ(itp->get_solver_enum(), GetParam());
+  EXPECT_EQ(itp->get_kind(), GetParam());
 }
 
 INSTANTIATE_TEST_SUITE_P(

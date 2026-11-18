@@ -37,4 +37,18 @@ std::int64_t bv_to_int64(const std::string & s);
 
 }  // namespace smt::smtlib
 
+namespace smt::backend {
+
+/** The value of an option that takes a natural number
+ *  @param option the option, used in the error message
+ *  @param value the value given for it
+ *  @return the number
+ *  @throws IncorrectUsageException for a value that is not a decimal
+ *  numeral below 2^64
+ */
+std::uint64_t parse_nat_opt(const std::string & option,
+                            const std::string & value);
+
+}  // namespace smt::backend
+
 #endif  // SMT_SWITCH_NUMERAL_UTILS_H

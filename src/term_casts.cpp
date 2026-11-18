@@ -6,12 +6,11 @@
  * \date 2020
  * \copyright See the LICENSE file in the top-level source directory.
  *
- * It defines AbsSmtSolver::cast_term and AbsSmtSolver::cast_op.
+ * It defines AbsTermBuilder::cast_term and AbsTermBuilder::cast_op.
  */
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
-#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -19,9 +18,9 @@
 #include "smt-switch/exceptions.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
+#include "smt-switch/term_builder.h"
 
 namespace smt {
 
@@ -38,7 +37,7 @@ constexpr std::pair<Op::Kind, Op::Kind> bool_bv_ops[] = {
 };
 
 /* A value term as another sort */
-Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
+Term cast_value(const AbsTermBuilder & term_builder,
                 const Term & term,
                 const Sort & sort)
 {
@@ -50,7 +49,7 @@ Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
   {
     if (term->is_value() && cur_sort->get_width() == 1)
     {
-      return solver->make_term(term->to_int() == 1);
+      return term_builder.make_term(term->to_int() == 1);
     }
     throw NotImplementedException("Cannot interpret " + term->to_string()
                                   + " as a bool.");
@@ -65,22 +64,22 @@ Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
 
     if (term->is_value())
     {
-      return solver->make_term(term->to_bool() ? 1 : 0, sort);
+      return term_builder.make_term(term->to_bool() ? 1 : 0, sort);
     }
     throw NotImplementedException("Cannot interpret " + term->to_string()
                                   + " as " + sort->to_string());
   }
   else if (sk == SortKind::REAL && cur_sk == SortKind::INT)
   {
-    return solver->make_term(Op::To_Real, term);
+    return term_builder.make_term(Op::To_Real, term);
   }
   else if (sk == SortKind::ARRAY)
   {
     // this is a constant array
     // the only value that has SortKind ARRAY
     // make constant array by recursing on the element value
-    return solver->make_term(
-        cast_value(solver, *(term->begin()), sort->get_elemsort()), sort);
+    return term_builder.make_term(
+        cast_value(term_builder, *(term->begin()), sort->get_elemsort()), sort);
   }
   else
   {
@@ -92,7 +91,7 @@ Term cast_value(const std::shared_ptr<const AbsSmtSolver> & solver,
 
 }  // namespace
 
-Term AbsSmtSolver::cast_term(const Term & term, const Sort & sort) const
+Term AbsTermBuilder::cast_term(const Term & term, const Sort & sort) const
 {
   Sort cur_sort = term->get_sort();
   if (cur_sort == sort)
@@ -102,7 +101,7 @@ Term AbsSmtSolver::cast_term(const Term & term, const Sort & sort) const
   }
   else if (term->is_value())
   {
-    return cast_value(shared_from_this(), term, sort);
+    return cast_value(*this, term, sort);
   }
 
   SortKind sk = sort->get_kind();
@@ -131,7 +130,7 @@ Term AbsSmtSolver::cast_term(const Term & term, const Sort & sort) const
   }
 }
 
-Term AbsSmtSolver::cast_op(const Op & op, const TermVec & terms) const
+Term AbsTermBuilder::cast_op(const Op & op, const TermVec & terms) const
 {
   if (op.check_sortedness(terms))
   {

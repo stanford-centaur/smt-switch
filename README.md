@@ -93,7 +93,7 @@ int main()
 ```
 
 To choose the solver at run time instead, `smt-switch/solver_factory.h` creates
-one from its `SolverEnum`. It reaches any backend the program links, or one
+one from its `solvers::Kind`. It reaches any backend the program links, or one
 installed beside `libsmt-switch`, so linking `SmtSwitch::smt-switch` alone is
 enough:
 
@@ -102,9 +102,9 @@ enough:
 
 int main()
 {
-  for (smt::SolverEnum se : smt::solvers::available())
+  for (smt::solvers::Kind kind : smt::solvers::available())
   {
-    smt::SmtSolver s = smt::solvers::create(se, /* logging */ false);
+    smt::SmtSolver s = smt::solvers::create(kind, /* logging */ false);
   }
   return 0;
 }

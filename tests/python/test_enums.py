@@ -7,7 +7,7 @@
 import pytest
 
 import smt_switch as ss
-from smt_switch import solverenums
+from smt_switch import interpolatorkinds, solverkinds
 
 from .available_solvers import int_support_solvers
 
@@ -83,20 +83,12 @@ def test_string_op_kind(create_solver):
 
 
 @pytest.mark.parametrize(
-    "name",
-    [
-        "BTOR",
-        "BZLA",
-        "BZLA_INTERPOLATOR",
-        "CVC5",
-        "CVC5_INTERPOLATOR",
-        "GENERIC_SOLVER",
-        "MSAT",
-        "MSAT_INTERPOLATOR",
-        "YICES2",
-        "YICES2_INTERPOLATOR",
-        "Z3",
-    ],
+    "name", ["BTOR", "BZLA", "CVC5", "GENERIC", "MSAT", "YICES2", "Z3"]
 )
-def test_solver_enum(name):
-    assert str(getattr(solverenums, name)) == name
+def test_solver_kind(name):
+    assert str(getattr(solverkinds, name)) == name
+
+
+@pytest.mark.parametrize("name", ["BZLA", "CVC5", "MSAT", "YICES2"])
+def test_interpolator_kind(name):
+    assert str(getattr(interpolatorkinds, name)) == name

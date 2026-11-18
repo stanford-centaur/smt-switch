@@ -55,13 +55,13 @@ class UnitUtilTests : public testing::Test,
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(UnitUtilDimacsTests);
 class UnitUtilDimacsTests : public testing::Test,
-                            public testing::WithParamInterface<SolverEnum>
+                            public testing::WithParamInterface<solvers::Kind>
 {
  protected:
   void SetUp() override
   {
-    SolverEnum se = GetParam();
-    SolverConfiguration sc(se, true);
+    solvers::Kind kind = GetParam();
+    SolverConfiguration sc(kind, true);
     // using only logging solvers for this test because we don't want the
     // original formula to change, otherwise it might no longer be in cnf
 
@@ -126,7 +126,7 @@ TEST_P(UnitUtilTests, ConjunctivePartition)
 
 TEST_P(UnitUtilTests, DisjunctivePartition)
 {
-  if (s->get_solver_enum() == BTOR)
+  if (s->get_kind() == solvers::BTOR)
   {
     // Boolector rewrites Ors as Not And; it is equivalent, but disjunctive
     // partition cannot see through it
@@ -252,7 +252,7 @@ TEST_P(UnitUtilDimacsTests, ToDimacs)
   std::string expected = "p cnf 4 3\n1 -2 3 0\n3 -2 4 0\n-2 4 1 0\n";
   ASSERT_TRUE(ret == expected) << ret << " " << expected << std::endl
                                << cnf << std::endl
-                               << s->get_solver_enum() << std::endl;
+                               << s->get_kind() << std::endl;
 
   // Test 2
   Term clause4 = a;
@@ -835,10 +835,10 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     ParameterizedUnitUtilDimacsTests,
     UnitUtilDimacsTests,
-    testing::ValuesIn(available_solver_enums_with_generic()));
+    testing::ValuesIn(available_solver_kinds_with_generic()));
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(IsTheoryAtom);
-class IsTheoryAtom : public testing::TestWithParam<SolverEnum>
+class IsTheoryAtom : public testing::TestWithParam<solvers::Kind>
 {
  protected:
   void SetUp() override
@@ -920,7 +920,7 @@ INSTANTIATE_TEST_SUITE_P(UnitUtil,
                          testing::PrintToStringParamName());
 
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GetJustifyingSymbols);
-class GetJustifyingSymbols : public testing::TestWithParam<SolverEnum>
+class GetJustifyingSymbols : public testing::TestWithParam<solvers::Kind>
 {
  protected:
   void SetUp() override
@@ -1298,7 +1298,7 @@ TEST_P(SmtLibBenchmarkDeclarations, DeclaresSortsThenSymbolsByName)
 
 TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     GTEST_SKIP() << "the generic solver declares a sort's name to the binary "
                     "without SMT-LIB quoting";
@@ -1321,7 +1321,7 @@ TEST_P(SmtLibBenchmarkDeclarations, QuotesSortNames)
 // SMT-LIB cannot declare two sorts with the same name, so one is renamed
 TEST_P(SmtLibBenchmarkDeclarations, RenamesSortsSharingAName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";
@@ -1412,7 +1412,7 @@ TEST_P(SmtLibBenchmarkParamSorts, DeclaresAConstructorOnceForItsApplications)
 // renamed
 TEST_P(SmtLibBenchmarkParamSorts, RenamesConstructorsSharingAName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";
@@ -1561,7 +1561,7 @@ class SmtLibBenchmarkRenamedSorts : public SmtLibBenchmarkDeclarations
 // a renamed sort is written by its new name inside an assertion too
 TEST_P(SmtLibBenchmarkRenamedSorts, BinderUsesTheNewName)
 {
-  if (s->get_solver_enum() == GENERIC_SOLVER)
+  if (s->get_kind() == solvers::GENERIC)
   {
     GTEST_SKIP() << "the generic solver refuses to declare a second sort with "
                     "the same name";

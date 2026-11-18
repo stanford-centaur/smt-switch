@@ -28,6 +28,7 @@
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
+#include "smt-switch/term_builder.h"
 
 namespace smt {
 
@@ -61,9 +62,10 @@ bool uses_uninterp_sort(const Sort & sort)
 
 }  // namespace
 
-TermTranslator::TermTranslator(const SmtSolver & s) : solver(s)
+TermTranslator::TermTranslator(const TermBuilder & s) : term_builder(s)
 {
-  if (s->get_solver_enum() == SolverEnum::GENERIC_SOLVER)
+  auto solver = std::dynamic_pointer_cast<AbsSmtSolver>(s);
+  if (solver && solver->get_kind() == solvers::GENERIC)
   {
     throw NotImplementedException(
         "Generic Solvers do not support term transfer");
@@ -76,19 +78,19 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
   if ((sk == SortKind::INT) || (sk == SortKind::REAL) || (sk == SortKind::BOOL)
       || (sk == SortKind::STRING))
   {
-    return solver->make_sort(sk);
+    return term_builder->make_sort(sk);
   }
   else if (sk == SortKind::BV)
   {
-    return solver->make_sort(sk, sort->get_width());
+    return term_builder->make_sort(sk, sort->get_width());
   }
   else if (sk == SortKind::ARRAY)
   {
     // recursive call, but it should be okay because we don't expect deep
     // nesting of arrays
-    return solver->make_sort(sk,
-                             transfer_sort(sort->get_indexsort()),
-                             transfer_sort(sort->get_elemsort()));
+    return term_builder->make_sort(sk,
+                                   transfer_sort(sort->get_indexsort()),
+                                   transfer_sort(sort->get_elemsort()));
   }
   else if (sk == SortKind::FUNCTION)
   {
@@ -100,7 +102,7 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
       sorts.push_back(transfer_sort(s));
     }
     sorts.push_back(transfer_sort(sort->get_codomain_sort()));
-    return solver->make_sort(sk, sorts);
+    return term_builder->make_sort(sk, sorts);
   }
   else if (sk == SortKind::UNINTERPRETED)
   {
@@ -116,8 +118,8 @@ Sort TermTranslator::transfer_sort(const Sort & sort)
     {
       transferred.push_back(transfer_sort(s));
     }
-    return solver->make_sort(uninterpreted_sort(name, param_sorts.size()),
-                             transferred);
+    return term_builder->make_sort(uninterpreted_sort(name, param_sorts.size()),
+                                   transferred);
   }
   else if (sk == SortKind::UNINTERPRETED_CONS)
   {
@@ -156,26 +158,26 @@ Sort TermTranslator::transfer_datatype_sort(const Sort & sort)
   }
   try
   {
-    DatatypeDecl decl = solver->make_datatype_decl(name);
+    DatatypeDecl decl = term_builder->make_datatype_decl(name);
     for (const std::string & cons : dt->get_constructor_names())
     {
       DatatypeConstructorDecl cons_decl =
-          solver->make_datatype_constructor_decl(cons);
+          term_builder->make_datatype_constructor_decl(cons);
       for (const std::string & sel : dt->get_selector_names(cons))
       {
         Sort sel_sort = dt->get_selector_sort(cons, sel);
         if (sel_sort == sort)
         {
-          solver->add_selector_self(cons_decl, sel);
+          term_builder->add_selector_self(cons_decl, sel);
         }
         else
         {
-          solver->add_selector(cons_decl, sel, transfer_sort(sel_sort));
+          term_builder->add_selector(cons_decl, sel, transfer_sort(sel_sort));
         }
       }
-      solver->add_constructor(decl, cons_decl);
+      term_builder->add_constructor(decl, cons_decl);
     }
-    Sort res = solver->make_sort(decl);
+    Sort res = term_builder->make_sort(decl);
     datatypes_in_progress.erase(name);
     datatype_sorts[name] = res;
     return res;
@@ -197,11 +199,12 @@ Term TermTranslator::transfer_datatype_component(const Term & term)
   Sort transferred = transfer_sort(dt_sort);
   if (sk == SortKind::CONSTRUCTOR)
   {
-    return solver->get_constructor(transferred, term->get_constructor_name());
+    return term_builder->get_constructor(transferred,
+                                         term->get_constructor_name());
   }
   if (sk == SortKind::TESTER)
   {
-    return solver->get_tester(transferred, term->get_constructor_name());
+    return term_builder->get_tester(transferred, term->get_constructor_name());
   }
   // a selector is named together with the constructor it belongs to
   std::string name = term->get_selector_name();
@@ -212,7 +215,7 @@ Term TermTranslator::transfer_datatype_component(const Term & term)
     {
       if (sel == name)
       {
-        return solver->get_selector(transferred, cons, sel);
+        return term_builder->get_selector(transferred, cons, sel);
       }
     }
   }
@@ -226,7 +229,7 @@ Sort TermTranslator::uninterpreted_sort(const std::string & name,
   auto it = uninterpreted_sorts.find(name);
   if (it == uninterpreted_sorts.end())
   {
-    Sort sort = solver->make_sort(name, arity);
+    Sort sort = term_builder->make_sort(name, arity);
     uninterpreted_sorts[name] = sort;
     return sort;
   }
@@ -298,7 +301,7 @@ Term TermTranslator::transfer_term(const Term & term)
       else if (t->is_param())
       {
         s = transfer_sort(t->get_sort());
-        cache[t] = solver->make_param(t->get_param_name(), s);
+        cache[t] = term_builder->make_param(t->get_param_name(), s);
       }
       else if (t->is_symbol())
       {
@@ -307,7 +310,7 @@ Term TermTranslator::transfer_term(const Term & term)
         Term sym;
         try
         {
-          sym = solver->get_symbol(name);
+          sym = term_builder->get_symbol(name);
         }
         catch (IncorrectUsageException & e)
         {
@@ -316,7 +319,7 @@ Term TermTranslator::transfer_term(const Term & term)
 
         if (!sym)
         {
-          cache[t] = solver->make_symbol(name, s);
+          cache[t] = term_builder->make_symbol(name, s);
         }
         // An uninterpreted sort can't be looked up by name, so transfer_sort
         // makes a new one of the same name, and two that both use one are
@@ -333,7 +336,7 @@ Term TermTranslator::transfer_term(const Term & term)
           Sort cast_sort;
           try
           {
-            cast_sort = solver->cast_term(sym, s)->get_sort();
+            cast_sort = term_builder->cast_term(sym, s)->get_sort();
           }
           catch (NotImplementedException & e)
           {
@@ -372,11 +375,11 @@ Term TermTranslator::transfer_term(const Term & term)
                 "Transferring terms with multi-dimensional constant arrays is "
                 "not yet supported. Please contact the developers.");
           }
-          cache[t] = solver->make_term(val, s);
+          cache[t] = term_builder->make_term(val, s);
         }
         else if (sk == SortKind::BV)
         {
-          cache[t] = solver->make_term(t->to_bits(), s, 2);
+          cache[t] = term_builder->make_term(t->to_bits(), s, 2);
         }
         else
         {
@@ -406,7 +409,7 @@ Term TermTranslator::transfer_term(const Term & term)
 
         if (!op.check_sortedness(cached_children))
         {
-          cache[t] = solver->cast_op(op, cached_children);
+          cache[t] = term_builder->cast_op(op, cached_children);
         }
         else
         {
@@ -417,7 +420,7 @@ Term TermTranslator::transfer_term(const Term & term)
           {
             widen_ints(cached_children);
           }
-          cache[t] = solver->make_term(t->get_op(), cached_children);
+          cache[t] = term_builder->make_term(t->get_op(), cached_children);
         }
       }
     }
@@ -446,28 +449,28 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
   if (transferred_sk == SortKind::BV && transferred_sort->get_width() == 1
       && sk == SortKind::BOOL)
   {
-    Sort sort = solver->make_sort(SortKind::BOOL);
-    return solver->cast_term(transferred_term, sort);
+    Sort sort = term_builder->make_sort(SortKind::BOOL);
+    return term_builder->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == SortKind::BOOL && sk == SortKind::BV)
   {
-    Sort sort = solver->make_sort(SortKind::BV, 1);
-    return solver->cast_term(transferred_term, sort);
+    Sort sort = term_builder->make_sort(SortKind::BV, 1);
+    return term_builder->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == SortKind::INT && sk == SortKind::REAL)
   {
-    Sort sort = solver->make_sort(SortKind::REAL);
-    return solver->cast_term(transferred_term, sort);
+    Sort sort = term_builder->make_sort(SortKind::REAL);
+    return term_builder->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == SortKind::REAL && sk == SortKind::INT)
   {
-    Sort sort = solver->make_sort(SortKind::INT);
-    return solver->cast_term(transferred_term, sort);
+    Sort sort = term_builder->make_sort(SortKind::INT);
+    return term_builder->cast_term(transferred_term, sort);
   }
   else if (transferred_sk == SortKind::STRING)
   {
-    Sort sort = solver->make_sort(SortKind::STRING);
-    return solver->cast_term(transferred_term, sort);
+    Sort sort = term_builder->make_sort(SortKind::STRING);
+    return term_builder->cast_term(transferred_term, sort);
   }
   else
   {
@@ -479,7 +482,10 @@ Term TermTranslator::transfer_term(const Term & term, const SortKind sk)
 
 UnorderedTermMap & TermTranslator::get_cache() { return cache; }
 
-const SmtSolver & TermTranslator::get_solver() const { return solver; }
+const TermBuilder & TermTranslator::get_term_builder() const
+{
+  return term_builder;
+}
 
 std::string TermTranslator::infixize_rational(const std::string smtlib) const
 {
@@ -574,17 +580,17 @@ Term TermTranslator::value_from_smt2(const std::string val,
       }
 
       bvval = bvval.substr(2, bvval.length() - 2);
-      return solver->make_term(bvval, sort, 10);
+      return term_builder->make_term(bvval, sort, 10);
     }
     else if (prefix == "#b")
     {
       bvval = val.substr(2, val.length() - 2);
-      return solver->make_term(bvval, sort, 2);
+      return term_builder->make_term(bvval, sort, 2);
     }
     else if (prefix == "#x")
     {
       bvval = val.substr(2, val.length() - 2);
-      return solver->make_term(bvval, sort, 16);
+      return term_builder->make_term(bvval, sort, 16);
     }
     else
     {
@@ -598,8 +604,8 @@ Term TermTranslator::value_from_smt2(const std::string val,
     {
       std::string posval = val.substr(3, val.length() - 4);
       posval = infixize_rational(posval);
-      Term posterm = solver->make_term(posval, sort);
-      return solver->make_term(Op::Negate, posterm);
+      Term posterm = term_builder->make_term(posval, sort);
+      return term_builder->make_term(Op::Negate, posterm);
     }
     else
     {
@@ -607,10 +613,10 @@ Term TermTranslator::value_from_smt2(const std::string val,
       if (mval.substr(0, 2) == "- ")
       {
         std::string posval = mval.substr(2, mval.length() - 2);
-        Term posterm = solver->make_term(posval, sort);
-        return solver->make_term(Op::Negate, posterm);
+        Term posterm = term_builder->make_term(posval, sort);
+        return term_builder->make_term(Op::Negate, posterm);
       }
-      return solver->make_term(mval, sort);
+      return term_builder->make_term(mval, sort);
     }
   }
   // this check HAS to come after bit-vector check
@@ -623,7 +629,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
     }
     else
     {
-      return solver->make_term(val == "true");
+      return term_builder->make_term(val == "true");
     }
   }
   else if (sk == SortKind::STRING)
@@ -644,7 +650,7 @@ Term TermTranslator::value_from_smt2(const std::string val,
       strval.erase(pos, 1);
       startpos = pos + 1;
     }
-    return solver->make_term(strval, true, sort);
+    return term_builder->make_term(strval, true, sort);
   }
   {
     throw NotImplementedException(
@@ -658,12 +664,12 @@ void TermTranslator::widen_ints(TermVec & terms) const
         return t->get_sort()->get_kind() == SortKind::REAL;
       }))
   {
-    Sort realsort = solver->make_sort(SortKind::REAL);
+    Sort realsort = term_builder->make_sort(SortKind::REAL);
     for (Term & t : terms)
     {
       if (t->get_sort()->get_kind() == SortKind::INT)
       {
-        t = solver->cast_term(t, realsort);
+        t = term_builder->cast_term(t, realsort);
       }
     }
   }

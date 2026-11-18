@@ -31,7 +31,8 @@
 namespace smt {
 
 Yices2Interpolator::Yices2Interpolator()
-    : AbsSmtInterpolator(YICES2_INTERPOLATOR, std::make_shared<Yices2Solver>())
+    : AbsSmtInterpolator(interpolators::YICES2,
+                         std::make_shared<Yices2Solver>())
 {
 }
 
@@ -46,7 +47,7 @@ void Yices2Interpolator::do_set_opt(const std::string & option,
 {
   if (option == "produce-unsat-model-interpolants")
   {
-    if (!parse_bool_opt(option, value))
+    if (!backend::parse_bool_opt(option, value))
     {
       throw IncorrectUsageException(
           "Yices2 interpolator cannot set " + option + " to " + value

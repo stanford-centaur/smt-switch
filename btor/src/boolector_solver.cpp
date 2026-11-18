@@ -27,6 +27,7 @@ extern "C" {
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/boolector_term.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
@@ -182,7 +183,8 @@ std::shared_ptr<Btor> new_btor()
 
 /* BoolectorSolver implementation */
 
-BoolectorSolver::BoolectorSolver() : AbsSmtSolver(BTOR), btor(new_btor())
+BoolectorSolver::BoolectorSolver()
+    : AbsSmtSolver(solvers::BTOR), btor(new_btor())
 {
   // Boolector exits the process on an abort condition unless given an abort
   // callback, so throw instead. The callback is global, not per instance.
@@ -242,11 +244,11 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   if (option == "produce-models")
   {
     boolector_set_opt(
-        btor.get(), BTOR_OPT_MODEL_GEN, parse_bool_opt(option, value));
+        btor.get(), BTOR_OPT_MODEL_GEN, backend::parse_bool_opt(option, value));
   }
   else if (option == "incremental")
   {
-    bool on = parse_bool_opt(option, value);
+    bool on = backend::parse_bool_opt(option, value);
     if (!on && unsat_assumptions)
     {
       throw NotImplementedException(
@@ -261,7 +263,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     // Boolector gives unsat assumptions whenever it is incremental, so
     // turning them off leaves Boolector as it is and get_unsat_assumptions
     // refuses instead.
-    if (!parse_bool_opt(option, value))
+    if (!backend::parse_bool_opt(option, value))
     {
       unsat_assumptions = false;
       return;
@@ -277,7 +279,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "base-context-1")
   {
-    if (parse_bool_opt(option, value))
+    if (backend::parse_bool_opt(option, value))
     {
       base_context_1 = true;
       // pushed directly, so that the context level counts only the caller's
@@ -286,7 +288,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
   }
   else if (option == "time-limit")
   {
-    time_limit = parse_time_limit(value);
+    time_limit = backend::parse_time_limit(value);
   }
   else
   {
@@ -314,7 +316,7 @@ void BoolectorSolver::set_opt(const std::string option, const std::string value)
     }
     else if (value != "false")
     {
-      number = parse_nat_opt(option, value);
+      number = backend::parse_nat_opt(option, value);
     }
     if (!backend::fits_in<std::uint32_t>(number))
     {
@@ -614,7 +616,7 @@ Sort BoolectorSolver::make_sort(const std::string /* name */,
                                 uint64_t /* arity */) const
 {
   throw NotImplementedException("Uninterpreted sorts are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(get_kind()));
 }
 
 Sort BoolectorSolver::make_sort(SortKind sk) const
@@ -693,7 +695,7 @@ Sort BoolectorSolver::make_sort(const Sort & /* sort_con */,
                                 const SortVec & /* sorts */) const
 {
   throw NotImplementedException("Uninterpreted sorts are not supported by "
-                                + to_string(solver_enum));
+                                + to_string(get_kind()));
 }
 
 Term BoolectorSolver::make_symbol(const std::string name, const Sort & sort)

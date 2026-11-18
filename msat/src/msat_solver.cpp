@@ -455,7 +455,7 @@ msat_term binary_term(msat_env e, const Op & op, msat_term a, msat_term b)
 
 // MsatSolver implementation
 
-MsatSolver::MsatSolver() : AbsSmtSolver(MSAT) {}
+MsatSolver::MsatSolver() : AbsSmtSolver(solvers::MSAT) {}
 
 void MsatSolver::set_opt(const std::string option, const std::string value)
 {
@@ -469,7 +469,7 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
 
   if (option == "incremental" || option == "produce-unsat-assumptions")
   {
-    if (!parse_bool_opt(option, value))
+    if (!backend::parse_bool_opt(option, value))
     {
       throw NotImplementedException("MathSAT cannot turn off " + option);
     }
@@ -477,14 +477,15 @@ void MsatSolver::set_opt(const std::string option, const std::string value)
   }
   if (option == "time-limit")
   {
-    time_limit = parse_time_limit(value);
+    time_limit = backend::parse_time_limit(value);
     return;
   }
   if (option == "produce-models")
   {
     // MathSAT also takes 1 and 0 for it, which SMT-LIB does not.
-    env_wrapper_.set_option("model_generation",
-                            parse_bool_opt(option, value) ? "true" : "false");
+    env_wrapper_.set_option(
+        "model_generation",
+        backend::parse_bool_opt(option, value) ? "true" : "false");
     return;
   }
 

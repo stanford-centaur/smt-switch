@@ -164,6 +164,7 @@ set(
   "${PROJECT_SOURCE_DIR}/src/term.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_analysis.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_casts.cpp"
+  "${PROJECT_SOURCE_DIR}/src/term_builder.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_hashtable.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_translator.cpp"
   "${PROJECT_SOURCE_DIR}/src/term_visitor.cpp"

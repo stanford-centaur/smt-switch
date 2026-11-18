@@ -58,7 +58,8 @@ namespace smt {
 class TermTranslator
 {
  public:
-  explicit TermTranslator(const SmtSolver & s);
+  /** @param s the solver or interpolator to translate terms to */
+  explicit TermTranslator(const TermBuilder & s);
   /** Transfers a sort from the other solver to this solver
    *  @param the sort transfer
    *  @return a sort belonging to this solver
@@ -88,8 +89,9 @@ class TermTranslator
   /* Returns reference to cache -- can be used to populate with symbols */
   UnorderedTermMap & get_cache();
 
-  /* Returns a reference to the solver this object translates terms to */
-  const SmtSolver & get_solver() const;
+  /* Returns a reference to the solver or interpolator this object translates
+   * terms to */
+  const TermBuilder & get_term_builder() const;
 
  protected:
   /** Creates a term value from a string of the given sort
@@ -145,9 +147,7 @@ class TermTranslator
    */
   Term transfer_datatype_component(const Term & term);
 
-  // Note: const meaning the solver doesn't change to a different solver
-  // it can still call non-const methods of the solver
-  SmtSolver solver;  ///< solver to translate terms to
+  TermBuilder term_builder;  ///< solver or interpolator to translate terms to
   UnorderedTermMap cache = {};
   // map from uninterpreted sort names to the sort in the destination solver
   // necessary because it needs to be the same exact uninterpreted sort
