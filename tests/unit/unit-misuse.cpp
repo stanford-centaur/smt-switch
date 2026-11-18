@@ -13,9 +13,12 @@
 
 #include "available_solvers.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
+#include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
+#include "smt-switch/sort.h"
 
 namespace smt::tests {
 

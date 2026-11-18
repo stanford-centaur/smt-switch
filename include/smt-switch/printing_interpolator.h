@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "smt-switch/interpolator.h"
-#include "smt-switch/printing_solver.h"
+#include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 
 namespace smt {
