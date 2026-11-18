@@ -306,8 +306,7 @@ class AbsTermBuilder
   virtual TermVec substitute_terms(
       const TermVec & terms, const UnorderedTermMap & substitution_map) const;
 
-  // Casts of terms between Bool and bit-vectors and between Int and Real,
-  // defined in term_casts.cpp
+  // Casts of terms between Bool and bit-vectors and between Int and Real
 
   /** A term as another sort, between Bool and bit-vectors or between Int and
    *  Real. A bit-vector is true when it equals 1; a value cast between Bool
