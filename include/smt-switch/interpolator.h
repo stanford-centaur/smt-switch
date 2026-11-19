@@ -17,11 +17,9 @@
 #include <utility>
 #include <vector>
 
-#include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_enums.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/term_builder.h"
 
 namespace smt {
@@ -68,8 +66,22 @@ class AbsSmtInterpolator : public AbsTermBuilder
   /** @return the interpolator's kind */
   interpolators::Kind get_kind() const;
 
-  // ------------------------- Interpolation --------------------------------
-  /* Compute a Craig interpolant given A and B such that A ^ B is unsat
+  // ---------------------------- Configuration -----------------------------
+
+  /** Takes incremental, and hands every other option to do_set_opt
+   *  SMTLIB: (set-option :<option> <value>)
+   *  @throws IncorrectUsageException if incremental is neither true nor false
+   */
+  virtual void set_opt(const std::string option, const std::string value);
+
+  /** Sets the logic of the regular solver
+   *  SMTLIB: (set-logic <logic>)
+   */
+  virtual void set_logic(const std::string logic);
+
+  // ---------------------------- Interpolation -----------------------------
+
+  /** Compute a Craig interpolant given A and B such that A ^ B is unsat
    *   i.e. an I such that: A -> I  and  I ^ B is unsat
    *        and I only contains constants that are in both A and B
    * @param A the A term for a craig interpolant
@@ -105,22 +117,7 @@ class AbsSmtInterpolator : public AbsTermBuilder
   Result get_sequence_interpolants(const TermVec & formulae,
                                    TermVec & out_I) const;
 
-  /** Takes incremental, and hands every other option to do_set_opt
-   *  SMTLIB: (set-option :<option> <value>)
-   *  @throws IncorrectUsageException if incremental is neither true nor false
-   */
-  virtual void set_opt(const std::string option, const std::string value);
-
-  /** Sets the logic of the regular solver
-   *  SMTLIB: (set-logic <logic>)
-   */
-  virtual void set_logic(const std::string logic);
-
-  /** Forgets the queries and drops the regular solver's assertions; see the
-   *  contract
-   *  SMTLIB: (reset-assertions)
-   */
-  void reset_assertions();
+  // -------------------------------- Resets --------------------------------
 
   /** As reset_assertions, but returns the regular solver to its startup
    *  state, which destroys all created terms and sorts, turns incremental
@@ -129,14 +126,20 @@ class AbsSmtInterpolator : public AbsTermBuilder
    */
   void reset();
 
-  // ------------------------- Forwarded ------------------------------------
+  /** Forgets the queries and drops the regular solver's assertions; see the
+   *  contract
+   *  SMTLIB: (reset-assertions)
+   */
+  void reset_assertions();
+
+  // ------------------- Forwarded to the regular solver --------------------
   // Declaring make_sort here hides the AbsTermBuilder template that takes
   // the sorts as separate arguments, so name it back in.
   using AbsTermBuilder::make_sort;
-  Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const SortKind sk) const override;
   Sort make_sort(const SortKind sk, std::uint64_t size) const override;
   Sort make_sort(const SortKind sk, const SortVec & sorts) const override;
+  Sort make_sort(const std::string name, std::uint64_t arity) const override;
   Sort make_sort(const Sort & sort_con, const SortVec & sorts) const override;
 
   // Declaring make_term here hides the AbsTermBuilder template that takes
@@ -147,18 +150,18 @@ class AbsSmtInterpolator : public AbsTermBuilder
   Term make_term(const std::string val,
                  const Sort & sort,
                  std::uint64_t base = 10) const override;
-  Term make_term(const Term & val, const Sort & sort) const override;
-  Term make_symbol(const std::string name, const Sort & sort) override;
-  Term get_symbol(const std::string & name) const override;
-  Term make_param(const std::string name, const Sort & sort) const override;
-  Term make_term(const Op op, const TermVec & terms) const override;
-
   Term make_term(const std::string & s,
                  bool useEscSequences,
                  const Sort & sort) const override;
   Term make_term(const std::wstring & s, const Sort & sort) const override;
+  Term make_term(const Term & val, const Sort & sort) const override;
 
-  Sort make_sort(const DatatypeDecl & d) const override;
+  Term make_symbol(const std::string name, const Sort & sort) override;
+  Term get_symbol(const std::string & name) const override;
+  Term make_param(const std::string name, const Sort & sort) const override;
+
+  Term make_term(const Op op, const TermVec & terms) const override;
+
   DatatypeDecl make_datatype_decl(const std::string & s) const override;
   DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) const override;
@@ -169,13 +172,14 @@ class AbsSmtInterpolator : public AbsTermBuilder
                     const Sort & s) const override;
   void add_selector_self(DatatypeConstructorDecl & dt,
                          const std::string & name) const override;
+  Sort make_sort(const DatatypeDecl & d) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
   Term get_constructor(const Sort & s, std::string name) const override;
   Term get_tester(const Sort & s, std::string name) const override;
   Term get_selector(const Sort & s,
                     std::string con,
                     std::string name) const override;
-  SortVec make_datatype_sorts(
-      const std::vector<DatatypeDecl> & decls) const override;
 
   Term substitute(const Term term,
                   const UnorderedTermMap & substitution_map) const override;
@@ -186,7 +190,12 @@ class AbsSmtInterpolator : public AbsTermBuilder
  protected:
   using TermsPairVec = std::vector<std::pair<Term, Term>>;
 
-  // ------------------------- Required -------------------------------------
+  // ------------------------------- Required -------------------------------
+
+  /** Takes an option other than incremental, which set_opt takes itself */
+  virtual void do_set_opt(const std::string & option,
+                          const std::string & value) = 0;
+
   /** Computes an interpolant of boolean A and B; see get_interpolant */
   virtual Result compute_interpolant(const Term & A,
                                      const Term & B,
@@ -198,16 +207,13 @@ class AbsSmtInterpolator : public AbsTermBuilder
   virtual Result compute_seq_interpolants(const TermVec & formulae,
                                           TermVec & out_I) const = 0;
 
-  /** Takes an option other than incremental, which set_opt takes itself */
-  virtual void do_set_opt(const std::string & option,
-                          const std::string & value) = 0;
-
-  // ------------------------- Handled here ---------------------------------
-  /** Drops the regular solver's assertions; see reset_assertions */
-  virtual void reset_backend_assertions();
+  // ----------------------------- Handled here -----------------------------
 
   /** Returns the regular solver to its startup state; see reset */
   virtual void reset_backend();
+
+  /** Drops the regular solver's assertions; see reset_assertions */
+  virtual void reset_backend_assertions();
 
   /** Drops what the interpolator keeps between queries, before the regular
    *  solver is reset; does nothing unless overridden
@@ -220,6 +226,8 @@ class AbsSmtInterpolator : public AbsTermBuilder
    *  constructor would only reach this one.
    */
   virtual void initialize();
+
+  // ------------------------------- Optional -------------------------------
 
   /** One round of interpolating A and B by refuting models of B: checks B
    *  with the model interpolants of the rounds before, and if it has a
@@ -246,6 +254,8 @@ class AbsSmtInterpolator : public AbsTermBuilder
                               SmtSolver & solver_b,
                               TermsPairVec & model,
                               Term & model_interpolant) const;
+
+  // ------------------------ Helpers for subclasses ------------------------
 
   /** Computes the interpolant of A and B as the sequence interpolant of
    *  { A, B }, for a backend that computes sequences natively.

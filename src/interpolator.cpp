@@ -20,6 +20,7 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
 namespace smt {
@@ -35,7 +36,7 @@ interpolators::Kind AbsSmtInterpolator::get_kind() const
   return interpolator_kind;
 }
 
-// ------------------------- Handled here ------------------------------------
+// ------------------------------ Configuration ------------------------------
 
 void AbsSmtInterpolator::set_opt(const std::string option,
                                  const std::string value)
@@ -49,210 +50,12 @@ void AbsSmtInterpolator::set_opt(const std::string option,
   incremental_mode = backend::parse_bool_opt(option, value);
 }
 
-void AbsSmtInterpolator::reset_assertions()
-{
-  last_itp_query_formulae.clear();
-  last_itp_query_interpolants.clear();
-  forget_queries();
-  reset_backend_assertions();
-}
-
-void AbsSmtInterpolator::reset()
-{
-  // first, as what is kept can be terms that the reset destroys
-  last_itp_query_formulae.clear();
-  last_itp_query_interpolants.clear();
-  forget_queries();
-  reset_backend();
-  incremental_mode = true;
-  initialize();
-}
-
-void AbsSmtInterpolator::reset_backend_assertions()
-{
-  backend_solver->reset_assertions();
-}
-
-void AbsSmtInterpolator::reset_backend() { backend_solver->reset(); }
-
-void AbsSmtInterpolator::forget_queries() {}
-
-void AbsSmtInterpolator::initialize() {}
-
-Result AbsSmtInterpolator::refute_model(const Term & /* A */,
-                                        const Term & /* B */,
-                                        SmtSolver & /* solver_a */,
-                                        SmtSolver & /* solver_b */,
-                                        TermsPairVec & /* model */,
-                                        Term & /* model_interpolant */) const
-{
-  throw NotImplementedException(
-      "The " + to_string(interpolator_kind)
-      + " interpolator does not interpolate by refuting models");
-}
-
-// ------------------------- Forwarded ---------------------------------------
-
 void AbsSmtInterpolator::set_logic(const std::string logic)
 {
   backend_solver->set_logic(logic);
 }
 
-Sort AbsSmtInterpolator::make_sort(const std::string name,
-                                   std::uint64_t arity) const
-{
-  return backend_solver->make_sort(name, arity);
-}
-
-Sort AbsSmtInterpolator::make_sort(const SortKind sk) const
-{
-  return backend_solver->make_sort(sk);
-}
-
-Sort AbsSmtInterpolator::make_sort(const SortKind sk, std::uint64_t size) const
-{
-  return backend_solver->make_sort(sk, size);
-}
-
-Sort AbsSmtInterpolator::make_sort(const SortKind sk,
-                                   const SortVec & sorts) const
-{
-  return backend_solver->make_sort(sk, sorts);
-}
-
-Sort AbsSmtInterpolator::make_sort(const Sort & sort_con,
-                                   const SortVec & sorts) const
-{
-  return backend_solver->make_sort(sort_con, sorts);
-}
-
-Term AbsSmtInterpolator::make_term(bool b) const
-{
-  return backend_solver->make_term(b);
-}
-
-Term AbsSmtInterpolator::make_term(std::int64_t i, const Sort & sort) const
-{
-  return backend_solver->make_term(i, sort);
-}
-
-Term AbsSmtInterpolator::make_term(const std::string val,
-                                   const Sort & sort,
-                                   std::uint64_t base) const
-{
-  return backend_solver->make_term(val, sort, base);
-}
-
-Term AbsSmtInterpolator::make_term(const Term & val, const Sort & sort) const
-{
-  return backend_solver->make_term(val, sort);
-}
-
-Term AbsSmtInterpolator::make_symbol(const std::string name, const Sort & sort)
-{
-  return backend_solver->make_symbol(name, sort);
-}
-
-Term AbsSmtInterpolator::get_symbol(const std::string & name) const
-{
-  return backend_solver->get_symbol(name);
-}
-
-Term AbsSmtInterpolator::make_param(const std::string name,
-                                    const Sort & sort) const
-{
-  return backend_solver->make_param(name, sort);
-}
-
-Term AbsSmtInterpolator::make_term(const Op op, const TermVec & terms) const
-{
-  return backend_solver->make_term(op, terms);
-}
-
-Term AbsSmtInterpolator::make_term(const std::string & s,
-                                   bool useEscSequences,
-                                   const Sort & sort) const
-{
-  return backend_solver->make_term(s, useEscSequences, sort);
-}
-
-Term AbsSmtInterpolator::make_term(const std::wstring & s,
-                                   const Sort & sort) const
-{
-  return backend_solver->make_term(s, sort);
-}
-
-Sort AbsSmtInterpolator::make_sort(const DatatypeDecl & d) const
-{
-  return backend_solver->make_sort(d);
-}
-
-DatatypeDecl AbsSmtInterpolator::make_datatype_decl(const std::string & s) const
-{
-  return backend_solver->make_datatype_decl(s);
-}
-
-DatatypeConstructorDecl AbsSmtInterpolator::make_datatype_constructor_decl(
-    const std::string s) const
-{
-  return backend_solver->make_datatype_constructor_decl(s);
-}
-
-void AbsSmtInterpolator::add_constructor(
-    DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
-{
-  backend_solver->add_constructor(dt, con);
-}
-
-void AbsSmtInterpolator::add_selector(DatatypeConstructorDecl & dt,
-                                      const std::string & name,
-                                      const Sort & s) const
-{
-  backend_solver->add_selector(dt, name, s);
-}
-
-void AbsSmtInterpolator::add_selector_self(DatatypeConstructorDecl & dt,
-                                           const std::string & name) const
-{
-  backend_solver->add_selector_self(dt, name);
-}
-
-Term AbsSmtInterpolator::get_constructor(const Sort & s, std::string name) const
-{
-  return backend_solver->get_constructor(s, name);
-}
-
-Term AbsSmtInterpolator::get_tester(const Sort & s, std::string name) const
-{
-  return backend_solver->get_tester(s, name);
-}
-
-Term AbsSmtInterpolator::get_selector(const Sort & s,
-                                      std::string con,
-                                      std::string name) const
-{
-  return backend_solver->get_selector(s, con, name);
-}
-
-SortVec AbsSmtInterpolator::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & decls) const
-{
-  return backend_solver->make_datatype_sorts(decls);
-}
-
-Term AbsSmtInterpolator::substitute(
-    const Term term, const UnorderedTermMap & substitution_map) const
-{
-  return backend_solver->substitute(term, substitution_map);
-}
-
-TermVec AbsSmtInterpolator::substitute_terms(
-    const TermVec & terms, const UnorderedTermMap & substitution_map) const
-{
-  return backend_solver->substitute_terms(terms, substitution_map);
-}
-
-// ------------------------- Interpolation -----------------------------------
+// ------------------------------ Interpolation ------------------------------
 
 Result AbsSmtInterpolator::get_interpolant(const Term & A,
                                            const Term & B,
@@ -292,7 +95,211 @@ Result AbsSmtInterpolator::get_sequence_interpolants(const TermVec & formulae,
   return compute_seq_interpolants(formulae, out_I);
 }
 
-// ------------------------- Helpers -----------------------------------------
+// --------------------------------- Resets ----------------------------------
+
+void AbsSmtInterpolator::reset()
+{
+  // first, as what is kept can be terms that the reset destroys
+  last_itp_query_formulae.clear();
+  last_itp_query_interpolants.clear();
+  forget_queries();
+  reset_backend();
+  incremental_mode = true;
+  initialize();
+}
+
+void AbsSmtInterpolator::reset_assertions()
+{
+  last_itp_query_formulae.clear();
+  last_itp_query_interpolants.clear();
+  forget_queries();
+  reset_backend_assertions();
+}
+
+// --------------------- Forwarded to the regular solver ---------------------
+
+Sort AbsSmtInterpolator::make_sort(const SortKind sk) const
+{
+  return backend_solver->make_sort(sk);
+}
+
+Sort AbsSmtInterpolator::make_sort(const SortKind sk, std::uint64_t size) const
+{
+  return backend_solver->make_sort(sk, size);
+}
+
+Sort AbsSmtInterpolator::make_sort(const SortKind sk,
+                                   const SortVec & sorts) const
+{
+  return backend_solver->make_sort(sk, sorts);
+}
+
+Sort AbsSmtInterpolator::make_sort(const std::string name,
+                                   std::uint64_t arity) const
+{
+  return backend_solver->make_sort(name, arity);
+}
+
+Sort AbsSmtInterpolator::make_sort(const Sort & sort_con,
+                                   const SortVec & sorts) const
+{
+  return backend_solver->make_sort(sort_con, sorts);
+}
+
+Term AbsSmtInterpolator::make_term(bool b) const
+{
+  return backend_solver->make_term(b);
+}
+
+Term AbsSmtInterpolator::make_term(std::int64_t i, const Sort & sort) const
+{
+  return backend_solver->make_term(i, sort);
+}
+
+Term AbsSmtInterpolator::make_term(const std::string val,
+                                   const Sort & sort,
+                                   std::uint64_t base) const
+{
+  return backend_solver->make_term(val, sort, base);
+}
+
+Term AbsSmtInterpolator::make_term(const std::string & s,
+                                   bool useEscSequences,
+                                   const Sort & sort) const
+{
+  return backend_solver->make_term(s, useEscSequences, sort);
+}
+
+Term AbsSmtInterpolator::make_term(const std::wstring & s,
+                                   const Sort & sort) const
+{
+  return backend_solver->make_term(s, sort);
+}
+
+Term AbsSmtInterpolator::make_term(const Term & val, const Sort & sort) const
+{
+  return backend_solver->make_term(val, sort);
+}
+
+Term AbsSmtInterpolator::make_symbol(const std::string name, const Sort & sort)
+{
+  return backend_solver->make_symbol(name, sort);
+}
+
+Term AbsSmtInterpolator::get_symbol(const std::string & name) const
+{
+  return backend_solver->get_symbol(name);
+}
+
+Term AbsSmtInterpolator::make_param(const std::string name,
+                                    const Sort & sort) const
+{
+  return backend_solver->make_param(name, sort);
+}
+
+Term AbsSmtInterpolator::make_term(const Op op, const TermVec & terms) const
+{
+  return backend_solver->make_term(op, terms);
+}
+
+DatatypeDecl AbsSmtInterpolator::make_datatype_decl(const std::string & s) const
+{
+  return backend_solver->make_datatype_decl(s);
+}
+
+DatatypeConstructorDecl AbsSmtInterpolator::make_datatype_constructor_decl(
+    const std::string s) const
+{
+  return backend_solver->make_datatype_constructor_decl(s);
+}
+
+void AbsSmtInterpolator::add_constructor(
+    DatatypeDecl & dt, const DatatypeConstructorDecl & con) const
+{
+  backend_solver->add_constructor(dt, con);
+}
+
+void AbsSmtInterpolator::add_selector(DatatypeConstructorDecl & dt,
+                                      const std::string & name,
+                                      const Sort & s) const
+{
+  backend_solver->add_selector(dt, name, s);
+}
+
+void AbsSmtInterpolator::add_selector_self(DatatypeConstructorDecl & dt,
+                                           const std::string & name) const
+{
+  backend_solver->add_selector_self(dt, name);
+}
+
+Sort AbsSmtInterpolator::make_sort(const DatatypeDecl & d) const
+{
+  return backend_solver->make_sort(d);
+}
+
+SortVec AbsSmtInterpolator::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & decls) const
+{
+  return backend_solver->make_datatype_sorts(decls);
+}
+
+Term AbsSmtInterpolator::get_constructor(const Sort & s, std::string name) const
+{
+  return backend_solver->get_constructor(s, name);
+}
+
+Term AbsSmtInterpolator::get_tester(const Sort & s, std::string name) const
+{
+  return backend_solver->get_tester(s, name);
+}
+
+Term AbsSmtInterpolator::get_selector(const Sort & s,
+                                      std::string con,
+                                      std::string name) const
+{
+  return backend_solver->get_selector(s, con, name);
+}
+
+Term AbsSmtInterpolator::substitute(
+    const Term term, const UnorderedTermMap & substitution_map) const
+{
+  return backend_solver->substitute(term, substitution_map);
+}
+
+TermVec AbsSmtInterpolator::substitute_terms(
+    const TermVec & terms, const UnorderedTermMap & substitution_map) const
+{
+  return backend_solver->substitute_terms(terms, substitution_map);
+}
+
+// ------------------------------ Handled here -------------------------------
+
+void AbsSmtInterpolator::reset_backend() { backend_solver->reset(); }
+
+void AbsSmtInterpolator::reset_backend_assertions()
+{
+  backend_solver->reset_assertions();
+}
+
+void AbsSmtInterpolator::forget_queries() {}
+
+void AbsSmtInterpolator::initialize() {}
+
+// -------------------------------- Optional ---------------------------------
+
+Result AbsSmtInterpolator::refute_model(const Term & /* A */,
+                                        const Term & /* B */,
+                                        SmtSolver & /* solver_a */,
+                                        SmtSolver & /* solver_b */,
+                                        TermsPairVec & /* model */,
+                                        Term & /* model_interpolant */) const
+{
+  throw NotImplementedException(
+      "The " + to_string(interpolator_kind)
+      + " interpolator does not interpolate by refuting models");
+}
+
+// ------------------------- Helpers for subclasses --------------------------
 
 Result AbsSmtInterpolator::interpolant_from_sequence(const Term & A,
                                                      const Term & B,

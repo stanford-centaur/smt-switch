@@ -21,6 +21,7 @@
 #include "smt-switch/printing_solver.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/solver.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"

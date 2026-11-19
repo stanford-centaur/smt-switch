@@ -20,7 +20,6 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 
 namespace smt {
 
@@ -39,28 +38,22 @@ class AbsTermBuilder
   AbsTermBuilder & operator=(const AbsTermBuilder & other) = default;
   virtual ~AbsTermBuilder() = default;
 
-  /* Declare an uninterpreted sort, or a sort constructor if arity is nonzero
-   * SMTLIB: (declare-sort <name> <arity>)
-   * @param name the name of the sort
-   * @param arity the arity of the sort
-   * @return a Sort object
-   */
-  virtual Sort make_sort(const std::string name, std::uint64_t arity) const = 0;
+  // -------------------------------- Sorts ---------------------------------
 
-  /* Create a sort
+  /** Create a sort
    * @param sk the SortKind (BOOL, INT, REAL)
    * @return a Sort object
    */
   virtual Sort make_sort(const SortKind sk) const = 0;
 
-  /* Create a sort
+  /** Create a sort
    * @param sk the SortKind (BV)
    * @param size (e.g. bitvector width for BV SortKind)
    * @return a Sort object
    */
   virtual Sort make_sort(const SortKind sk, std::uint64_t size) const = 0;
 
-  /* Create a sort from sort parameters
+  /** Create a sort from sort parameters
    * @param sk the SortKind (ARRAY, FUNCTION)
    * @param sorts for ARRAY, the index sort then the element sort; for
    * FUNCTION, the domain sorts then the codomain sort
@@ -70,7 +63,7 @@ class AbsTermBuilder
    */
   virtual Sort make_sort(const SortKind sk, const SortVec & sorts) const = 0;
 
-  /* Shorthand for make_sort(sk, SortVec{ sort1, sorts... })
+  /** Shorthand for make_sort(sk, SortVec{ sort1, sorts... })
    * e.g. make_sort(ARRAY, index, element) or make_sort(FUNCTION, d1, d2, cod)
    * No SortKind takes a single sort parameter yet.
    */
@@ -84,7 +77,15 @@ class AbsTermBuilder
     return make_sort(sk, SortVec{ sort1, sorts... });
   }
 
-  /* Apply a sort constructor to sorts
+  /** Declare an uninterpreted sort, or a sort constructor if arity is nonzero
+   * SMTLIB: (declare-sort <name> <arity>)
+   * @param name the name of the sort
+   * @param arity the arity of the sort
+   * @return a Sort object
+   */
+  virtual Sort make_sort(const std::string name, std::uint64_t arity) const = 0;
+
+  /** Apply a sort constructor to sorts
    * SMTLIB: ( <identifier> <sort>+ ), for instance (List Int)
    * @param sort_con a sort with SortKind UNINTERPRETED_CONS (must have
    * nonzero arity)
@@ -94,20 +95,22 @@ class AbsTermBuilder
   virtual Sort make_sort(const Sort & sort_con,
                          const SortVec & sorts) const = 0;
 
-  /* Make a boolean value term
+  // -------------------------------- Values --------------------------------
+
+  /** Make a boolean value term
    * @param b boolean value
    * @return a value term with Sort BOOL and value b
    */
   virtual Term make_term(bool b) const = 0;
 
-  /* Make a bit-vector, int or real value term
+  /** Make a bit-vector, int or real value term
    * @param i the value
    * @param sort the sort to create
    * @return a value term with Sort sort and value i
    */
   virtual Term make_term(std::int64_t i, const Sort & sort) const = 0;
 
-  /* Make a bit-vector, int, real or (in the future) string value term
+  /** Make a bit-vector, int, real or (in the future) string value term
    * @param val the numeric value as a string, or a string value
    * @param sort the sort to create
    * @param base the base val is written in, from 2 to 36, for the digits (0
@@ -119,14 +122,36 @@ class AbsTermBuilder
                          const Sort & sort,
                          std::uint64_t base = 10) const = 0;
 
-  /* Make a value of a particular sort, such as constant arrays
+  /** Make a string value term from an `std::string` which may contain SMT-LIB
+   * compatible escape sequences like `\\u1000` or `\\u{20}` to encode unicode
+   * characters.
+   * @param s is the value
+   * @param useEscSequences determines whether escape sequence in `s` should
+   * be converted to the corresponding unicode character
+   * @param sort the sort to create
+   * @return a value term with Sort sort and value s
+   */
+  virtual Term make_term(const std::string & s,
+                         bool useEscSequences,
+                         const Sort & sort) const = 0;
+
+  /** Make a string value term
+   * @param s is the value
+   * @param sort the sort to create
+   * @return a value term with Sort sort and value s
+   */
+  virtual Term make_term(const std::wstring & s, const Sort & sort) const = 0;
+
+  /** Make a value of a particular sort, such as constant arrays
    * @param val the Term used to create the value (.e.g constant array with 0)
    * @param sort the sort of value to create
    * @return a value term with Sort sort
    */
   virtual Term make_term(const Term & val, const Sort & sort) const = 0;
 
-  /* Make a symbolic constant or function term
+  // ------------------------ Symbols and parameters ------------------------
+
+  /** Make a symbolic constant or function term
    * SMTLIB: (declare-fun <name> (s1 ... sn) s) where sort = s1x...xsn -> s
    * @param name the name of constant or function
    * @param sort the sort of this constant or function
@@ -154,14 +179,16 @@ class AbsTermBuilder
    */
   virtual Term get_symbol(const std::string & name) const = 0;
 
-  /* Make a parameter term to be bound by a quantifier
+  /** Make a parameter term to be bound by a quantifier
    * @param name the name of the parameter
    * @param sort the sort of this parameter
    * @return the parameter term
    */
   virtual Term make_param(const std::string name, const Sort & sort) const = 0;
 
-  /* Make a new term
+  // ----------------------------- Applications -----------------------------
+
+  /** Make a new term
    * @param op the operator to use
    * @param terms vector of children; for Forall and Exists, the params to
    *        bind and then the body, the params bound from left to right
@@ -171,7 +198,7 @@ class AbsTermBuilder
    */
   virtual Term make_term(const Op op, const TermVec & terms) const = 0;
 
-  /* Shorthand for make_term(op, TermVec{ t, ts... })
+  /** Shorthand for make_term(op, TermVec{ t, ts... })
    * e.g. make_term(Not, a), make_term(Equal, a, b) or make_term(And, a, b, c)
    */
   template <typename... Terms,
@@ -182,67 +209,38 @@ class AbsTermBuilder
     return make_term(op, TermVec{ t, ts... });
   }
 
-  // ---------------------------- Strings ------------------------------------
+  // ------------------------------ Datatypes -------------------------------
 
-  /* Make a string value term from an `std::string` which may contain SMT-LIB
-   * compatible escape sequences like `\u1000` or `\u{20}` to encode unicode
-   * characters.
-   * @param s is the value
-   * @param useEscSequences determines whether escape sequence in `s` should
-   * be converted to the corresponding unicode character
-   * @param sort the sort to create
-   * @return a value term with Sort sort and value s
-   */
-  virtual Term make_term(const std::string & s,
-                         bool useEscSequences,
-                         const Sort & sort) const = 0;
-
-  /* Make a string value term
-   * @param s is the value
-   * @param sort the sort to create
-   * @return a value term with Sort sort and value s
-   */
-  virtual Term make_term(const std::wstring & s, const Sort & sort) const = 0;
-
-  // --------------------------- Datatypes ----------------------------------
-
-  /* Create a datatype sort
-   * @param d the Datatype Declaration
-   * @return a Sort object
-   */
-  virtual Sort make_sort(const DatatypeDecl & d) const = 0;
-
-  /* Initialize a datatype declaration with some name
+  /** Initialize a datatype declaration with some name
    * @param s Name of the datatype
    * @return an empty Datatype declaration
    */
   virtual DatatypeDecl make_datatype_decl(const std::string & s) const = 0;
 
-  /* Initialize a datatype constructor declaration with some name
+  /** Initialize a datatype constructor declaration with some name
    * @param s Name of the datatype constructor
    * @return an empty Datatype declaration
    */
   virtual DatatypeConstructorDecl make_datatype_constructor_decl(
       const std::string s) const = 0;
 
-  /* Add a datatype constructor to a datatype declaration
+  /** Add a datatype constructor to a datatype declaration
    * @param dt Datatype
    * @param con Datatype constructor
    */
   virtual void add_constructor(DatatypeDecl & dt,
                                const DatatypeConstructorDecl & con) const = 0;
 
-  /* Add a selector to a datatype constructor
+  /** Add a selector to a datatype constructor
    * @param dt DatatypeConstructorDecl
    * @param name name of the selector
    * @param s sort of the selector
    */
-
   virtual void add_selector(DatatypeConstructorDecl & dt,
                             const std::string & name,
                             const Sort & s) const = 0;
 
-  /* Add a selector to a datatype constructor where the sort is the datatype
+  /** Add a selector to a datatype constructor where the sort is the datatype
    * itself (whose sort doesn't exist yet)
    * @param dt DatatypeConstructorDecl
    * @param name name of the selector
@@ -250,28 +248,11 @@ class AbsTermBuilder
   virtual void add_selector_self(DatatypeConstructorDecl & dt,
                                  const std::string & name) const = 0;
 
-  /* get a term representing to a datatype constructor
-   * @param s A datatype sort (error otherwise)
-   * @param name name of the constructor
+  /** Create a datatype sort
+   * @param d the Datatype Declaration
+   * @return a Sort object
    */
-
-  virtual Term get_constructor(const Sort & s, std::string name) const = 0;
-
-  /* get a term representing to a datatype tester
-   * @param s A datatype sort (error otherwise)
-   * @param name name of the constructor
-   */
-
-  virtual Term get_tester(const Sort & s, std::string name) const = 0;
-
-  /* get a term representing to a datatype selector
-   * @param s A datatype sort (error otherwise)
-   * @param con name of the constructor
-   * @param name name of the selector
-   */
-  virtual Term get_selector(const Sort & s,
-                            std::string con,
-                            std::string name) const = 0;
+  virtual Sort make_sort(const DatatypeDecl & d) const = 0;
 
   /** Create sorts for the corresponding DatatypeDecls.
    *
@@ -284,9 +265,29 @@ class AbsTermBuilder
   /** Convenience function that calls make_datatype_sorts with a single sort. */
   Sort make_datatype_sort(const DatatypeDecl & decl) const;
 
-  // Methods implemented at the abstract level
-  // Note: These can be overridden in the specific solver implementation for
-  //       performance improvements
+  /** get a term representing to a datatype constructor
+   * @param s A datatype sort (error otherwise)
+   * @param name name of the constructor
+   */
+  virtual Term get_constructor(const Sort & s, std::string name) const = 0;
+
+  /** get a term representing to a datatype tester
+   * @param s A datatype sort (error otherwise)
+   * @param name name of the constructor
+   */
+  virtual Term get_tester(const Sort & s, std::string name) const = 0;
+
+  /** get a term representing to a datatype selector
+   * @param s A datatype sort (error otherwise)
+   * @param con name of the constructor
+   * @param name name of the selector
+   */
+  virtual Term get_selector(const Sort & s,
+                            std::string con,
+                            std::string name) const = 0;
+
+  // --------------------- Built on the functions above ---------------------
+  // A backend can override substitute and substitute_terms for performance.
 
   /** Replaces each key of substitution_map in term with its value. A key
    *  can be any term, and is replaced whole wherever it occurs; the values

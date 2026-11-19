@@ -48,7 +48,12 @@ class AbsSmtSolver : public AbsTermBuilder,
   AbsSmtSolver(const AbsSmtSolver & other) = default;
   AbsSmtSolver & operator=(const AbsSmtSolver & other) = default;
 
-  /* Sets a solver option with smt-lib 2 syntax
+  /** @return the kind of the underlying solver */
+  solvers::Kind get_kind() const;
+
+  // ---------------------------- Configuration -----------------------------
+
+  /** Sets a solver option with smt-lib 2 syntax
    * SMTLIB: (set-option :<option> <value>)
    * @param option name of the option
    * @param value string value
@@ -60,7 +65,7 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   virtual void set_opt(const std::string option, const std::string value) = 0;
 
-  /* Sets a solver logic -- see smt-lib 2 logics
+  /** Sets a solver logic -- see smt-lib 2 logics
    * SMTLIB: (set-logic <logic>)
    * SMT-LIB allows it once, before any declaration, definition, assertion,
    * push or check, and again after reset. Solvers differ on what they
@@ -72,7 +77,9 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   virtual void set_logic(const std::string logic) = 0;
 
-  /* Add an assertion to the solver
+  // ------------------------ Assertions and checks -------------------------
+
+  /** Add an assertion to the solver
    * SMTLIB: (assert <t>)
    * The solver does the assertion in do_assert.
    * @param t a boolean term to assert
@@ -80,13 +87,13 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   void assert_formula(const Term & t);
 
-  /* Check satisfiability of the current assertions
+  /** Check satisfiability of the current assertions
    * SMTLIB: (check-sat)
    * @return a result object - see result.h
    */
   virtual Result check_sat() = 0;
 
-  /* Check satisfiability of the current assertions under the given assumptions
+  /** Check satisfiability of the current assertions under the given assumptions
    * Note: an assumption can be any boolean formula, not only a literal as
    * SMT-LIB requires; a solver that needs literals labels the others itself
    * SMTLIB: (check-sat-assuming (t1 t2 ... tn)) with assumptions =
@@ -98,7 +105,7 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   Result check_sat_assuming(const TermVec & assumptions);
 
-  /* Check satisfiability under the assumptions in any other range of Terms,
+  /** Check satisfiability under the assumptions in any other range of Terms,
    * such as a std::deque<Term> or an UnorderedTermSet: any container with begin
    * and end of one type, and C arrays. They are copied into a TermVec, so
    * solvers only override the TermVec version.
@@ -127,7 +134,7 @@ class AbsSmtSolver : public AbsTermBuilder,
   [[deprecated("use check_sat_assuming")]] Result check_sat_assuming_set(
       const UnorderedTermSet & assumptions);
 
-  /* Push contexts
+  /** Push contexts
    * SMTLIB: (push <num>)
    * The solver does the push in do_push, and the context level goes up by
    * num once it succeeds.
@@ -135,7 +142,7 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   void push(std::uint64_t num = 1);
 
-  /* Pop contexts
+  /** Pop contexts
    * SMTLIB: (pop <num>)
    * The solver does the pop in do_pop, and the context level goes down by
    * num once it succeeds.
@@ -144,6 +151,9 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   void pop(std::uint64_t num = 1);
 
+  /** Pop all contexts */
+  virtual void pop_all();
+
   /** Returns the current context level of the solver
    *  based on the number of pushes/pops since the last reset or
    *  reset_assertions
@@ -151,17 +161,16 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   virtual std::uint64_t get_context_level() const;
 
-  /* Pop all contexts */
-  virtual void pop_all();
+  // -------------------------------- Model ---------------------------------
 
-  /* Get the value of a term after check_sat returns a satisfiable result
+  /** Get the value of a term after check_sat returns a satisfiable result
    * SMTLIB: (get-value (<t>))
    * @param t the term to get the value of
    * @return a value term
    */
   virtual Term get_value(const Term & t) const = 0;
 
-  /* Get a map of index-value pairs for an array term after check_sat returns
+  /** Get a map of index-value pairs for an array term after check_sat returns
    * sat
    * SMTLIB: (get-value (<t>))
    * @param arr the array to get the value for
@@ -180,7 +189,9 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   virtual void get_unsat_assumptions(UnorderedTermSet & out) const = 0;
 
-  /* Return the solver to it's startup state
+  // -------------------------------- Resets --------------------------------
+
+  /** Return the solver to it's startup state
    * WARNING: This destroys all created terms and sorts
    * SMTLIB: (reset)
    * The solver does the reset in do_reset, and the context level goes back
@@ -188,49 +199,14 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   void reset();
 
-  /* Reset all assertions
+  /** Reset all assertions
    * SMTLIB: (reset-assertions)
    * The solver does the reset in do_reset_assertions, and the context level
    * goes back to 0 once it succeeds.
    */
   void reset_assertions();
 
-  // ------------------------ Optional theories -----------------------------
-  // Of the backends here only cvc5 wires up strings, and only cvc5 and Z3
-  // datatypes. Each default throws NotImplementedException naming the
-  // solver, which a backend without the theory inherits instead of writing
-  // the same throw. `AbsTerm::getStringValue` reads a string value back and
-  // is defaulted the same way, in term.cpp.
-
-  // Declaring these hides the AbsTermBuilder overloads and templates of
-  // the same names
-  using AbsTermBuilder::make_sort;
-  using AbsTermBuilder::make_term;
-
-  Term make_term(const std::string & s,
-                 bool useEscSequences,
-                 const Sort & sort) const override;
-  Term make_term(const std::wstring & s, const Sort & sort) const override;
-  Sort make_sort(const DatatypeDecl & d) const override;
-  DatatypeDecl make_datatype_decl(const std::string & s) const override;
-  DatatypeConstructorDecl make_datatype_constructor_decl(
-      const std::string s) const override;
-  void add_constructor(DatatypeDecl & dt,
-                       const DatatypeConstructorDecl & con) const override;
-  void add_selector(DatatypeConstructorDecl & dt,
-                    const std::string & name,
-                    const Sort & s) const override;
-  void add_selector_self(DatatypeConstructorDecl & dt,
-                         const std::string & name) const override;
-  Term get_constructor(const Sort & s, std::string name) const override;
-  Term get_tester(const Sort & s, std::string name) const override;
-  Term get_selector(const Sort & s,
-                    std::string con,
-                    std::string name) const override;
-  SortVec make_datatype_sorts(
-      const std::vector<DatatypeDecl> & decls) const override;
-
-  // extra methods -- not required
+  // -------------------------------- Extras --------------------------------
 
   /**
    * Dumps full smt-lib representation of current context to a file
@@ -269,33 +245,67 @@ class AbsSmtSolver : public AbsTermBuilder,
    */
   void get_justifying_symbols(const Term & term, UnorderedTermSet & out) const;
 
-  /** @return the kind of the underlying solver */
-  solvers::Kind get_kind() const;
+  // -------------------------- Optional theories ---------------------------
+  // Of the backends here only cvc5 wires up strings, and only cvc5 and Z3
+  // datatypes. Each default throws NotImplementedException naming the
+  // solver, which a backend without the theory inherits instead of writing
+  // the same throw. `AbsTerm::getStringValue` reads a string value back and
+  // is defaulted the same way, in term.cpp.
+
+  // Declaring these hides the AbsTermBuilder overloads and templates of
+  // the same names
+  using AbsTermBuilder::make_sort;
+  using AbsTermBuilder::make_term;
+
+  Term make_term(const std::string & s,
+                 bool useEscSequences,
+                 const Sort & sort) const override;
+  Term make_term(const std::wstring & s, const Sort & sort) const override;
+  DatatypeDecl make_datatype_decl(const std::string & s) const override;
+  DatatypeConstructorDecl make_datatype_constructor_decl(
+      const std::string s) const override;
+  void add_constructor(DatatypeDecl & dt,
+                       const DatatypeConstructorDecl & con) const override;
+  void add_selector(DatatypeConstructorDecl & dt,
+                    const std::string & name,
+                    const Sort & s) const override;
+  void add_selector_self(DatatypeConstructorDecl & dt,
+                         const std::string & name) const override;
+  Sort make_sort(const DatatypeDecl & d) const override;
+  SortVec make_datatype_sorts(
+      const std::vector<DatatypeDecl> & decls) const override;
+  Term get_constructor(const Sort & s, std::string name) const override;
+  Term get_tester(const Sort & s, std::string name) const override;
+  Term get_selector(const Sort & s,
+                    std::string con,
+                    std::string name) const override;
 
  protected:
-  /* Assert a boolean term in the underlying solver; see assert_formula */
+  // -------------------------------- Hooks ---------------------------------
+
+  /** Assert a boolean term in the underlying solver; see assert_formula */
   virtual void do_assert(const Term & t) = 0;
 
-  /* Check satisfiability under boolean assumptions in the underlying solver;
+  /** Check satisfiability under boolean assumptions in the underlying solver;
    * see check_sat_assuming
    */
   virtual Result do_check_sat_assuming(const TermVec & assumptions) = 0;
 
-  /* Push num contexts in the underlying solver; see push */
+  /** Push num contexts in the underlying solver; see push */
   virtual void do_push(std::uint64_t num) = 0;
 
-  /* Pop num contexts in the underlying solver; see pop */
+  /** Pop num contexts in the underlying solver; see pop */
   virtual void do_pop(std::uint64_t num) = 0;
 
-  /* Return the underlying solver to its startup state; see reset */
+  /** Return the underlying solver to its startup state; see reset */
   virtual void do_reset() = 0;
 
-  /* Drop every assertion and pushed context in the underlying solver; see
+  /** Drop every assertion and pushed context in the underlying solver; see
    * reset_assertions
    */
   virtual void do_reset_assertions() = 0;
 
-  // Helpers for subclasses
+  // ------------------------ Helpers for subclasses ------------------------
 
   /** Apply an operator to more than two arguments as SMT-LIB defines it in
    *  terms of applications to two, for a solver that takes no more: fold a
@@ -318,17 +328,6 @@ class AbsSmtSolver : public AbsTermBuilder,
    *  than the body is not a param
    */
   static void check_quantifier_binders(const Op & op, const TermVec & terms);
-
-  /** The index-value map that a chain of stores over a constant base stands
-   *  for, given the index and value each store along it writes. A backend
-   *  reads its model by peeling the outer store first, so that is the order
-   *  these come in, and since an outer store shadows an inner one at the same
-   *  index, an index written more than once keeps the outermost assignment.
-   *  @param stores the index and value each store writes, outermost first
-   *  @return the map from index to value
-   */
-  static UnorderedTermMap store_chain_values(
-      const std::vector<std::pair<Term, Term>> & stores);
 
   // Readers of the numerals in a base from 2 to 36 that make_term accepts,
   // defined in numeral_utils.cpp
@@ -382,6 +381,17 @@ class AbsSmtSolver : public AbsTermBuilder,
   static std::uint64_t bv_value_to_uint64(const std::string & val,
                                           std::uint64_t base,
                                           std::uint64_t width);
+
+  /** The index-value map that a chain of stores over a constant base stands
+   *  for, given the index and value each store along it writes. A backend
+   *  reads its model by peeling the outer store first, so that is the order
+   *  these come in, and since an outer store shadows an inner one at the same
+   *  index, an index written more than once keeps the outermost assignment.
+   *  @param stores the index and value each store writes, outermost first
+   *  @return the map from index to value
+   */
+  static UnorderedTermMap store_chain_values(
+      const std::vector<std::pair<Term, Term>> & stores);
 
  private:
   solvers::Kind backend_kind;       ///< the kind of the underlying solver

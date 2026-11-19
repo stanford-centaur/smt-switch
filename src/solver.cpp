@@ -29,6 +29,8 @@ namespace smt {
 
 AbsSmtSolver::AbsSmtSolver(solvers::Kind kind) : backend_kind(kind) {}
 
+solvers::Kind AbsSmtSolver::get_kind() const { return backend_kind; }
+
 void AbsSmtSolver::assert_formula(const Term & t)
 {
   // compares sorts rather than kinds, as some solvers alias Bool to another
@@ -94,9 +96,9 @@ void AbsSmtSolver::pop(std::uint64_t num)
   context_level -= num;
 }
 
-std::uint64_t AbsSmtSolver::get_context_level() const { return context_level; }
-
 void AbsSmtSolver::pop_all() { pop(get_context_level()); }
+
+std::uint64_t AbsSmtSolver::get_context_level() const { return context_level; }
 
 void AbsSmtSolver::reset()
 {
@@ -108,6 +110,12 @@ void AbsSmtSolver::reset_assertions()
 {
   do_reset_assertions();
   context_level = 0;
+}
+
+void AbsSmtSolver::dump_smt2(std::string /* filename */) const
+{
+  throw NotImplementedException("Dumping to a file is not supported by "
+                                + to_string(backend_kind));
 }
 
 Term AbsSmtSolver::make_term(const std::string & /* s */,
@@ -122,12 +130,6 @@ Term AbsSmtSolver::make_term(const std::wstring & /* s */,
                              const Sort & /* sort */) const
 {
   throw NotImplementedException("Strings are not supported by "
-                                + to_string(backend_kind));
-}
-
-Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
-{
-  throw NotImplementedException("Datatypes are not supported by "
                                 + to_string(backend_kind));
 }
 
@@ -166,6 +168,19 @@ void AbsSmtSolver::add_selector_self(DatatypeConstructorDecl & /* dt */,
                                 + to_string(backend_kind));
 }
 
+Sort AbsSmtSolver::make_sort(const DatatypeDecl & /* d */) const
+{
+  throw NotImplementedException("Datatypes are not supported by "
+                                + to_string(backend_kind));
+}
+
+SortVec AbsSmtSolver::make_datatype_sorts(
+    const std::vector<DatatypeDecl> & /* decls */) const
+{
+  throw NotImplementedException("make_datatype_sorts is not implemented by "
+                                + to_string(backend_kind));
+}
+
 Term AbsSmtSolver::get_constructor(const Sort & /* s */,
                                    std::string /* name */) const
 {
@@ -187,21 +202,6 @@ Term AbsSmtSolver::get_selector(const Sort & /* s */,
   throw NotImplementedException("Datatypes are not supported by "
                                 + to_string(backend_kind));
 }
-
-SortVec AbsSmtSolver::make_datatype_sorts(
-    const std::vector<DatatypeDecl> & /* decls */) const
-{
-  throw NotImplementedException("make_datatype_sorts is not implemented by "
-                                + to_string(backend_kind));
-}
-
-void AbsSmtSolver::dump_smt2(std::string /* filename */) const
-{
-  throw NotImplementedException("Dumping to a file is not supported by "
-                                + to_string(backend_kind));
-}
-
-solvers::Kind AbsSmtSolver::get_kind() const { return backend_kind; }
 
 Term AbsSmtSolver::make_nary_term(const Op & op, const TermVec & terms) const
 {
