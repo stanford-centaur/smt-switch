@@ -6,7 +6,6 @@
  * \date 2020
  * \copyright See the LICENSE file in the top-level source directory.
  */
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -21,9 +20,6 @@
 namespace smt::tests {
 
 namespace {
-
-using testing::StrEq;
-using testing::ThrowsMessage;
 
 TEST(GenericSort, SortProperties)
 {
@@ -115,48 +111,26 @@ TEST(GenericSort, FunctionSortString)
   EXPECT_NE(a_b_to_bool->to_string(), ab_to_bool->to_string());
 }
 
-// Matches an IncorrectUsageException with exactly this message
-auto incorrect_usage(const std::string & message)
+// The accessors an INT sort lacks are covered for every solver by
+// UnitSortTests.AccessorsOnlyForTheirKinds. What follows are the sorts no
+// solver API hands out.
+
+// the placeholder a self-referencing selector holds until its datatype's
+// sort is made
+TEST(GenericSort, DatatypeSortNotMadeYet)
 {
-  return ThrowsMessage<IncorrectUsageException>(StrEq(message));
+  Sort placeholder = std::make_shared<GenericSort>("list");
+  EXPECT_THROW(placeholder->get_datatype(), IncorrectUsageException);
 }
 
-TEST(GenericSort, WrongKindAccessors)
+// a selector prints as its name, but that name is not an uninterpreted one
+TEST(GenericSort, SelectorHasNoUninterpretedName)
 {
   Sort int_sort = std::make_shared<GenericSort>(SortKind::INT);
-  EXPECT_THAT([&] { int_sort->get_width(); },
-              incorrect_usage("Sort of kind Int has no width"));
-  EXPECT_THAT([&] { int_sort->get_arity(); },
-              incorrect_usage("Sort of kind Int has no arity"));
-  EXPECT_THAT([&] { int_sort->get_indexsort(); },
-              incorrect_usage("Sort of kind Int has no index sort"));
-  EXPECT_THAT([&] { int_sort->get_elemsort(); },
-              incorrect_usage("Sort of kind Int has no element sort"));
-  EXPECT_THAT([&] { int_sort->get_domain_sorts(); },
-              incorrect_usage("Sort of kind Int has no domain sorts"));
-  EXPECT_THAT([&] { int_sort->get_codomain_sort(); },
-              incorrect_usage("Sort of kind Int has no codomain sort"));
-  EXPECT_THAT([&] { int_sort->get_uninterpreted_name(); },
-              incorrect_usage("Sort of kind Int has no uninterpreted name"));
-  EXPECT_THAT(
-      [&] { int_sort->get_uninterpreted_param_sorts(); },
-      incorrect_usage("Sort of kind Int has no uninterpreted param sorts"));
-  EXPECT_THAT([&] { int_sort->get_datatype(); },
-              incorrect_usage("Sort of kind Int has no datatype"));
-
-  // the placeholder a self-referencing selector holds until its datatype's
-  // sort is made
-  Sort placeholder = std::make_shared<GenericSort>("list");
-  EXPECT_THAT([&] { placeholder->get_datatype(); },
-              incorrect_usage("The sort of datatype list is not made yet"));
-
-  // a selector prints as its name, but that name is not an uninterpreted one
   Sort selector = std::make_shared<DatatypeComponentSort>(
       SortKind::SELECTOR, "head", int_sort);
   EXPECT_EQ(selector->to_string(), "head");
-  EXPECT_THAT(
-      [&] { selector->get_uninterpreted_name(); },
-      incorrect_usage("Sort of kind Selector has no uninterpreted name"));
+  EXPECT_THROW(selector->get_uninterpreted_name(), IncorrectUsageException);
 }
 
 TEST(GenericSort, SortConstructors)
