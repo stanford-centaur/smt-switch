@@ -251,6 +251,21 @@ jobs:
           pip install pysmt pytest
           cmake --install build --component python
           pytest tests/python
+      - name: Check includes with IWYU
+        if: env.DEPS_ENTRIES != '[]'
+        run: |
+          if [[ $RUNNER_OS == Linux ]]; then
+            sudo apt-get install --no-install-recommends iwyu
+            driver=iwyu_tool
+            jobs=$(nproc)
+          else
+            brew install include-what-you-use
+            driver=iwyu_tool.py
+            jobs=$(sysctl -n hw.logicalcpu)
+          fi
+          "$driver" -j "$jobs" -p build --exclude build -- -Wno-error \
+            -Wno-unknown-warning-option -Xiwyu --error -Xiwyu --no_fwd_decls \
+            -Xiwyu --mapping_file="$GITHUB_WORKSPACE/.iwyu-mapping.yaml"
   full:
     needs: [plan, deps]
     if: >-
