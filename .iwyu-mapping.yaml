@@ -1,0 +1,30 @@
+# Mappings for include-what-you-use, passed with
+# -Xiwyu --mapping_file=.iwyu-mapping.yaml.
+# Public solver headers, with the top-level one still providing the types
+- include: [<btortypes.h>, public, <boolector.h>, public]
+- include: [<yices_types.h>, public, <yices.h>, public]
+# Private solver headers
+- include: [<bitwuzla/enums.h>, private, <bitwuzla/cpp/bitwuzla.h>, public]
+- include: [<bitwuzla/option.h>, private, <bitwuzla/cpp/bitwuzla.h>, public]
+- include: [<bitwuzla/result.h>, private, <bitwuzla/cpp/bitwuzla.h>, public]
+- include: [<cvc5/cvc5_kind.h>, private, <cvc5/cvc5.h>, public]
+- include: [<cvc5/cvc5_types.h>, private, <cvc5/cvc5.h>, public]
+- include: [<cvc5/cvc5_proof_rule.h>, private, <cvc5/cvc5.h>, public]
+- include: [<cvc5/cvc5_skolem_id.h>, private, <cvc5/cvc5.h>, public]
+- include: [<z3_macros.h>, private, <z3++.h>, public]
+- include: [<z3_api.h>, private, <z3++.h>, public]
+- include: [<z3_ast_containers.h>, private, <z3++.h>, public]
+- include: [<z3_algebraic.h>, private, <z3++.h>, public]
+- include: [<z3_polynomial.h>, private, <z3++.h>, public]
+- include: [<z3_rcf.h>, private, <z3++.h>, public]
+- include: [<z3_fixedpoint.h>, private, <z3++.h>, public]
+- include: [<z3_optimization.h>, private, <z3++.h>, public]
+- include: [<z3_fpa.h>, private, <z3++.h>, public]
+- include: [<z3_spacer.h>, private, <z3++.h>, public]
+# gmock for some reason defaults to the spelling with quotes
+- include: ['"gmock/gmock.h"', public, <gmock/gmock.h>, public]
+# POSIX macros that glibc also defines in <stdlib.h>
+- symbol: [WIFSIGNALED, private, <sys/wait.h>, public]
+- symbol: [WTERMSIG, private, <sys/wait.h>, public]
+- symbol: [WIFEXITED, private, <sys/wait.h>, public]
+- symbol: [WEXITSTATUS, private, <sys/wait.h>, public]
