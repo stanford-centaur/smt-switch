@@ -140,19 +140,12 @@ newer_of() {
   printf '%s\n%s\n' "$1" "$2" | highest_version
 }
 
-# Emit a message if candidate version is older than current or incomparable.
+# Emit a message if candidate version is incomparable with current.
 check_candidate() {
-  local current=$1 candidate=$2 prefix from to winner
+  local current=$1 candidate=$2 prefix
   prefix=${current%%[0-9]*}
   if [[ $candidate != "$prefix"[0-9]* ]]; then
     echo "upstream '$candidate' is not shaped like '$current'"
-    return
-  fi
-  from=${current#"$prefix"}
-  to=${candidate#"$prefix"}
-  winner=$(newer_of "$from" "$to")
-  if [[ $winner != "$to" ]]; then
-    echo "upstream '$candidate' is older than pinned '$current'"
   fi
 }
 
@@ -320,6 +313,11 @@ record() {
         echo "$pin: $current is current"
       fi
       ;;
+    ahead)
+      if [[ $mode == list ]]; then
+        echo "$pin: $current is ahead of upstream's $latest"
+      fi
+      ;;
     behind)
       case $mode in
         list) echo "$pin: $current -> $latest" ;;
@@ -346,7 +344,7 @@ record() {
 # Reports one pin, and edits it when it is behind.
 handle_pin() {
   local pin=$1 file prefix keyword current latest commit tag version
-  local project errmsg repo notes changes
+  local project errmsg repo winner notes changes
 
   if [[ $pin == mathsat ]]; then
     file=$mathsat_script
@@ -402,6 +400,14 @@ handle_pin() {
 
   if [[ $latest == "$current" ]]; then
     record "$pin" current "$current" "$latest"
+    return
+  fi
+
+  # Upstream can mark an older release as its latest one again.
+  winner=$(newer_of "$current" "$latest")
+  if [[ $winner == "$current" ]]; then
+    warn "$pin: upstream '$latest' is older than pinned '$current'"
+    record "$pin" ahead "$current" "$latest"
     return
   fi
 
