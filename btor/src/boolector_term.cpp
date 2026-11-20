@@ -26,7 +26,9 @@ extern "C" {
 
 #include "smt-switch/boolector_sort.h"
 #include "smt-switch/exceptions.h"
+#include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
 #include "smt-switch/text_utils.h"
 
 namespace smt {

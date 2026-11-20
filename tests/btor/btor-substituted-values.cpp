@@ -11,6 +11,8 @@
  */
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "smt-switch/boolector_factory.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"

@@ -14,6 +14,9 @@
  */
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <string>
+
 #include "smt-switch/exceptions.h"
 #include "smt-switch/interpolator.h"
 #include "smt-switch/msat_factory.h"
@@ -21,7 +24,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 
 namespace smt::tests {

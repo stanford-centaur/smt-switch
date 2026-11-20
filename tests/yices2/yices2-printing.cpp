@@ -10,8 +10,10 @@
  */
 #include <gtest/gtest.h>
 
-#include <ostream>
 #include <sstream>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 #include "exec_utils.h"
 #include "smt-switch/exceptions.h"

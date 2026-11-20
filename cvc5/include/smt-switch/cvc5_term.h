@@ -17,7 +17,6 @@
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 
 namespace smt {

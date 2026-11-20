@@ -13,7 +13,6 @@
 #include <ostream>
 #include <string>
 #include <typeindex>
-#include <typeinfo>
 
 #include "smt-switch/datatype.h"
 #include "smt-switch/exceptions.h"

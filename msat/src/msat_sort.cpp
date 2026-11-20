@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/solver_utils.h"

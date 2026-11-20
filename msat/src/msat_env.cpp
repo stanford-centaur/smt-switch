@@ -10,7 +10,6 @@
 #include <mathsat.h>
 
 #include <cstddef>
-#include <functional>
 #include <string>
 #include <utility>
 #include <vector>

@@ -16,7 +16,6 @@
 
 #include <cerrno>
 #include <csignal>
-#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <exception>

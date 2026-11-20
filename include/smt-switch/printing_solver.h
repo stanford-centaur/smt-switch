@@ -13,11 +13,9 @@
 #include <functional>
 #include <ostream>
 #include <string>
-#include <vector>
 
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/sort.h"
 
 namespace smt {
 

@@ -18,7 +18,6 @@ extern "C" {
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <initializer_list>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -31,6 +30,7 @@ extern "C" {
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/term_translator.h"
 #include "smt-switch/text_utils.h"

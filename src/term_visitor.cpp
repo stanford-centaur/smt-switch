@@ -8,6 +8,9 @@
  */
 #include "smt-switch/term_visitor.h"
 
+#include <memory>
+#include <utility>
+
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/term.h"
 #include "smt-switch/visit_result.h"

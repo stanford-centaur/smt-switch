@@ -14,6 +14,9 @@
  */
 #include <gtest/gtest.h>
 
+#include <string>
+#include <vector>
+
 #include "available_solvers.h"
 #include "smt-switch/exceptions.h"
 #include "smt-switch/smt_defs.h"

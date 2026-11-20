@@ -11,7 +11,9 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/interpolator.h"

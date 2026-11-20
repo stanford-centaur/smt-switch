@@ -12,6 +12,7 @@
 #include <iterator>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "available_solvers.h"
 #include "smt-switch/exceptions.h"

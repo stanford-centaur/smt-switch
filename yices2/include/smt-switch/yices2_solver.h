@@ -9,8 +9,6 @@
 #ifndef SMT_SWITCH_YICES2_SOLVER_H
 #define SMT_SWITCH_YICES2_SOLVER_H
 
-#include <gmp.h>  // IWYU pragma: keep (required by yices.h)
-#include <yices.h>
 #include <yices_types.h>
 
 #include <chrono>
@@ -23,7 +21,6 @@
 
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/yices2_instance_ref.h"
 
 namespace smt {

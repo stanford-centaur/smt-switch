@@ -7,8 +7,8 @@
  */
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
-#include <unordered_set>
 
 #include "smt-switch/boolector_factory.h"
 #include "smt-switch/exceptions.h"

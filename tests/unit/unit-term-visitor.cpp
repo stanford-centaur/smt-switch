@@ -7,7 +7,9 @@
  */
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"

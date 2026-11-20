@@ -11,6 +11,8 @@
  */
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "smt-switch/ops.h"
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
