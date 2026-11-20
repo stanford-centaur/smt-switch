@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <functional>
 #include <typeindex>
-#include <typeinfo>
 
 namespace smt {
 

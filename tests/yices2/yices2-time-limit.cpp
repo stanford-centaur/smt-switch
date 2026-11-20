@@ -9,10 +9,11 @@
  * program may be using as well.
  */
 #include <gtest/gtest.h>
-#include <signal.h>
+#include <signal.h>  // IWYU pragma: keep (POSIX names)
 #include <sys/time.h>
 
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "smt-switch/exceptions.h"
@@ -22,6 +23,8 @@
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/yices2_factory.h"
+
+// IWYU pragma: no_include <csignal>
 
 namespace smt::tests {
 

@@ -16,7 +16,6 @@
 #include <string>
 
 #include "smt-switch/smt_defs.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/z3_context.h"
 

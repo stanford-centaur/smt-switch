@@ -12,6 +12,7 @@
 #include <z3++.h>
 
 #include <memory>
+#include <string>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"

@@ -16,12 +16,10 @@
 #include <cstdint>
 #include <exception>
 #include <fstream>
-#include <initializer_list>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -33,6 +31,7 @@
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
 

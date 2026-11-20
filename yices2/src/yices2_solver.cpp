@@ -10,8 +10,9 @@
 #include "smt-switch/yices2_solver.h"
 
 #include <gmp.h>
-#include <signal.h>
+#include <signal.h>  // IWYU pragma: keep (POSIX names)
 #include <sys/time.h>
+#include <sys/types.h>
 #include <yices.h>
 
 #include <algorithm>
@@ -30,11 +31,14 @@
 #include "smt-switch/result.h"
 #include "smt-switch/solver_enums.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
 #include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_sort.h"
 #include "smt-switch/yices2_term.h"
+
+// IWYU pragma: no_include <csignal>
 
 namespace smt {
 

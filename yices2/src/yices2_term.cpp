@@ -20,6 +20,7 @@
 #include "smt-switch/numeral_utils.h"
 #include "smt-switch/ops.h"
 #include "smt-switch/solver_utils.h"
+#include "smt-switch/sort.h"
 #include "smt-switch/text_utils.h"
 #include "smt-switch/yices2_instance_ref.h"
 #include "smt-switch/yices2_sort.h"

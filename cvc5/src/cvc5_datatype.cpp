@@ -9,7 +9,6 @@
 #include "smt-switch/cvc5_datatype.h"
 
 #include <cstddef>
-#include <functional>
 #include <memory>
 #include <string>
 #include <tuple>

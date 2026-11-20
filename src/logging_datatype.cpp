@@ -8,7 +8,6 @@
 #include "smt-switch/logging_datatype.h"
 
 #include <cstddef>
-#include <functional>
 #include <memory>
 #include <string>
 #include <utility>

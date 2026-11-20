@@ -29,6 +29,7 @@
 #include "smt-switch/ops.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/sort.h"
+#include "smt-switch/term.h"
 #include "smtlib_parser.h"
 #include "smtlib_scanner.h"
 

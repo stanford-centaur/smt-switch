@@ -17,7 +17,6 @@
 
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/z3_context.h"
 #include "smt-switch/z3_sort.h"
 #include "smt-switch/z3_term.h"

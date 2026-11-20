@@ -14,6 +14,7 @@
 
 #include "smt-switch/interpolator.h"
 #include "smt-switch/msat_solver.h"
+#include "smt-switch/smt_defs.h"
 
 namespace smt {
 

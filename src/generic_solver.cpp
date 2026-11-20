@@ -14,7 +14,7 @@
 
 #include <fcntl.h>
 #include <poll.h>
-#include <signal.h>
+#include <signal.h>  // IWYU pragma: keep (POSIX names)
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif
@@ -54,6 +54,8 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
+
+// IWYU pragma: no_include <csignal>
 
 namespace smt {
 

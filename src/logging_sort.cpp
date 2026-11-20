@@ -13,7 +13,6 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "smt-switch/exceptions.h"
 #include "smt-switch/sort.h"

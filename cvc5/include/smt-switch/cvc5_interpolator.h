@@ -13,6 +13,7 @@
 
 #include "smt-switch/cvc5_solver.h"
 #include "smt-switch/interpolator.h"
+#include "smt-switch/smt_defs.h"
 
 namespace smt {
 

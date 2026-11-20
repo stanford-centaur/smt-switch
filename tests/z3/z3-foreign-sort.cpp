@@ -12,10 +12,12 @@
  */
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <string>
+
 #include "smt-switch/exceptions.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver.h"
-#include "smt-switch/solver_enums.h"
 #include "smt-switch/sort.h"
 #include "smt-switch/z3_factory.h"
 

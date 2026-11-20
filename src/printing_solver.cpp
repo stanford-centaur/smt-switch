@@ -28,7 +28,6 @@
 #include "smt-switch/result.h"
 #include "smt-switch/smt_defs.h"
 #include "smt-switch/solver_utils.h"
-#include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smt-switch/text_utils.h"
 
