@@ -81,7 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: ci-scripts/update-pins.sh --apply --pin "${{ matrix.pin }}"
-      - uses: j178/prek-action@v3.1.0
+      - uses: j178/prek-action@v3.1.1
         if: steps.check.outputs.allowed == 'true'
         with:
           install-only: true
