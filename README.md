@@ -249,7 +249,8 @@ library of its own, `smt-switch-smtlib`, which the CMake package provides as the
 `smtlib` component. It can be enabled by passing `--smtlib-reader` to
 `configure.sh`. It needs:
 
-- flex >= 2.6.4
+- flex >= 2.6.4, with its `FlexLexer.h` header (on Debian and Ubuntu,
+  `apt install flex libfl-dev`)
 - Bison >= 3.7 (will be downloaded automatically if no new enough one is found;
   on macOS, `brew install bison` is enough)
 

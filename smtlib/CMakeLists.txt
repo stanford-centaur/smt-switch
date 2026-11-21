@@ -18,6 +18,35 @@ find_package(BISON 3.7.0 REQUIRED)
 find_package(FLEX 2.6.4 REQUIRED)
 smt_switch_check_root(FLEX)
 
+# The scanner includes FlexLexer.h, which has to come from the flex that
+# generates it. A flex outside the compiler's default paths, such as
+# Homebrew's, keeps its own next to it, which the default paths would shadow.
+get_filename_component(_flex_include_dir "${FLEX_EXECUTABLE}" DIRECTORY)
+get_filename_component(_flex_include_dir "${_flex_include_dir}/../include" ABSOLUTE)
+if(
+  NOT EXISTS "${_flex_include_dir}/FlexLexer.h"
+  OR _flex_include_dir IN_LIST CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES
+)
+  set(_flex_include_dir "")
+endif()
+include(CheckIncludeFileCXX)
+include(CMakePushCheckState)
+cmake_push_check_state(RESET)
+set(CMAKE_REQUIRED_QUIET TRUE)
+set(CMAKE_REQUIRED_INCLUDES ${_flex_include_dir})
+string(MD5 _flex_id "${FLEX_EXECUTABLE}")
+check_include_file_cxx(FlexLexer.h FLEX_HAS_FLEXLEXER_H_${_flex_id})
+cmake_pop_check_state()
+if(NOT FLEX_HAS_FLEXLEXER_H_${_flex_id})
+  # checked again on the next run, after the header is installed
+  unset(FLEX_HAS_FLEXLEXER_H_${_flex_id} CACHE)
+  message(
+    FATAL_ERROR
+    "FlexLexer.h of ${FLEX_EXECUTABLE} not found. It is part of flex, but some "
+    "distributions package it separately, such as libfl-dev on Debian and Ubuntu."
+  )
+endif()
+
 bison_target(
   SmtLibParser
   "${CMAKE_CURRENT_SOURCE_DIR}/src/smtlib_parser.yy"
@@ -29,7 +58,6 @@ flex_target(
   SmtLibScanner
   "${CMAKE_CURRENT_SOURCE_DIR}/src/smtlib_scanner.l"
   "${CMAKE_CURRENT_BINARY_DIR}/smtlib_scanner.cpp"
-  DEFINES_FILE "${CMAKE_CURRENT_BINARY_DIR}/smtlib_scanner.h"
 )
 
 add_flex_bison_dependency(SmtLibScanner SmtLibParser)
@@ -44,9 +72,9 @@ set_property(
   PROPERTY
     COMPILE_OPTIONS
       -Wno-extra-semi-stmt
+      -Wno-implicit-fallthrough
       -Wno-old-style-cast
       -Wno-sign-compare
-      -Wno-unused-function
       $<$<CXX_COMPILER_ID:GNU>:-Wno-effc++>
 )
 
@@ -58,7 +86,11 @@ add_library(
   ${FLEX_SmtLibScanner_OUTPUTS}
 )
 # The generated headers are added as SYSTEM so that warnings originating there are ignored.
-target_include_directories(smt-switch-smtlib SYSTEM PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(
+  smt-switch-smtlib
+  SYSTEM
+  PRIVATE "${CMAKE_CURRENT_BINARY_DIR}" ${_flex_include_dir}
+)
 
 target_link_libraries(smt-switch-smtlib PUBLIC smt-switch)
 
