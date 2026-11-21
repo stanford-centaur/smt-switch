@@ -13,8 +13,8 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -31,7 +31,6 @@
 #include "smt-switch/sort.h"
 #include "smt-switch/term.h"
 #include "smtlib_parser.h"
-#include "smtlib_scanner.h"
 
 namespace smt {
 
@@ -46,12 +45,6 @@ auto has_sort_kind(SortKind sk)
 {
   return [sk](const Term & t) { return has_sort_kind(sk, t); };
 }
-
-/** Closes the input file of a parse */
-struct CloseFile
-{
-  void operator()(std::FILE * input) const { std::fclose(input); }
-};
 
 /** Closes the argument scopes a failed parse leaves open */
 struct CloseScopes
@@ -123,10 +116,10 @@ SmtLibReader::SmtLibReader(SmtSolver & solver, bool strict)
 void SmtLibReader::parse(const std::string & f)
 {
   file = f;
-  std::unique_ptr<std::FILE, CloseFile> input_file;
+  std::ifstream input_file;
   if (!file.empty() && file != "-")
   {
-    input_file.reset(std::fopen(file.c_str(), "r"));
+    input_file.open(file);
     if (!input_file)
     {
       int open_errno = errno;
@@ -136,7 +129,7 @@ void SmtLibReader::parse(const std::string & f)
   }
 
   SmtLibParser::location_type location(&file);
-  SmtLibScanner scanner(input_file ? input_file.get() : stdin, location);
+  SmtLibScanner scanner(input_file.is_open() ? input_file : std::cin, location);
 
   CloseScopes close_scopes{ *this };
   SmtLibParser parser(scanner, *this);
