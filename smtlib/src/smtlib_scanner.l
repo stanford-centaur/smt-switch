@@ -7,93 +7,78 @@
  * \copyright See the LICENSE file in the top-level source directory.
  */
 %option batch
-%option extra-type="smt::SmtLibParser::location_type *"
+%option c++
 %option noinput
+%option nounistd
 %option nounput
 %option noyywrap
 %option prefix="smtlib"
-%option reentrant
 
-/* Emitted into smtlib_scanner.h and smtlib_scanner.cpp, before flex's code. */
+/* Emitted at the start of smtlib_scanner.cpp, before flex's code */
 %top{
-#include <cstdio>
+// The scanner defines macros that use this class before it is declared.
+class smtlibFlexLexer;
 
+// This and the end_keep below suppress IWYU removals for the generated code.
+// IWYU pragma: begin_keep
+}
+
+%{
+// IWYU pragma: end_keep
+
+#include <memory>
+#include <string>
+
+#include "smt-switch/exceptions.h"
+#include "smt-switch/text_utils.h"
 #include "smtlib_parser.h"
 
-// The scanner's state, as flex defines it further down, too late for the
-// declarations below.
-#ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
-typedef void * yyscan_t;
-#endif
+// The generated scanner code uses the C spelling.
+// IWYU pragma: no_include <cerrno>
 
-// The scanner's yylex, renamed by the prefix and put in smt, so that the
-// rules below use the names in smt. flex declares an int yylex unless this
-// is defined first.
-#define YY_DECL \
-  smt::SmtLibParser::symbol_type smt::smtliblex(yyscan_t yyscanner)
+// Bug in IWYU (this forward declaration is not valid C++)
+// IWYU pragma: no_forward_declare smt::SmtLibScanner::Lexer
 
 namespace smt {
 
-/** The scanner's yylex, as YY_DECL defines it */
-SmtLibParser::symbol_type smtliblex(yyscan_t yyscanner);
-
-/** The scanner of one input, which owns flex's state for it */
-class SmtLibScanner
+/** The scanner flex generates, which moves the location along as it reads */
+class SmtLibScanner::Lexer : public smtlibFlexLexer
 {
  public:
-  /** @param input the input to read
-   *  @param loc where the scanner is in the input, which it moves along
-   *  @throws std::bad_alloc if flex cannot allocate its state
-   */
-  SmtLibScanner(std::FILE * input, SmtLibParser::location_type & loc);
-  SmtLibScanner(const SmtLibScanner &) = delete;
-  SmtLibScanner & operator=(const SmtLibScanner &) = delete;
-  ~SmtLibScanner();
+  Lexer(std::istream & input, SmtLibParser::location_type & location);
 
   /** Reads the next token of the input */
   SmtLibParser::symbol_type next_token();
 
  private:
-  yyscan_t state_ = nullptr;
+  /** Throws the errors flex cannot recover from, such as a failed read or
+   *  allocation, which it would otherwise print before exiting
+   */
+  void LexerError(const char * msg) override;
+
+  SmtLibParser::location_type & loc;
 };
 
-/** The parser's yylex, renamed by the prefix */
-inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
-{
-  return scanner.next_token();
-}
-
 }  // namespace smt
-}
 
-%{
-#include <cstring>
-#include <new>
-
-#include "smt-switch/exceptions.h"
-#include "smt-switch/text_utils.h"
+// The scanner's yylex, renamed and returning the parser's symbols. flex
+// defines yyFlexLexer::yylex unless this is defined first.
+#define YY_DECL \
+  smt::SmtLibParser::symbol_type smt::SmtLibScanner::Lexer::next_token()
 
 // The length of the token, as the location counts it. Some flex versions
-// declare yyleng as an int and others as a yy_size_t. A token too long for
+// declare yyleng as an int and others as a size_t. A token too long for
 // the count would only misplace the columns of a later error.
 #define TOKEN_LENGTH \
   static_cast<smt::SmtLibParser::location_type::counter_type>(yyleng)
 
 #define YY_USER_ACTION loc.step(); loc.columns(TOKEN_LENGTH);
-
-// Errors flex cannot recover from, such as a failed read or allocation,
-// which it would otherwise print before exiting.
-#define YY_FATAL_ERROR(msg) throw smt::SystemException(msg)
 %}
 
 simplesymbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 
 %%
 
-%{
-  SmtLibParser::location_type & loc = *yyextra;
-%}
 [ \t\r]+              { /* skip whitespace */ }
 \n+                   { loc.lines(TOKEN_LENGTH); }
 
@@ -168,23 +153,36 @@ let                   { return SmtLibParser::make_LET(yytext, loc); }
 <<EOF>>               { loc.step(); return SmtLibParser::make_SMTLIBEOF(loc); }
 %%
 
-namespace smt {
-
-SmtLibScanner::SmtLibScanner(std::FILE * input,
-                             SmtLibParser::location_type & loc)
+// flex's own yylex, which the vtable needs although YY_DECL replaces it
+int smtlibFlexLexer::yylex()
 {
-  if (smtliblex_init_extra(&loc, &state_) != 0)
-  {
-    throw std::bad_alloc();
-  }
-  smtlibset_in(input, state_);
+  throw smt::InternalException("The SMT-LIB scanner has no yylex");
 }
 
-SmtLibScanner::~SmtLibScanner() { smtliblex_destroy(state_); }
+namespace smt {
+
+SmtLibScanner::Lexer::Lexer(std::istream & input,
+                            SmtLibParser::location_type & location)
+    : smtlibFlexLexer(&input), loc(location)
+{
+}
+
+void SmtLibScanner::Lexer::LexerError(const char * msg)
+{
+  throw SystemException(msg);
+}
+
+SmtLibScanner::SmtLibScanner(std::istream & input,
+                             SmtLibParser::location_type & location)
+    : lexer(std::make_unique<Lexer>(input, location))
+{
+}
+
+SmtLibScanner::~SmtLibScanner() = default;
 
 SmtLibParser::symbol_type SmtLibScanner::next_token()
 {
-  return smtliblex(state_);
+  return lexer->next_token();
 }
 
 }  // namespace smt
