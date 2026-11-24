@@ -23,19 +23,63 @@
 %param { SmtLibScanner & scanner }
 %parse-param { SmtLibReader & drv }
 
-// Emitted into smtlib_parser.h, before the parser class.
+// Emitted into smtlib_parser.h, before the parser class
 %code requires {
+#include <cstddef>  // used by the generated parser code without an include
+#include <memory>
+#include <new>  // used by the generated parser code without an include
 #include <string>
 #include <utility>
 
 #include "smt-switch/ops.h"
 #include "smt-switch/smt_defs.h"
+#include "smt-switch/smtlib_reader.h"
 #include "smt-switch/sort.h"
-#include "smt-switch/term.h"
 
 namespace smt {
-class SmtLibReader;
+// The parser class refers to the scanner, which needs the parser's types.
 class SmtLibScanner;
+}  // namespace smt
+
+// This and the end_keep below suppress IWYU removals for the generated code.
+// IWYU pragma: begin_keep
+}
+
+// Emitted into smtlib_parser.h, after the parser class
+%code provides {
+// IWYU pragma: end_keep
+
+namespace smt {
+
+/** The scanner of one input */
+class SmtLibScanner
+{
+ public:
+  /** @param input the input to read
+   *  @param location where the scanner is in the input, which it moves along
+   */
+  SmtLibScanner(std::istream & input, SmtLibParser::location_type & location);
+  SmtLibScanner(const SmtLibScanner &) = delete;
+  SmtLibScanner & operator=(const SmtLibScanner &) = delete;
+  ~SmtLibScanner();
+
+  /** Reads the next token of the input
+   *  @throws SystemException if reading the input fails
+   */
+  SmtLibParser::symbol_type next_token();
+
+ private:
+  /** The scanner flex generates, defined where flex generates it */
+  class Lexer;
+  std::unique_ptr<Lexer> lexer;
+};
+
+/** The parser's yylex, renamed by the prefix */
+inline SmtLibParser::symbol_type smtliblex(SmtLibScanner & scanner)
+{
+  return scanner.next_token();
+}
+
 }  // namespace smt
 }
 
@@ -45,7 +89,6 @@ class SmtLibScanner;
 #include <stdexcept>
 
 #include "smt-switch/smtlib_reader.h"
-#include "smtlib_scanner.h"
 #include "smt-switch/solver.h"
 #include "smt-switch/text_utils.h"
 

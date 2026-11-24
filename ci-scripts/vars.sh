@@ -3,9 +3,10 @@
 
 # The system packages that are not on the runner images so need to be installed.
 # MacOS has bison already, but its version is too old for the SMT-LIB reader.
+# Ubuntu has flex, but not the FlexLexer.h header the reader's scanner needs.
 # Libraries that have to be built, such as LibPoly, are installed separately,
 # by the install-extra-libraries scripts.
-export APT_PACKAGES="gperf libgmp-dev libmpfr-dev"
+export APT_PACKAGES="gperf libfl-dev libgmp-dev libmpfr-dev"
 export BREW_PACKAGES="autoconf bison"
 
 # Where the install-extra-libraries scripts keep what they build, which CI
