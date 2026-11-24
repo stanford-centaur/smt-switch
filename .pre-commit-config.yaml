@@ -43,7 +43,7 @@ repos:
     hooks:
       - id: codespell
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.5
+    rev: v0.17.6
     hooks:
       # ruff-check runs first, as ruff recommends, since --fix can leave code
       # the formatter then rewrites. The overrides below are what reach the
@@ -115,7 +115,7 @@ repos:
         # a table reads as a paragraph and the configured wrap reflows it.
         additional_dependencies: [mdformat-gfm==1.0.0]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.24.1
+    rev: v0.24.2
     hooks:
       - id: markdownlint-cli2
   - repo: https://github.com/scop/pre-commit-shfmt
